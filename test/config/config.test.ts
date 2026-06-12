@@ -1,0 +1,46 @@
+import { Effect, Option } from "effect"
+import { describe, expect, it } from "vitest"
+
+import { loadObsConfigFromEnv, normalizeObsWebSocketUrl, redactedObsWebSocketUrl } from "../../src/config/config.js"
+import { getSanitizedObsContext } from "../../src/config/obs-runtime-context.js"
+
+describe("OBS config", () => {
+  it("normalizes bare host urls and preserves ws/wss urls", () => {
+    expect(normalizeObsWebSocketUrl("localhost:4455")).toBe("ws://localhost:4455/")
+    expect(normalizeObsWebSocketUrl("ws://localhost:4455")).toBe("ws://localhost:4455/")
+    expect(normalizeObsWebSocketUrl("wss://obs.example.test")).toBe("wss://obs.example.test/")
+  })
+
+  it("decodes environment defaults and toolset filtering", async () => {
+    const config = await Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: "scenes,raw" }))
+    expect(config.url).toBe("ws://localhost:4455/")
+    expect(config.connectionTimeoutMs).toBe(30_000)
+    expect(config.enabledToolsets).toEqual(["scenes"])
+  })
+
+  it("defaults blank toolsets and rejects non-websocket URLs", async () => {
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: " , " })))
+      .resolves.toMatchObject({ enabledToolsets: ["scenes"] })
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_WEBSOCKET_CONNECTION_TIMEOUT: "nope" })))
+      .rejects.toThrow()
+    expect(() => normalizeObsWebSocketUrl("http://localhost:4455")).toThrow("ws:// or wss://")
+    expect(() => normalizeObsWebSocketUrl("ws://user:secret@localhost:4455")).toThrow("must not include")
+    expect(redactedObsWebSocketUrl("ws://user:secret@localhost:4455/")).toBe("ws://localhost:4455/")
+  })
+
+  it("sanitizes password configuration out of runtime context", async () => {
+    const config = await Effect.runPromise(loadObsConfigFromEnv({
+      OBS_WEBSOCKET_URL: "wss://obs.example.test:4455",
+      OBS_WEBSOCKET_PASSWORD: "secret"
+    }))
+    expect(Option.isSome(config.password)).toBe(true)
+    expect(getSanitizedObsContext(config)).toMatchObject({
+      transport: "stdio",
+      obs: {
+        url: { origin: "wss://obs.example.test:4455", host: "obs.example.test:4455", protocol: "wss:" },
+        authMode: "password"
+      }
+    })
+    expect(JSON.stringify(getSanitizedObsContext(config))).not.toContain("secret")
+  })
+})

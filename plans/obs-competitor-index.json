@@ -1,0 +1,573 @@
+{
+  "schemaVersion": 1,
+  "status": "proposed-draft",
+  "date": "2026-06-12",
+  "description": "Auditable draft index of OBS MCP competitors, distribution wrappers, registry mirrors, and official obs-websocket protocol categories for cleanroom OBS MCP planning.",
+  "sourceOfTruth": {
+    "protocol": {
+      "name": "obsproject/obs-websocket generated protocol",
+      "status": "protocol-source",
+      "url": "https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md",
+      "pinnedUrl": "https://github.com/obsproject/obs-websocket/blob/ffb09e892bb829e781172a2883870aa1416c638c/docs/generated/protocol.md",
+      "localPath": ".references/protocol/obs-websocket/docs/generated/protocol.md",
+      "commit": "ffb09e892bb829e781172a2883870aa1416c638c",
+      "rationale": "Official generated protocol docs are the cleanroom source of truth for OBS WebSocket requests, events, opcodes, auth, version gating, and feature caveats."
+    }
+  },
+  "competitors": [
+    {
+      "id": "royshil-obs-mcp",
+      "name": "royshil/obs-mcp",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/royshil/obs-mcp",
+        "https://www.npmjs.com/package/obs-mcp"
+      ],
+      "localPaths": [
+        ".references/competitors/obs-mcp",
+        ".references/competitors/npm-tarballs/obs-mcp-1.1.0"
+      ],
+      "runtime": "TypeScript/Node plus legacy Python",
+      "license": "GPL-2.0",
+      "distribution": "npx -y obs-mcp@latest",
+      "transport": "stdio",
+      "toolSurface": "125 npm / 127 repo tools across general, scenes, sources, scene-items, inputs, outputs, record, stream, transitions, filters, UI, and config.",
+      "coverageStatus": "broad-low-level-parity-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Broadest direct low-level parity reference, but not implementation source due GPL license, weak tests, text-only returns, and low-policy raw/filesystem tools."
+    },
+    {
+      "id": "cdavis-unngh-obs-mcp",
+      "name": "cdavis-code/obs_websocket_workspace / @unngh/obs-mcp",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/cdavis-code/obs_websocket_workspace",
+        "https://www.npmjs.com/package/@unngh/obs-mcp",
+        "https://pub.dev/packages/obs_mcp"
+      ],
+      "localPaths": [
+        ".references/obs_websocket_workspace",
+        ".references/competitors/obs_websocket_workspace",
+        ".references/competitors/npm-tarballs/unngh-obs-mcp-5.7.4"
+      ],
+      "runtime": "Dart core with compiled JavaScript npm distribution",
+      "license": "MIT",
+      "distribution": "dart pub global activate obs_mcp, Homebrew, or npx @unngh/obs-mcp",
+      "transport": "stdio",
+      "toolSurface": "Two top-level code-mode tools, search and execute, backed by 134 internal OBS operations.",
+      "coverageStatus": "broad-operation-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Useful parity and packaging reference. Reject generated code-mode/eval/static-client architecture for Huly-style cleanroom implementation."
+    },
+    {
+      "id": "sbroenne-mcp-server-obs",
+      "name": "sbroenne/mcp-server-obs",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/sbroenne/mcp-server-obs",
+        "https://marketplace.visualstudio.com/items?itemName=sbroenne.obs-mcp"
+      ],
+      "localPaths": [
+        ".references/competitors/mcp-server-obs"
+      ],
+      "runtime": "C#/.NET server with TypeScript VS Code wrapper",
+      "license": "MIT",
+      "distribution": "VS Code Marketplace extension, GitHub release zip, or dotnet server execution",
+      "transport": "stdio",
+      "toolSurface": "Seven action-multiplexed tools: connection, recording, streaming, scene, source, audio, media.",
+      "coverageStatus": "packaging-and-workflow-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Strong VS Code packaging, screenshot/window-capture/virtual-camera workflows, and integration-test ideas. Avoid static singleton state and action-multiplexed schemas."
+    },
+    {
+      "id": "ironystock-agentic-obs",
+      "name": "ironystock/agentic-obs",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/ironystock/agentic-obs"
+      ],
+      "localPaths": [
+        ".references/competitors/agentic-obs"
+      ],
+      "runtime": "Go",
+      "license": "MIT",
+      "distribution": "go install github.com/ironystock/agentic-obs@latest",
+      "transport": "stdio plus local HTTP dashboard/screenshot serving",
+      "toolSurface": "81 tools in 9 groups plus 4 meta-tools, resources, prompts, TUI, and web dashboard.",
+      "coverageStatus": "workflow-and-harness-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Best source of product/workflow ideas: capability interface, lifecycle handling, resources/prompts, screenshot retention, and stronger tests. Avoid unauthenticated HTTP exposure and non-enforced tool toggles."
+    },
+    {
+      "id": "lars-obs-mcp",
+      "name": "LarsCanGit/OBS-MCP",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/LarsCanGit/OBS-MCP",
+        "https://www.npmjs.com/package/obs-mcp-server"
+      ],
+      "localPaths": [
+        ".references/competitors/lars-obs-mcp",
+        ".references/competitors/npm-tarballs/obs-mcp-server-1.0.0"
+      ],
+      "runtime": "JavaScript/Node",
+      "license": "MIT",
+      "distribution": "npx -y obs-mcp-server",
+      "transport": "stdio",
+      "toolSurface": "26 tools covering status, scenes, record/stream, sources, audio, canvas, scene collections, profiles, and screenshots.",
+      "coverageStatus": "compact-scope-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Useful reference for a compact direct-control first release. Needs deeper review before it influences implementation scope."
+    },
+    {
+      "id": "takurot-obs-showrunner-mcp",
+      "name": "takurot/obs-showrunner-mcp",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/takurot/obs-showrunner-mcp",
+        "https://www.npmjs.com/package/obs-showrunner-mcp"
+      ],
+      "localPaths": [
+        ".references/competitors/obs-showrunner-mcp"
+      ],
+      "runtime": "TypeScript/Node",
+      "license": "MIT in npm metadata; no license file found during discovery",
+      "distribution": "npx obs-showrunner-mcp",
+      "transport": "stdio",
+      "toolSurface": "18 higher-level tools for show flow, safety, audio mood, effects, overlays, snapshots, content, and scenes.",
+      "coverageStatus": "higher-level-workflow-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Useful for later show-director workflow tools and naming. Not a source for the core protocol layer."
+    },
+    {
+      "id": "yshk-obs-mcp",
+      "name": "yshk-mrt/obs-mcp",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/yshk-mrt/obs-mcp"
+      ],
+      "localPaths": [
+        ".references/competitors/yshk-obs-mcp"
+      ],
+      "runtime": "TypeScript/Node",
+      "license": "MIT",
+      "distribution": "clone/build/run",
+      "transport": "stdio",
+      "toolSurface": "23 JSON-defined OBS actions for scenes, stream/record, source visibility/transform, screenshots, media, and filters.",
+      "coverageStatus": "prototype-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Useful as low-priority idea source. Do not treat as parity authority."
+    },
+    {
+      "id": "danielrosehill-claude-obs-plugin",
+      "name": "danielrosehill/Claude-OBS-Plugin",
+      "status": "distribution-wrapper",
+      "urls": [
+        "https://github.com/danielrosehill/Claude-OBS-Plugin"
+      ],
+      "localPaths": [
+        ".references/competitors/Claude-OBS-Plugin"
+      ],
+      "runtime": "Claude Code plugin",
+      "license": "MIT",
+      "distribution": "claude plugins install obs-mgmt@danielrosehill",
+      "transport": "Launches bundled obs-mcp over stdio",
+      "toolSurface": "No independent OBS MCP server; setup and management workflow around Roy's package.",
+      "coverageStatus": "setup-ux-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Track for installation, backup, and OBS setup UX. Not implementation parity."
+    },
+    {
+      "id": "iflow-mcp-obs-mcp",
+      "name": "@iflow-mcp/obs-mcp",
+      "status": "registry-mirror",
+      "urls": [
+        "https://www.npmjs.com/package/@iflow-mcp/obs-mcp"
+      ],
+      "localPaths": [
+        ".references/competitors/npm-tarballs/iflow-mcp-obs-mcp-1.0.1"
+      ],
+      "runtime": "TypeScript/Node package",
+      "license": "GPL-2.0",
+      "distribution": "npx @iflow-mcp/obs-mcp",
+      "transport": "stdio",
+      "toolSurface": "127 tools, closely matching Roy/Zeke package.",
+      "coverageStatus": "package-ecosystem-signal",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Not proven independent; track as redistribution/package ecosystem signal only."
+    },
+    {
+      "id": "consigcody94-stream-pilot",
+      "name": "consigcody94/stream-pilot",
+      "status": "stale-or-unavailable",
+      "urls": [
+        "https://lobehub.com/mcp/consigcody94-stream-pilot"
+      ],
+      "localPaths": [],
+      "runtime": "Unknown",
+      "license": "Unknown",
+      "distribution": "Registry listing only during research",
+      "transport": "Unknown",
+      "toolSurface": "LobeHub lists OBS+Twitch MCP with 21 tools, but source was not publicly cloneable and no npm package was found.",
+      "coverageStatus": "unverified",
+      "matrixLocation": "Open Research",
+      "rationale": "Revisit only if source or package becomes available."
+    }
+  ],
+  "registryMirrors": [
+    "https://lobehub.com/mcp/royshil-obs-mcp",
+    "https://mcpmarket.com/server/obs",
+    "https://shyft.ai/mcp/royshil-obs-mcp-github",
+    "https://glama.ai/mcp/servers?query=OBS+Studio",
+    "https://langdb.ai/app/mcp-servers/obs-mcp-server-00647581-d817-4279-a576-e742ac138a52/",
+    "https://chat.mcp.so/server/obs-mcp-server/LarsCanGit"
+  ],
+  "protocolCategories": [
+    {
+      "category": "General",
+      "status": "initial",
+      "minimumTools": [
+        "get_version",
+        "get_stats",
+        "trigger_hotkey"
+      ],
+      "representativeRequests": [
+        "GetVersion",
+        "GetStats",
+        "TriggerHotkeyByName",
+        "BroadcastCustomEvent",
+        "CallVendorRequest",
+        "Sleep"
+      ],
+      "gotchas": [
+        "Use GetVersion.availableRequests for feature gating.",
+        "Vendor/custom calls are plugin/inter-client surfaces and need policy."
+      ]
+    },
+    {
+      "category": "Config",
+      "status": "parity-gap",
+      "minimumTools": [
+        "get_record_directory"
+      ],
+      "representativeRequests": [
+        "GetPersistentData",
+        "SetPersistentData",
+        "GetSceneCollectionList",
+        "SetCurrentSceneCollection",
+        "GetProfileList",
+        "SetCurrentProfile",
+        "GetVideoSettings",
+        "SetVideoSettings",
+        "GetStreamServiceSettings",
+        "SetStreamServiceSettings",
+        "GetRecordDirectory",
+        "SetRecordDirectory"
+      ],
+      "gotchas": [
+        "Scene collection switches block and can change active state.",
+        "Video settings need paired dimension and FPS validation."
+      ]
+    },
+    {
+      "category": "Scenes",
+      "status": "initial",
+      "minimumTools": [
+        "list_scenes",
+        "get_current_scene",
+        "set_current_scene"
+      ],
+      "representativeRequests": [
+        "GetSceneList",
+        "GetCurrentProgramScene",
+        "SetCurrentProgramScene",
+        "GetCurrentPreviewScene",
+        "SetCurrentPreviewScene",
+        "CreateScene",
+        "RemoveScene",
+        "SetSceneName"
+      ],
+      "gotchas": [
+        "Preview scene requests depend on studio mode.",
+        "Program/preview concepts do not apply to canvases."
+      ]
+    },
+    {
+      "category": "Inputs",
+      "status": "initial",
+      "minimumTools": [
+        "list_inputs",
+        "get_input_mute",
+        "set_input_mute",
+        "get_input_volume",
+        "set_input_volume"
+      ],
+      "representativeRequests": [
+        "GetInputList",
+        "GetInputKindList",
+        "CreateInput",
+        "RemoveInput",
+        "GetInputSettings",
+        "SetInputSettings",
+        "GetInputMute",
+        "SetInputMute",
+        "GetInputVolume",
+        "SetInputVolume"
+      ],
+      "gotchas": [
+        "RemoveInput removes all associated scene items.",
+        "SetInputSettings overlay defaults true."
+      ]
+    },
+    {
+      "category": "Transitions",
+      "status": "later",
+      "minimumTools": [],
+      "representativeRequests": [
+        "GetTransitionKindList",
+        "GetSceneTransitionList",
+        "GetCurrentSceneTransition",
+        "SetCurrentSceneTransition",
+        "SetCurrentSceneTransitionDuration",
+        "TriggerStudioModeTransition",
+        "SetTBarPosition"
+      ],
+      "gotchas": [
+        "Transition names are generally unique but not guaranteed.",
+        "T-bar APIs may be deprecated or changed later."
+      ]
+    },
+    {
+      "category": "Filters",
+      "status": "later",
+      "minimumTools": [],
+      "representativeRequests": [
+        "GetSourceFilterList",
+        "GetSourceFilter",
+        "CreateSourceFilter",
+        "RemoveSourceFilter",
+        "SetSourceFilterSettings",
+        "SetSourceFilterEnabled",
+        "SetSourceFilterIndex"
+      ],
+      "gotchas": [
+        "Filter settings overlay defaults true.",
+        "Source identity may need sourceName/sourceUuid/canvasUuid."
+      ]
+    },
+    {
+      "category": "Outputs",
+      "status": "later",
+      "minimumTools": [
+        "control_virtual_camera"
+      ],
+      "representativeRequests": [
+        "GetOutputList",
+        "GetOutputStatus",
+        "StartOutput",
+        "StopOutput",
+        "GetOutputSettings",
+        "SetOutputSettings",
+        "StartVirtualCam",
+        "StopVirtualCam",
+        "StartReplayBuffer",
+        "StopReplayBuffer"
+      ],
+      "gotchas": [
+        "Generic output tools require exact outputName.",
+        "Record/stream state events are under Outputs."
+      ]
+    },
+    {
+      "category": "Scene Items",
+      "status": "initial",
+      "minimumTools": [
+        "list_scene_items",
+        "set_scene_item_enabled"
+      ],
+      "representativeRequests": [
+        "GetSceneItemList",
+        "GetSceneItemId",
+        "GetSceneItemTransform",
+        "SetSceneItemTransform",
+        "GetSceneItemEnabled",
+        "SetSceneItemEnabled",
+        "SetSceneItemIndex",
+        "DuplicateSceneItem"
+      ],
+      "gotchas": [
+        "Scene item IDs are per scene or group.",
+        "Source names can match multiple scene items, so searchOffset matters."
+      ]
+    },
+    {
+      "category": "Media Inputs",
+      "status": "later",
+      "minimumTools": [],
+      "representativeRequests": [
+        "GetMediaInputStatus",
+        "SetMediaInputCursor",
+        "OffsetMediaInputCursor",
+        "TriggerMediaInputAction"
+      ],
+      "gotchas": [
+        "Cursor operations do not perform bounds checking.",
+        "Duration/cursor can be null when media is not playing."
+      ]
+    },
+    {
+      "category": "Ui",
+      "status": "later",
+      "minimumTools": [],
+      "representativeRequests": [
+        "GetStudioModeEnabled",
+        "SetStudioModeEnabled",
+        "OpenInputPropertiesDialog",
+        "OpenInputFiltersDialog",
+        "GetMonitorList",
+        "OpenSourceProjector",
+        "OpenVideoMixProjector"
+      ],
+      "gotchas": [
+        "Projector APIs are likely to change.",
+        "ScreenshotSaved event is for OBS hotkey screenshots, not SaveSourceScreenshot."
+      ]
+    },
+    {
+      "category": "Record",
+      "status": "initial",
+      "minimumTools": [
+        "get_record_status",
+        "start_recording",
+        "stop_recording"
+      ],
+      "representativeRequests": [
+        "GetRecordStatus",
+        "StartRecord",
+        "StopRecord",
+        "PauseRecord",
+        "ResumeRecord",
+        "SplitRecordFile",
+        "CreateRecordChapter"
+      ],
+      "gotchas": [
+        "StopRecord returns outputPath.",
+        "Chapter markers require Hybrid MP4 as of OBS 30.2."
+      ]
+    },
+    {
+      "category": "Stream",
+      "status": "initial",
+      "minimumTools": [
+        "get_stream_status",
+        "start_stream",
+        "stop_stream"
+      ],
+      "representativeRequests": [
+        "GetStreamStatus",
+        "StartStream",
+        "StopStream",
+        "ToggleStream",
+        "SendStreamCaption"
+      ],
+      "gotchas": [
+        "Stream service credentials/settings belong under Config.",
+        "Streaming integration tests require configured destinations and should be opt-in."
+      ]
+    },
+    {
+      "category": "Sources",
+      "status": "parity-gap",
+      "minimumTools": [
+        "get_source_active",
+        "get_source_screenshot"
+      ],
+      "representativeRequests": [
+        "GetSourceActive",
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ],
+      "gotchas": [
+        "GetSourceScreenshot returns base64 image data.",
+        "Supported screenshot formats come from GetVersion.supportedImageFormats.",
+        "SaveSourceScreenshot needs an explicit file path policy."
+      ]
+    },
+    {
+      "category": "Canvases",
+      "status": "later",
+      "minimumTools": [
+        "list_canvases"
+      ],
+      "representativeRequests": [
+        "GetCanvasList"
+      ],
+      "gotchas": [
+        "v5.7 feature.",
+        "canvasUuid breaks name-only identity assumptions."
+      ]
+    }
+  ],
+  "featureGaps": [
+    {
+      "feature": "window-capture-workflow",
+      "status": "parity-gap",
+      "matrixLocation": "Gaps To Add Before First Implementation Plan",
+      "evidence": [
+        "sbroenne-mcp-server-obs"
+      ],
+      "rationale": "Common recording workflow: create window capture source, list windows, bind selected window, remove source."
+    },
+    {
+      "feature": "screenshot-policy",
+      "status": "parity-gap",
+      "matrixLocation": "Gaps To Add Before First Implementation Plan",
+      "evidence": [
+        "sbroenne-mcp-server-obs",
+        "royshil-obs-mcp",
+        "ironystock-agentic-obs",
+        "official-protocol"
+      ],
+      "rationale": "Screenshots are valuable but require payload limits and filesystem/path policy."
+    },
+    {
+      "feature": "virtual-camera-and-replay-buffer",
+      "status": "later",
+      "matrixLocation": "Gaps To Add Before First Implementation Plan",
+      "evidence": [
+        "sbroenne-mcp-server-obs",
+        "ironystock-agentic-obs",
+        "official-protocol"
+      ],
+      "rationale": "Common OBS control surface after stream/record are stable."
+    },
+    {
+      "feature": "event-subscriptions",
+      "status": "later",
+      "matrixLocation": "Gaps To Add Before First Implementation Plan",
+      "evidence": [
+        "official-protocol",
+        "ironystock-agentic-obs"
+      ],
+      "rationale": "Useful for automation and state resources, but needs bounded buffers and clear session lifecycle."
+    },
+    {
+      "feature": "request-batches",
+      "status": "later",
+      "matrixLocation": "Gaps To Add Before First Implementation Plan",
+      "evidence": [
+        "official-protocol"
+      ],
+      "rationale": "Useful for animation and multi-step workflows, but error ordering and halt behavior should be modeled after core request correctness."
+    },
+    {
+      "feature": "code-execution-mode",
+      "status": "not-mcp-facing",
+      "matrixLocation": "Architectural Gotchas To Avoid",
+      "evidence": [
+        "cdavis-unngh-obs-mcp"
+      ],
+      "rationale": "In-process code execution conflicts with the Huly-style explicit typed tool registry and safety posture."
+    }
+  ]
+}

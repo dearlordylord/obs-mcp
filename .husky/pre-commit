@@ -1,0 +1,9 @@
+set -e
+
+echo "Running lint-staged..."
+pnpm lint-staged
+
+echo "Running gitleaks on staged changes..."
+gitleaks protect --verbose --staged
+
+echo "No staged secrets detected"
