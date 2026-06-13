@@ -69,7 +69,8 @@ export const getRecentObsEvents = (
     sequence: event.sequence,
     eventType: event.eventType,
     eventIntent: event.eventIntent,
-    category: categoryForIntent(event.eventIntent)
+    category: categoryForIntent(event.eventIntent),
+    ...(event.eventData === undefined ? {} : { eventData: event.eventData })
   }))
   return Schema.decodeUnknownSync(GetRecentObsEventsOutput)({
     capacity: snapshot.capacity,

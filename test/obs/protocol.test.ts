@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { decodeTypedObsEventData } from "../../src/domain/schemas/events.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
 import {
   decodeEventEnvelope,
@@ -32,6 +33,72 @@ describe("OBS protocol envelopes", () => {
 })
 
 describe("OBS event protocol foundation", () => {
+  it("decodes typed low-volume event payloads", () => {
+    const cases = [
+      ["CurrentProgramSceneChanged", { sceneName: "Program", sceneUuid: "scene-program" }],
+      ["SceneListChanged", { scenes: [{ sceneName: "Program", sceneUuid: "scene-program", sceneIndex: 0 }] }],
+      ["InputMuteStateChanged", { inputName: "Mic", inputUuid: "input-mic", inputMuted: true }],
+      [
+        "InputVolumeChanged",
+        { inputName: "Mic", inputUuid: "input-mic", inputVolumeMul: 0.5, inputVolumeDb: -6 }
+      ],
+      ["InputAudioBalanceChanged", { inputName: "Mic", inputUuid: "input-mic", inputAudioBalance: 0.25 }],
+      ["InputAudioSyncOffsetChanged", { inputName: "Mic", inputUuid: "input-mic", inputAudioSyncOffset: 120 }],
+      [
+        "InputAudioTracksChanged",
+        {
+          inputName: "Mic",
+          inputUuid: "input-mic",
+          inputAudioTracks: { "1": true, "2": false, "3": false, "4": false, "5": false, "6": false }
+        }
+      ],
+      [
+        "InputAudioMonitorTypeChanged",
+        { inputName: "Mic", inputUuid: "input-mic", monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY" }
+      ],
+      ["StreamStateChanged", { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }],
+      [
+        "RecordStateChanged",
+        { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED", outputPath: null }
+      ],
+      ["ReplayBufferStateChanged", { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }],
+      ["ReplayBufferSaved", { savedReplayPath: "/tmp/replay.mkv" }],
+      ["MediaInputPlaybackStarted", { inputName: "Media", inputUuid: "input-media" }],
+      ["MediaInputPlaybackEnded", { inputName: "Media", inputUuid: "input-media" }],
+      [
+        "MediaInputActionTriggered",
+        {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+        }
+      ]
+    ] as const
+
+    for (const [eventType, eventData] of cases) {
+      const envelope = decodeEventEnvelope(JSON.stringify({
+        op: 5,
+        d: { eventType, eventIntent: EventSubscription.General, eventData }
+      }))
+      expect(decodeTypedObsEventData(envelope.d.eventType, envelope.d.eventData)).toEqual(eventData)
+    }
+  })
+
+  it("rejects malformed typed low-volume event payloads", () => {
+    expect(() => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true })).toThrow()
+    expect(() =>
+      decodeTypedObsEventData("MediaInputActionTriggered", {
+        inputName: "Media",
+        inputUuid: "input-media",
+        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_UNKNOWN"
+      })
+    ).toThrow()
+  })
+
+  it("omits payloads for safe event types without task-owned schemas", () => {
+    expect(decodeTypedObsEventData("TransitionStarted", { transitionName: "Fade" })).toBeUndefined()
+  })
+
   it("decodes valid event envelopes", () => {
     expect(decodeEventEnvelope(JSON.stringify({
       op: 5,

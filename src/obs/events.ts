@@ -1,3 +1,4 @@
+import { decodeTypedObsEventData, type TypedObsEventData } from "../domain/schemas/events.js"
 import type { EventEnvelope } from "./protocol.js"
 import { shouldSurfaceSafeEvent } from "./protocol.js"
 
@@ -7,7 +8,7 @@ export interface BufferedObsEvent {
   readonly sequence: number
   readonly eventType: string
   readonly eventIntent: number
-  readonly eventData: Record<string, unknown> | undefined
+  readonly eventData: TypedObsEventData | undefined
 }
 
 export interface ObsEventBufferSnapshot {
@@ -43,7 +44,7 @@ export const createObsEventBuffer = (options: ObsEventBufferOptions = {}): ObsEv
         sequence: nextSequence,
         eventType: event.d.eventType,
         eventIntent: event.d.eventIntent,
-        eventData: event.d.eventData
+        eventData: decodeTypedObsEventData(event.d.eventType, event.d.eventData)
       }
       nextSequence += 1
       if (events.length >= capacity) {

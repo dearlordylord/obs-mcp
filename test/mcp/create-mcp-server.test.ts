@@ -373,7 +373,7 @@ describe("MCP server protocol handlers", () => {
             sequence: 1,
             eventType: "CurrentProgramSceneChanged",
             eventIntent: EventSubscription.Scenes,
-            eventData: { sceneName: "Intro" }
+            eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
           }]
         }
       ),
@@ -392,7 +392,8 @@ describe("MCP server protocol handlers", () => {
         events: [{
           sequence: 1,
           eventType: "CurrentProgramSceneChanged",
-          category: "scenes"
+          category: "scenes",
+          eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
         }]
       }
     })

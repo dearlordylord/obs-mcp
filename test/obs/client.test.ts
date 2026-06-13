@@ -167,6 +167,61 @@ describe("OBS websocket client", () => {
     })
   })
 
+  it("buffers typed low-volume event payloads from websocket frames", async () => {
+    const cases = [
+      {
+        eventType: "SceneListChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { scenes: [{ sceneName: "Intro", sceneUuid: "scene-intro", sceneIndex: 0 }] }
+      },
+      {
+        eventType: "InputAudioMonitorTypeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputName: "Mic/Aux",
+          inputUuid: "input-mic",
+          monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+        }
+      },
+      {
+        eventType: "RecordStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: {
+          outputActive: false,
+          outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
+          outputPath: "/tmp/recording.mkv"
+        }
+      },
+      {
+        eventType: "MediaInputActionTriggered",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART"
+        }
+      }
+    ] as const
+
+    for (const event of cases) {
+      const server = await FakeObsServer.start({
+        eventBeforeResponse: event,
+        eventBeforeResponseFor: "GetCurrentProgramScene"
+      })
+      servers.push(server)
+      const client = await createObsClient(configFor(server.url))
+      clients.push(client)
+
+      await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+      expect(client.getBufferedEvents().events).toEqual([{
+        sequence: 1,
+        eventType: event.eventType,
+        eventIntent: event.eventIntent,
+        eventData: event.eventData
+      }])
+    }
+  })
+
   it("buffers events queued immediately after Identified", async () => {
     const server = await FakeObsServer.start({
       eventAfterIdentify: {
@@ -283,12 +338,29 @@ describe("OBS websocket client", () => {
     expect(client.getBufferedEvents().events).toEqual([])
   })
 
+  it("rejects pending requests on malformed typed event payloads", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "InputMuteStateChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic/Aux", inputMuted: true }
+      },
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).rejects.toThrow()
+    expect(client.getBufferedEvents().events).toEqual([])
+  })
+
   it("keeps buffered event snapshots readable after close", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {
         eventType: "CurrentProgramSceneChanged",
         eventIntent: EventSubscription.Scenes,
-        eventData: { sceneName: "Intro" }
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
       },
       eventBeforeResponseFor: "GetCurrentProgramScene"
     })

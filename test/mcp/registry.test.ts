@@ -459,45 +459,81 @@ describe("MCP tool registry", () => {
 
   it("returns recent safe OBS event summaries with ordering and category filters", async () => {
     const obsEvents = eventClient({
-      capacity: 5,
+      capacity: 6,
       droppedEvents: 1,
       events: [
         {
           sequence: 1,
           eventType: "CurrentProgramSceneChanged",
           eventIntent: EventSubscription.Scenes,
-          eventData: { sceneName: "Intro" }
+          eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
         },
         {
           sequence: 2,
           eventType: "InputMuteStateChanged",
           eventIntent: EventSubscription.Inputs,
-          eventData: { inputName: "Mic/Aux", inputMuted: true }
+          eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputMuted: true }
         },
         {
           sequence: 3,
           eventType: "RecordStateChanged",
           eventIntent: EventSubscription.Outputs,
-          eventData: undefined
+          eventData: {
+            outputActive: false,
+            outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
+            outputPath: "/tmp/recording.mkv"
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+          }
         }
       ]
     })
 
-    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 2 }, {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 3 }, {
       config: { ...config, enabledToolsets: ["events"] },
       client: obsEvents
     })).resolves.toEqual({
-      capacity: 5,
+      capacity: 6,
       droppedEvents: 1,
-      returnedEvents: 2,
+      returnedEvents: 3,
       order: "newest_first",
       events: [
-        { sequence: 3, eventType: "RecordStateChanged", eventIntent: EventSubscription.Outputs, category: "outputs" },
+        {
+          sequence: 4,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          category: "media_inputs",
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+          }
+        },
+        {
+          sequence: 3,
+          eventType: "RecordStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          category: "outputs",
+          eventData: {
+            outputActive: false,
+            outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
+            outputPath: "/tmp/recording.mkv"
+          }
+        },
         {
           sequence: 2,
           eventType: "InputMuteStateChanged",
           eventIntent: EventSubscription.Inputs,
-          category: "inputs"
+          category: "inputs",
+          eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputMuted: true }
         }
       ]
     })
@@ -509,7 +545,7 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["events"] },
       client: obsEvents
     })).resolves.toEqual({
-      capacity: 5,
+      capacity: 6,
       droppedEvents: 1,
       returnedEvents: 1,
       order: "oldest_first",
@@ -517,7 +553,8 @@ describe("MCP tool registry", () => {
         sequence: 1,
         eventType: "CurrentProgramSceneChanged",
         eventIntent: EventSubscription.Scenes,
-        category: "scenes"
+        category: "scenes",
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
       }]
     })
   })
@@ -533,7 +570,7 @@ describe("MCP tool registry", () => {
             sequence: 1,
             eventType: "CurrentProgramSceneChanged",
             eventIntent: EventSubscription.Scenes,
-            eventData: { sceneName: "Intro" }
+            eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
           },
           {
             sequence: 2,
@@ -572,7 +609,7 @@ describe("MCP tool registry", () => {
             eventData: { sceneName: "Scene", sceneItemId: 1 }
           }
         ]
-      })
+      } as ReturnType<ObsClient["getBufferedEvents"]>)
     })).resolves.toEqual({
       capacity: 7,
       droppedEvents: 0,
@@ -582,7 +619,8 @@ describe("MCP tool registry", () => {
         sequence: 1,
         eventType: "CurrentProgramSceneChanged",
         eventIntent: EventSubscription.Scenes,
-        category: "scenes"
+        category: "scenes",
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
       }]
     })
   })
