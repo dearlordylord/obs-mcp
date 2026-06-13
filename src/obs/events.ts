@@ -40,11 +40,17 @@ export const createObsEventBuffer = (options: ObsEventBufferOptions = {}): ObsEv
       if (!shouldSurfaceSafeEvent(event)) {
         return
       }
+      let eventData: TypedObsEventData | undefined
+      try {
+        eventData = decodeTypedObsEventData(event.d.eventType, event.d.eventData)
+      } catch {
+        return
+      }
       const bufferedEvent: BufferedObsEvent = {
         sequence: nextSequence,
         eventType: event.d.eventType,
         eventIntent: event.d.eventIntent,
-        eventData: decodeTypedObsEventData(event.d.eventType, event.d.eventData)
+        eventData
       }
       nextSequence += 1
       if (events.length >= capacity) {

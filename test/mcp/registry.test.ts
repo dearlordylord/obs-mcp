@@ -1109,6 +1109,67 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("returns typed config and general OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["config", "general"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 3,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "CurrentSceneCollectionChanged",
+            eventIntent: EventSubscription.Config,
+            eventData: { sceneCollectionName: "Collection B" }
+          },
+          {
+            sequence: 2,
+            eventType: "ProfileListChanged",
+            eventIntent: EventSubscription.Config,
+            eventData: { profiles: ["Profile A", "Profile B"] }
+          },
+          {
+            sequence: 3,
+            eventType: "ExitStarted",
+            eventIntent: EventSubscription.General,
+            eventData: {}
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 3,
+      droppedEvents: 0,
+      returnedEvents: 3,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "CurrentSceneCollectionChanged",
+          eventIntent: EventSubscription.Config,
+          category: "config",
+          eventData: { sceneCollectionName: "Collection B" }
+        },
+        {
+          sequence: 2,
+          eventType: "ProfileListChanged",
+          eventIntent: EventSubscription.Config,
+          category: "config",
+          eventData: { profiles: ["Profile A", "Profile B"] }
+        },
+        {
+          sequence: 3,
+          eventType: "ExitStarted",
+          eventIntent: EventSubscription.General,
+          category: "general",
+          eventData: {}
+        }
+      ]
+    })
+  })
+
   it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
     await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
       config: { ...config, enabledToolsets: ["events"] },
@@ -1159,7 +1220,7 @@ describe("MCP tool registry", () => {
             eventData: { sceneName: "Scene", sceneItemId: 1 }
           }
         ]
-      } as ReturnType<ObsClient["getBufferedEvents"]>)
+      })
     })).resolves.toEqual({
       capacity: 7,
       droppedEvents: 0,

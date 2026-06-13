@@ -26,6 +26,8 @@ Environment variables:
 
 The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 
+The `events` toolset exposes `get_recent_obs_events`, a bounded recent-event snapshot. It returns typed payloads for safe low-volume config and general events such as scene collection/profile changes and `ExitStarted`, while vendor/custom and high-volume events remain excluded from the default safe event policy.
+
 ## Tools
 
 <!-- tools:start -->

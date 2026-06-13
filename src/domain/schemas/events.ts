@@ -44,6 +44,24 @@ export const ObsInputAudioMonitorType = Schema.Literal(
 )
 export type ObsInputAudioMonitorType = typeof ObsInputAudioMonitorType.Type
 
+const SceneCollectionEventData = Schema.Struct({
+  sceneCollectionName: Schema.String
+})
+
+const SceneCollectionListChangedEventData = Schema.Struct({
+  sceneCollections: Schema.Array(Schema.String)
+})
+
+const ProfileEventData = Schema.Struct({
+  profileName: Schema.String
+})
+
+const ProfileListChangedEventData = Schema.Struct({
+  profiles: Schema.Array(Schema.String)
+})
+
+const ExitStartedEventData = Schema.Struct({})
+
 const SceneEventData = Schema.Struct({
   sceneName: Schema.String,
   sceneUuid: Schema.String
@@ -120,6 +138,11 @@ const MediaInputActionTriggeredEventData = Schema.extend(MediaInputEventData)(
 )
 
 export const TypedObsEventData = Schema.Union(
+  SceneCollectionEventData,
+  SceneCollectionListChangedEventData,
+  ProfileEventData,
+  ProfileListChangedEventData,
+  ExitStartedEventData,
   SceneEventData,
   SceneListChangedEventData,
   InputMuteStateChangedEventData,
@@ -141,6 +164,18 @@ export const decodeTypedObsEventData = (
   eventData: unknown
 ): TypedObsEventData | undefined => {
   switch (eventType) {
+    case "CurrentSceneCollectionChanging":
+    case "CurrentSceneCollectionChanged":
+      return Schema.decodeUnknownSync(SceneCollectionEventData)(eventData)
+    case "SceneCollectionListChanged":
+      return Schema.decodeUnknownSync(SceneCollectionListChangedEventData)(eventData)
+    case "CurrentProfileChanging":
+    case "CurrentProfileChanged":
+      return Schema.decodeUnknownSync(ProfileEventData)(eventData)
+    case "ProfileListChanged":
+      return Schema.decodeUnknownSync(ProfileListChangedEventData)(eventData)
+    case "ExitStarted":
+      return Schema.decodeUnknownSync(ExitStartedEventData)(eventData ?? {})
     case "CurrentProgramSceneChanged":
       return Schema.decodeUnknownSync(SceneEventData)(eventData)
     case "SceneListChanged":

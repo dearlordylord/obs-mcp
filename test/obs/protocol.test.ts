@@ -32,19 +32,19 @@ const EVENT_LEDGER = {
   CanvasCreated: "deferred",
   CanvasRemoved: "deferred",
   CanvasNameChanged: "deferred",
-  CurrentSceneCollectionChanging: "deferred",
-  CurrentSceneCollectionChanged: "deferred",
-  SceneCollectionListChanged: "deferred",
-  CurrentProfileChanging: "deferred",
-  CurrentProfileChanged: "deferred",
-  ProfileListChanged: "deferred",
+  CurrentSceneCollectionChanging: "typed-safe",
+  CurrentSceneCollectionChanged: "typed-safe",
+  SceneCollectionListChanged: "typed-safe",
+  CurrentProfileChanging: "typed-safe",
+  CurrentProfileChanged: "typed-safe",
+  ProfileListChanged: "typed-safe",
   SourceFilterListReindexed: "deferred",
   SourceFilterCreated: "deferred",
   SourceFilterRemoved: "deferred",
   SourceFilterNameChanged: "deferred",
   SourceFilterSettingsChanged: "deferred",
   SourceFilterEnableStateChanged: "deferred",
-  ExitStarted: "deferred",
+  ExitStarted: "typed-safe",
   InputCreated: "deferred",
   InputRemoved: "deferred",
   InputNameChanged: "deferred",
@@ -93,6 +93,13 @@ const EVENT_LEDGER = {
 const EVENT_LEDGER_BY_NAME: Record<string, EventLedgerStatus> = EVENT_LEDGER
 
 const TYPED_EVENT_FIXTURES = {
+  CurrentSceneCollectionChanging: { sceneCollectionName: "Collection A" },
+  CurrentSceneCollectionChanged: { sceneCollectionName: "Collection B" },
+  SceneCollectionListChanged: { sceneCollections: ["Collection A", "Collection B"] },
+  CurrentProfileChanging: { profileName: "Profile A" },
+  CurrentProfileChanged: { profileName: "Profile B" },
+  ProfileListChanged: { profiles: ["Profile A", "Profile B"] },
+  ExitStarted: {},
   CurrentProgramSceneChanged: { sceneName: "Program", sceneUuid: "scene-program" },
   SceneListChanged: { scenes: [{ sceneName: "Program", sceneUuid: "scene-program", sceneIndex: 0 }] },
   InputMuteStateChanged: { inputName: "Mic", inputUuid: "input-mic", inputMuted: true },
@@ -165,10 +172,10 @@ describe("OBS event protocol foundation", () => {
         { "typed-safe": 0, "high-volume": 0, "raw-only": 0, deferred: 0 }
       )
     ).toEqual({
-      "typed-safe": 15,
+      "typed-safe": 22,
       "high-volume": 4,
       "raw-only": 2,
-      deferred: 39
+      deferred: 32
     })
 
     for (const event of matrix.events) {
@@ -227,6 +234,13 @@ describe("OBS event protocol foundation", () => {
 
   it("decodes typed low-volume event payloads", () => {
     const cases = [
+      ["CurrentSceneCollectionChanging", { sceneCollectionName: "Collection A" }],
+      ["CurrentSceneCollectionChanged", { sceneCollectionName: "Collection B" }],
+      ["SceneCollectionListChanged", { sceneCollections: ["Collection A", "Collection B"] }],
+      ["CurrentProfileChanging", { profileName: "Profile A" }],
+      ["CurrentProfileChanged", { profileName: "Profile B" }],
+      ["ProfileListChanged", { profiles: ["Profile A", "Profile B"] }],
+      ["ExitStarted", {}],
       ["CurrentProgramSceneChanged", { sceneName: "Program", sceneUuid: "scene-program" }],
       ["SceneListChanged", { scenes: [{ sceneName: "Program", sceneUuid: "scene-program", sceneIndex: 0 }] }],
       ["InputMuteStateChanged", { inputName: "Mic", inputUuid: "input-mic", inputMuted: true }],
@@ -274,9 +288,12 @@ describe("OBS event protocol foundation", () => {
       }))
       expect(decodeTypedObsEventData(envelope.d.eventType, envelope.d.eventData)).toEqual(eventData)
     }
+    expect(decodeTypedObsEventData("ExitStarted", undefined)).toEqual({})
   })
 
   it("rejects malformed typed low-volume event payloads", () => {
+    expect(() => decodeTypedObsEventData("SceneCollectionListChanged", { sceneCollections: [1] })).toThrow()
+    expect(() => decodeTypedObsEventData("CurrentProfileChanged", { sceneCollectionName: "Profile" })).toThrow()
     expect(() => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true })).toThrow()
     expect(() =>
       decodeTypedObsEventData("MediaInputActionTriggered", {
