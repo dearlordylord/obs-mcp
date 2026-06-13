@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import {
+  InputAudioTracksOutput,
   InputLocatorInput,
   ListInputKindsInput,
   MediaInputStatusOutput,
@@ -11,6 +12,7 @@ import {
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
+  SetInputAudioTracksInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
@@ -56,6 +58,8 @@ const inputToolNames = [
   "set_input_audio_monitor_type",
   "get_input_audio_sync_offset",
   "set_input_audio_sync_offset",
+  "get_input_audio_tracks",
+  "set_input_audio_tracks",
   "get_media_input_status",
   "set_media_input_cursor",
   "offset_media_input_cursor",
@@ -63,8 +67,6 @@ const inputToolNames = [
 ]
 
 const deferredInputMediaToolNames = [
-  "get_input_audio_tracks",
-  "set_input_audio_tracks",
   "get_input_settings",
   "set_input_settings"
 ]
@@ -84,6 +86,8 @@ const inputAvailableRequests = [
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetInputAudioTracks",
+  "SetInputAudioTracks",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
@@ -365,6 +369,7 @@ describe("MCP tool registry", () => {
           "GetInputVolume",
           "GetInputAudioBalance",
           "GetInputAudioSyncOffset",
+          "GetInputAudioTracks",
           "GetMediaInputStatus",
           "SetMediaInputCursor",
           "TriggerMediaInputAction"
@@ -379,6 +384,7 @@ describe("MCP tool registry", () => {
           "get_input_volume",
           "get_input_audio_balance",
           "get_input_audio_sync_offset",
+          "get_input_audio_tracks",
           "get_media_input_status",
           "set_media_input_cursor",
           "trigger_media_input_action"
@@ -632,6 +638,33 @@ describe("MCP tool registry", () => {
         input: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 20000 }
       },
       {
+        decode: Schema.decodeUnknownSync(InputAudioTracksOutput),
+        input: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
+      {
         decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
         input: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
       },
@@ -668,6 +701,19 @@ describe("MCP tool registry", () => {
         extra: { monitorType: "OBS_MONITORING_TYPE_NONE" }
       },
       { decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput), extra: { inputAudioSyncOffset: 0 } },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        extra: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
       { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
       { decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput), extra: { mediaCursorOffset: 1 } },
       {
@@ -718,6 +764,35 @@ describe("MCP tool registry", () => {
         message: "Expected an integer"
       },
       {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true
+          }
+        },
+        message: "is missing"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: 1
+          }
+        },
+        message: "Expected boolean"
+      },
+      {
         decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
         input: { inputName: "Media Source", mediaCursor: -1 },
         message: "Expected a non-negative number"
@@ -753,6 +828,16 @@ describe("MCP tool registry", () => {
       GetInputAudioBalance: { inputAudioBalance: 0.5 },
       GetInputAudioMonitorType: { monitorType: "OBS_MONITORING_TYPE_NONE" },
       GetInputAudioSyncOffset: { inputAudioSyncOffset: 0 },
+      GetInputAudioTracks: {
+        inputAudioTracks: {
+          "1": true,
+          "2": false,
+          "3": true,
+          "4": false,
+          "5": true,
+          "6": false
+        }
+      },
       GetMediaInputStatus: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
     }
     const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
@@ -811,6 +896,45 @@ describe("MCP tool registry", () => {
         toolName: "set_input_audio_sync_offset",
         input: { inputName: "Mic/Aux", inputAudioSyncOffset: -250 },
         expected: { inputAudioSyncOffset: -250, acknowledged: true }
+      },
+      {
+        toolName: "get_input_audio_tracks",
+        input: { inputName: "Mic/Aux" },
+        expected: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
+      {
+        toolName: "set_input_audio_tracks",
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        },
+        expected: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          },
+          acknowledged: true
+        }
       },
       {
         toolName: "get_media_input_status",

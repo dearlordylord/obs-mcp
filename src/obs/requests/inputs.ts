@@ -12,6 +12,7 @@ import {
   ListInputsInput,
   ListInputsOutput,
   MediaInputStatusOutput,
+  ObsInputAudioTracksOutput,
   OffsetMediaInputCursorInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
@@ -19,6 +20,7 @@ import {
   SetInputMuteInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
+  SetObsInputAudioTracksInput,
   SpecialInputsOutput,
   TriggerMediaInputActionInput
 } from "../../domain/schemas/inputs.js"
@@ -107,6 +109,18 @@ export const GetInputAudioSyncOffset = {
 export const SetInputAudioSyncOffset = {
   requestType: "SetInputAudioSyncOffset",
   requestDataSchema: SetInputAudioSyncOffsetInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputAudioTracks = {
+  requestType: "GetInputAudioTracks",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: ObsInputAudioTracksOutput
+} satisfies ObsRequestDescriptor<ObsInputAudioTracksOutput>
+
+export const SetInputAudioTracks = {
+  requestType: "SetInputAudioTracks",
+  requestDataSchema: SetObsInputAudioTracksInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 

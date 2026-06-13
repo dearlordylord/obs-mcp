@@ -1,5 +1,6 @@
 import {
   DEFAULT_INPUT_AUDIO_STATE,
+  DEFAULT_INPUT_AUDIO_TRACKS,
   DEFAULT_INPUT_VOLUME,
   DEFAULT_MEDIA_INPUT_STATUS,
   fakeInputVolumeFromRequest,
@@ -14,6 +15,7 @@ interface FakeObsInputAudioRequestData {
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioState["monitorType"]
   readonly inputAudioSyncOffset?: number
+  readonly inputAudioTracks?: FakeObsInputAudioState["inputAudioTracks"]
 }
 
 interface FakeObsMediaCursorRequestData {
@@ -73,7 +75,8 @@ export class FakeObsInputState {
       ...DEFAULT_INPUT_AUDIO_STATE,
       inputAudioBalance: input?.inputAudioBalance ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioBalance,
       monitorType: input?.monitorType ?? DEFAULT_INPUT_AUDIO_STATE.monitorType,
-      inputAudioSyncOffset: input?.inputAudioSyncOffset ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioSyncOffset
+      inputAudioSyncOffset: input?.inputAudioSyncOffset ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioSyncOffset,
+      inputAudioTracks: input?.inputAudioTracks ?? DEFAULT_INPUT_AUDIO_TRACKS
     }
   }
 
@@ -89,6 +92,8 @@ export class FakeObsInputState {
       ? { inputAudioBalance: state.inputAudioBalance }
       : requestType === "GetInputAudioMonitorType"
       ? { monitorType: state.monitorType }
+      : requestType === "GetInputAudioTracks"
+      ? { inputAudioTracks: state.inputAudioTracks }
       : { inputAudioSyncOffset: state.inputAudioSyncOffset }
   }
 
@@ -100,6 +105,8 @@ export class FakeObsInputState {
         ? { ...state, inputAudioBalance: requestData.inputAudioBalance ?? state.inputAudioBalance }
         : requestType === "SetInputAudioMonitorType"
         ? { ...state, monitorType: requestData.monitorType ?? state.monitorType }
+        : requestType === "SetInputAudioTracks"
+        ? { ...state, inputAudioTracks: requestData.inputAudioTracks ?? state.inputAudioTracks }
         : { ...state, inputAudioSyncOffset: requestData.inputAudioSyncOffset ?? state.inputAudioSyncOffset }
     )
   }

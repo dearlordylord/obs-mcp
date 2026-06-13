@@ -33,6 +33,8 @@ export const ObsRequestType = Schema.Literal(
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetInputAudioTracks",
+  "SetInputAudioTracks",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",

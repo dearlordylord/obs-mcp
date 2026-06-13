@@ -1,4 +1,8 @@
-import type { FakeObsInputAudioMonitorType, FakeObsMediaInputAction } from "./fake-obs-fixtures.js"
+import type {
+  FakeObsInputAudioMonitorType,
+  FakeObsInputAudioTracks,
+  FakeObsMediaInputAction
+} from "./fake-obs-fixtures.js"
 import type { FakeObsInputState } from "./fake-obs-input-state.js"
 
 type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
@@ -12,6 +16,7 @@ interface FakeObsInputRequestContext {
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset?: number
+  readonly inputAudioTracks?: FakeObsInputAudioTracks
   readonly mediaCursor?: number
   readonly mediaCursorOffset?: number
   readonly mediaAction?: FakeObsMediaInputAction
@@ -52,6 +57,7 @@ export const handleFakeObsInputRequest = (
     requestType === "GetInputAudioBalance"
     || requestType === "GetInputAudioMonitorType"
     || requestType === "GetInputAudioSyncOffset"
+    || requestType === "GetInputAudioTracks"
   ) {
     send(inputState.audioResponseFor(requestType, inputLocator(requestData)))
     return true
@@ -60,6 +66,7 @@ export const handleFakeObsInputRequest = (
     requestType === "SetInputAudioBalance"
     || requestType === "SetInputAudioMonitorType"
     || requestType === "SetInputAudioSyncOffset"
+    || requestType === "SetInputAudioTracks"
   ) {
     inputState.setAudioFromRequest(requestType, inputLocator(requestData), requestData)
     send()

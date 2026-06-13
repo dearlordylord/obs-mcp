@@ -29,6 +29,7 @@ export interface FakeObsInput {
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset?: number
+  readonly inputAudioTracks?: FakeObsInputAudioTracks
   readonly mediaState?: FakeObsMediaState
   readonly mediaDuration?: number | null
   readonly mediaCursor?: number | null
@@ -60,12 +61,32 @@ export interface FakeObsInputAudioState {
   readonly inputAudioBalance: number
   readonly monitorType: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset: number
+  readonly inputAudioTracks: FakeObsInputAudioTracks
+}
+
+export interface FakeObsInputAudioTracks {
+  readonly "1": boolean
+  readonly "2": boolean
+  readonly "3": boolean
+  readonly "4": boolean
+  readonly "5": boolean
+  readonly "6": boolean
+}
+
+export const DEFAULT_INPUT_AUDIO_TRACKS: FakeObsInputAudioTracks = {
+  "1": true,
+  "2": true,
+  "3": true,
+  "4": true,
+  "5": true,
+  "6": true
 }
 
 export const DEFAULT_INPUT_AUDIO_STATE: FakeObsInputAudioState = {
   inputAudioBalance: 0.5,
   monitorType: "OBS_MONITORING_TYPE_NONE",
-  inputAudioSyncOffset: 0
+  inputAudioSyncOffset: 0,
+  inputAudioTracks: DEFAULT_INPUT_AUDIO_TRACKS
 }
 
 export type FakeObsMediaState =
@@ -158,6 +179,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetInputAudioTracks",
+  "SetInputAudioTracks",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",

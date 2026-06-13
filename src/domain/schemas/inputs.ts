@@ -143,6 +143,62 @@ export const SetInputAudioSyncOffsetOutput = Schema.Struct({
 export type SetInputAudioSyncOffsetOutput = typeof SetInputAudioSyncOffsetOutput.Type
 export const SetInputAudioSyncOffsetOutputJsonSchema = JSONSchema.make(SetInputAudioSyncOffsetOutput)
 
+export const InputAudioTracks = Schema.Struct({
+  track1: Schema.Boolean,
+  track2: Schema.Boolean,
+  track3: Schema.Boolean,
+  track4: Schema.Boolean,
+  track5: Schema.Boolean,
+  track6: Schema.Boolean
+})
+export type InputAudioTracks = typeof InputAudioTracks.Type
+export const InputAudioTracksJsonSchema = JSONSchema.make(InputAudioTracks)
+
+export const ObsInputAudioTracks = Schema.Struct({
+  "1": Schema.Boolean,
+  "2": Schema.Boolean,
+  "3": Schema.Boolean,
+  "4": Schema.Boolean,
+  "5": Schema.Boolean,
+  "6": Schema.Boolean
+})
+export type ObsInputAudioTracks = typeof ObsInputAudioTracks.Type
+
+export const ObsInputAudioTracksOutput = Schema.Struct({
+  inputAudioTracks: ObsInputAudioTracks
+})
+export type ObsInputAudioTracksOutput = typeof ObsInputAudioTracksOutput.Type
+
+export const SetObsInputAudioTracksInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputAudioTracks: ObsInputAudioTracks
+  })
+)
+export type SetObsInputAudioTracksInput = typeof SetObsInputAudioTracksInput.Type
+
+export const InputAudioTracksOutput = Schema.Struct({
+  inputAudioTracks: InputAudioTracks
+})
+export type InputAudioTracksOutput = typeof InputAudioTracksOutput.Type
+export const InputAudioTracksOutputJsonSchema = JSONSchema.make(InputAudioTracksOutput)
+
+export const SetInputAudioTracksInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputAudioTracks: InputAudioTracks
+  })
+)
+export type SetInputAudioTracksInput = typeof SetInputAudioTracksInput.Type
+export const SetInputAudioTracksInputJsonSchema = JSONSchema.make(SetInputAudioTracksInput)
+
+export const SetInputAudioTracksOutput = Schema.Struct({
+  inputAudioTracks: InputAudioTracks,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputAudioTracksOutput = typeof SetInputAudioTracksOutput.Type
+export const SetInputAudioTracksOutputJsonSchema = JSONSchema.make(SetInputAudioTracksOutput)
+
 export const MediaInputState = Schema.Literal(
   "OBS_MEDIA_STATE_NONE",
   "OBS_MEDIA_STATE_PLAYING",

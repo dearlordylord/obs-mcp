@@ -10,6 +10,7 @@ import {
   getInputAudioBalance,
   getInputAudioMonitorType,
   getInputAudioSyncOffset,
+  getInputAudioTracks,
   getInputMute,
   getInputVolume,
   getMediaInputStatus,
@@ -20,6 +21,7 @@ import {
   setInputAudioBalance,
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
+  setInputAudioTracks,
   setInputMute,
   setInputVolume,
   setMediaInputCursor,
@@ -359,6 +361,99 @@ describe("OBS operations", () => {
       { requestType: "GetInputAudioSyncOffset", requestData: { inputUuid: "input-mic-aux" } },
       { requestType: "SetInputAudioSyncOffset", requestData: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 125 } }
     ])
+  })
+
+  it("controls input audio tracks over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const inputAudioTracks = {
+      track1: true,
+      track2: false,
+      track3: true,
+      track4: false,
+      track5: true,
+      track6: false
+    }
+    const obsInputAudioTracks = {
+      "1": true,
+      "2": false,
+      "3": true,
+      "4": false,
+      "5": true,
+      "6": false
+    }
+    await expect(getInputAudioTracks(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputAudioTracks: {
+        track1: true,
+        track2: true,
+        track3: true,
+        track4: true,
+        track5: true,
+        track6: true
+      }
+    })
+    await expect(setInputAudioTracks(client, { inputName: "Mic/Aux", inputAudioTracks })).resolves.toEqual({
+      inputAudioTracks,
+      acknowledged: true
+    })
+    await expect(getInputAudioTracks(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputAudioTracks
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputAudioTracks"))).toEqual([
+      { requestType: "GetInputAudioTracks", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputAudioTracks",
+        requestData: { inputName: "Mic/Aux", inputAudioTracks: obsInputAudioTracks }
+      },
+      { requestType: "GetInputAudioTracks", requestData: { inputUuid: "input-mic-aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input audio track controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputAudioTracks: { code: 604, comment: "Audio tracks rejected" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const invalidInputAudioTracksInput = {
+      inputName: "Mic/Aux",
+      inputAudioTracks: {
+        track1: true,
+        track2: true,
+        track3: true,
+        track4: true,
+        track5: true,
+        track6: "yes"
+      }
+    }
+    const setInputAudioTracksUnchecked = setInputAudioTracks as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputAudioTracks>
+    await expect(setInputAudioTracksUnchecked(
+      client,
+      invalidInputAudioTracksInput
+    )).rejects.toThrow("Expected boolean")
+    await expect(setInputAudioTracks(client, {
+      inputName: "Mic/Aux",
+      inputAudioTracks: {
+        track1: true,
+        track2: false,
+        track3: true,
+        track4: false,
+        track5: true,
+        track6: false
+      }
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputAudioTracks",
+        code: 604,
+        comment: "Audio tracks rejected"
+      } satisfies Partial<ObsRequestError>
+    )
   })
 
   it("surfaces OBS failures for input audio sync offset controls", async () => {

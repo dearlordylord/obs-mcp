@@ -1,10 +1,12 @@
 import { Schema } from "effect"
 
 import type {
+  ObsInputAudioTracks,
   OffsetMediaInputCursorOutput,
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeOutput,
   SetInputAudioSyncOffsetOutput,
+  SetInputAudioTracksOutput,
   SetMediaInputCursorOutput,
   TriggerMediaInputActionOutput
 } from "../../domain/schemas/inputs.js"
@@ -12,6 +14,7 @@ import {
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
+  InputAudioTracksOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -24,6 +27,7 @@ import {
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
+  SetInputAudioTracksInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
@@ -36,6 +40,7 @@ import {
   GetInputAudioBalance,
   GetInputAudioMonitorType,
   GetInputAudioSyncOffset,
+  GetInputAudioTracks,
   GetInputKindList,
   GetInputList,
   GetInputMute,
@@ -46,6 +51,7 @@ import {
   SetInputAudioBalance,
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
+  SetInputAudioTracks,
   SetInputMute,
   SetInputVolume,
   SetMediaInputCursor,
@@ -162,6 +168,47 @@ export const setInputAudioSyncOffset = async (
   const decodedInput = Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)(input)
   await client.request(SetInputAudioSyncOffset, decodedInput)
   return { inputAudioSyncOffset: decodedInput.inputAudioSyncOffset, acknowledged: true }
+}
+
+const toObsInputAudioTracks = (tracks: InputAudioTracksOutput["inputAudioTracks"]): ObsInputAudioTracks => ({
+  "1": tracks.track1,
+  "2": tracks.track2,
+  "3": tracks.track3,
+  "4": tracks.track4,
+  "5": tracks.track5,
+  "6": tracks.track6
+})
+
+const fromObsInputAudioTracks = (tracks: ObsInputAudioTracks): InputAudioTracksOutput["inputAudioTracks"] => ({
+  track1: tracks["1"],
+  track2: tracks["2"],
+  track3: tracks["3"],
+  track4: tracks["4"],
+  track5: tracks["5"],
+  track6: tracks["6"]
+})
+
+export const getInputAudioTracks = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputAudioTracksOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputAudioTracks, decodedInput)
+  return Schema.decodeUnknownSync(InputAudioTracksOutput)({
+    inputAudioTracks: fromObsInputAudioTracks(response.inputAudioTracks)
+  })
+}
+
+export const setInputAudioTracks = async (
+  client: ObsClient,
+  input: SetInputAudioTracksInput
+): Promise<SetInputAudioTracksOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputAudioTracksInput)(input)
+  await client.request(SetInputAudioTracks, {
+    ...decodedInput,
+    inputAudioTracks: toObsInputAudioTracks(decodedInput.inputAudioTracks)
+  })
+  return { inputAudioTracks: decodedInput.inputAudioTracks, acknowledged: true }
 }
 
 export const getMediaInputStatus = async (
