@@ -164,6 +164,63 @@ const screenshotAvailableRequests = [
   "SaveSourceScreenshot"
 ] satisfies ReadonlyArray<ObsRequestType>
 
+const laneOwnedRequestPolicies = [
+  { requestType: "GetInputAudioTracks", toolNames: ["get_input_audio_tracks"], policy: "implemented" },
+  { requestType: "SetInputAudioTracks", toolNames: ["set_input_audio_tracks"], policy: "implemented" },
+  { requestType: "GetInputDeinterlaceMode", toolNames: ["get_input_deinterlace_mode"], policy: "implemented" },
+  { requestType: "SetInputDeinterlaceMode", toolNames: ["set_input_deinterlace_mode"], policy: "implemented" },
+  {
+    requestType: "GetInputDeinterlaceFieldOrder",
+    toolNames: ["get_input_deinterlace_field_order"],
+    policy: "implemented"
+  },
+  {
+    requestType: "SetInputDeinterlaceFieldOrder",
+    toolNames: ["set_input_deinterlace_field_order"],
+    policy: "implemented"
+  },
+  { requestType: "GetInputDefaultSettings", toolNames: ["get_input_default_settings"], policy: "implemented" },
+  { requestType: "GetInputSettings", toolNames: ["get_input_settings"], policy: "implemented" },
+  {
+    requestType: "GetInputPropertiesListPropertyItems",
+    toolNames: ["get_input_properties_list_property_items"],
+    policy: "implemented"
+  },
+  { requestType: "SetInputSettings", toolNames: ["set_input_settings"], policy: "implemented" },
+  {
+    requestType: "PressInputPropertiesButton",
+    toolNames: ["press_input_properties_button"],
+    policy: "implemented"
+  },
+  { requestType: "CreateInput", toolNames: ["create_input"], policy: "implemented" },
+  { requestType: "RemoveInput", toolNames: ["remove_input"], policy: "implemented" },
+  { requestType: "SetInputName", toolNames: ["set_input_name"], policy: "implemented" },
+  { requestType: "GetSourceFilterKindList", toolNames: ["list_source_filter_kinds"], policy: "implemented" },
+  { requestType: "GetSourceFilterList", toolNames: ["list_source_filters"], policy: "implemented" },
+  {
+    requestType: "GetSourceFilterDefaultSettings",
+    toolNames: ["get_source_filter_default_settings"],
+    policy: "implemented"
+  },
+  { requestType: "GetSourceFilter", toolNames: ["get_source_filter"], policy: "implemented" },
+  { requestType: "CreateSourceFilter", toolNames: ["create_source_filter"], policy: "implemented" },
+  { requestType: "RemoveSourceFilter", toolNames: ["remove_source_filter"], policy: "implemented" },
+  { requestType: "SetSourceFilterSettings", toolNames: ["set_source_filter_settings"], policy: "implemented" },
+  { requestType: "SetSourceFilterEnabled", toolNames: ["set_source_filter_enabled"], policy: "implemented" },
+  { requestType: "SetSourceFilterIndex", toolNames: ["set_source_filter_index"], policy: "implemented" },
+  { requestType: "SetSourceFilterName", toolNames: ["set_source_filter_name"], policy: "implemented" },
+  { requestType: "GetSourceScreenshot", toolNames: ["get_source_screenshot"], policy: "implemented" },
+  { requestType: "SaveSourceScreenshot", toolNames: ["save_source_screenshot"], policy: "implemented" }
+] satisfies ReadonlyArray<{
+  readonly requestType: ObsRequestType
+  readonly toolNames: ReadonlyArray<string>
+  readonly policy: "implemented" | "deferred"
+}>
+
+const laneOwnedToolNames = Array.from(
+  new Set(laneOwnedRequestPolicies.flatMap((entry) => entry.toolNames))
+)
+
 const inputAvailableRequests = [
   "GetInputList",
   "GetInputKindList",
@@ -478,6 +535,64 @@ describe("MCP tool registry", () => {
       .toEqual(["get_replay_buffer_status", "stop_replay_buffer"])
     expect(getEnabledTools(["outputs"], ["SaveReplayBuffer", "GetLastReplayBufferReplay"]).map((tool) => tool.name))
       .toEqual(["save_replay_buffer", "get_last_replay_buffer_replay"])
+  })
+
+  it("keeps every lane-owned OBS request implemented or explicitly deferred by policy", () => {
+    expect(laneOwnedRequestPolicies).not.toContainEqual(expect.objectContaining({ policy: "deferred" }))
+    for (const entry of laneOwnedRequestPolicies) {
+      for (const toolName of entry.toolNames) {
+        const tool = toolByName(toolName)
+        expect(tool.requiredObsRequests).toContain(entry.requestType)
+      }
+    }
+  })
+
+  it.each(laneOwnedToolNames)("capability-gates lane-owned tool %s", (toolName) => {
+    const tool = toolByName(toolName)
+    expect(tool.requiredObsRequests.length).toBeGreaterThan(0)
+    expect(getEnabledTools([tool.category], []).map((entry) => entry.name)).not.toContain(toolName)
+    expect(getEnabledTools([tool.category], tool.requiredObsRequests).map((entry) => entry.name))
+      .toContain(toolName)
+  })
+
+  it.each([
+    {
+      toolName: "set_input_settings",
+      input: { inputName: "Camera", inputSettings: { privatePath: "/tmp/secret" } }
+    },
+    {
+      toolName: "create_input",
+      input: {
+        sceneName: "Scene",
+        inputName: "Camera",
+        inputKind: "ffmpeg_source",
+        inputSettings: { privatePath: "/tmp/secret" }
+      }
+    },
+    {
+      toolName: "set_source_filter_settings",
+      input: { sourceName: "Camera", filterName: "Color Correction", filterSettings: { privatePath: "/tmp/secret" } }
+    },
+    {
+      toolName: "create_source_filter",
+      input: {
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterKind: "color_filter_v2",
+        filterSettings: { privatePath: "/tmp/secret" }
+      }
+    },
+    {
+      toolName: "get_source_screenshot",
+      input: { sourceName: "Camera", imageFormat: "gif" }
+    },
+    {
+      toolName: "save_source_screenshot",
+      input: { sourceName: "Camera", imageFormat: "png", fileName: "../camera.png" }
+    }
+  ])("rejects broad raw passthrough for $toolName", ({ input, toolName }) => {
+    expect(() => Schema.decodeUnknownSync(toolByName(toolName).inputSchema, { onExcessProperty: "error" })(input))
+      .toThrow()
   })
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {

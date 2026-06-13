@@ -27,7 +27,9 @@ Environment variables:
 
 The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 
-Filter settings mutation tools accept only documented allowlisted setting fields and do not expose raw OBS settings object passthroughs.
+## Payload and Settings Policy
+
+Input settings, filter settings, and screenshots use explicit MCP boundary schemas instead of raw OBS Object passthroughs. Read-only settings tools return stable setting metadata and mark raw settings as deferred. Mutation tools accept only allowlisted setting fields that have a narrow schema. Screenshot reads return bounded base64 data with MIME and byte metadata, while screenshot saves require the `screenshots` toolset plus an existing `OBS_MCP_SCREENSHOT_OUTPUT_DIR` allowlist.
 
 ## Tools
 
