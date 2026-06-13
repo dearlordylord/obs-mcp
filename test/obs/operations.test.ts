@@ -11,6 +11,8 @@ import {
   getInputAudioMonitorType,
   getInputAudioSyncOffset,
   getInputAudioTracks,
+  getInputDeinterlaceFieldOrder,
+  getInputDeinterlaceMode,
   getInputMute,
   getInputVolume,
   getMediaInputStatus,
@@ -22,6 +24,8 @@ import {
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
   setInputAudioTracks,
+  setInputDeinterlaceFieldOrder,
+  setInputDeinterlaceMode,
   setInputMute,
   setInputVolume,
   setMediaInputCursor,
@@ -452,6 +456,104 @@ describe("OBS operations", () => {
         requestType: "SetInputAudioTracks",
         code: 604,
         comment: "Audio tracks rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("controls input deinterlace mode and field order over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputDeinterlaceMode(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE"
+    })
+    await expect(setInputDeinterlaceMode(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X"
+    })).resolves.toEqual({
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X",
+      acknowledged: true
+    })
+    await expect(getInputDeinterlaceMode(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X"
+    })
+    await expect(getInputDeinterlaceFieldOrder(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP"
+    })
+    await expect(setInputDeinterlaceFieldOrder(client, {
+      inputUuid: "input-mic-aux",
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+    })).resolves.toEqual({
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM",
+      acknowledged: true
+    })
+    await expect(getInputDeinterlaceFieldOrder(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputDeinterlace"))).toEqual([
+      { requestType: "GetInputDeinterlaceMode", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputDeinterlaceMode",
+        requestData: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X" }
+      },
+      { requestType: "GetInputDeinterlaceMode", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "GetInputDeinterlaceFieldOrder", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputDeinterlaceFieldOrder",
+        requestData: {
+          inputUuid: "input-mic-aux",
+          inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+        }
+      },
+      { requestType: "GetInputDeinterlaceFieldOrder", requestData: { inputName: "Mic/Aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input deinterlace controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        SetInputDeinterlaceMode: { code: 605, comment: "Deinterlace mode unavailable for input" },
+        SetInputDeinterlaceFieldOrder: { code: 606, comment: "Deinterlace field order unavailable for input" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const setInputDeinterlaceModeUnchecked = setInputDeinterlaceMode as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputDeinterlaceMode>
+    const setInputDeinterlaceFieldOrderUnchecked = setInputDeinterlaceFieldOrder as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputDeinterlaceFieldOrder>
+    await expect(setInputDeinterlaceModeUnchecked(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_UNKNOWN"
+    })).rejects.toThrow("Expected")
+    await expect(setInputDeinterlaceFieldOrderUnchecked(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_UNKNOWN"
+    })).rejects.toThrow("Expected")
+    await expect(setInputDeinterlaceMode(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_LINEAR"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputDeinterlaceMode",
+        code: 605,
+        comment: "Deinterlace mode unavailable for input"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setInputDeinterlaceFieldOrder(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputDeinterlaceFieldOrder",
+        code: 606,
+        comment: "Deinterlace field order unavailable for input"
       } satisfies Partial<ObsRequestError>
     )
   })

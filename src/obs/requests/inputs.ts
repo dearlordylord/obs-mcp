@@ -4,6 +4,8 @@ import {
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
+  InputDeinterlaceFieldOrderOutput,
+  InputDeinterlaceModeOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -17,6 +19,8 @@ import {
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
+  SetInputDeinterlaceFieldOrderInput,
+  SetInputDeinterlaceModeInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
@@ -121,6 +125,30 @@ export const GetInputAudioTracks = {
 export const SetInputAudioTracks = {
   requestType: "SetInputAudioTracks",
   requestDataSchema: SetObsInputAudioTracksInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputDeinterlaceMode = {
+  requestType: "GetInputDeinterlaceMode",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputDeinterlaceModeOutput
+} satisfies ObsRequestDescriptor<InputDeinterlaceModeOutput>
+
+export const SetInputDeinterlaceMode = {
+  requestType: "SetInputDeinterlaceMode",
+  requestDataSchema: SetInputDeinterlaceModeInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputDeinterlaceFieldOrder = {
+  requestType: "GetInputDeinterlaceFieldOrder",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputDeinterlaceFieldOrderOutput
+} satisfies ObsRequestDescriptor<InputDeinterlaceFieldOrderOutput>
+
+export const SetInputDeinterlaceFieldOrder = {
+  requestType: "SetInputDeinterlaceFieldOrder",
+  requestDataSchema: SetInputDeinterlaceFieldOrderInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 

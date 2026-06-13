@@ -7,6 +7,8 @@ import type {
   SetInputAudioMonitorTypeOutput,
   SetInputAudioSyncOffsetOutput,
   SetInputAudioTracksOutput,
+  SetInputDeinterlaceFieldOrderOutput,
+  SetInputDeinterlaceModeOutput,
   SetMediaInputCursorOutput,
   TriggerMediaInputActionOutput
 } from "../../domain/schemas/inputs.js"
@@ -15,6 +17,8 @@ import {
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
   InputAudioTracksOutput,
+  InputDeinterlaceFieldOrderOutput,
+  InputDeinterlaceModeOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -28,6 +32,8 @@ import {
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
   SetInputAudioTracksInput,
+  SetInputDeinterlaceFieldOrderInput,
+  SetInputDeinterlaceModeInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
@@ -41,6 +47,8 @@ import {
   GetInputAudioMonitorType,
   GetInputAudioSyncOffset,
   GetInputAudioTracks,
+  GetInputDeinterlaceFieldOrder,
+  GetInputDeinterlaceMode,
   GetInputKindList,
   GetInputList,
   GetInputMute,
@@ -52,6 +60,8 @@ import {
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
   SetInputAudioTracks,
+  SetInputDeinterlaceFieldOrder,
+  SetInputDeinterlaceMode,
   SetInputMute,
   SetInputVolume,
   SetMediaInputCursor,
@@ -209,6 +219,42 @@ export const setInputAudioTracks = async (
     inputAudioTracks: toObsInputAudioTracks(decodedInput.inputAudioTracks)
   })
   return { inputAudioTracks: decodedInput.inputAudioTracks, acknowledged: true }
+}
+
+export const getInputDeinterlaceMode = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputDeinterlaceModeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputDeinterlaceMode, decodedInput)
+  return Schema.decodeUnknownSync(InputDeinterlaceModeOutput)(response)
+}
+
+export const setInputDeinterlaceMode = async (
+  client: ObsClient,
+  input: SetInputDeinterlaceModeInput
+): Promise<SetInputDeinterlaceModeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputDeinterlaceModeInput)(input)
+  await client.request(SetInputDeinterlaceMode, decodedInput)
+  return { inputDeinterlaceMode: decodedInput.inputDeinterlaceMode, acknowledged: true }
+}
+
+export const getInputDeinterlaceFieldOrder = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputDeinterlaceFieldOrderOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputDeinterlaceFieldOrder, decodedInput)
+  return Schema.decodeUnknownSync(InputDeinterlaceFieldOrderOutput)(response)
+}
+
+export const setInputDeinterlaceFieldOrder = async (
+  client: ObsClient,
+  input: SetInputDeinterlaceFieldOrderInput
+): Promise<SetInputDeinterlaceFieldOrderOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput)(input)
+  await client.request(SetInputDeinterlaceFieldOrder, decodedInput)
+  return { inputDeinterlaceFieldOrder: decodedInput.inputDeinterlaceFieldOrder, acknowledged: true }
 }
 
 export const getMediaInputStatus = async (

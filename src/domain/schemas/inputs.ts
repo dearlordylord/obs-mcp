@@ -199,6 +199,69 @@ export const SetInputAudioTracksOutput = Schema.Struct({
 export type SetInputAudioTracksOutput = typeof SetInputAudioTracksOutput.Type
 export const SetInputAudioTracksOutputJsonSchema = JSONSchema.make(SetInputAudioTracksOutput)
 
+export const InputDeinterlaceMode = Schema.Literal(
+  "OBS_DEINTERLACE_MODE_DISABLE",
+  "OBS_DEINTERLACE_MODE_DISCARD",
+  "OBS_DEINTERLACE_MODE_RETRO",
+  "OBS_DEINTERLACE_MODE_BLEND",
+  "OBS_DEINTERLACE_MODE_BLEND_2X",
+  "OBS_DEINTERLACE_MODE_LINEAR",
+  "OBS_DEINTERLACE_MODE_LINEAR_2X",
+  "OBS_DEINTERLACE_MODE_YADIF",
+  "OBS_DEINTERLACE_MODE_YADIF_2X"
+)
+export type InputDeinterlaceMode = typeof InputDeinterlaceMode.Type
+
+export const InputDeinterlaceModeOutput = Schema.Struct({
+  inputDeinterlaceMode: InputDeinterlaceMode
+})
+export type InputDeinterlaceModeOutput = typeof InputDeinterlaceModeOutput.Type
+export const InputDeinterlaceModeOutputJsonSchema = JSONSchema.make(InputDeinterlaceModeOutput)
+
+export const SetInputDeinterlaceModeInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputDeinterlaceMode: InputDeinterlaceMode
+  })
+)
+export type SetInputDeinterlaceModeInput = typeof SetInputDeinterlaceModeInput.Type
+export const SetInputDeinterlaceModeInputJsonSchema = JSONSchema.make(SetInputDeinterlaceModeInput)
+
+export const SetInputDeinterlaceModeOutput = Schema.Struct({
+  inputDeinterlaceMode: InputDeinterlaceMode,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputDeinterlaceModeOutput = typeof SetInputDeinterlaceModeOutput.Type
+export const SetInputDeinterlaceModeOutputJsonSchema = JSONSchema.make(SetInputDeinterlaceModeOutput)
+
+export const InputDeinterlaceFieldOrder = Schema.Literal(
+  "OBS_DEINTERLACE_FIELD_ORDER_TOP",
+  "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+)
+export type InputDeinterlaceFieldOrder = typeof InputDeinterlaceFieldOrder.Type
+
+export const InputDeinterlaceFieldOrderOutput = Schema.Struct({
+  inputDeinterlaceFieldOrder: InputDeinterlaceFieldOrder
+})
+export type InputDeinterlaceFieldOrderOutput = typeof InputDeinterlaceFieldOrderOutput.Type
+export const InputDeinterlaceFieldOrderOutputJsonSchema = JSONSchema.make(InputDeinterlaceFieldOrderOutput)
+
+export const SetInputDeinterlaceFieldOrderInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputDeinterlaceFieldOrder: InputDeinterlaceFieldOrder
+  })
+)
+export type SetInputDeinterlaceFieldOrderInput = typeof SetInputDeinterlaceFieldOrderInput.Type
+export const SetInputDeinterlaceFieldOrderInputJsonSchema = JSONSchema.make(SetInputDeinterlaceFieldOrderInput)
+
+export const SetInputDeinterlaceFieldOrderOutput = Schema.Struct({
+  inputDeinterlaceFieldOrder: InputDeinterlaceFieldOrder,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputDeinterlaceFieldOrderOutput = typeof SetInputDeinterlaceFieldOrderOutput.Type
+export const SetInputDeinterlaceFieldOrderOutputJsonSchema = JSONSchema.make(SetInputDeinterlaceFieldOrderOutput)
+
 export const MediaInputState = Schema.Literal(
   "OBS_MEDIA_STATE_NONE",
   "OBS_MEDIA_STATE_PLAYING",

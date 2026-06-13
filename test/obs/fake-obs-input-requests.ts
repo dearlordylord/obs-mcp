@@ -1,6 +1,8 @@
 import type {
   FakeObsInputAudioMonitorType,
   FakeObsInputAudioTracks,
+  FakeObsInputDeinterlaceFieldOrder,
+  FakeObsInputDeinterlaceMode,
   FakeObsMediaInputAction
 } from "./fake-obs-fixtures.js"
 import type { FakeObsInputState } from "./fake-obs-input-state.js"
@@ -17,6 +19,8 @@ interface FakeObsInputRequestContext {
   readonly monitorType?: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset?: number
   readonly inputAudioTracks?: FakeObsInputAudioTracks
+  readonly inputDeinterlaceMode?: FakeObsInputDeinterlaceMode
+  readonly inputDeinterlaceFieldOrder?: FakeObsInputDeinterlaceFieldOrder
   readonly mediaCursor?: number
   readonly mediaCursorOffset?: number
   readonly mediaAction?: FakeObsMediaInputAction
@@ -69,6 +73,15 @@ export const handleFakeObsInputRequest = (
     || requestType === "SetInputAudioTracks"
   ) {
     inputState.setAudioFromRequest(requestType, inputLocator(requestData), requestData)
+    send()
+    return true
+  }
+  if (requestType === "GetInputDeinterlaceMode" || requestType === "GetInputDeinterlaceFieldOrder") {
+    send(inputState.deinterlaceResponseFor(requestType, inputLocator(requestData)))
+    return true
+  }
+  if (requestType === "SetInputDeinterlaceMode" || requestType === "SetInputDeinterlaceFieldOrder") {
+    inputState.setDeinterlaceFromRequest(requestType, inputLocator(requestData), requestData)
     send()
     return true
   }

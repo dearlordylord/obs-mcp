@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest"
 import type { ObsConfig } from "../../src/config/config.js"
 import {
   InputAudioTracksOutput,
+  InputDeinterlaceFieldOrderOutput,
+  InputDeinterlaceModeOutput,
   InputLocatorInput,
   ListInputKindsInput,
   MediaInputStatusOutput,
@@ -13,6 +15,8 @@ import {
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
   SetInputAudioTracksInput,
+  SetInputDeinterlaceFieldOrderInput,
+  SetInputDeinterlaceModeInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
@@ -60,6 +64,10 @@ const inputToolNames = [
   "set_input_audio_sync_offset",
   "get_input_audio_tracks",
   "set_input_audio_tracks",
+  "get_input_deinterlace_mode",
+  "set_input_deinterlace_mode",
+  "get_input_deinterlace_field_order",
+  "set_input_deinterlace_field_order",
   "get_media_input_status",
   "set_media_input_cursor",
   "offset_media_input_cursor",
@@ -88,6 +96,10 @@ const inputAvailableRequests = [
   "SetInputAudioSyncOffset",
   "GetInputAudioTracks",
   "SetInputAudioTracks",
+  "GetInputDeinterlaceMode",
+  "SetInputDeinterlaceMode",
+  "GetInputDeinterlaceFieldOrder",
+  "SetInputDeinterlaceFieldOrder",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
@@ -370,6 +382,8 @@ describe("MCP tool registry", () => {
           "GetInputAudioBalance",
           "GetInputAudioSyncOffset",
           "GetInputAudioTracks",
+          "GetInputDeinterlaceMode",
+          "GetInputDeinterlaceFieldOrder",
           "GetMediaInputStatus",
           "SetMediaInputCursor",
           "TriggerMediaInputAction"
@@ -385,6 +399,8 @@ describe("MCP tool registry", () => {
           "get_input_audio_balance",
           "get_input_audio_sync_offset",
           "get_input_audio_tracks",
+          "get_input_deinterlace_mode",
+          "get_input_deinterlace_field_order",
           "get_media_input_status",
           "set_media_input_cursor",
           "trigger_media_input_action"
@@ -665,6 +681,22 @@ describe("MCP tool registry", () => {
         }
       },
       {
+        decode: Schema.decodeUnknownSync(InputDeinterlaceModeOutput),
+        input: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceModeInput),
+        input: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_BLEND" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputDeinterlaceFieldOrderOutput),
+        input: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput),
+        input: { inputUuid: "input-mic-aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
+      },
+      {
         decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
         input: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
       },
@@ -713,6 +745,14 @@ describe("MCP tool registry", () => {
             track6: false
           }
         }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceModeInput),
+        extra: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput),
+        extra: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
       },
       { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
       { decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput), extra: { mediaCursorOffset: 1 } },
@@ -793,6 +833,16 @@ describe("MCP tool registry", () => {
         message: "Expected boolean"
       },
       {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceModeInput),
+        input: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_UNKNOWN" },
+        message: "Expected"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput),
+        input: { inputName: "Mic/Aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_UNKNOWN" },
+        message: "Expected"
+      },
+      {
         decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
         input: { inputName: "Media Source", mediaCursor: -1 },
         message: "Expected a non-negative number"
@@ -838,6 +888,8 @@ describe("MCP tool registry", () => {
           "6": false
         }
       },
+      GetInputDeinterlaceMode: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE" },
+      GetInputDeinterlaceFieldOrder: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" },
       GetMediaInputStatus: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
     }
     const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
@@ -935,6 +987,26 @@ describe("MCP tool registry", () => {
           },
           acknowledged: true
         }
+      },
+      {
+        toolName: "get_input_deinterlace_mode",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE" }
+      },
+      {
+        toolName: "set_input_deinterlace_mode",
+        input: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_LINEAR_2X" },
+        expected: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_LINEAR_2X", acknowledged: true }
+      },
+      {
+        toolName: "get_input_deinterlace_field_order",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
+      },
+      {
+        toolName: "set_input_deinterlace_field_order",
+        input: { inputName: "Mic/Aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM" },
+        expected: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM", acknowledged: true }
       },
       {
         toolName: "get_media_input_status",

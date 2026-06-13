@@ -1,11 +1,13 @@
 import {
   DEFAULT_INPUT_AUDIO_STATE,
   DEFAULT_INPUT_AUDIO_TRACKS,
+  DEFAULT_INPUT_DEINTERLACE_STATE,
   DEFAULT_INPUT_VOLUME,
   DEFAULT_MEDIA_INPUT_STATUS,
   fakeInputVolumeFromRequest,
   type FakeObsInput,
   type FakeObsInputAudioState,
+  type FakeObsInputDeinterlaceState,
   type FakeObsInputVolume,
   type FakeObsMediaInputAction,
   type FakeObsMediaInputStatus
@@ -18,6 +20,11 @@ interface FakeObsInputAudioRequestData {
   readonly inputAudioTracks?: FakeObsInputAudioState["inputAudioTracks"]
 }
 
+interface FakeObsInputDeinterlaceRequestData {
+  readonly inputDeinterlaceMode?: FakeObsInputDeinterlaceState["inputDeinterlaceMode"]
+  readonly inputDeinterlaceFieldOrder?: FakeObsInputDeinterlaceState["inputDeinterlaceFieldOrder"]
+}
+
 interface FakeObsMediaCursorRequestData {
   readonly mediaCursor?: number
   readonly mediaCursorOffset?: number
@@ -27,6 +34,7 @@ export class FakeObsInputState {
   private readonly inputMuteByKey: Map<string, boolean>
   private readonly inputVolumeByKey: Map<string, FakeObsInputVolume> = new Map()
   private readonly inputAudioStateByKey: Map<string, FakeObsInputAudioState> = new Map()
+  private readonly inputDeinterlaceStateByKey: Map<string, FakeObsInputDeinterlaceState> = new Map()
   private readonly mediaStatusByKey: Map<string, FakeObsMediaInputStatus> = new Map()
 
   public constructor(private readonly inputs: ReadonlyArray<FakeObsInput>) {
@@ -108,6 +116,46 @@ export class FakeObsInputState {
         : requestType === "SetInputAudioTracks"
         ? { ...state, inputAudioTracks: requestData.inputAudioTracks ?? state.inputAudioTracks }
         : { ...state, inputAudioSyncOffset: requestData.inputAudioSyncOffset ?? state.inputAudioSyncOffset }
+    )
+  }
+
+  public getDeinterlaceState(locator: string): FakeObsInputDeinterlaceState {
+    const input = this.inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
+    return this.inputDeinterlaceStateByKey.get(locator) ?? {
+      inputDeinterlaceMode: input?.inputDeinterlaceMode ?? DEFAULT_INPUT_DEINTERLACE_STATE.inputDeinterlaceMode,
+      inputDeinterlaceFieldOrder: input?.inputDeinterlaceFieldOrder
+        ?? DEFAULT_INPUT_DEINTERLACE_STATE.inputDeinterlaceFieldOrder
+    }
+  }
+
+  public setDeinterlaceState(locator: string, state: FakeObsInputDeinterlaceState): void {
+    for (const key of this.keysFor(locator)) {
+      this.inputDeinterlaceStateByKey.set(key, state)
+    }
+  }
+
+  public deinterlaceResponseFor(requestType: string, locator: string): Record<string, unknown> {
+    const state = this.getDeinterlaceState(locator)
+    return requestType === "GetInputDeinterlaceMode"
+      ? { inputDeinterlaceMode: state.inputDeinterlaceMode }
+      : { inputDeinterlaceFieldOrder: state.inputDeinterlaceFieldOrder }
+  }
+
+  public setDeinterlaceFromRequest(
+    requestType: string,
+    locator: string,
+    requestData: FakeObsInputDeinterlaceRequestData
+  ): void {
+    const state = this.getDeinterlaceState(locator)
+    this.setDeinterlaceState(
+      locator,
+      requestType === "SetInputDeinterlaceMode"
+        ? { ...state, inputDeinterlaceMode: requestData.inputDeinterlaceMode ?? state.inputDeinterlaceMode }
+        : {
+          ...state,
+          inputDeinterlaceFieldOrder: requestData.inputDeinterlaceFieldOrder
+            ?? state.inputDeinterlaceFieldOrder
+        }
     )
   }
 
