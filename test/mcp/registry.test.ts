@@ -534,25 +534,31 @@ describe("MCP tool registry", () => {
         return { sceneUuid: "scene-break" }
       })
     })).resolves.toEqual({ sceneName: "Break", sceneUuid: "scene-break", created: true })
-    await expect(executeTool(toolByName("remove_scene"), { sceneUuid: "scene-break" }, {
+    await expect(executeTool(toolByName("remove_scene"), { sceneName: "Break", canvasUuid: "canvas-main" }, {
       config,
       client: fakeObsClient(async (requestType, requestData) => {
         expect(requestType).toBe("RemoveScene")
-        expect(requestData).toEqual({ sceneUuid: "scene-break" })
+        expect(requestData).toEqual({ sceneName: "Break", canvasUuid: "canvas-main" })
         return {}
       })
-    })).resolves.toEqual({ sceneUuid: "scene-break", removed: true })
+    })).resolves.toEqual({ sceneName: "Break", canvasUuid: "canvas-main", removed: true })
     await expect(executeTool(toolByName("set_scene_name"), {
       sceneName: "Break",
+      canvasUuid: "canvas-main",
       newSceneName: "Intermission"
     }, {
       config,
       client: fakeObsClient(async (requestType, requestData) => {
         expect(requestType).toBe("SetSceneName")
-        expect(requestData).toEqual({ sceneName: "Break", newSceneName: "Intermission" })
+        expect(requestData).toEqual({ sceneName: "Break", canvasUuid: "canvas-main", newSceneName: "Intermission" })
         return {}
       })
-    })).resolves.toEqual({ sceneName: "Break", newSceneName: "Intermission", renamed: true })
+    })).resolves.toEqual({
+      sceneName: "Break",
+      canvasUuid: "canvas-main",
+      newSceneName: "Intermission",
+      renamed: true
+    })
   })
 
   it("executes get_version, get_obs_stats, get_current_scene, and get_record_status handlers", async () => {
@@ -1763,6 +1769,14 @@ describe("MCP tool registry", () => {
       "set_scene_item_blend_mode",
       "get_source_active"
     ])
+  })
+
+  it("filters scene lifecycle tools by partial OBS capabilities", () => {
+    expect(getEnabledTools(["scenes"], ["CreateScene", "RemoveScene"]).map((tool) => tool.name)).toEqual([
+      "create_scene",
+      "remove_scene"
+    ])
+    expect(getEnabledTools(["scenes"], ["SetSceneName"]).map((tool) => tool.name)).toEqual(["set_scene_name"])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

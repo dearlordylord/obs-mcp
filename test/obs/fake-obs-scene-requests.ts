@@ -17,7 +17,7 @@ interface FakeObsSceneLifecycleRequestData {
   readonly newSceneName?: string
 }
 
-const SceneNotFoundError = { code: 601, comment: "Scene not found" } as const
+const SceneNotFoundError = { code: 600, comment: "Scene not found" } as const
 const SceneAlreadyExistsError = { code: 601, comment: "Scene already exists" } as const
 
 const reindexScenes = (scenes: Array<FakeObsScene>): void => {

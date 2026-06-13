@@ -168,20 +168,32 @@ describe("OBS operations", () => {
     clients.push(client)
     await expect(createScene(client, { sceneName: "Break" }))
       .resolves.toEqual({ sceneName: "Break", sceneUuid: "scene-break", created: true })
+    await expect(createScene(client, { sceneName: "Temp" }))
+      .resolves.toEqual({ sceneName: "Temp", sceneUuid: "scene-temp", created: true })
+    await expect(removeScene(client, { sceneUuid: "scene-temp" }))
+      .resolves.toEqual({ sceneUuid: "scene-temp", removed: true })
     await expect(listScenes(client, { includeGroups: true }))
       .resolves.toMatchObject({
         scenes: expect.arrayContaining([expect.objectContaining({ sceneName: "Break", sceneUuid: "scene-break" })])
       })
-    await expect(setSceneName(client, { sceneUuid: "scene-break", newSceneName: "Intermission" }))
-      .resolves.toEqual({ sceneUuid: "scene-break", newSceneName: "Intermission", renamed: true })
+    await expect(setSceneName(client, {
+      sceneName: "Break",
+      canvasUuid: "canvas-main",
+      newSceneName: "Intermission"
+    })).resolves.toEqual({
+      sceneName: "Break",
+      canvasUuid: "canvas-main",
+      newSceneName: "Intermission",
+      renamed: true
+    })
     await expect(listScenes(client, { includeGroups: true }))
       .resolves.toMatchObject({
         scenes: expect.arrayContaining([
           expect.objectContaining({ sceneName: "Intermission", sceneUuid: "scene-break" })
         ])
       })
-    await expect(removeScene(client, { sceneName: "Intermission" }))
-      .resolves.toEqual({ sceneName: "Intermission", removed: true })
+    await expect(removeScene(client, { sceneName: "Intermission", canvasUuid: "canvas-main" }))
+      .resolves.toEqual({ sceneName: "Intermission", canvasUuid: "canvas-main", removed: true })
     const scenes = await listScenes(client, { includeGroups: true })
     expect(scenes.scenes.map((scene) => scene.sceneName)).not.toContain("Intermission")
   })
@@ -198,12 +210,12 @@ describe("OBS operations", () => {
     })
     await expect(removeScene(client, { sceneName: "Missing" })).rejects.toMatchObject({
       requestType: "RemoveScene",
-      code: 601,
+      code: 600,
       comment: "Scene not found"
     })
     await expect(setSceneName(client, { sceneName: "Missing", newSceneName: "Other" })).rejects.toMatchObject({
       requestType: "SetSceneName",
-      code: 601,
+      code: 600,
       comment: "Scene not found"
     })
   })
@@ -677,6 +689,10 @@ describe("OBS operations", () => {
       currentPreviewSceneName: "Fallback",
       currentPreviewSceneUuid: "fallback-uuid"
     })))).resolves.toEqual({ sceneName: "Fallback", sceneUuid: "fallback-uuid" })
+  })
+
+  it("rejects current preview scene responses without a scene name", async () => {
+    await expect(getCurrentPreviewScene(fakeClient(async () => ({})))).rejects.toThrow("current preview scene name")
   })
 
   it("pauses, resumes, and toggles record pause through fake OBS", async () => {

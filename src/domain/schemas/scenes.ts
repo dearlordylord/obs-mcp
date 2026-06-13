@@ -103,6 +103,7 @@ export const RemoveSceneInputJsonSchema = JSONSchema.make(RemoveSceneInput)
 export const RemoveSceneOutput = Schema.Struct({
   sceneName: Schema.optional(Schema.String),
   sceneUuid: Schema.optional(Schema.String),
+  canvasUuid: Schema.optional(Schema.String),
   removed: Schema.Literal(true)
 })
 export type RemoveSceneOutput = typeof RemoveSceneOutput.Type
@@ -132,6 +133,7 @@ export const SetSceneNameInputJsonSchema = JSONSchema.make(SetSceneNameInput)
 export const SetSceneNameOutput = Schema.Struct({
   sceneName: Schema.optional(Schema.String),
   sceneUuid: Schema.optional(Schema.String),
+  canvasUuid: Schema.optional(Schema.String),
   newSceneName: Schema.String,
   renamed: Schema.Literal(true)
 })
