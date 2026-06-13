@@ -1,10 +1,25 @@
 import {
+  GetOutputStatusInput,
   LastReplayBufferReplayOutput,
+  ListOutputsOutput,
+  OutputStatusResponse,
   ReplayBufferStatusOutput,
   VirtualCamStatusOutput
 } from "../../domain/schemas/outputs.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
+
+export const GetOutputList = {
+  requestType: "GetOutputList",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: ListOutputsOutput
+} satisfies ObsRequestDescriptor<ListOutputsOutput>
+
+export const GetOutputStatus = {
+  requestType: "GetOutputStatus",
+  requestDataSchema: GetOutputStatusInput,
+  responseSchema: OutputStatusResponse
+} satisfies ObsRequestDescriptor<OutputStatusResponse>
 
 export const GetVirtualCamStatus = {
   requestType: "GetVirtualCamStatus",

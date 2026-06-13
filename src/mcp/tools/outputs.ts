@@ -1,5 +1,8 @@
 import {
+  GetOutputStatusInput,
+  GetOutputStatusOutput,
   LastReplayBufferReplayOutput,
+  ListOutputsOutput,
   ReplayBufferStatusOutput,
   ReplayBufferSwitchOutput,
   SaveReplayBufferOutput,
@@ -9,8 +12,10 @@ import {
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getLastReplayBufferReplay,
+  getOutputStatus,
   getReplayBufferStatus,
   getVirtualCamStatus,
+  listOutputs,
   saveReplayBuffer,
   startReplayBuffer,
   startVirtualCam,
@@ -21,6 +26,8 @@ import {
 } from "../../obs/operations/outputs.js"
 import {
   GetLastReplayBufferReplay,
+  GetOutputList,
+  GetOutputStatus,
   GetReplayBufferStatus,
   GetVirtualCamStatus,
   SaveReplayBuffer,
@@ -36,6 +43,26 @@ import { defineTool, type ToolDefinition } from "./mechanics.js"
 const CATEGORY = "outputs" as const
 
 export const outputTools: ReadonlyArray<ToolDefinition> = [
+  defineTool({
+    name: "list_outputs",
+    title: "List OBS Outputs",
+    description: "Return OBS output names, kinds, and activity state.",
+    category: CATEGORY,
+    requiredObsRequests: [GetOutputList.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: ListOutputsOutput,
+    handler: async (_input, context) => listOutputs(context.client)
+  }),
+  defineTool({
+    name: "get_output_status",
+    title: "Get OBS Output Status",
+    description: "Return generic OBS status fields for an output by name.",
+    category: CATEGORY,
+    requiredObsRequests: [GetOutputStatus.requestType],
+    inputSchema: GetOutputStatusInput,
+    outputSchema: GetOutputStatusOutput,
+    handler: async (input, context) => getOutputStatus(context.client, input)
+  }),
   defineTool({
     name: "get_virtual_cam_status",
     title: "Get OBS Virtual Camera Status",

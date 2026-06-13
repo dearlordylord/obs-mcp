@@ -1,7 +1,10 @@
 import { Schema } from "effect"
 
 import {
+  GetOutputStatusInput,
+  GetOutputStatusOutput,
   LastReplayBufferReplayOutput,
+  ListOutputsOutput,
   ReplayBufferStatusOutput,
   ReplayBufferSwitchOutput,
   SaveReplayBufferOutput,
@@ -11,6 +14,8 @@ import {
 import type { ObsClient } from "../client.js"
 import {
   GetLastReplayBufferReplay,
+  GetOutputList,
+  GetOutputStatus,
   GetReplayBufferStatus,
   GetVirtualCamStatus,
   SaveReplayBuffer,
@@ -22,6 +27,19 @@ import {
   ToggleVirtualCam
 } from "../requests.js"
 import { acknowledged, outputActive, outputActiveSwitch, requestAndDecode, requestAndReturn } from "./shared.js"
+
+export const listOutputs = async (client: ObsClient): Promise<ListOutputsOutput> => {
+  return requestAndDecode(client, GetOutputList, ListOutputsOutput)
+}
+
+export const getOutputStatus = async (
+  client: ObsClient,
+  input: GetOutputStatusInput
+): Promise<GetOutputStatusOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(GetOutputStatusInput)(input)
+  const response = await client.request(GetOutputStatus, decodedInput)
+  return Schema.decodeUnknownSync(GetOutputStatusOutput)({ ...response, outputName: decodedInput.outputName })
+}
 
 export const getVirtualCamStatus = async (client: ObsClient): Promise<VirtualCamStatusOutput> => {
   return requestAndDecode(client, GetVirtualCamStatus, VirtualCamStatusOutput)

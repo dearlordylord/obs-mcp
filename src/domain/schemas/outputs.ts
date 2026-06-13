@@ -2,6 +2,44 @@ import { JSONSchema, Schema } from "effect"
 
 import { OutputActiveState, OutputActiveSwitchState } from "./shared.js"
 
+export const OutputSummary = Schema.Struct({
+  outputName: Schema.String,
+  outputKind: Schema.String,
+  outputActive: Schema.Boolean
+})
+export type OutputSummary = typeof OutputSummary.Type
+
+export const ListOutputsOutput = Schema.Struct({
+  outputs: Schema.Array(OutputSummary)
+})
+export type ListOutputsOutput = typeof ListOutputsOutput.Type
+export const ListOutputsOutputJsonSchema = JSONSchema.make(ListOutputsOutput)
+
+export const GetOutputStatusInput = Schema.Struct({
+  outputName: Schema.NonEmptyString
+})
+export type GetOutputStatusInput = typeof GetOutputStatusInput.Type
+export const GetOutputStatusInputJsonSchema = JSONSchema.make(GetOutputStatusInput)
+
+export const OutputStatusResponse = Schema.Struct({
+  outputActive: Schema.Boolean,
+  outputReconnecting: Schema.optional(Schema.Boolean),
+  outputTimecode: Schema.optional(Schema.String),
+  outputDuration: Schema.optional(Schema.Number),
+  outputCongestion: Schema.optional(Schema.Number),
+  outputBytes: Schema.optional(Schema.Number),
+  outputSkippedFrames: Schema.optional(Schema.Number.pipe(Schema.int())),
+  outputTotalFrames: Schema.optional(Schema.Number.pipe(Schema.int()))
+})
+export type OutputStatusResponse = typeof OutputStatusResponse.Type
+
+export const GetOutputStatusOutput = Schema.extend(
+  GetOutputStatusInput,
+  OutputStatusResponse
+)
+export type GetOutputStatusOutput = typeof GetOutputStatusOutput.Type
+export const GetOutputStatusOutputJsonSchema = JSONSchema.make(GetOutputStatusOutput)
+
 export const VirtualCamStatusOutput = OutputActiveState
 export type VirtualCamStatusOutput = typeof VirtualCamStatusOutput.Type
 export const VirtualCamStatusOutputJsonSchema = JSONSchema.make(VirtualCamStatusOutput)

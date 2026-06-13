@@ -231,6 +231,8 @@ describe("MCP tool registry", () => {
 
   it("exposes output tools when the outputs toolset is enabled", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
+      "list_outputs",
+      "get_output_status",
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
@@ -242,6 +244,44 @@ describe("MCP tool registry", () => {
       "save_replay_buffer",
       "get_last_replay_buffer_replay"
     ])
+  })
+
+  it("lists outputs and gets generic output status", async () => {
+    await expect(executeTool(toolByName("list_outputs"), {}, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetOutputList")
+        expect(requestData).toBeUndefined()
+        return {
+          outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+        }
+      })
+    })).resolves.toEqual({
+      outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+    })
+    await expect(executeTool(toolByName("get_output_status"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetOutputStatus")
+        expect(requestData).toEqual({ outputName: "adv_stream" })
+        return {
+          outputActive: true,
+          outputReconnecting: false,
+          outputTimecode: "00:00:12.345",
+          outputBytes: 4096,
+          outputSkippedFrames: 1,
+          outputTotalFrames: 740
+        }
+      })
+    })).resolves.toEqual({
+      outputName: "adv_stream",
+      outputActive: true,
+      outputReconnecting: false,
+      outputTimecode: "00:00:12.345",
+      outputBytes: 4096,
+      outputSkippedFrames: 1,
+      outputTotalFrames: 740
+    })
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
@@ -313,6 +353,8 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual(inputToolNames)
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "list_outputs",
+      "get_output_status",
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
@@ -2077,6 +2119,13 @@ describe("MCP tool registry", () => {
     expect(
       getEnabledTools(["scenes"], ["SetSceneSceneTransitionOverride"]).map((tool) => tool.name)
     ).toEqual(["set_scene_transition_override"])
+  })
+
+  it("filters generic output tools by partial OBS capabilities", () => {
+    expect(getEnabledTools(["outputs"], ["GetOutputList"]).map((tool) => tool.name))
+      .toEqual(["list_outputs"])
+    expect(getEnabledTools(["outputs"], ["GetOutputStatus"]).map((tool) => tool.name))
+      .toEqual(["get_output_status"])
   })
 
   it("filters scene item transform by partial OBS capabilities", () => {

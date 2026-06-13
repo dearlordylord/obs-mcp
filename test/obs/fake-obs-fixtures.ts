@@ -176,6 +176,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "OffsetMediaInputCursor",
   "TriggerMediaInputAction",
   "GetVirtualCamStatus",
+  "GetOutputList",
+  "GetOutputStatus",
   "StartVirtualCam",
   "StopVirtualCam",
   "ToggleVirtualCam",

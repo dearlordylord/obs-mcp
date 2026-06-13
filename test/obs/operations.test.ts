@@ -28,8 +28,10 @@ import {
 } from "../../src/obs/operations/inputs.js"
 import {
   getLastReplayBufferReplay,
+  getOutputStatus,
   getReplayBufferStatus,
   getVirtualCamStatus,
+  listOutputs,
   saveReplayBuffer,
   startReplayBuffer,
   startVirtualCam,
@@ -901,6 +903,30 @@ describe("OBS operations", () => {
         comment: "Media action unavailable"
       } satisfies Partial<ObsRequestError>
     )
+  })
+
+  it("lists outputs and gets generic output status over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listOutputs(client)).resolves.toEqual({
+      outputs: [
+        { outputName: "adv_stream", outputKind: "rtmp_output", outputActive: false },
+        { outputName: "adv_file_output", outputKind: "ffmpeg_muxer", outputActive: false },
+        { outputName: "virtualcam_output", outputKind: "virtualcam_output", outputActive: false },
+        { outputName: "replay_buffer", outputKind: "replay_buffer", outputActive: false }
+      ]
+    })
+    await expect(startStream(client)).resolves.toEqual({ outputActive: true })
+    await expect(getOutputStatus(client, { outputName: "adv_stream" })).resolves.toMatchObject({
+      outputName: "adv_stream",
+      outputActive: true,
+      outputReconnecting: false,
+      outputBytes: 4096,
+      outputSkippedFrames: 0,
+      outputTotalFrames: 740
+    })
   })
 
   it("controls the virtual camera over the OBS protocol", async () => {

@@ -430,7 +430,7 @@ export class FakeObsServer {
     if (handleFakeObsInputRequest(this.inputState, requestType, envelope.d.requestData, send)) {
       return
     }
-    if (this.outputState.handleRequest(requestType, send)) {
+    if (this.outputState.handleRequest(requestType, envelope.d.requestData, send)) {
       return
     }
     send()
