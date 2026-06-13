@@ -4,17 +4,22 @@ import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import {
+  CreateInputInput,
+  CreateInputOutput,
   InputAudioTracksOutput,
   InputDefaultSettingsOutput,
   InputDeinterlaceFieldOrderOutput,
   InputDeinterlaceModeOutput,
   InputKindInput,
   InputLocatorInput,
+  InputMutationAcknowledgedOutput,
   InputPropertiesListPropertyItemsInput,
   InputPropertiesListPropertyItemsOutput,
   InputSettingsOutput,
   ListInputKindsInput,
   MediaInputStatusOutput,
+  ObsCreateInputInput,
+  ObsSetInputSettingsInput,
   OffsetMediaInputCursorInput,
   PressInputPropertiesButtonInput,
   SetInputAudioBalanceInput,
@@ -24,8 +29,11 @@ import {
   SetInputDeinterlaceFieldOrderInput,
   SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputNameInput,
+  SetInputNameOutput,
   SetInputSettingsInput,
   SetInputVolumeInput,
+  SetInputVolumeOutput,
   SetMediaInputCursorInput,
   TriggerMediaInputActionInput
 } from "../../src/domain/schemas/inputs.js"
@@ -80,6 +88,9 @@ const inputToolNames = [
   "get_input_properties_list_property_items",
   "set_input_settings",
   "press_input_properties_button",
+  "create_input",
+  "remove_input",
+  "set_input_name",
   "get_media_input_status",
   "set_media_input_cursor",
   "offset_media_input_cursor",
@@ -114,6 +125,9 @@ const inputAvailableRequests = [
   "GetInputPropertiesListPropertyItems",
   "SetInputSettings",
   "PressInputPropertiesButton",
+  "CreateInput",
+  "RemoveInput",
+  "SetInputName",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
@@ -403,6 +417,9 @@ describe("MCP tool registry", () => {
           "GetInputPropertiesListPropertyItems",
           "SetInputSettings",
           "PressInputPropertiesButton",
+          "CreateInput",
+          "RemoveInput",
+          "SetInputName",
           "GetMediaInputStatus",
           "SetMediaInputCursor",
           "TriggerMediaInputAction"
@@ -425,6 +442,9 @@ describe("MCP tool registry", () => {
           "get_input_properties_list_property_items",
           "set_input_settings",
           "press_input_properties_button",
+          "create_input",
+          "remove_input",
+          "set_input_name",
           "get_media_input_status",
           "set_media_input_cursor",
           "trigger_media_input_action"
@@ -783,6 +803,31 @@ describe("MCP tool registry", () => {
         input: { inputUuid: "input-browser", propertyName: "refreshnocache" }
       },
       {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: {
+          sceneName: "Main",
+          inputName: "Media Source",
+          inputKind: "ffmpeg_source",
+          inputSettings: { looping: true }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputOutput),
+        input: { inputUuid: "input-media-source", sceneItemId: 3 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputMutationAcknowledgedOutput),
+        input: { acknowledged: true }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputNameInput),
+        input: { inputUuid: "input-media-source", newInputName: "Renamed Media" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputNameOutput),
+        input: { inputName: "Renamed Media", acknowledged: true }
+      },
+      {
         decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
         input: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
       },
@@ -807,6 +852,30 @@ describe("MCP tool registry", () => {
     for (const { decode, input } of validCases) {
       expect(decode(input)).toEqual(input)
     }
+    expect(
+      Schema.decodeUnknownSync(ObsSetInputSettingsInput)({
+        inputName: "Media Source",
+        inputSettings: { looping: true }
+      })
+    ).toEqual({
+      inputName: "Media Source",
+      inputSettings: { looping: true },
+      overlay: true
+    })
+    expect(
+      Schema.decodeUnknownSync(ObsCreateInputInput)({
+        sceneName: "Main",
+        inputName: "Media Source",
+        inputKind: "ffmpeg_source",
+        inputSettings: { looping: true }
+      })
+    ).toEqual({
+      sceneName: "Main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source",
+      inputSettings: { looping: true },
+      sceneItemEnabled: true
+    })
     expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
     const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
     const locatorCases = [
@@ -843,6 +912,7 @@ describe("MCP tool registry", () => {
       { decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput), extra: { propertyName: "device_id" } },
       { decode: Schema.decodeUnknownSync(SetInputSettingsInput), extra: { inputSettings: { looping: true } } },
       { decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput), extra: { propertyName: "refreshnocache" } },
+      { decode: Schema.decodeUnknownSync(SetInputNameInput), extra: { newInputName: "Renamed Media" } },
       { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
       { decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput), extra: { mediaCursorOffset: 1 } },
       {
@@ -971,6 +1041,26 @@ describe("MCP tool registry", () => {
         message: "Expected a non empty string"
       },
       {
+        decode: Schema.decodeUnknownSync(SetInputVolumeOutput),
+        input: { inputVolumeMul: 1, inputVolumeDb: 0, acknowledged: true },
+        message: "Exactly one of inputVolumeMul or inputVolumeDb is required"
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: { sceneName: "Main", inputName: "", inputKind: "ffmpeg_source" },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: { sceneName: "Main", inputName: "Media Source", inputKind: "ffmpeg_source", inputSettings: {} },
+        message: "At least one allowlisted input setting is required"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputNameInput),
+        input: { inputName: "Media Source", newInputName: "" },
+        message: "Expected a non empty string"
+      },
+      {
         decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
         input: { inputName: "Media Source", mediaCursor: -1 },
         message: "Expected a non-negative number"
@@ -1038,6 +1128,7 @@ describe("MCP tool registry", () => {
           { itemName: "Primary", itemValue: "primary-device", itemEnabled: true, metadata: { omitted: true } }
         ]
       },
+      CreateInput: { inputUuid: "input-media-source", sceneItemId: 3 },
       GetMediaInputStatus: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
     }
     const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
@@ -1228,6 +1319,26 @@ describe("MCP tool registry", () => {
         toolName: "press_input_properties_button",
         input: { inputName: "Browser", propertyName: "refreshnocache" },
         expected: { propertyName: "refreshnocache", acknowledged: true }
+      },
+      {
+        toolName: "create_input",
+        input: {
+          sceneName: "Main",
+          inputName: "Media Source",
+          inputKind: "ffmpeg_source",
+          inputSettings: { looping: true }
+        },
+        expected: { inputUuid: "input-media-source", sceneItemId: 3 }
+      },
+      {
+        toolName: "remove_input",
+        input: { inputUuid: "input-media-source" },
+        expected: { acknowledged: true }
+      },
+      {
+        toolName: "set_input_name",
+        input: { inputUuid: "input-media-source", newInputName: "Renamed Media" },
+        expected: { inputName: "Renamed Media", acknowledged: true }
       },
       {
         toolName: "get_media_input_status",

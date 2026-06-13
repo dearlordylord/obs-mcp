@@ -1,6 +1,7 @@
 import { Schema } from "effect"
 
 import {
+  CreateInputOutput,
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
@@ -16,6 +17,7 @@ import {
   ListInputsInput,
   ListInputsOutput,
   MediaInputStatusOutput,
+  ObsCreateInputInput,
   ObsInputAudioTracksOutput,
   ObsInputDefaultSettingsOutput,
   ObsInputPropertiesListPropertyItemsOutput,
@@ -29,6 +31,7 @@ import {
   SetInputDeinterlaceFieldOrderInput,
   SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputNameInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
   SetObsInputAudioTracksInput,
@@ -186,6 +189,24 @@ export const SetInputSettings = {
 export const PressInputPropertiesButton = {
   requestType: "PressInputPropertiesButton",
   requestDataSchema: PressInputPropertiesButtonInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const CreateInput = {
+  requestType: "CreateInput",
+  requestDataSchema: ObsCreateInputInput,
+  responseSchema: CreateInputOutput
+} satisfies ObsRequestDescriptor<CreateInputOutput>
+
+export const RemoveInput = {
+  requestType: "RemoveInput",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const SetInputName = {
+  requestType: "SetInputName",
+  requestDataSchema: SetInputNameInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 

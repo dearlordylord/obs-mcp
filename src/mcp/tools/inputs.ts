@@ -1,4 +1,8 @@
+/* eslint-disable max-lines */
+
 import {
+  CreateInputInput,
+  CreateInputOutput,
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
@@ -8,6 +12,7 @@ import {
   InputDeinterlaceModeOutput,
   InputKindInput,
   InputLocatorInput,
+  InputMutationAcknowledgedOutput,
   InputMuteOutput,
   InputPropertiesListPropertyItemsInput,
   InputPropertiesListPropertyItemsOutput,
@@ -35,6 +40,8 @@ import {
   SetInputDeinterlaceModeInput,
   SetInputDeinterlaceModeOutput,
   SetInputMuteInput,
+  SetInputNameInput,
+  SetInputNameOutput,
   SetInputSettingsInput,
   SetInputSettingsOutput,
   SetInputVolumeInput,
@@ -47,6 +54,7 @@ import {
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  createInput,
   getInputAudioBalance,
   getInputAudioMonitorType,
   getInputAudioSyncOffset,
@@ -64,6 +72,7 @@ import {
   listInputs,
   offsetMediaInputCursor,
   pressInputPropertiesButton,
+  removeInput,
   setInputAudioBalance,
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
@@ -71,6 +80,7 @@ import {
   setInputDeinterlaceFieldOrder,
   setInputDeinterlaceMode,
   setInputMute,
+  setInputName,
   setInputSettings,
   setInputVolume,
   setMediaInputCursor,
@@ -78,6 +88,7 @@ import {
   triggerMediaInputAction
 } from "../../obs/operations/inputs.js"
 import {
+  CreateInput,
   GetInputAudioBalance,
   GetInputAudioMonitorType,
   GetInputAudioSyncOffset,
@@ -95,6 +106,7 @@ import {
   GetSpecialInputs,
   OffsetMediaInputCursor,
   PressInputPropertiesButton,
+  RemoveInput,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
@@ -102,6 +114,7 @@ import {
   SetInputDeinterlaceFieldOrder,
   SetInputDeinterlaceMode,
   SetInputMute,
+  SetInputName,
   SetInputSettings,
   SetInputVolume,
   SetMediaInputCursor,
@@ -362,6 +375,36 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: PressInputPropertiesButtonInput,
     outputSchema: PressInputPropertiesButtonOutput,
     handler: async (input, context) => pressInputPropertiesButton(context.client, input)
+  }),
+  defineTool({
+    name: "create_input",
+    title: "Create OBS Input",
+    description: "Create an OBS input in a scene. Optional inputSettings uses the narrow allowlisted settings patch.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateInput.requestType],
+    inputSchema: CreateInputInput,
+    outputSchema: CreateInputOutput,
+    handler: async (input, context) => createInput(context.client, input)
+  }),
+  defineTool({
+    name: "remove_input",
+    title: "Remove OBS Input",
+    description: "Remove an OBS input by name or UUID.",
+    category: CATEGORY,
+    requiredObsRequests: [RemoveInput.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: InputMutationAcknowledgedOutput,
+    handler: async (input, context) => removeInput(context.client, input)
+  }),
+  defineTool({
+    name: "set_input_name",
+    title: "Rename OBS Input",
+    description: "Rename an OBS input by name or UUID.",
+    category: CATEGORY,
+    requiredObsRequests: [SetInputName.requestType],
+    inputSchema: SetInputNameInput,
+    outputSchema: SetInputNameOutput,
+    handler: async (input, context) => setInputName(context.client, input)
   }),
   defineTool({
     name: "get_media_input_status",

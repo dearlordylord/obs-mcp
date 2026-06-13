@@ -1,6 +1,9 @@
+/* eslint-disable max-lines */
+
 import { Schema } from "effect"
 
 import type {
+  InputMutationAcknowledgedOutput,
   ObsInputAudioTracks,
   OffsetMediaInputCursorOutput,
   PressInputPropertiesButtonOutput,
@@ -13,11 +16,14 @@ import type {
   SetInputAudioTracksOutput,
   SetInputDeinterlaceFieldOrderOutput,
   SetInputDeinterlaceModeOutput,
+  SetInputNameOutput,
   SetInputSettingsOutput,
   SetMediaInputCursorOutput,
   TriggerMediaInputActionOutput
 } from "../../domain/schemas/inputs.js"
 import {
+  CreateInputInput,
+  CreateInputOutput,
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
@@ -46,6 +52,7 @@ import {
   SetInputDeinterlaceFieldOrderInput,
   SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputNameInput,
   SetInputSettingsInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
@@ -55,6 +62,7 @@ import {
 } from "../../domain/schemas/inputs.js"
 import type { ObsClient } from "../client.js"
 import {
+  CreateInput,
   GetInputAudioBalance,
   GetInputAudioMonitorType,
   GetInputAudioSyncOffset,
@@ -72,6 +80,7 @@ import {
   GetSpecialInputs,
   OffsetMediaInputCursor,
   PressInputPropertiesButton,
+  RemoveInput,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
@@ -79,6 +88,7 @@ import {
   SetInputDeinterlaceFieldOrder,
   SetInputDeinterlaceMode,
   SetInputMute,
+  SetInputName,
   SetInputSettings,
   SetInputVolume,
   SetMediaInputCursor,
@@ -418,6 +428,37 @@ export const pressInputPropertiesButton = async (
   const decodedInput = Schema.decodeUnknownSync(PressInputPropertiesButtonInput)(input)
   await client.request(PressInputPropertiesButton, decodedInput)
   return { propertyName: decodedInput.propertyName, acknowledged: true }
+}
+
+export const createInput = async (client: ObsClient, input: CreateInputInput): Promise<CreateInputOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(CreateInputInput)(input)
+  const response = await client.request(CreateInput, {
+    ...(decodedInput.sceneName === undefined ? {} : { sceneName: decodedInput.sceneName }),
+    ...(decodedInput.sceneUuid === undefined ? {} : { sceneUuid: decodedInput.sceneUuid }),
+    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    inputName: decodedInput.inputName,
+    inputKind: decodedInput.inputKind,
+    ...(decodedInput.inputSettings === undefined
+      ? {}
+      : { inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings) }),
+    sceneItemEnabled: decodedInput.sceneItemEnabled ?? true
+  })
+  return Schema.decodeUnknownSync(CreateInputOutput)(response)
+}
+
+export const removeInput = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputMutationAcknowledgedOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  await client.request(RemoveInput, decodedInput)
+  return { acknowledged: true }
+}
+
+export const setInputName = async (client: ObsClient, input: SetInputNameInput): Promise<SetInputNameOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputNameInput)(input)
+  await client.request(SetInputName, decodedInput)
+  return { inputName: decodedInput.newInputName, acknowledged: true }
 }
 
 export const getMediaInputStatus = async (

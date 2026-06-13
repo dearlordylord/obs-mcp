@@ -2,6 +2,7 @@
 
 import { JSONSchema, Schema } from "effect"
 
+import { SceneLocator } from "./scenes.js"
 import { UnknownRecord } from "./shared.js"
 
 export const InputLocatorInput = Schema.Struct({
@@ -370,6 +371,36 @@ export const InputSettingsPatch = Schema.Struct({
 export type InputSettingsPatch = typeof InputSettingsPatch.Type
 export const InputSettingsPatchJsonSchema = JSONSchema.make(InputSettingsPatch)
 
+export const CreateInputInput = Schema.extend(
+  SceneLocator,
+  Schema.Struct({
+    inputName: Schema.NonEmptyString,
+    inputKind: Schema.NonEmptyString,
+    inputSettings: Schema.optional(InputSettingsPatch),
+    sceneItemEnabled: Schema.optional(Schema.Boolean)
+  })
+)
+export type CreateInputInput = typeof CreateInputInput.Type
+export const CreateInputInputJsonSchema = JSONSchema.make(CreateInputInput)
+
+export const ObsCreateInputInput = Schema.extend(
+  SceneLocator,
+  Schema.Struct({
+    inputName: Schema.NonEmptyString,
+    inputKind: Schema.NonEmptyString,
+    inputSettings: Schema.optional(UnknownRecord),
+    sceneItemEnabled: Schema.optionalWith(Schema.Boolean, { default: () => true })
+  })
+)
+export type ObsCreateInputInput = typeof ObsCreateInputInput.Type
+
+export const CreateInputOutput = Schema.Struct({
+  inputUuid: Schema.String,
+  sceneItemId: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+})
+export type CreateInputOutput = typeof CreateInputOutput.Type
+export const CreateInputOutputJsonSchema = JSONSchema.make(CreateInputOutput)
+
 export const SetInputSettingsInput = Schema.extend(
   InputLocatorInput,
   Schema.Struct({
@@ -412,6 +443,28 @@ export const PressInputPropertiesButtonOutput = Schema.Struct({
 })
 export type PressInputPropertiesButtonOutput = typeof PressInputPropertiesButtonOutput.Type
 export const PressInputPropertiesButtonOutputJsonSchema = JSONSchema.make(PressInputPropertiesButtonOutput)
+
+export const SetInputNameInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    newInputName: Schema.NonEmptyString
+  })
+)
+export type SetInputNameInput = typeof SetInputNameInput.Type
+export const SetInputNameInputJsonSchema = JSONSchema.make(SetInputNameInput)
+
+export const InputMutationAcknowledgedOutput = Schema.Struct({
+  acknowledged: Schema.Literal(true)
+})
+export type InputMutationAcknowledgedOutput = typeof InputMutationAcknowledgedOutput.Type
+export const InputMutationAcknowledgedOutputJsonSchema = JSONSchema.make(InputMutationAcknowledgedOutput)
+
+export const SetInputNameOutput = Schema.Struct({
+  inputName: Schema.String,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputNameOutput = typeof SetInputNameOutput.Type
+export const SetInputNameOutputJsonSchema = JSONSchema.make(SetInputNameOutput)
 
 export const MediaInputState = Schema.Literal(
   "OBS_MEDIA_STATE_NONE",

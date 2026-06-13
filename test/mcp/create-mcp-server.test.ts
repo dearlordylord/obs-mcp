@@ -97,6 +97,9 @@ describe("MCP server protocol handlers", () => {
       "get_input_properties_list_property_items",
       "set_input_settings",
       "press_input_properties_button",
+      "create_input",
+      "remove_input",
+      "set_input_name",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -305,6 +308,9 @@ describe("MCP server protocol handlers", () => {
             ]
           }
         }
+        if (requestType === "CreateInput") {
+          return { inputUuid: "input-media-source", sceneItemId: 3 }
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -343,6 +349,9 @@ describe("MCP server protocol handlers", () => {
       "get_input_properties_list_property_items",
       "set_input_settings",
       "press_input_properties_button",
+      "create_input",
+      "remove_input",
+      "set_input_name",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -414,6 +423,29 @@ describe("MCP server protocol handlers", () => {
       arguments: { inputName: "Browser", propertyName: "refreshnocache" }
     })).resolves.toMatchObject({
       structuredContent: { propertyName: "refreshnocache", acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "create_input",
+      arguments: {
+        sceneName: "Main",
+        inputName: "Media Source",
+        inputKind: "ffmpeg_source",
+        inputSettings: { looping: true }
+      }
+    })).resolves.toMatchObject({
+      structuredContent: { inputUuid: "input-media-source", sceneItemId: 3 }
+    })
+    await expect(client.callTool({
+      name: "remove_input",
+      arguments: { inputUuid: "input-media-source" }
+    })).resolves.toMatchObject({
+      structuredContent: { acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_input_name",
+      arguments: { inputUuid: "input-media-source", newInputName: "Renamed Media" }
+    })).resolves.toMatchObject({
+      structuredContent: { inputName: "Renamed Media", acknowledged: true }
     })
   })
 

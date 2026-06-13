@@ -88,7 +88,7 @@ export class FakeObsServer {
     const scenes = options.scenes ?? DEFAULT_SCENES
     const inputs = options.inputs ?? DEFAULT_INPUTS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
-    fake.inputState = new FakeObsInputState(inputs)
+    fake.inputState = new FakeObsInputState([...inputs])
     fake.installHandlers(options, scenes, inputs)
     return fake
   }
@@ -356,9 +356,7 @@ export class FakeObsServer {
     if (requestType === "GetInputList") {
       const inputKind = envelope.d.requestData?.inputKind
       send({
-        inputs: typeof inputKind === "string"
-          ? inputs.filter((input) => input.inputKind === inputKind || input.unversionedInputKind === inputKind)
-          : inputs
+        inputs: this.inputState.listInputs(typeof inputKind === "string" ? inputKind : undefined)
       })
       return
     }

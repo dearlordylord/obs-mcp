@@ -74,6 +74,9 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `get_input_properties_list_property_items`
 - `set_input_settings`
 - `press_input_properties_button`
+- `create_input`
+- `remove_input`
+- `set_input_name`
 - `get_media_input_status`
 - `set_media_input_cursor`
 - `offset_media_input_cursor`

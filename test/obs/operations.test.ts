@@ -7,6 +7,7 @@ import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import {
+  createInput,
   getInputAudioBalance,
   getInputAudioMonitorType,
   getInputAudioSyncOffset,
@@ -24,6 +25,7 @@ import {
   listInputs,
   offsetMediaInputCursor,
   pressInputPropertiesButton,
+  removeInput,
   setInputAudioBalance,
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
@@ -31,6 +33,7 @@ import {
   setInputDeinterlaceFieldOrder,
   setInputDeinterlaceMode,
   setInputMute,
+  setInputName,
   setInputSettings,
   setInputVolume,
   setMediaInputCursor,
@@ -780,6 +783,121 @@ describe("OBS operations", () => {
         requestType: "PressInputPropertiesButton",
         code: 609,
         comment: "Button unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("creates, renames, and removes inputs through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createInput(client, {
+      sceneName: "Main",
+      canvasUuid: "canvas-main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source",
+      inputSettings: { looping: true, reconnectDelaySec: 10 },
+      sceneItemEnabled: false
+    })).resolves.toEqual({ inputUuid: "input-media-source", sceneItemId: 1002 })
+    await expect(listInputs(client, { inputKind: "ffmpeg_source" })).resolves.toEqual({
+      inputs: [{
+        inputName: "Media Source",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source"
+      }]
+    })
+    await expect(setInputName(client, {
+      inputUuid: "input-media-source",
+      newInputName: "Renamed Media"
+    })).resolves.toEqual({ inputName: "Renamed Media", acknowledged: true })
+    await expect(listInputs(client, { inputKind: "ffmpeg_source" })).resolves.toEqual({
+      inputs: [{
+        inputName: "Renamed Media",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source"
+      }]
+    })
+    await expect(removeInput(client, { inputName: "Renamed Media" })).resolves.toEqual({ acknowledged: true })
+    await expect(listInputs(client, { inputKind: "ffmpeg_source" })).resolves.toEqual({ inputs: [] })
+    expect(server.requests.filter((request) =>
+      request.requestType === "CreateInput"
+      || request.requestType === "SetInputName"
+      || request.requestType === "RemoveInput"
+    )).toEqual([
+      {
+        requestType: "CreateInput",
+        requestData: {
+          sceneName: "Main",
+          canvasUuid: "canvas-main",
+          inputName: "Media Source",
+          inputKind: "ffmpeg_source",
+          inputSettings: { looping: true, reconnect_delay_sec: 10 },
+          sceneItemEnabled: false
+        }
+      },
+      {
+        requestType: "SetInputName",
+        requestData: { inputUuid: "input-media-source", newInputName: "Renamed Media" }
+      },
+      {
+        requestType: "RemoveInput",
+        requestData: { inputName: "Renamed Media" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for input lifecycle controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        CreateInput: { code: 610, comment: "Input create rejected" },
+        RemoveInput: { code: 611, comment: "Input remove rejected" },
+        SetInputName: { code: 612, comment: "Input rename rejected" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const createInputUnchecked = createInput as (client: ObsClient, input: unknown) => ReturnType<typeof createInput>
+    const setInputNameUnchecked = setInputName as (client: ObsClient, input: unknown) => ReturnType<typeof setInputName>
+    await expect(createInputUnchecked(client, {
+      sceneName: "Main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source",
+      inputSettings: {}
+    })).rejects.toThrow("At least one allowlisted input setting is required")
+    await expect(setInputNameUnchecked(client, {
+      inputName: "Media Source",
+      newInputName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(createInput(client, {
+      sceneUuid: "scene-main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    })).rejects.toMatchObject(
+      {
+        requestType: "CreateInput",
+        code: 610,
+        comment: "Input create rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(removeInput(client, { inputName: "Media Source" })).rejects.toMatchObject(
+      {
+        requestType: "RemoveInput",
+        code: 611,
+        comment: "Input remove rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setInputName(client, {
+      inputName: "Media Source",
+      newInputName: "Renamed Media"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputName",
+        code: 612,
+        comment: "Input rename rejected"
       } satisfies Partial<ObsRequestError>
     )
   })

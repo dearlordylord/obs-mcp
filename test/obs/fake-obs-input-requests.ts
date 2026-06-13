@@ -13,6 +13,11 @@ interface FakeObsInputRequestContext {
   readonly inputName?: string
   readonly inputUuid?: string
   readonly inputKind?: string
+  readonly newInputName?: string
+  readonly sceneName?: string
+  readonly sceneUuid?: string
+  readonly canvasUuid?: string
+  readonly sceneItemEnabled?: boolean
   readonly propertyName?: string
   readonly inputSettings?: Record<string, unknown>
   readonly overlay?: boolean
@@ -125,6 +130,23 @@ export const handleFakeObsInputRequest = (
     return true
   }
   if (requestType === "SetInputSettings" || requestType === "PressInputPropertiesButton") {
+    send()
+    return true
+  }
+  if (requestType === "CreateInput") {
+    send(inputState.createInput({
+      inputName: requestData.inputName ?? "Created Input",
+      inputKind: requestData.inputKind ?? "unknown_input"
+    }))
+    return true
+  }
+  if (requestType === "RemoveInput") {
+    inputState.removeInput(inputLocator(requestData))
+    send()
+    return true
+  }
+  if (requestType === "SetInputName") {
+    inputState.renameInput(inputLocator(requestData), requestData.newInputName ?? "Renamed Input")
     send()
     return true
   }
