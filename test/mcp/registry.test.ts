@@ -138,6 +138,44 @@ const transitionToolNames = [
   "set_tbar_position"
 ]
 
+const laneOwnedRequestTools = [
+  ["GetCanvasList", "list_canvases", "canvases"],
+  ["GetStudioModeEnabled", "get_studio_mode_enabled", "ui"],
+  ["GetTransitionKindList", "list_transition_kinds", "transitions"],
+  ["GetSceneTransitionList", "list_scene_transitions", "transitions"],
+  ["GetCurrentSceneTransition", "get_current_scene_transition", "transitions"],
+  ["GetCurrentSceneTransitionCursor", "get_current_scene_transition_cursor", "transitions"],
+  ["SetCurrentSceneTransition", "set_current_scene_transition", "transitions"],
+  ["SetCurrentSceneTransitionDuration", "set_current_scene_transition_duration", "transitions"],
+  ["SetCurrentSceneTransitionSettings", "set_current_scene_transition_settings", "transitions"],
+  ["TriggerStudioModeTransition", "trigger_studio_mode_transition", "transitions"],
+  ["SetTBarPosition", "set_tbar_position", "transitions"],
+  ["GetHotkeyList", "list_hotkeys", "general"],
+  ["TriggerHotkeyByName", "trigger_hotkey_by_name", "general"],
+  ["TriggerHotkeyByKeySequence", "trigger_hotkey_by_key_sequence", "general"],
+  ["GetProfileList", "list_profiles", "config"],
+  ["GetSceneCollectionList", "list_scene_collections", "config"],
+  ["GetProfileParameter", "get_profile_parameter", "config"],
+  ["GetRecordDirectory", "get_record_directory", "config"],
+  ["SetRecordDirectory", "set_record_directory", "config"],
+  ["GetVideoSettings", "get_video_settings", "config"],
+  ["SetVideoSettings", "set_video_settings", "config"],
+  ["GetStreamServiceSettings", "get_stream_service_settings", "config"],
+  ["SetStreamServiceSettings", "set_stream_service_settings", "config"],
+  ["SetCurrentProfile", "set_current_profile", "config"],
+  ["CreateProfile", "create_profile", "config"],
+  ["RemoveProfile", "remove_profile", "config"],
+  ["SetCurrentSceneCollection", "set_current_scene_collection", "config"],
+  ["CreateSceneCollection", "create_scene_collection", "config"],
+  ["SetProfileParameter", "set_profile_parameter", "config"],
+  ["OpenInputPropertiesDialog", "open_input_properties_dialog", "ui"],
+  ["OpenInputFiltersDialog", "open_input_filters_dialog", "ui"],
+  ["OpenInputInteractDialog", "open_input_interact_dialog", "ui"],
+  ["GetMonitorList", "list_monitors", "ui"],
+  ["OpenVideoMixProjector", "open_video_mix_projector", "ui"],
+  ["OpenSourceProjector", "open_source_projector", "ui"]
+] satisfies ReadonlyArray<readonly [ObsRequestType, string, string]>
+
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
   fakeObsClient(handler, allAvailableRequests)
 
@@ -252,6 +290,31 @@ describe("MCP tool registry", () => {
       "resume_record",
       "toggle_record_pause"
     ])
+  })
+
+  it("represents every studio-admin lane request with exactly one public tool", () => {
+    for (const [requestType, toolName] of laneOwnedRequestTools) {
+      expect(allTools.filter((tool) => tool.requiredObsRequests.includes(requestType)).map((tool) => tool.name))
+        .toEqual([toolName])
+    }
+    expect(new Set(laneOwnedRequestTools.map(([, toolName]) => toolName)).size).toBe(laneOwnedRequestTools.length)
+    expect(allTools.map((tool) => tool.name)).not.toContain("send_raw_obs_request")
+  })
+
+  it("capability-gates every studio-admin lane tool by its represented OBS request", () => {
+    for (const [requestType, toolName, category] of laneOwnedRequestTools) {
+      expect(getEnabledTools([category], [requestType]).map((tool) => tool.name)).toContain(toolName)
+      expect(getEnabledTools([category], []).map((tool) => tool.name)).not.toContain(toolName)
+    }
+  })
+
+  it("keeps opt-in studio-admin categories hidden from the default toolsets", () => {
+    const defaultToolNames = getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name)
+    for (const [, toolName, category] of laneOwnedRequestTools) {
+      if (category !== "general") {
+        expect(defaultToolNames).not.toContain(toolName)
+      }
+    }
   })
 
   it("exposes input discovery tools when the input toolset is enabled", () => {

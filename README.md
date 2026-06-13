@@ -28,6 +28,8 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 
 ## Tools
 
+Tools in the `config` toolset can read or change global OBS configuration such as profiles, scene collections, video settings, record directories, and stream service settings. They are opt-in via `TOOLSETS=config`.
+
 Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side effects. They are opt-in via `TOOLSETS=ui` and do not capture screenshots, manage OS windows, or perform filesystem actions.
 
 <!-- tools:start -->

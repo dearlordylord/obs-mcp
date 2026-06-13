@@ -26,6 +26,18 @@ Each OBS area should follow the Scenes exemplar:
 - `src/mcp`: stdio MCP server setup, error mapping, and tool registry.
 - `test/obs/fake-obs-server.ts`: no-mock integration harness for obs-websocket behavior.
 
+## Toolset Policy
+
+The default toolsets remain `general`, `record`, `scenes`, and `inputs`. Higher-risk or global OBS surfaces are explicit opt-ins:
+
+- `config`: profile, scene collection, video, record directory, stream service, and other global OBS configuration reads or mutations.
+- `transitions`: transition inventory and transition/studio-mode transition controls.
+- `canvases`: canvas inventory.
+- `ui`: local OBS UI side effects such as dialogs and projectors.
+- `events` and `outputs`: buffered event reads and output controls.
+
+All tools must be gated by `GetVersion.availableRequests`. UI dialog/projector tools are local OBS UI side effects only; they do not provide screenshots, arbitrary OS window management, filesystem writes, or raw OBS passthroughs.
+
 ## Test Tiers
 
 - Unit/property tests validate config decoding, URL normalization, auth, schemas, and operation transformations.
@@ -50,4 +62,4 @@ The harness follows the Huly MCP baseline:
 
 ## Deferred Work
 
-HTTP transport, events, raw requests, batches, screenshots, stream/record/input tools, VS Code packaging, and advanced scene identity are intentionally deferred until the first vertical is stable.
+HTTP transport, raw requests, batches, screenshots, VS Code packaging, arbitrary filesystem access, and advanced scene identity remain intentionally deferred. New OBS surfaces should keep using narrow schemas, explicit toolsets, request capability gating, and fake OBS protocol coverage before being exposed.
