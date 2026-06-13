@@ -40,6 +40,18 @@ export const GetOutputStatusOutput = Schema.extend(
 export type GetOutputStatusOutput = typeof GetOutputStatusOutput.Type
 export const GetOutputStatusOutputJsonSchema = JSONSchema.make(GetOutputStatusOutput)
 
+export const OutputLifecycleInput = GetOutputStatusInput
+export type OutputLifecycleInput = typeof OutputLifecycleInput.Type
+export const OutputLifecycleInputJsonSchema = JSONSchema.make(OutputLifecycleInput)
+
+export const OutputLifecycleOutput = Schema.Struct({
+  outputName: Schema.String,
+  outputActive: Schema.Boolean,
+  updated: Schema.Literal(true)
+})
+export type OutputLifecycleOutput = typeof OutputLifecycleOutput.Type
+export const OutputLifecycleOutputJsonSchema = JSONSchema.make(OutputLifecycleOutput)
+
 export const VirtualCamStatusOutput = OutputActiveState
 export type VirtualCamStatusOutput = typeof VirtualCamStatusOutput.Type
 export const VirtualCamStatusOutputJsonSchema = JSONSchema.make(VirtualCamStatusOutput)

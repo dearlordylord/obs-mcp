@@ -33,10 +33,13 @@ import {
   getVirtualCamStatus,
   listOutputs,
   saveReplayBuffer,
+  startOutput,
   startReplayBuffer,
   startVirtualCam,
+  stopOutput,
   stopReplayBuffer,
   stopVirtualCam,
+  toggleOutput,
   toggleReplayBuffer,
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
@@ -931,6 +934,32 @@ describe("OBS operations", () => {
     })
     await expect(getOutputStatus(client, { outputName: "missing_output" })).rejects.toMatchObject({
       requestType: "GetOutputStatus",
+      code: 600,
+      comment: "Output not found"
+    })
+  })
+
+  it("controls generic outputs over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(startOutput(client, { outputName: "adv_stream" }))
+      .resolves.toEqual({ outputName: "adv_stream", outputActive: true, updated: true })
+    await expect(startOutput(client, { outputName: "adv_stream" })).rejects.toMatchObject({
+      requestType: "StartOutput",
+      code: 500,
+      comment: "Output already active"
+    })
+    await expect(toggleOutput(client, { outputName: "adv_stream" }))
+      .resolves.toEqual({ outputName: "adv_stream", outputActive: false, updated: true })
+    await expect(stopOutput(client, { outputName: "adv_stream" })).rejects.toMatchObject({
+      requestType: "StopOutput",
+      code: 500,
+      comment: "Output not active"
+    })
+    await expect(startOutput(client, { outputName: "missing_output" })).rejects.toMatchObject({
+      requestType: "StartOutput",
       code: 600,
       comment: "Output not found"
     })

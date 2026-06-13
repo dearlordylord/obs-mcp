@@ -5,6 +5,8 @@ import {
   GetOutputStatusOutput,
   LastReplayBufferReplayOutput,
   ListOutputsOutput,
+  OutputLifecycleInput,
+  OutputLifecycleOutput,
   ReplayBufferStatusOutput,
   ReplayBufferSwitchOutput,
   SaveReplayBufferOutput,
@@ -19,10 +21,13 @@ import {
   GetReplayBufferStatus,
   GetVirtualCamStatus,
   SaveReplayBuffer,
+  StartOutput,
   StartReplayBuffer,
   StartVirtualCam,
+  StopOutput,
   StopReplayBuffer,
   StopVirtualCam,
+  ToggleOutput,
   ToggleReplayBuffer,
   ToggleVirtualCam
 } from "../requests.js"
@@ -39,6 +44,45 @@ export const getOutputStatus = async (
   const decodedInput = Schema.decodeUnknownSync(GetOutputStatusInput)(input)
   const response = await client.request(GetOutputStatus, decodedInput)
   return Schema.decodeUnknownSync(GetOutputStatusOutput)({ ...response, outputName: decodedInput.outputName })
+}
+
+export const startOutput = async (
+  client: ObsClient,
+  input: OutputLifecycleInput
+): Promise<OutputLifecycleOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(OutputLifecycleInput)(input)
+  await client.request(StartOutput, decodedInput)
+  return Schema.decodeUnknownSync(OutputLifecycleOutput)({
+    outputName: decodedInput.outputName,
+    outputActive: true,
+    updated: true
+  })
+}
+
+export const stopOutput = async (
+  client: ObsClient,
+  input: OutputLifecycleInput
+): Promise<OutputLifecycleOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(OutputLifecycleInput)(input)
+  await client.request(StopOutput, decodedInput)
+  return Schema.decodeUnknownSync(OutputLifecycleOutput)({
+    outputName: decodedInput.outputName,
+    outputActive: false,
+    updated: true
+  })
+}
+
+export const toggleOutput = async (
+  client: ObsClient,
+  input: OutputLifecycleInput
+): Promise<OutputLifecycleOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(OutputLifecycleInput)(input)
+  const response = await client.request(ToggleOutput, decodedInput)
+  return Schema.decodeUnknownSync(OutputLifecycleOutput)({
+    outputName: decodedInput.outputName,
+    outputActive: response.outputActive,
+    updated: true
+  })
 }
 
 export const getVirtualCamStatus = async (client: ObsClient): Promise<VirtualCamStatusOutput> => {

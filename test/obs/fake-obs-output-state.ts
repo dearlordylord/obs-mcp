@@ -2,6 +2,7 @@ type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
 type SendFakeObsError = (code: number, comment: string) => void
 
 const RESOURCE_NOT_FOUND_STATUS_CODE = 600
+const RESOURCE_STATE_STATUS_CODE = 500
 
 export class FakeObsOutputState {
   private recordActive = false
@@ -32,6 +33,41 @@ export class FakeObsOutputState {
         sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
       } else {
         send(status)
+      }
+      return true
+    }
+    if (requestType === "StartOutput") {
+      const active = this.outputActive(requestData?.outputName ?? "")
+      if (active === undefined) {
+        sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
+      } else if (active) {
+        sendError(RESOURCE_STATE_STATUS_CODE, "Output already active")
+      } else {
+        this.setOutputActive(requestData?.outputName ?? "", true)
+        send()
+      }
+      return true
+    }
+    if (requestType === "StopOutput") {
+      const active = this.outputActive(requestData?.outputName ?? "")
+      if (active === undefined) {
+        sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
+      } else if (!active) {
+        sendError(RESOURCE_STATE_STATUS_CODE, "Output not active")
+      } else {
+        this.setOutputActive(requestData?.outputName ?? "", false)
+        send()
+      }
+      return true
+    }
+    if (requestType === "ToggleOutput") {
+      const active = this.outputActive(requestData?.outputName ?? "")
+      if (active === undefined) {
+        sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
+      } else {
+        const outputActive = !active
+        this.setOutputActive(requestData?.outputName ?? "", outputActive)
+        send({ outputActive })
       }
       return true
     }
@@ -164,5 +200,20 @@ export class FakeObsOutputState {
       }
     }
     return undefined
+  }
+
+  private outputActive(outputName: string): boolean | undefined {
+    if (outputName === "adv_stream") return this.streamActive
+    if (outputName === "adv_file_output") return this.recordActive
+    if (outputName === "virtualcam_output") return this.virtualCamActive
+    if (outputName === "replay_buffer") return this.replayBufferActive
+    return undefined
+  }
+
+  private setOutputActive(outputName: string, outputActive: boolean): void {
+    if (outputName === "adv_stream") this.streamActive = outputActive
+    if (outputName === "adv_file_output") this.recordActive = outputActive
+    if (outputName === "virtualcam_output") this.virtualCamActive = outputActive
+    if (outputName === "replay_buffer") this.replayBufferActive = outputActive
   }
 }

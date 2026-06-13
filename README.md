@@ -82,6 +82,9 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `trigger_media_input_action`
 - `list_outputs`
 - `get_output_status`
+- `start_output`
+- `stop_output`
+- `toggle_output`
 - `get_virtual_cam_status`
 - `start_virtual_cam`
 - `stop_virtual_cam`

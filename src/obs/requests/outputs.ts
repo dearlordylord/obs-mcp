@@ -2,6 +2,7 @@ import {
   GetOutputStatusInput,
   LastReplayBufferReplayOutput,
   ListOutputsOutput,
+  OutputLifecycleInput,
   OutputStatusResponse,
   ReplayBufferStatusOutput,
   VirtualCamStatusOutput
@@ -20,6 +21,24 @@ export const GetOutputStatus = {
   requestDataSchema: GetOutputStatusInput,
   responseSchema: OutputStatusResponse
 } satisfies ObsRequestDescriptor<OutputStatusResponse>
+
+export const StartOutput = {
+  requestType: "StartOutput",
+  requestDataSchema: OutputLifecycleInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const StopOutput = {
+  requestType: "StopOutput",
+  requestDataSchema: OutputLifecycleInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const ToggleOutput = {
+  requestType: "ToggleOutput",
+  requestDataSchema: OutputLifecycleInput,
+  responseSchema: VirtualCamStatusOutput
+} satisfies ObsRequestDescriptor<VirtualCamStatusOutput>
 
 export const GetVirtualCamStatus = {
   requestType: "GetVirtualCamStatus",

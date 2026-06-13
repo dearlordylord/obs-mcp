@@ -233,6 +233,9 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
       "list_outputs",
       "get_output_status",
+      "start_output",
+      "stop_output",
+      "toggle_output",
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
@@ -290,6 +293,68 @@ describe("MCP tool registry", () => {
       config,
       client: fakeObsClient(async () => ({ outputActive: true }))
     })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("starts, stops, and toggles generic outputs", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("start_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("StartOutput")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ outputName: "adv_stream", outputActive: true, updated: true })
+    await expect(executeTool(toolByName("stop_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("StopOutput")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ outputName: "adv_stream", outputActive: false, updated: true })
+    await expect(executeTool(toolByName("toggle_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("ToggleOutput")
+        requests.push(requestData)
+        return { outputActive: true }
+      })
+    })).resolves.toEqual({ outputName: "adv_stream", outputActive: true, updated: true })
+    expect(requests).toEqual([
+      { outputName: "adv_stream" },
+      { outputName: "adv_stream" },
+      { outputName: "adv_stream" }
+    ])
+  })
+
+  it("maps generic output lifecycle OBS errors with metadata", async () => {
+    await expect(executeTool(toolByName("start_output"), { outputName: "missing_output" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("StartOutput", 600, "Output not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "StartOutput",
+        obsStatusCode: 600,
+        comment: "Output not found"
+      }
+    })
+    await expect(executeTool(toolByName("stop_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("StopOutput", 500, "Output not active")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "StopOutput",
+        obsStatusCode: 500,
+        comment: "Output not active"
+      }
+    })
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
@@ -363,6 +428,9 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_outputs",
       "get_output_status",
+      "start_output",
+      "stop_output",
+      "toggle_output",
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
@@ -2134,6 +2202,12 @@ describe("MCP tool registry", () => {
       .toEqual(["list_outputs"])
     expect(getEnabledTools(["outputs"], ["GetOutputStatus"]).map((tool) => tool.name))
       .toEqual(["get_output_status"])
+    expect(getEnabledTools(["outputs"], ["StartOutput"]).map((tool) => tool.name))
+      .toEqual(["start_output"])
+    expect(getEnabledTools(["outputs"], ["StopOutput"]).map((tool) => tool.name))
+      .toEqual(["stop_output"])
+    expect(getEnabledTools(["outputs"], ["ToggleOutput"]).map((tool) => tool.name))
+      .toEqual(["toggle_output"])
   })
 
   it("filters scene item transform by partial OBS capabilities", () => {

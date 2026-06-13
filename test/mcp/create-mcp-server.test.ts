@@ -542,6 +542,29 @@ describe("MCP server protocol handlers", () => {
       })
   })
 
+  it("returns structured generic output lifecycle content", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "ToggleOutput") return { outputActive: true }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+
+    await expect(client.callTool({ name: "start_output", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: { outputName: "adv_stream", outputActive: true, updated: true }
+      })
+    await expect(client.callTool({ name: "stop_output", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: { outputName: "adv_stream", outputActive: false, updated: true }
+      })
+    await expect(client.callTool({ name: "toggle_output", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: { outputName: "adv_stream", outputActive: true, updated: true }
+      })
+  })
+
   it("rejects invalid recent event limits before reading the buffer", async () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
     await expect(client.callTool({ name: "get_recent_obs_events", arguments: { limit: 0 } }))

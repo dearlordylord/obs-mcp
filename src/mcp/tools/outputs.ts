@@ -3,6 +3,8 @@ import {
   GetOutputStatusOutput,
   LastReplayBufferReplayOutput,
   ListOutputsOutput,
+  OutputLifecycleInput,
+  OutputLifecycleOutput,
   ReplayBufferStatusOutput,
   ReplayBufferSwitchOutput,
   SaveReplayBufferOutput,
@@ -17,10 +19,13 @@ import {
   getVirtualCamStatus,
   listOutputs,
   saveReplayBuffer,
+  startOutput,
   startReplayBuffer,
   startVirtualCam,
+  stopOutput,
   stopReplayBuffer,
   stopVirtualCam,
+  toggleOutput,
   toggleReplayBuffer,
   toggleVirtualCam
 } from "../../obs/operations/outputs.js"
@@ -31,10 +36,13 @@ import {
   GetReplayBufferStatus,
   GetVirtualCamStatus,
   SaveReplayBuffer,
+  StartOutput,
   StartReplayBuffer,
   StartVirtualCam,
+  StopOutput,
   StopReplayBuffer,
   StopVirtualCam,
+  ToggleOutput,
   ToggleReplayBuffer,
   ToggleVirtualCam
 } from "../../obs/requests.js"
@@ -62,6 +70,39 @@ export const outputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: GetOutputStatusInput,
     outputSchema: GetOutputStatusOutput,
     handler: async (input, context) => getOutputStatus(context.client, input)
+  }),
+  defineTool({
+    name: "start_output",
+    title: "Start OBS Output",
+    description:
+      "Start a generic OBS output by name. Prefer specialized record, stream, virtual camera, or replay tools when applicable.",
+    category: CATEGORY,
+    requiredObsRequests: [StartOutput.requestType],
+    inputSchema: OutputLifecycleInput,
+    outputSchema: OutputLifecycleOutput,
+    handler: async (input, context) => startOutput(context.client, input)
+  }),
+  defineTool({
+    name: "stop_output",
+    title: "Stop OBS Output",
+    description:
+      "Stop a generic OBS output by name. Prefer specialized record, stream, virtual camera, or replay tools when applicable.",
+    category: CATEGORY,
+    requiredObsRequests: [StopOutput.requestType],
+    inputSchema: OutputLifecycleInput,
+    outputSchema: OutputLifecycleOutput,
+    handler: async (input, context) => stopOutput(context.client, input)
+  }),
+  defineTool({
+    name: "toggle_output",
+    title: "Toggle OBS Output",
+    description:
+      "Toggle a generic OBS output by name. Prefer specialized record, stream, virtual camera, or replay tools when applicable.",
+    category: CATEGORY,
+    requiredObsRequests: [ToggleOutput.requestType],
+    inputSchema: OutputLifecycleInput,
+    outputSchema: OutputLifecycleOutput,
+    handler: async (input, context) => toggleOutput(context.client, input)
   }),
   defineTool({
     name: "get_virtual_cam_status",
