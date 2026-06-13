@@ -1,6 +1,7 @@
 import {
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
+  InputAudioSyncOffsetOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -12,6 +13,8 @@ import {
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioMonitorTypeOutput,
+  SetInputAudioSyncOffsetInput,
+  SetInputAudioSyncOffsetOutput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
@@ -21,6 +24,7 @@ import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getInputAudioBalance,
   getInputAudioMonitorType,
+  getInputAudioSyncOffset,
   getInputMute,
   getInputVolume,
   getSpecialInputs,
@@ -28,6 +32,7 @@ import {
   listInputs,
   setInputAudioBalance,
   setInputAudioMonitorType,
+  setInputAudioSyncOffset,
   setInputMute,
   setInputVolume,
   toggleInputMute
@@ -35,6 +40,7 @@ import {
 import {
   GetInputAudioBalance,
   GetInputAudioMonitorType,
+  GetInputAudioSyncOffset,
   GetInputKindList,
   GetInputList,
   GetInputMute,
@@ -42,6 +48,7 @@ import {
   GetSpecialInputs,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
+  SetInputAudioSyncOffset,
   SetInputMute,
   SetInputVolume,
   ToggleInputMute
@@ -170,5 +177,25 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SetInputAudioMonitorTypeInput,
     outputSchema: SetInputAudioMonitorTypeOutput,
     handler: async (input, context) => setInputAudioMonitorType(context.client, input)
+  }),
+  defineTool({
+    name: "get_input_audio_sync_offset",
+    title: "Get OBS Input Audio Sync Offset",
+    description: "Return an OBS input audio sync offset in milliseconds.",
+    category: CATEGORY,
+    requiredObsRequests: [GetInputAudioSyncOffset.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: InputAudioSyncOffsetOutput,
+    handler: async (input, context) => getInputAudioSyncOffset(context.client, input)
+  }),
+  defineTool({
+    name: "set_input_audio_sync_offset",
+    title: "Set OBS Input Audio Sync Offset",
+    description: "Set an OBS input audio sync offset in milliseconds.",
+    category: CATEGORY,
+    requiredObsRequests: [SetInputAudioSyncOffset.requestType],
+    inputSchema: SetInputAudioSyncOffsetInput,
+    outputSchema: SetInputAudioSyncOffsetOutput,
+    handler: async (input, context) => setInputAudioSyncOffset(context.client, input)
   })
 ]

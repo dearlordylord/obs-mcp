@@ -47,9 +47,7 @@ interface FakeObsServerOptions {
   readonly envelopeBeforeResponse?: Record<string, unknown>
   readonly envelopeBeforeResponseFor?: string
 }
-
 const sha256Base64 = (input: string): string => createHash("sha256").update(input).digest("base64")
-
 const authString = (password: string, salt: string, challenge: string): string => {
   const secret = sha256Base64(`${password}${salt}`)
   return sha256Base64(`${secret}${challenge}`)
@@ -97,7 +95,6 @@ export class FakeObsServer {
       this.server.close((error) => error === undefined ? resolve() : reject(error))
     })
   }
-
   public get connectedClientCount(): number {
     return this.server.clients.size
   }
@@ -334,31 +331,22 @@ export class FakeObsServer {
       send()
       return
     }
-    if (requestType === "GetInputAudioBalance") {
+    if (
+      requestType === "GetInputAudioBalance"
+      || requestType === "GetInputAudioMonitorType"
+      || requestType === "GetInputAudioSyncOffset"
+    ) {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      send({ inputAudioBalance: this.inputState.getAudioState(locator).inputAudioBalance })
+      send(this.inputState.audioResponseFor(requestType, locator))
       return
     }
-    if (requestType === "SetInputAudioBalance") {
+    if (
+      requestType === "SetInputAudioBalance"
+      || requestType === "SetInputAudioMonitorType"
+      || requestType === "SetInputAudioSyncOffset"
+    ) {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      this.inputState.setAudioState(locator, {
-        ...this.inputState.getAudioState(locator),
-        inputAudioBalance: envelope.d.requestData.inputAudioBalance
-      })
-      send()
-      return
-    }
-    if (requestType === "GetInputAudioMonitorType") {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      send({ monitorType: this.inputState.getAudioState(locator).monitorType })
-      return
-    }
-    if (requestType === "SetInputAudioMonitorType") {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      this.inputState.setAudioState(locator, {
-        ...this.inputState.getAudioState(locator),
-        monitorType: envelope.d.requestData.monitorType
-      })
+      this.inputState.setAudioFromRequest(requestType, locator, envelope.d.requestData)
       send()
       return
     }

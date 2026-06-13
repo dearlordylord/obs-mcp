@@ -1,9 +1,14 @@
 import { Schema } from "effect"
 
-import type { SetInputAudioBalanceOutput, SetInputAudioMonitorTypeOutput } from "../../domain/schemas/inputs.js"
+import type {
+  SetInputAudioBalanceOutput,
+  SetInputAudioMonitorTypeOutput,
+  SetInputAudioSyncOffsetOutput
+} from "../../domain/schemas/inputs.js"
 import {
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
+  InputAudioSyncOffsetOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -13,6 +18,7 @@ import {
   ListInputsOutput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
+  SetInputAudioSyncOffsetInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
@@ -22,6 +28,7 @@ import type { ObsClient } from "../client.js"
 import {
   GetInputAudioBalance,
   GetInputAudioMonitorType,
+  GetInputAudioSyncOffset,
   GetInputKindList,
   GetInputList,
   GetInputMute,
@@ -29,6 +36,7 @@ import {
   GetSpecialInputs,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
+  SetInputAudioSyncOffset,
   SetInputMute,
   SetInputVolume,
   ToggleInputMute
@@ -125,4 +133,22 @@ export const setInputAudioMonitorType = async (
   const decodedInput = Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput)(input)
   await client.request(SetInputAudioMonitorType, decodedInput)
   return { monitorType: decodedInput.monitorType, acknowledged: true }
+}
+
+export const getInputAudioSyncOffset = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputAudioSyncOffsetOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputAudioSyncOffset, decodedInput)
+  return Schema.decodeUnknownSync(InputAudioSyncOffsetOutput)(response)
+}
+
+export const setInputAudioSyncOffset = async (
+  client: ObsClient,
+  input: SetInputAudioSyncOffsetInput
+): Promise<SetInputAudioSyncOffsetOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)(input)
+  await client.request(SetInputAudioSyncOffset, decodedInput)
+  return { inputAudioSyncOffset: decodedInput.inputAudioSyncOffset, acknowledged: true }
 }

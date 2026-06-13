@@ -3,6 +3,7 @@ import { Schema } from "effect"
 import {
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
+  InputAudioSyncOffsetOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -12,6 +13,7 @@ import {
   ListInputsOutput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
+  SetInputAudioSyncOffsetInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SpecialInputsOutput
@@ -89,5 +91,17 @@ export const GetInputAudioMonitorType = {
 export const SetInputAudioMonitorType = {
   requestType: "SetInputAudioMonitorType",
   requestDataSchema: SetInputAudioMonitorTypeInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputAudioSyncOffset = {
+  requestType: "GetInputAudioSyncOffset",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputAudioSyncOffsetOutput
+} satisfies ObsRequestDescriptor<InputAudioSyncOffsetOutput>
+
+export const SetInputAudioSyncOffset = {
+  requestType: "SetInputAudioSyncOffset",
+  requestDataSchema: SetInputAudioSyncOffsetInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>

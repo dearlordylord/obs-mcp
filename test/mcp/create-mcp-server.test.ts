@@ -45,6 +45,8 @@ const allAvailableRequests = [
   "SetInputAudioBalance",
   "GetInputAudioMonitorType",
   "SetInputAudioMonitorType",
+  "GetInputAudioSyncOffset",
+  "SetInputAudioSyncOffset",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -114,6 +116,8 @@ describe("MCP server protocol handlers", () => {
       "set_input_audio_balance",
       "get_input_audio_monitor_type",
       "set_input_audio_monitor_type",
+      "get_input_audio_sync_offset",
+      "set_input_audio_sync_offset",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -237,6 +241,12 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "SetInputAudioBalance" || requestType === "SetInputAudioMonitorType") {
           return {}
         }
+        if (requestType === "GetInputAudioSyncOffset") {
+          return { inputAudioSyncOffset: -125 }
+        }
+        if (requestType === "SetInputAudioSyncOffset") {
+          return {}
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -261,7 +271,9 @@ describe("MCP server protocol handlers", () => {
       "get_input_audio_balance",
       "set_input_audio_balance",
       "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type"
+      "set_input_audio_monitor_type",
+      "get_input_audio_sync_offset",
+      "set_input_audio_sync_offset"
     ])
     await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
       .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
@@ -300,6 +312,12 @@ describe("MCP server protocol handlers", () => {
     })).resolves.toMatchObject({
       structuredContent: { monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT", acknowledged: true }
     })
+    await expect(client.callTool({ name: "get_input_audio_sync_offset", arguments: { inputName: "Mic/Aux" } }))
+      .resolves.toMatchObject({ structuredContent: { inputAudioSyncOffset: -125 } })
+    await expect(client.callTool({
+      name: "set_input_audio_sync_offset",
+      arguments: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 0 }
+    })).resolves.toMatchObject({ structuredContent: { inputAudioSyncOffset: 0, acknowledged: true } })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

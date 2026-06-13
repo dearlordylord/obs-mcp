@@ -9,6 +9,7 @@ import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operatio
 import {
   getInputAudioBalance,
   getInputAudioMonitorType,
+  getInputAudioSyncOffset,
   getInputMute,
   getInputVolume,
   getSpecialInputs,
@@ -16,6 +17,7 @@ import {
   listInputs,
   setInputAudioBalance,
   setInputAudioMonitorType,
+  setInputAudioSyncOffset,
   setInputMute,
   setInputVolume,
   toggleInputMute
@@ -304,6 +306,54 @@ describe("OBS operations", () => {
     )
   })
 
+  it("controls input audio sync offset over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputAudioSyncOffset(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputAudioSyncOffset: 0
+    })
+    await expect(setInputAudioSyncOffset(client, { inputName: "Mic/Aux", inputAudioSyncOffset: -250 }))
+      .resolves.toEqual({
+        inputAudioSyncOffset: -250,
+        acknowledged: true
+      })
+    await expect(getInputAudioSyncOffset(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputAudioSyncOffset: -250
+    })
+    await expect(setInputAudioSyncOffset(client, { inputUuid: "input-mic-aux", inputAudioSyncOffset: 125 }))
+      .resolves.toEqual({
+        inputAudioSyncOffset: 125,
+        acknowledged: true
+      })
+    expect(server.requests.filter((request) => request.requestType.includes("InputAudioSyncOffset"))).toEqual([
+      { requestType: "GetInputAudioSyncOffset", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputAudioSyncOffset", requestData: { inputName: "Mic/Aux", inputAudioSyncOffset: -250 } },
+      { requestType: "GetInputAudioSyncOffset", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "SetInputAudioSyncOffset", requestData: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 125 } }
+    ])
+  })
+
+  it("surfaces OBS failures for input audio sync offset controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputAudioSyncOffset: { code: 603, comment: "Sync offset rejected" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputAudioSyncOffset(client, { inputName: "Mic/Aux", inputAudioSyncOffset: 1.5 }))
+      .rejects.toThrow("Expected an integer")
+    await expect(setInputAudioSyncOffset(client, { inputName: "Mic/Aux", inputAudioSyncOffset: 20000 }))
+      .rejects.toMatchObject(
+        {
+          requestType: "SetInputAudioSyncOffset",
+          code: 603,
+          comment: "Sync offset rejected"
+        } satisfies Partial<ObsRequestError>
+      )
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -462,6 +512,43 @@ describe("OBS operations", () => {
       "toggle_input_mute",
       "get_input_volume",
       "set_input_volume"
+    ])
+  })
+
+  it("filters input audio sync offset tools when OBS does not advertise sync offset capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute",
+        "GetInputVolume",
+        "SetInputVolume",
+        "GetInputAudioBalance",
+        "SetInputAudioBalance",
+        "GetInputAudioMonitorType",
+        "SetInputAudioMonitorType"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume",
+      "get_input_audio_balance",
+      "set_input_audio_balance",
+      "get_input_audio_monitor_type",
+      "set_input_audio_monitor_type"
     ])
   })
 })

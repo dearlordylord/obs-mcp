@@ -115,6 +115,34 @@ export const SetInputAudioMonitorTypeOutput = Schema.Struct({
 export type SetInputAudioMonitorTypeOutput = typeof SetInputAudioMonitorTypeOutput.Type
 export const SetInputAudioMonitorTypeOutputJsonSchema = JSONSchema.make(SetInputAudioMonitorTypeOutput)
 
+export const InputAudioSyncOffset = Schema.Number.pipe(
+  Schema.int(),
+  Schema.greaterThanOrEqualTo(-950),
+  Schema.lessThanOrEqualTo(20000)
+)
+
+export const SetInputAudioSyncOffsetInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputAudioSyncOffset: InputAudioSyncOffset
+  })
+)
+export type SetInputAudioSyncOffsetInput = typeof SetInputAudioSyncOffsetInput.Type
+export const SetInputAudioSyncOffsetInputJsonSchema = JSONSchema.make(SetInputAudioSyncOffsetInput)
+
+export const InputAudioSyncOffsetOutput = Schema.Struct({
+  inputAudioSyncOffset: InputAudioSyncOffset
+})
+export type InputAudioSyncOffsetOutput = typeof InputAudioSyncOffsetOutput.Type
+export const InputAudioSyncOffsetOutputJsonSchema = JSONSchema.make(InputAudioSyncOffsetOutput)
+
+export const SetInputAudioSyncOffsetOutput = Schema.Struct({
+  inputAudioSyncOffset: InputAudioSyncOffset,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputAudioSyncOffsetOutput = typeof SetInputAudioSyncOffsetOutput.Type
+export const SetInputAudioSyncOffsetOutputJsonSchema = JSONSchema.make(SetInputAudioSyncOffsetOutput)
+
 export const ListInputsInput = Schema.Struct({
   inputKind: Schema.optional(Schema.NonEmptyString)
 })

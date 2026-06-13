@@ -7,6 +7,12 @@ import {
   type FakeObsInputVolume
 } from "./fake-obs-fixtures.js"
 
+interface FakeObsInputAudioRequestData {
+  readonly inputAudioBalance?: number
+  readonly monitorType?: FakeObsInputAudioState["monitorType"]
+  readonly inputAudioSyncOffset?: number
+}
+
 export class FakeObsInputState {
   private readonly inputMuteByKey: Map<string, boolean>
   private readonly inputVolumeByKey: Map<string, FakeObsInputVolume> = new Map()
@@ -53,13 +59,40 @@ export class FakeObsInputState {
   }
 
   public getAudioState(locator: string): FakeObsInputAudioState {
-    return this.inputAudioStateByKey.get(locator) ?? DEFAULT_INPUT_AUDIO_STATE
+    const input = this.inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
+    return this.inputAudioStateByKey.get(locator) ?? {
+      ...DEFAULT_INPUT_AUDIO_STATE,
+      inputAudioBalance: input?.inputAudioBalance ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioBalance,
+      monitorType: input?.monitorType ?? DEFAULT_INPUT_AUDIO_STATE.monitorType,
+      inputAudioSyncOffset: input?.inputAudioSyncOffset ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioSyncOffset
+    }
   }
 
   public setAudioState(locator: string, state: FakeObsInputAudioState): void {
     for (const key of this.keysFor(locator)) {
       this.inputAudioStateByKey.set(key, state)
     }
+  }
+
+  public audioResponseFor(requestType: string, locator: string): Record<string, unknown> {
+    const state = this.getAudioState(locator)
+    return requestType === "GetInputAudioBalance"
+      ? { inputAudioBalance: state.inputAudioBalance }
+      : requestType === "GetInputAudioMonitorType"
+      ? { monitorType: state.monitorType }
+      : { inputAudioSyncOffset: state.inputAudioSyncOffset }
+  }
+
+  public setAudioFromRequest(requestType: string, locator: string, requestData: FakeObsInputAudioRequestData): void {
+    const state = this.getAudioState(locator)
+    this.setAudioState(
+      locator,
+      requestType === "SetInputAudioBalance"
+        ? { ...state, inputAudioBalance: requestData.inputAudioBalance ?? state.inputAudioBalance }
+        : requestType === "SetInputAudioMonitorType"
+        ? { ...state, monitorType: requestData.monitorType ?? state.monitorType }
+        : { ...state, inputAudioSyncOffset: requestData.inputAudioSyncOffset ?? state.inputAudioSyncOffset }
+    )
   }
 
   private keysFor(locator: string): ReadonlyArray<string> {

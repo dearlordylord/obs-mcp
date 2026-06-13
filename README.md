@@ -51,6 +51,8 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `set_input_audio_balance`
 - `get_input_audio_monitor_type`
 - `set_input_audio_monitor_type`
+- `get_input_audio_sync_offset`
+- `set_input_audio_sync_offset`
 - `get_virtual_cam_status`
 - `start_virtual_cam`
 - `stop_virtual_cam`

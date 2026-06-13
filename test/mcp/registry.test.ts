@@ -8,6 +8,7 @@ import {
   ListInputKindsInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
+  SetInputAudioSyncOffsetInput,
   SetInputMuteInput,
   SetInputVolumeInput
 } from "../../src/domain/schemas/inputs.js"
@@ -47,6 +48,8 @@ const allAvailableRequests = [
   "SetInputAudioBalance",
   "GetInputAudioMonitorType",
   "SetInputAudioMonitorType",
+  "GetInputAudioSyncOffset",
+  "SetInputAudioSyncOffset",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -112,6 +115,8 @@ describe("MCP tool registry", () => {
       "set_input_audio_balance",
       "get_input_audio_monitor_type",
       "set_input_audio_monitor_type",
+      "get_input_audio_sync_offset",
+      "set_input_audio_sync_offset",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -132,7 +137,9 @@ describe("MCP tool registry", () => {
       "get_input_audio_balance",
       "set_input_audio_balance",
       "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type"
+      "set_input_audio_monitor_type",
+      "get_input_audio_sync_offset",
+      "set_input_audio_sync_offset"
     ])
   })
 
@@ -185,12 +192,15 @@ describe("MCP tool registry", () => {
       "get_input_audio_balance",
       "set_input_audio_balance",
       "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type"
+      "set_input_audio_monitor_type",
+      "get_input_audio_sync_offset",
+      "set_input_audio_sync_offset"
     ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_mute")
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_volume")
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_audio_balance")
+    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_audio_sync_offset")
   })
 
   it("filters tools by negotiated OBS capabilities", () => {
@@ -236,7 +246,8 @@ describe("MCP tool registry", () => {
         "SetInputMute",
         "ToggleInputMute",
         "GetInputVolume",
-        "GetInputAudioBalance"
+        "GetInputAudioBalance",
+        "GetInputAudioSyncOffset"
       ]).map((tool) => tool.name)
     ).toEqual([
       "list_inputs",
@@ -246,7 +257,8 @@ describe("MCP tool registry", () => {
       "set_input_mute",
       "toggle_input_mute",
       "get_input_volume",
-      "get_input_audio_balance"
+      "get_input_audio_balance",
+      "get_input_audio_sync_offset"
     ])
   })
 
@@ -416,6 +428,33 @@ describe("MCP tool registry", () => {
       inputUuid: "input-mic-aux",
       monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
     })
+    expect(
+      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
+        inputName: "Mic/Aux",
+        inputAudioSyncOffset: -950
+      })
+    ).toEqual({
+      inputName: "Mic/Aux",
+      inputAudioSyncOffset: -950
+    })
+    expect(
+      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
+        inputName: "Mic/Aux",
+        inputAudioSyncOffset: 0
+      })
+    ).toEqual({
+      inputName: "Mic/Aux",
+      inputAudioSyncOffset: 0
+    })
+    expect(
+      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
+        inputUuid: "input-mic-aux",
+        inputAudioSyncOffset: 20000
+      })
+    ).toEqual({
+      inputUuid: "input-mic-aux",
+      inputAudioSyncOffset: 20000
+    })
     expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
     expect(() => Schema.decodeUnknownSync(InputLocatorInput)({})).toThrow("Exactly one")
     const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
@@ -444,6 +483,24 @@ describe("MCP tool registry", () => {
         monitorType: "invalid"
       })
     ).toThrow("Expected")
+    expect(() =>
+      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
+        inputName: "Mic/Aux",
+        inputAudioSyncOffset: 1.5
+      })
+    ).toThrow("Expected an integer")
+    expect(() =>
+      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
+        inputName: "Mic/Aux",
+        inputAudioSyncOffset: -951
+      })
+    ).toThrow("Expected a number greater than or equal to -950")
+    expect(() =>
+      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
+        inputName: "Mic/Aux",
+        inputAudioSyncOffset: 20001
+      })
+    ).toThrow("Expected a number less than or equal to 20000")
   })
 
   it("executes input mute handlers with structured output", async () => {
@@ -544,6 +601,35 @@ describe("MCP tool registry", () => {
           inputUuid: "input-mic-aux",
           monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
         }
+      }
+    ])
+  })
+
+  it("executes input audio sync offset handlers with structured output", async () => {
+    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const fakeClient = client(async (requestType, requestData) => {
+      seen.push({ requestType, requestData })
+      if (requestType === "GetInputAudioSyncOffset") {
+        return { inputAudioSyncOffset: -125 }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("get_input_audio_sync_offset"), { inputName: "Mic/Aux" }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({ inputAudioSyncOffset: -125 })
+    await expect(executeTool(toolByName("set_input_audio_sync_offset"), {
+      inputUuid: "input-mic-aux",
+      inputAudioSyncOffset: 0
+    }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({ inputAudioSyncOffset: 0, acknowledged: true })
+    expect(seen).toEqual([
+      { requestType: "GetInputAudioSyncOffset", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputAudioSyncOffset",
+        requestData: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 0 }
       }
     ])
   })

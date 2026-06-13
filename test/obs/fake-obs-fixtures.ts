@@ -25,6 +25,7 @@ export interface FakeObsInput {
   readonly inputVolumeDb?: number
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioMonitorType
+  readonly inputAudioSyncOffset?: number
 }
 
 export interface FakeObsInputVolume {
@@ -52,11 +53,13 @@ export type FakeObsInputAudioMonitorType =
 export interface FakeObsInputAudioState {
   readonly inputAudioBalance: number
   readonly monitorType: FakeObsInputAudioMonitorType
+  readonly inputAudioSyncOffset: number
 }
 
 export const DEFAULT_INPUT_AUDIO_STATE: FakeObsInputAudioState = {
   inputAudioBalance: 0.5,
-  monitorType: "OBS_MONITORING_TYPE_NONE"
+  monitorType: "OBS_MONITORING_TYPE_NONE",
+  inputAudioSyncOffset: 0
 }
 
 export interface FakeObsReceivedRequest {
@@ -107,6 +110,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetInputAudioBalance",
   "GetInputAudioMonitorType",
   "SetInputAudioMonitorType",
+  "GetInputAudioSyncOffset",
+  "SetInputAudioSyncOffset",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
