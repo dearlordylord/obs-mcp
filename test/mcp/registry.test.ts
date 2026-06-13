@@ -1417,6 +1417,93 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("returns typed output, transition, ui, canvas, and filter OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["outputs", "transitions", "ui", "canvases", "filters"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 5,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "RecordFileChanged",
+            eventIntent: EventSubscription.Outputs,
+            eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+          },
+          {
+            sequence: 2,
+            eventType: "SceneTransitionVideoEnded",
+            eventIntent: EventSubscription.Transitions,
+            eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+          },
+          {
+            sequence: 3,
+            eventType: "StudioModeStateChanged",
+            eventIntent: EventSubscription.Ui,
+            eventData: { studioModeEnabled: true }
+          },
+          {
+            sequence: 4,
+            eventType: "CanvasCreated",
+            eventIntent: EventSubscription.Canvases,
+            eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+          },
+          {
+            sequence: 5,
+            eventType: "SourceFilterSettingsChanged",
+            eventIntent: EventSubscription.Filters,
+            eventData: { sourceName: "Camera", filterName: "Color" }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 5,
+      droppedEvents: 0,
+      returnedEvents: 5,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "RecordFileChanged",
+          eventIntent: EventSubscription.Outputs,
+          category: "outputs",
+          eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+        },
+        {
+          sequence: 2,
+          eventType: "SceneTransitionVideoEnded",
+          eventIntent: EventSubscription.Transitions,
+          category: "transitions",
+          eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+        },
+        {
+          sequence: 3,
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          category: "ui",
+          eventData: { studioModeEnabled: true }
+        },
+        {
+          sequence: 4,
+          eventType: "CanvasCreated",
+          eventIntent: EventSubscription.Canvases,
+          category: "canvases",
+          eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+        },
+        {
+          sequence: 5,
+          eventType: "SourceFilterSettingsChanged",
+          eventIntent: EventSubscription.Filters,
+          category: "filters",
+          eventData: { sourceName: "Camera", filterName: "Color" }
+        }
+      ]
+    })
+  })
+
   it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
     await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
       config: { ...config, enabledToolsets: ["events"] },

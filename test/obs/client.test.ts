@@ -380,6 +380,77 @@ describe("OBS websocket client", () => {
     })
   })
 
+  it("buffers typed output, transition, ui, canvas, and filter event bursts", async () => {
+    const burst = [
+      {
+        eventType: "RecordFileChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+      },
+      {
+        eventType: "CurrentSceneTransitionChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true }
+      },
+      {
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasUuid: "canvas-a", oldCanvasName: "Old Canvas", canvasName: "Canvas A" }
+      },
+      {
+        eventType: "SourceFilterSettingsChanged",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filterName: "Color", filterSettings: { secret: true } }
+      }
+    ] as const
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: burst,
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([
+      {
+        sequence: 1,
+        eventType: "RecordFileChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentSceneTransitionChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 3,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true }
+      },
+      {
+        sequence: 4,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasUuid: "canvas-a", oldCanvasName: "Old Canvas", canvasName: "Canvas A" }
+      },
+      {
+        sequence: 5,
+        eventType: "SourceFilterSettingsChanged",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filterName: "Color" }
+      }
+    ])
+  })
+
   it("rejects malformed events queued immediately after Identified", async () => {
     const server = await FakeObsServer.start({ sendMalformedAfterIdentify: true })
     servers.push(server)

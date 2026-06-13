@@ -30,21 +30,21 @@ const matrix = JSON.parse(
 ) as { readonly events: ReadonlyArray<MatrixEventRow> }
 
 const EVENT_LEDGER = {
-  CanvasCreated: "deferred",
-  CanvasRemoved: "deferred",
-  CanvasNameChanged: "deferred",
+  CanvasCreated: "typed-safe",
+  CanvasRemoved: "typed-safe",
+  CanvasNameChanged: "typed-safe",
   CurrentSceneCollectionChanging: "typed-safe",
   CurrentSceneCollectionChanged: "typed-safe",
   SceneCollectionListChanged: "typed-safe",
   CurrentProfileChanging: "typed-safe",
   CurrentProfileChanged: "typed-safe",
   ProfileListChanged: "typed-safe",
-  SourceFilterListReindexed: "deferred",
-  SourceFilterCreated: "deferred",
-  SourceFilterRemoved: "deferred",
-  SourceFilterNameChanged: "deferred",
-  SourceFilterSettingsChanged: "deferred",
-  SourceFilterEnableStateChanged: "deferred",
+  SourceFilterListReindexed: "typed-safe",
+  SourceFilterCreated: "typed-safe",
+  SourceFilterRemoved: "typed-safe",
+  SourceFilterNameChanged: "typed-safe",
+  SourceFilterSettingsChanged: "typed-safe",
+  SourceFilterEnableStateChanged: "typed-safe",
   ExitStarted: "typed-safe",
   InputCreated: "deferred",
   InputRemoved: "typed-safe",
@@ -64,9 +64,9 @@ const EVENT_LEDGER = {
   MediaInputActionTriggered: "typed-safe",
   StreamStateChanged: "typed-safe",
   RecordStateChanged: "typed-safe",
-  RecordFileChanged: "deferred",
+  RecordFileChanged: "typed-safe",
   ReplayBufferStateChanged: "typed-safe",
-  VirtualcamStateChanged: "deferred",
+  VirtualcamStateChanged: "typed-safe",
   ReplayBufferSaved: "typed-safe",
   SceneItemCreated: "typed-safe",
   SceneItemRemoved: "typed-safe",
@@ -81,25 +81,40 @@ const EVENT_LEDGER = {
   CurrentProgramSceneChanged: "typed-safe",
   CurrentPreviewSceneChanged: "typed-safe",
   SceneListChanged: "typed-safe",
-  CurrentSceneTransitionChanged: "deferred",
-  CurrentSceneTransitionDurationChanged: "deferred",
-  SceneTransitionStarted: "deferred",
-  SceneTransitionEnded: "deferred",
-  SceneTransitionVideoEnded: "deferred",
-  StudioModeStateChanged: "deferred",
-  ScreenshotSaved: "deferred",
+  CurrentSceneTransitionChanged: "typed-safe",
+  CurrentSceneTransitionDurationChanged: "typed-safe",
+  SceneTransitionStarted: "typed-safe",
+  SceneTransitionEnded: "typed-safe",
+  SceneTransitionVideoEnded: "typed-safe",
+  StudioModeStateChanged: "typed-safe",
+  ScreenshotSaved: "typed-safe",
   VendorEvent: "raw-only",
   CustomEvent: "raw-only"
 } satisfies Record<string, EventLedgerStatus>
 const EVENT_LEDGER_BY_NAME: Record<string, EventLedgerStatus> = EVENT_LEDGER
 
 const TYPED_EVENT_FIXTURES = {
+  CanvasCreated: { canvasName: "Canvas A", canvasUuid: "canvas-a" },
+  CanvasRemoved: { canvasName: "Canvas B", canvasUuid: "canvas-b" },
+  CanvasNameChanged: { canvasUuid: "canvas-a", oldCanvasName: "Old Canvas", canvasName: "Canvas A" },
   CurrentSceneCollectionChanging: { sceneCollectionName: "Collection A" },
   CurrentSceneCollectionChanged: { sceneCollectionName: "Collection B" },
   SceneCollectionListChanged: { sceneCollections: ["Collection A", "Collection B"] },
   CurrentProfileChanging: { profileName: "Profile A" },
   CurrentProfileChanged: { profileName: "Profile B" },
   ProfileListChanged: { profiles: ["Profile A", "Profile B"] },
+  SourceFilterListReindexed: {
+    sourceName: "Camera",
+    filters: [
+      { filterName: "Color", filterIndex: 0 },
+      { filterName: "Crop", filterIndex: 1 }
+    ]
+  },
+  SourceFilterCreated: { sourceName: "Camera", filterName: "Color", filterKind: "color_filter", filterIndex: 0 },
+  SourceFilterRemoved: { sourceName: "Camera", filterName: "Color" },
+  SourceFilterNameChanged: { sourceName: "Camera", oldFilterName: "Old Color", filterName: "Color" },
+  SourceFilterSettingsChanged: { sourceName: "Camera", filterName: "Color" },
+  SourceFilterEnableStateChanged: { sourceName: "Camera", filterName: "Color", filterEnabled: true },
   ExitStarted: {},
   SceneCreated: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false },
   SceneRemoved: { sceneName: "Group", sceneUuid: "scene-group", isGroup: true },
@@ -161,8 +176,17 @@ const TYPED_EVENT_FIXTURES = {
   },
   StreamStateChanged: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" },
   RecordStateChanged: { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED", outputPath: null },
+  RecordFileChanged: { newOutputPath: "/tmp/recording-2.mkv" },
   ReplayBufferStateChanged: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" },
+  VirtualcamStateChanged: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" },
   ReplayBufferSaved: { savedReplayPath: "/tmp/replay.mkv" },
+  CurrentSceneTransitionChanged: { transitionName: "Fade", transitionUuid: "transition-fade" },
+  CurrentSceneTransitionDurationChanged: { transitionDuration: 300 },
+  SceneTransitionStarted: { transitionName: "Fade", transitionUuid: "transition-fade" },
+  SceneTransitionEnded: { transitionName: "Fade", transitionUuid: "transition-fade" },
+  SceneTransitionVideoEnded: { transitionName: "Fade", transitionUuid: "transition-fade" },
+  StudioModeStateChanged: { studioModeEnabled: true },
+  ScreenshotSaved: { savedScreenshotPath: "/tmp/screenshot.png" },
   MediaInputPlaybackStarted: { inputName: "Media", inputUuid: "input-media" },
   MediaInputPlaybackEnded: { inputName: "Media", inputUuid: "input-media" },
   MediaInputActionTriggered: {
@@ -215,10 +239,10 @@ describe("OBS event protocol foundation", () => {
         { "typed-safe": 0, "high-volume": 0, "raw-only": 0, deferred: 0 }
       )
     ).toEqual({
-      "typed-safe": 34,
+      "typed-safe": 52,
       "high-volume": 4,
       "raw-only": 2,
-      deferred: 20
+      deferred: 2
     })
 
     for (const event of matrix.events) {
@@ -277,12 +301,35 @@ describe("OBS event protocol foundation", () => {
 
   it("decodes typed low-volume event payloads", () => {
     const cases = [
+      ["CanvasCreated", { canvasName: "Canvas A", canvasUuid: "canvas-a" }],
+      ["CanvasRemoved", { canvasName: "Canvas B", canvasUuid: "canvas-b" }],
+      ["CanvasNameChanged", { canvasUuid: "canvas-a", oldCanvasName: "Old Canvas", canvasName: "Canvas A" }],
       ["CurrentSceneCollectionChanging", { sceneCollectionName: "Collection A" }],
       ["CurrentSceneCollectionChanged", { sceneCollectionName: "Collection B" }],
       ["SceneCollectionListChanged", { sceneCollections: ["Collection A", "Collection B"] }],
       ["CurrentProfileChanging", { profileName: "Profile A" }],
       ["CurrentProfileChanged", { profileName: "Profile B" }],
       ["ProfileListChanged", { profiles: ["Profile A", "Profile B"] }],
+      [
+        "SourceFilterListReindexed",
+        {
+          sourceName: "Camera",
+          filters: [
+            { filterName: "Color", filterIndex: 0 },
+            { filterName: "Crop", filterIndex: 1 }
+          ]
+        }
+      ],
+      ["SourceFilterCreated", {
+        sourceName: "Camera",
+        filterName: "Color",
+        filterKind: "color_filter",
+        filterIndex: 0
+      }],
+      ["SourceFilterRemoved", { sourceName: "Camera", filterName: "Color" }],
+      ["SourceFilterNameChanged", { sourceName: "Camera", oldFilterName: "Old Color", filterName: "Color" }],
+      ["SourceFilterSettingsChanged", { sourceName: "Camera", filterName: "Color" }],
+      ["SourceFilterEnableStateChanged", { sourceName: "Camera", filterName: "Color", filterEnabled: true }],
       ["ExitStarted", {}],
       ["SceneCreated", { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }],
       ["SceneRemoved", { sceneName: "Group", sceneUuid: "scene-group", isGroup: true }],
@@ -357,8 +404,17 @@ describe("OBS event protocol foundation", () => {
         "RecordStateChanged",
         { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED", outputPath: null }
       ],
+      ["RecordFileChanged", { newOutputPath: "/tmp/recording-2.mkv" }],
       ["ReplayBufferStateChanged", { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }],
+      ["VirtualcamStateChanged", { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }],
       ["ReplayBufferSaved", { savedReplayPath: "/tmp/replay.mkv" }],
+      ["CurrentSceneTransitionChanged", { transitionName: "Fade", transitionUuid: "transition-fade" }],
+      ["CurrentSceneTransitionDurationChanged", { transitionDuration: 300 }],
+      ["SceneTransitionStarted", { transitionName: "Fade", transitionUuid: "transition-fade" }],
+      ["SceneTransitionEnded", { transitionName: "Fade", transitionUuid: "transition-fade" }],
+      ["SceneTransitionVideoEnded", { transitionName: "Fade", transitionUuid: "transition-fade" }],
+      ["StudioModeStateChanged", { studioModeEnabled: true }],
+      ["ScreenshotSaved", { savedScreenshotPath: "/tmp/screenshot.png" }],
       ["MediaInputPlaybackStarted", { inputName: "Media", inputUuid: "input-media" }],
       ["MediaInputPlaybackEnded", { inputName: "Media", inputUuid: "input-media" }],
       [
@@ -382,8 +438,16 @@ describe("OBS event protocol foundation", () => {
   })
 
   it("rejects malformed typed low-volume event payloads", () => {
+    expect(() => decodeTypedObsEventData("CanvasNameChanged", { canvasName: "Canvas A" })).toThrow()
     expect(() => decodeTypedObsEventData("SceneCollectionListChanged", { sceneCollections: [1] })).toThrow()
     expect(() => decodeTypedObsEventData("CurrentProfileChanged", { sceneCollectionName: "Profile" })).toThrow()
+    expect(() =>
+      decodeTypedObsEventData("SourceFilterEnableStateChanged", {
+        sourceName: "Camera",
+        filterName: "Color",
+        filterEnabled: "yes"
+      })
+    ).toThrow()
     expect(() => decodeTypedObsEventData("ExitStarted", { raw: true })).toThrow()
     expect(() => decodeTypedObsEventData("SceneCreated", { sceneName: "Program", sceneUuid: "scene-program" }))
       .toThrow()
@@ -397,6 +461,9 @@ describe("OBS event protocol foundation", () => {
     expect(() => decodeTypedObsEventData("InputNameChanged", { inputUuid: "input-camera", inputName: "Camera" }))
       .toThrow()
     expect(() => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true })).toThrow()
+    expect(() => decodeTypedObsEventData("RecordFileChanged", { outputPath: "/tmp/recording.mkv" })).toThrow()
+    expect(() => decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", { transitionDuration: -1 }))
+      .toThrow()
     expect(() =>
       decodeTypedObsEventData("MediaInputActionTriggered", {
         inputName: "Media",
@@ -412,6 +479,27 @@ describe("OBS event protocol foundation", () => {
     expect(eventMatchesOfficialSubscription("InputNameChanged", EventSubscription.General)).toBe(false)
     expect(eventMatchesOfficialSubscription("MediaInputPlaybackStarted", EventSubscription.Inputs)).toBe(false)
     expect(eventMatchesOfficialSubscription("MysteryEvent", EventSubscription.General)).toBe(false)
+  })
+
+  it("sanitizes raw filter settings from typed filter events", () => {
+    expect(decodeTypedObsEventData("SourceFilterCreated", {
+      sourceName: "Camera",
+      filterName: "Color",
+      filterKind: "color_filter",
+      filterIndex: 0,
+      filterSettings: { secret: true },
+      defaultFilterSettings: { secret: false }
+    })).toEqual({
+      sourceName: "Camera",
+      filterName: "Color",
+      filterKind: "color_filter",
+      filterIndex: 0
+    })
+    expect(decodeTypedObsEventData("SourceFilterSettingsChanged", {
+      sourceName: "Camera",
+      filterName: "Color",
+      filterSettings: { secret: true }
+    })).toEqual({ sourceName: "Camera", filterName: "Color" })
   })
 
   it("omits payloads for safe event types without task-owned schemas", () => {

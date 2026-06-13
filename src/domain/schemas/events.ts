@@ -68,6 +68,56 @@ const ExitStartedEventData = Schema.Struct({}).pipe(
   jsonSchema: { type: "object", properties: {}, additionalProperties: false }
 })
 
+const UnknownEventRecord = Schema.Record({ key: Schema.String, value: Schema.Unknown })
+
+const pickEventFields = (eventData: unknown, keys: ReadonlyArray<string>): Record<string, unknown> => {
+  const record = Schema.decodeUnknownSync(UnknownEventRecord)(eventData)
+  return Object.fromEntries(keys.map((key) => [key, record[key]]))
+}
+
+const CanvasEventData = Schema.Struct({
+  canvasName: Schema.String,
+  canvasUuid: Schema.String
+})
+
+const CanvasNameChangedEventData = Schema.Struct({
+  canvasUuid: Schema.String,
+  oldCanvasName: Schema.String,
+  canvasName: Schema.String
+})
+
+const SourceFilterEventData = Schema.Struct({
+  sourceName: Schema.String,
+  filterName: Schema.String
+})
+
+const SourceFilterCreatedEventData = Schema.extend(SourceFilterEventData)(
+  Schema.Struct({
+    filterKind: Schema.String,
+    filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  })
+)
+
+const SourceFilterListItem = Schema.Struct({
+  filterName: Schema.String,
+  filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+})
+
+const SourceFilterListReindexedEventData = Schema.Struct({
+  sourceName: Schema.String,
+  filters: Schema.Array(SourceFilterListItem)
+})
+
+const SourceFilterNameChangedEventData = Schema.Struct({
+  sourceName: Schema.String,
+  oldFilterName: Schema.String,
+  filterName: Schema.String
+})
+
+const SourceFilterEnableStateChangedEventData = Schema.extend(SourceFilterEventData)(
+  Schema.Struct({ filterEnabled: Schema.Boolean })
+)
+
 const SceneEventData = Schema.Struct({
   sceneName: Schema.String,
   sceneUuid: Schema.String
@@ -187,8 +237,29 @@ const RecordStateChangedEventData = Schema.extend(OutputStateChangedEventData)(
   Schema.Struct({ outputPath: Schema.NullOr(Schema.String) })
 )
 
+const RecordFileChangedEventData = Schema.Struct({
+  newOutputPath: Schema.String
+})
+
 const ReplayBufferSavedEventData = Schema.Struct({
   savedReplayPath: Schema.String
+})
+
+const TransitionEventData = Schema.Struct({
+  transitionName: Schema.String,
+  transitionUuid: Schema.String
+})
+
+const TransitionDurationChangedEventData = Schema.Struct({
+  transitionDuration: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+})
+
+const StudioModeStateChangedEventData = Schema.Struct({
+  studioModeEnabled: Schema.Boolean
+})
+
+const ScreenshotSavedEventData = Schema.Struct({
+  savedScreenshotPath: Schema.String
 })
 
 const MediaInputEventData = InputEventData
@@ -203,6 +274,13 @@ export const TypedObsEventData = Schema.Union(
   ProfileEventData,
   ProfileListChangedEventData,
   ExitStartedEventData,
+  CanvasNameChangedEventData,
+  CanvasEventData,
+  SourceFilterCreatedEventData,
+  SourceFilterListReindexedEventData,
+  SourceFilterNameChangedEventData,
+  SourceFilterEnableStateChangedEventData,
+  SourceFilterEventData,
   SceneGroupEventData,
   SceneNameChangedEventData,
   SceneItemCreatedEventData,
@@ -221,8 +299,13 @@ export const TypedObsEventData = Schema.Union(
   InputAudioTracksChangedEventData,
   InputAudioMonitorTypeChangedEventData,
   RecordStateChangedEventData,
+  RecordFileChangedEventData,
   OutputStateChangedEventData,
   ReplayBufferSavedEventData,
+  TransitionEventData,
+  TransitionDurationChangedEventData,
+  StudioModeStateChangedEventData,
+  ScreenshotSavedEventData,
   MediaInputActionTriggeredEventData,
   MediaInputEventData
 )
@@ -245,6 +328,27 @@ export const decodeTypedObsEventData = (
       return Schema.decodeUnknownSync(ProfileListChangedEventData)(eventData)
     case "ExitStarted":
       return Schema.decodeUnknownSync(ExitStartedEventData)(eventData ?? {})
+    case "CanvasCreated":
+    case "CanvasRemoved":
+      return Schema.decodeUnknownSync(CanvasEventData)(eventData)
+    case "CanvasNameChanged":
+      return Schema.decodeUnknownSync(CanvasNameChangedEventData)(eventData)
+    case "SourceFilterListReindexed":
+      return Schema.decodeUnknownSync(SourceFilterListReindexedEventData)(eventData)
+    case "SourceFilterCreated":
+      return Schema.decodeUnknownSync(SourceFilterCreatedEventData)(
+        pickEventFields(eventData, ["sourceName", "filterName", "filterKind", "filterIndex"])
+      )
+    case "SourceFilterRemoved":
+      return Schema.decodeUnknownSync(SourceFilterEventData)(eventData)
+    case "SourceFilterNameChanged":
+      return Schema.decodeUnknownSync(SourceFilterNameChangedEventData)(eventData)
+    case "SourceFilterSettingsChanged":
+      return Schema.decodeUnknownSync(SourceFilterEventData)(
+        pickEventFields(eventData, ["sourceName", "filterName"])
+      )
+    case "SourceFilterEnableStateChanged":
+      return Schema.decodeUnknownSync(SourceFilterEnableStateChangedEventData)(eventData)
     case "SceneCreated":
     case "SceneRemoved":
       return Schema.decodeUnknownSync(SceneGroupEventData)(eventData)
@@ -287,10 +391,24 @@ export const decodeTypedObsEventData = (
       return Schema.decodeUnknownSync(OutputStateChangedEventData)(eventData)
     case "RecordStateChanged":
       return Schema.decodeUnknownSync(RecordStateChangedEventData)(eventData)
+    case "RecordFileChanged":
+      return Schema.decodeUnknownSync(RecordFileChangedEventData)(eventData)
     case "ReplayBufferStateChanged":
+    case "VirtualcamStateChanged":
       return Schema.decodeUnknownSync(OutputStateChangedEventData)(eventData)
     case "ReplayBufferSaved":
       return Schema.decodeUnknownSync(ReplayBufferSavedEventData)(eventData)
+    case "CurrentSceneTransitionChanged":
+    case "SceneTransitionStarted":
+    case "SceneTransitionEnded":
+    case "SceneTransitionVideoEnded":
+      return Schema.decodeUnknownSync(TransitionEventData)(eventData)
+    case "CurrentSceneTransitionDurationChanged":
+      return Schema.decodeUnknownSync(TransitionDurationChangedEventData)(eventData)
+    case "StudioModeStateChanged":
+      return Schema.decodeUnknownSync(StudioModeStateChangedEventData)(eventData)
+    case "ScreenshotSaved":
+      return Schema.decodeUnknownSync(ScreenshotSavedEventData)(eventData)
     case "MediaInputPlaybackStarted":
     case "MediaInputPlaybackEnded":
       return Schema.decodeUnknownSync(MediaInputEventData)(eventData)
