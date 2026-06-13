@@ -20,7 +20,7 @@ describe("OBS config", () => {
 
   it("defaults blank toolsets and rejects non-websocket URLs", async () => {
     await expect(Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: " , " })))
-      .resolves.toMatchObject({ enabledToolsets: ["scenes"] })
+      .resolves.toMatchObject({ enabledToolsets: ["scenes", "inputs"] })
     await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_WEBSOCKET_CONNECTION_TIMEOUT: "nope" })))
       .rejects.toThrow()
     expect(() => normalizeObsWebSocketUrl("http://localhost:4455")).toThrow("ws:// or wss://")

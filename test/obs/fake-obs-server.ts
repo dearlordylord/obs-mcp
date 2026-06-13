@@ -16,6 +16,13 @@ interface FakeObsScene {
   readonly isGroup?: boolean
 }
 
+interface FakeObsInput {
+  readonly inputName: string
+  readonly inputUuid?: string
+  readonly inputKind: string
+  readonly unversionedInputKind: string
+}
+
 interface FakeObsServerOptions {
   readonly password?: string
   readonly malformedHello?: boolean
@@ -35,6 +42,7 @@ interface FakeObsServerOptions {
   readonly omitResponseDataFor?: string
   readonly failRequests?: Readonly<Record<string, { readonly code: number; readonly comment?: string }>>
   readonly scenes?: ReadonlyArray<FakeObsScene>
+  readonly inputs?: ReadonlyArray<FakeObsInput>
   readonly rpcVersion?: number
 }
 
@@ -71,8 +79,22 @@ export class FakeObsServer {
       { sceneName: "Main", sceneUuid: "scene-main", sceneIndex: 1 },
       { sceneName: "Group", sceneUuid: "scene-group", sceneIndex: 2, isGroup: true }
     ]
+    const inputs = options.inputs ?? [
+      {
+        inputName: "Desktop Audio",
+        inputUuid: "input-desktop-audio",
+        inputKind: "wasapi_output_capture",
+        unversionedInputKind: "wasapi_output_capture"
+      },
+      {
+        inputName: "Mic/Aux",
+        inputUuid: "input-mic-aux",
+        inputKind: "wasapi_input_capture",
+        unversionedInputKind: "wasapi_input_capture"
+      }
+    ]
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
-    fake.installHandlers(options, scenes)
+    fake.installHandlers(options, scenes, inputs)
     return fake
   }
 
@@ -89,7 +111,11 @@ export class FakeObsServer {
     return this.server.clients.size
   }
 
-  private installHandlers(options: FakeObsServerOptions, scenes: ReadonlyArray<FakeObsScene>): void {
+  private installHandlers(
+    options: FakeObsServerOptions,
+    scenes: ReadonlyArray<FakeObsScene>,
+    inputs: ReadonlyArray<FakeObsInput>
+  ): void {
     this.server.on("connection", (socket) => {
       const salt = "salt"
       const challenge = "challenge"
@@ -130,7 +156,7 @@ export class FakeObsServer {
         if (options.sendMalformedAfterIdentify === true) {
           socket.send("{")
         }
-        socket.on("message", (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes))
+        socket.on("message", (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs))
       })
     })
   }
@@ -139,7 +165,8 @@ export class FakeObsServer {
     socket: WebSocket,
     text: string,
     options: FakeObsServerOptions,
-    scenes: ReadonlyArray<FakeObsScene>
+    scenes: ReadonlyArray<FakeObsScene>,
+    inputs: ReadonlyArray<FakeObsInput>
   ): void {
     const envelope = JSON.parse(text)
     const requestType = envelope.d.requestType
@@ -206,7 +233,10 @@ export class FakeObsServer {
           "GetVersion",
           "GetSceneList",
           "GetCurrentProgramScene",
-          "SetCurrentProgramScene"
+          "SetCurrentProgramScene",
+          "GetInputList",
+          "GetInputKindList",
+          "GetSpecialInputs"
         ],
         supportedImageFormats: ["png", "jpg"],
         platform: "ubuntu",
@@ -236,6 +266,33 @@ export class FakeObsServer {
     if (requestType === "SetCurrentProgramScene") {
       this.currentSceneName = envelope.d.requestData.sceneName
       send()
+      return
+    }
+    if (requestType === "GetInputList") {
+      const inputKind = envelope.d.requestData?.inputKind
+      send({
+        inputs: typeof inputKind === "string"
+          ? inputs.filter((input) => input.inputKind === inputKind || input.unversionedInputKind === inputKind)
+          : inputs
+      })
+      return
+    }
+    if (requestType === "GetInputKindList") {
+      const unversioned = envelope.d.requestData?.unversioned === true
+      send({
+        inputKinds: inputs.map((input) => unversioned ? input.unversionedInputKind : input.inputKind)
+      })
+      return
+    }
+    if (requestType === "GetSpecialInputs") {
+      send({
+        desktop1: "Desktop Audio",
+        desktop2: null,
+        mic1: "Mic/Aux",
+        mic2: null,
+        mic3: null,
+        mic4: null
+      })
       return
     }
     send()

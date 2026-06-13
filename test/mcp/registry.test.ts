@@ -3,6 +3,7 @@ import { JSONSchema, Option, Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
+import { InputLocatorInput, ListInputKindsInput } from "../../src/domain/schemas/inputs.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
@@ -17,7 +18,15 @@ const config: ObsConfig = {
   enabledToolsets: ["scenes"]
 }
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetInputList",
+  "GetInputKindList",
+  "GetSpecialInputs"
+]
 
 const client = (handler: (requestType: ObsRequestType) => Promise<unknown>): ObsClient => ({
   negotiatedRpcVersion: 1,
@@ -46,6 +55,14 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("exposes input discovery tools when the input toolset is enabled", () => {
+    expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs"
+    ])
+  })
+
   it("filters disabled categories", () => {
     expect(getEnabledTools([])).toEqual([])
   })
@@ -55,6 +72,10 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_version"
     ])
+  })
+
+  it("filters unavailable input requests by negotiated OBS capabilities", () => {
+    expect(getEnabledTools(["inputs"], ["GetInputList"]).map((tool) => tool.name)).toEqual(["list_inputs"])
   })
 
   it("keeps protocol schemas owned by each registered tool definition", () => {
@@ -84,6 +105,76 @@ describe("MCP tool registry", () => {
       }))
     })
     expect(output).toMatchObject({ scenes: [{ sceneName: "Intro" }] })
+  })
+
+  it("executes input discovery handlers with structured output", async () => {
+    const output = await executeTool(toolByName("list_inputs"), { inputKind: "wasapi_input_capture" }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: {
+        ...client(async () => ({ inputs: [] })),
+        request: async (descriptor, requestData) => {
+          expect(descriptor.requestType).toBe("GetInputList")
+          expect(requestData).toEqual({ inputKind: "wasapi_input_capture" })
+          return Schema.decodeUnknownSync(descriptor.responseSchema)({
+            inputs: [{
+              inputName: "Mic/Aux",
+              inputUuid: "input-mic-aux",
+              inputKind: "wasapi_input_capture",
+              unversionedInputKind: "wasapi_input_capture"
+            }]
+          })
+        }
+      }
+    })
+    expect(output).toEqual({
+      inputs: [{
+        inputName: "Mic/Aux",
+        inputUuid: "input-mic-aux",
+        inputKind: "wasapi_input_capture",
+        unversionedInputKind: "wasapi_input_capture"
+      }]
+    })
+  })
+
+  it("passes optional unversioned input-kind behavior through to OBS", async () => {
+    const output = await executeTool(toolByName("list_input_kinds"), { unversioned: true }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: {
+        ...client(async () => ({ inputKinds: ["wasapi_input_capture"] })),
+        request: async (descriptor, requestData) => {
+          expect(descriptor.requestType).toBe("GetInputKindList")
+          expect(requestData).toEqual({ unversioned: true })
+          return Schema.decodeUnknownSync(descriptor.responseSchema)({ inputKinds: ["wasapi_input_capture"] })
+        }
+      }
+    })
+    expect(output).toEqual({ inputKinds: ["wasapi_input_capture"] })
+  })
+
+  it("enforces input locator exactly-one boundary and input-kind defaults", () => {
+    expect(Schema.decodeUnknownSync(InputLocatorInput)({ inputName: "Mic/Aux" })).toEqual({ inputName: "Mic/Aux" })
+    expect(Schema.decodeUnknownSync(InputLocatorInput)({ inputUuid: "input-mic-aux" })).toEqual({
+      inputUuid: "input-mic-aux"
+    })
+    expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
+    expect(() => Schema.decodeUnknownSync(InputLocatorInput)({})).toThrow("Exactly one")
+    const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
+    expect(() => Schema.decodeUnknownSync(InputLocatorInput)(duplicateLocator)).toThrow("Exactly one")
+  })
+
+  it("executes get_special_inputs handler", async () => {
+    const output = await executeTool(toolByName("get_special_inputs"), {}, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: client(async () => ({
+        desktop1: "Desktop Audio",
+        desktop2: null,
+        mic1: "Mic/Aux",
+        mic2: null,
+        mic3: null,
+        mic4: null
+      }))
+    })
+    expect(output).toMatchObject({ desktop1: "Desktop Audio", mic1: "Mic/Aux" })
   })
 
   it("executes get_version and get_current_scene handlers", async () => {

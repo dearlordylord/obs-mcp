@@ -5,17 +5,31 @@ import { getSanitizedObsContext } from "../../config/obs-runtime-context.js"
 import {
   CurrentSceneOutput,
   EmptyInput,
+  ListInputKindsInput,
+  ListInputKindsOutput,
+  ListInputsInput,
+  ListInputsOutput,
   ListScenesInput,
   ListScenesOutput,
   ObsContextOutput,
   SetCurrentSceneInput,
   SetCurrentSceneOutput,
+  SpecialInputsOutput,
   VersionOutput
 } from "../../domain/schemas/index.js"
 import type { ObsClient } from "../../obs/client.js"
 import { getVersion } from "../../obs/operations/general.js"
+import { getSpecialInputs, listInputKinds, listInputs } from "../../obs/operations/inputs.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../obs/operations/scenes.js"
-import { GetCurrentProgramScene, GetSceneList, GetVersion, SetCurrentProgramScene } from "../../obs/requests.js"
+import {
+  GetCurrentProgramScene,
+  GetInputKindList,
+  GetInputList,
+  GetSceneList,
+  GetSpecialInputs,
+  GetVersion,
+  SetCurrentProgramScene
+} from "../../obs/requests.js"
 import { toMcpError } from "../error-mapping.js"
 
 interface ToolContext {
@@ -29,7 +43,7 @@ export interface ToolDefinition {
   readonly name: string
   readonly title: string
   readonly description: string
-  readonly category: "scenes"
+  readonly category: "scenes" | "inputs"
   readonly requiredObsRequests: ReadonlyArray<string>
   readonly inputSchema: RuntimeSchema
   readonly inputJsonSchema: unknown
@@ -42,7 +56,7 @@ const defineTool = (definition: {
   readonly name: string
   readonly title: string
   readonly description: string
-  readonly category: "scenes"
+  readonly category: "scenes" | "inputs"
   readonly requiredObsRequests: ReadonlyArray<string>
   readonly inputSchema: RuntimeSchema
   readonly outputSchema: RuntimeSchema
@@ -107,6 +121,37 @@ export const allTools = [
     outputSchema: SetCurrentSceneOutput,
     handler: async (input, context) =>
       setCurrentScene(context.client, Schema.decodeUnknownSync(SetCurrentSceneInput)(input))
+  }),
+  defineTool({
+    name: "list_inputs",
+    title: "List OBS Inputs",
+    description: "Return OBS inputs, optionally restricted to one input kind.",
+    category: "inputs",
+    requiredObsRequests: [GetInputList.requestType],
+    inputSchema: ListInputsInput,
+    outputSchema: ListInputsOutput,
+    handler: async (input, context) => listInputs(context.client, Schema.decodeUnknownSync(ListInputsInput)(input))
+  }),
+  defineTool({
+    name: "list_input_kinds",
+    title: "List OBS Input Kinds",
+    description: "Return OBS input kinds, with optional unversioned kind names.",
+    category: "inputs",
+    requiredObsRequests: [GetInputKindList.requestType],
+    inputSchema: ListInputKindsInput,
+    outputSchema: ListInputKindsOutput,
+    handler: async (input, context) =>
+      listInputKinds(context.client, Schema.decodeUnknownSync(ListInputKindsInput)(input))
+  }),
+  defineTool({
+    name: "get_special_inputs",
+    title: "Get OBS Special Inputs",
+    description: "Return OBS desktop and microphone special input names.",
+    category: "inputs",
+    requiredObsRequests: [GetSpecialInputs.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: SpecialInputsOutput,
+    handler: async (_input, context) => getSpecialInputs(context.client)
   })
 ] as const
 

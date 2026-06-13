@@ -20,7 +20,15 @@ const config: ObsConfig = {
 const clients: Array<Client> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetInputList",
+  "GetInputKindList",
+  "GetSpecialInputs"
+]
 
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
@@ -33,9 +41,9 @@ const obsClient = (
   close: async () => undefined
 })
 
-const connect = async (obs: ObsClient): Promise<Client> => {
+const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promise<Client> => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
-  const server = createObsMcpServer(config, obs)
+  const server = createObsMcpServer(serverConfig, obs)
   const client = new Client({ name: "test-client", version: "0.0.0" })
   servers.push(server)
   clients.push(client)
@@ -68,6 +76,47 @@ describe("MCP server protocol handlers", () => {
     const client = await connect(obsClient(async () => ({}), ["GetVersion"]))
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).toEqual(["get_obs_context", "get_version"])
+  })
+
+  it("lists and calls input discovery tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetInputList") {
+          return {
+            inputs: [{
+              inputName: "Mic/Aux",
+              inputUuid: "input-mic-aux",
+              inputKind: "wasapi_input_capture",
+              unversionedInputKind: "wasapi_input_capture"
+            }]
+          }
+        }
+        if (requestType === "GetInputKindList") {
+          return { inputKinds: ["wasapi_input_capture"] }
+        }
+        return {
+          desktop1: "Desktop Audio",
+          desktop2: null,
+          mic1: "Mic/Aux",
+          mic2: null,
+          mic3: null,
+          mic4: null
+        }
+      }),
+      { ...config, enabledToolsets: ["inputs"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs"
+    ])
+    await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
+      .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
+    await expect(client.callTool({ name: "list_input_kinds", arguments: { unversioned: true } }))
+      .resolves.toMatchObject({ structuredContent: { inputKinds: ["wasapi_input_capture"] } })
+    await expect(client.callTool({ name: "get_special_inputs", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
   })
 
   it("returns structured success content", async () => {

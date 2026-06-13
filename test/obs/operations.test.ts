@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import type { ObsConfig } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { getVersion } from "../../src/obs/operations/general.js"
+import { getSpecialInputs, listInputKinds, listInputs } from "../../src/obs/operations/inputs.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
@@ -59,6 +60,58 @@ describe("OBS operations", () => {
     await expect(getCurrentScene(client)).resolves.toEqual({ sceneName: "Intro", sceneUuid: "scene-intro" })
     await expect(setCurrentScene(client, { sceneName: "Main" })).resolves.toEqual({ sceneName: "Main", switched: true })
     await expect(getCurrentScene(client)).resolves.toEqual({ sceneName: "Main", sceneUuid: "scene-main" })
+  })
+
+  it("discovers inputs and input kinds through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listInputs(client, {})).resolves.toEqual({
+      inputs: [
+        {
+          inputName: "Desktop Audio",
+          inputUuid: "input-desktop-audio",
+          inputKind: "wasapi_output_capture",
+          unversionedInputKind: "wasapi_output_capture"
+        },
+        {
+          inputName: "Mic/Aux",
+          inputUuid: "input-mic-aux",
+          inputKind: "wasapi_input_capture",
+          unversionedInputKind: "wasapi_input_capture"
+        }
+      ]
+    })
+    await expect(listInputs(client, { inputKind: "wasapi_input_capture" })).resolves.toEqual({
+      inputs: [{
+        inputName: "Mic/Aux",
+        inputUuid: "input-mic-aux",
+        inputKind: "wasapi_input_capture",
+        unversionedInputKind: "wasapi_input_capture"
+      }]
+    })
+    await expect(listInputKinds(client, { unversioned: false })).resolves.toEqual({
+      inputKinds: ["wasapi_output_capture", "wasapi_input_capture"]
+    })
+    await expect(listInputKinds(client, { unversioned: true })).resolves.toEqual({
+      inputKinds: ["wasapi_output_capture", "wasapi_input_capture"]
+    })
+  })
+
+  it("returns nullable special inputs for unassigned fake OBS channels", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getSpecialInputs(client)).resolves.toEqual({
+      desktop1: "Desktop Audio",
+      desktop2: null,
+      mic1: "Mic/Aux",
+      mic2: null,
+      mic3: null,
+      mic4: null
+    })
   })
 
   it("rejects current scene responses without a scene name", async () => {
