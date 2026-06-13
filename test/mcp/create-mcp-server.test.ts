@@ -620,6 +620,27 @@ describe("MCP server protocol handlers", () => {
     expect(requested).toEqual([])
   })
 
+  it("rejects preview scene canvas UUID locators before OBS requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(obsClient(async (requestType) => {
+      requested.push(requestType)
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "set_current_preview_scene",
+      arguments: { sceneName: "Scene", canvasUuid: "canvas-main" }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    expect(requested).toEqual([])
+  })
+
   it("rejects invalid scene item mutation values before OBS requests", async () => {
     const requested: Array<ObsRequestType> = []
     const client = await connect(obsClient(async (requestType) => {

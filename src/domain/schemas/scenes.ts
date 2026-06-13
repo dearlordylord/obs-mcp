@@ -69,7 +69,13 @@ export type SceneUuidLocator = typeof SceneUuidLocator.Type
 export const SceneLocator = Schema.Union(SceneNameLocator, SceneUuidLocator)
 export type SceneLocator = typeof SceneLocator.Type
 
-export const SetCurrentPreviewSceneInput = SceneLocator
+const PreviewSceneNameLocator = Schema.Struct({
+  sceneName: Schema.NonEmptyString,
+  sceneUuid: ForbiddenLocatorField,
+  canvasUuid: ForbiddenLocatorField
+})
+
+export const SetCurrentPreviewSceneInput = Schema.Union(PreviewSceneNameLocator, SceneUuidLocator)
 export type SetCurrentPreviewSceneInput = typeof SetCurrentPreviewSceneInput.Type
 export const SetCurrentPreviewSceneInputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneInput)
 
