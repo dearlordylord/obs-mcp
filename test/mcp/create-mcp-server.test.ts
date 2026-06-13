@@ -20,7 +20,16 @@ const config: ObsConfig = {
 const clients: Array<Client> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetStreamStatus",
+  "StartStream",
+  "StopStream",
+  "ToggleStream"
+]
 
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
@@ -33,9 +42,9 @@ const obsClient = (
   close: async () => undefined
 })
 
-const connect = async (obs: ObsClient): Promise<Client> => {
+const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promise<Client> => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
-  const server = createObsMcpServer(config, obs)
+  const server = createObsMcpServer(serverConfig, obs)
   const client = new Client({ name: "test-client", version: "0.0.0" })
   servers.push(server)
   clients.push(client)
@@ -70,10 +79,61 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual(["get_obs_context", "get_version"])
   })
 
+  it("lists stream tools only when the stream toolset and OBS capabilities are available", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), [
+        "GetStreamStatus",
+        "StartStream",
+        "StopStream",
+        "ToggleStream"
+      ]),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "get_stream_status",
+      "start_stream",
+      "stop_stream",
+      "toggle_stream"
+    ])
+  })
+
   it("returns structured success content", async () => {
     const client = await connect(obsClient(async () => ({ sceneName: "Intro", sceneUuid: "scene-intro" })))
     await expect(client.callTool({ name: "get_current_scene", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { sceneName: "Intro", sceneUuid: "scene-intro" } })
+  })
+
+  it("returns structured stream lifecycle content", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetStreamStatus") {
+          return {
+            outputActive: true,
+            outputReconnecting: false,
+            outputTimecode: "00:00:12.345",
+            outputDuration: 12345,
+            outputCongestion: 0,
+            outputBytes: 4096,
+            outputSkippedFrames: 0,
+            outputTotalFrames: 740
+          }
+        }
+        if (requestType === "ToggleStream") {
+          return { outputActive: false }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    await expect(client.callTool({ name: "get_stream_status", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true, outputTotalFrames: 740 } })
+    await expect(client.callTool({ name: "start_stream", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "stop_stream", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "toggle_stream", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {

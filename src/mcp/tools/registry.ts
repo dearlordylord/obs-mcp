@@ -4,18 +4,32 @@ import type { ObsConfig } from "../../config/config.js"
 import { getSanitizedObsContext } from "../../config/obs-runtime-context.js"
 import {
   CurrentSceneOutput,
-  EmptyInput,
   ListScenesInput,
   ListScenesOutput,
   ObsContextOutput,
   SetCurrentSceneInput,
   SetCurrentSceneOutput,
+  StartStreamOutput,
+  StopStreamOutput,
+  StreamStatusOutput,
+  ToggleStreamOutput,
   VersionOutput
 } from "../../domain/schemas/index.js"
+import { EmptyInput } from "../../domain/schemas/shared.js"
 import type { ObsClient } from "../../obs/client.js"
 import { getVersion } from "../../obs/operations/general.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../obs/operations/scenes.js"
-import { GetCurrentProgramScene, GetSceneList, GetVersion, SetCurrentProgramScene } from "../../obs/requests.js"
+import { getStreamStatus, startStream, stopStream, toggleStream } from "../../obs/operations/stream.js"
+import {
+  GetCurrentProgramScene,
+  GetSceneList,
+  GetStreamStatus,
+  GetVersion,
+  SetCurrentProgramScene,
+  StartStream,
+  StopStream,
+  ToggleStream
+} from "../../obs/requests.js"
 import { toMcpError } from "../error-mapping.js"
 
 interface ToolContext {
@@ -29,7 +43,7 @@ export interface ToolDefinition {
   readonly name: string
   readonly title: string
   readonly description: string
-  readonly category: "scenes"
+  readonly category: ToolCategory
   readonly requiredObsRequests: ReadonlyArray<string>
   readonly inputSchema: RuntimeSchema
   readonly inputJsonSchema: unknown
@@ -38,11 +52,13 @@ export interface ToolDefinition {
   readonly handler: (input: unknown, context: ToolContext) => Promise<unknown>
 }
 
+type ToolCategory = "scenes" | "stream"
+
 const defineTool = (definition: {
   readonly name: string
   readonly title: string
   readonly description: string
-  readonly category: "scenes"
+  readonly category: ToolCategory
   readonly requiredObsRequests: ReadonlyArray<string>
   readonly inputSchema: RuntimeSchema
   readonly outputSchema: RuntimeSchema
@@ -107,6 +123,46 @@ export const allTools = [
     outputSchema: SetCurrentSceneOutput,
     handler: async (input, context) =>
       setCurrentScene(context.client, Schema.decodeUnknownSync(SetCurrentSceneInput)(input))
+  }),
+  defineTool({
+    name: "get_stream_status",
+    title: "Get OBS Stream Status",
+    description: "Return OBS stream output activity, reconnecting state, timing, congestion, byte, and frame counts.",
+    category: "stream",
+    requiredObsRequests: [GetStreamStatus.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: StreamStatusOutput,
+    handler: async (_input, context) => getStreamStatus(context.client)
+  }),
+  defineTool({
+    name: "start_stream",
+    title: "Start OBS Stream",
+    description: "Start the OBS stream output.",
+    category: "stream",
+    requiredObsRequests: [StartStream.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: StartStreamOutput,
+    handler: async (_input, context) => startStream(context.client)
+  }),
+  defineTool({
+    name: "stop_stream",
+    title: "Stop OBS Stream",
+    description: "Stop the OBS stream output.",
+    category: "stream",
+    requiredObsRequests: [StopStream.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: StopStreamOutput,
+    handler: async (_input, context) => stopStream(context.client)
+  }),
+  defineTool({
+    name: "toggle_stream",
+    title: "Toggle OBS Stream",
+    description: "Toggle the OBS stream output and return the resulting activity state.",
+    category: "stream",
+    requiredObsRequests: [ToggleStream.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: ToggleStreamOutput,
+    handler: async (_input, context) => toggleStream(context.client)
   })
 ] as const
 

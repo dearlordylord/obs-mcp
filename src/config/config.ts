@@ -2,7 +2,7 @@ import { Effect, Schema } from "effect"
 
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
 
-const Toolset = Schema.Literal("scenes")
+const Toolset = Schema.Literal("scenes", "stream")
 type Toolset = typeof Toolset.Type
 
 const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
@@ -26,7 +26,7 @@ const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
     return ["scenes"]
   }
 
-  const allowed = new Set<string>(["scenes"])
+  const allowed = new Set<string>(["scenes", "stream"])
   return values.filter((entry): entry is Toolset => allowed.has(entry))
 }
 

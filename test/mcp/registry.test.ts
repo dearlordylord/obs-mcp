@@ -17,7 +17,16 @@ const config: ObsConfig = {
   enabledToolsets: ["scenes"]
 }
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetStreamStatus",
+  "StartStream",
+  "StopStream",
+  "ToggleStream"
+]
 
 const client = (handler: (requestType: ObsRequestType) => Promise<unknown>): ObsClient => ({
   negotiatedRpcVersion: 1,
@@ -48,6 +57,9 @@ describe("MCP tool registry", () => {
 
   it("filters disabled categories", () => {
     expect(getEnabledTools([])).toEqual([])
+    expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).not.toContain(
+      "get_stream_status"
+    )
   })
 
   it("filters tools by negotiated OBS capabilities", () => {
@@ -55,6 +67,8 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_version"
     ])
+    expect(getEnabledTools(["stream"], ["GetStreamStatus", "StartStream", "StopStream"]).map((tool) => tool.name))
+      .toEqual(["get_stream_status", "start_stream", "stop_stream"])
   })
 
   it("keeps protocol schemas owned by each registered tool definition", () => {
@@ -107,6 +121,36 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ sceneName: "Intro", sceneUuid: "scene-intro" })
   })
 
+  it("executes stream status and lifecycle handlers", async () => {
+    const streamConfig: ObsConfig = { ...config, enabledToolsets: ["stream"] }
+    const fakeClient = client(async (requestType) => {
+      if (requestType === "GetStreamStatus") {
+        return {
+          outputActive: false,
+          outputReconnecting: false,
+          outputTimecode: "00:00:00.000",
+          outputDuration: 0,
+          outputCongestion: 0,
+          outputBytes: 0,
+          outputSkippedFrames: 0,
+          outputTotalFrames: 0
+        }
+      }
+      if (requestType === "ToggleStream") {
+        return { outputActive: true }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("get_stream_status"), {}, { config: streamConfig, client: fakeClient }))
+      .resolves.toMatchObject({ outputActive: false, outputTotalFrames: 0 })
+    await expect(executeTool(toolByName("start_stream"), {}, { config: streamConfig, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
+    await expect(executeTool(toolByName("stop_stream"), {}, { config: streamConfig, client: fakeClient }))
+      .resolves.toEqual({ outputActive: false })
+    await expect(executeTool(toolByName("toggle_stream"), {}, { config: streamConfig, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
+  })
+
   it("rejects invalid scene params through schema validation", async () => {
     await expect(
       executeTool(toolByName("set_current_scene"), { sceneName: "" }, { config, client: client(async () => ({})) })
@@ -121,6 +165,18 @@ describe("MCP tool registry", () => {
         throw new ObsRequestError("SetCurrentProgramScene", 608, "Parameter: sceneName")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+  })
+
+  it("maps stream operation errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("start_stream"), {}, {
+      config: { ...config, enabledToolsets: ["stream"] },
+      client: client(async () => {
+        throw new ObsRequestError("StartStream", 207, "Output already active")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InternalError,
+      data: { requestType: "StartStream", obsStatusCode: 207 }
+    })
   })
 
   it("maps generic, protocol, timeout, and existing MCP errors", () => {
