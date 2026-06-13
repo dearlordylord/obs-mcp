@@ -36,6 +36,9 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `get_current_scene`
 - `set_current_scene`
 - `get_record_status`
+- `pause_record`
+- `resume_record`
+- `toggle_record_pause`
 <!-- tools:end -->
 
 Tool results use MCP structured content rather than textified JSON.

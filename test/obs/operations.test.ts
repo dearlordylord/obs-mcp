@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import type { ObsConfig } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
+import { pauseRecord, resumeRecord, toggleRecordPause } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
@@ -89,5 +90,37 @@ describe("OBS operations", () => {
       currentProgramSceneName: "Fallback",
       currentProgramSceneUuid: "fallback-uuid"
     })))).resolves.toEqual({ sceneName: "Fallback", sceneUuid: "fallback-uuid" })
+  })
+
+  it("pauses, resumes, and toggles record pause through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(pauseRecord(client)).resolves.toEqual({
+      requestedAction: "pause",
+      requestType: "PauseRecord",
+      acknowledged: true
+    })
+    await expect(resumeRecord(client)).resolves.toEqual({
+      requestedAction: "resume",
+      requestType: "ResumeRecord",
+      acknowledged: true
+    })
+    await expect(toggleRecordPause(client)).resolves.toEqual({
+      requestedAction: "toggle_pause",
+      requestType: "ToggleRecordPause",
+      acknowledged: true
+    })
+  })
+
+  it("surfaces OBS failures for record pause controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { PauseRecord: { code: 500, comment: "Record output is not active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(pauseRecord(client)).rejects.toThrow("PauseRecord failed")
   })
 })
