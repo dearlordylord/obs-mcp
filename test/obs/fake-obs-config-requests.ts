@@ -2,6 +2,15 @@ import type { FakeObsProfileParameter } from "./fake-obs-fixtures.js"
 
 type SendResponse = (responseData?: Record<string, unknown>) => void
 
+interface FakeObsVideoSettings {
+  readonly baseWidth: number
+  readonly baseHeight: number
+  readonly outputWidth: number
+  readonly outputHeight: number
+  readonly fpsNumerator: number
+  readonly fpsDenominator: number
+}
+
 export interface FakeObsConfigStateOptions {
   readonly profiles: ReadonlyArray<string>
   readonly currentProfileName: string
@@ -17,13 +26,24 @@ export class FakeObsConfigState {
   private sceneCollections: Array<string>
   private currentSceneCollectionName: string
   private profileParameters: Array<FakeObsProfileParameter>
+  private recordDirectory: string
+  private videoSettings: FakeObsVideoSettings
 
-  public constructor(private readonly options: FakeObsConfigStateOptions) {
+  public constructor(options: FakeObsConfigStateOptions) {
     this.profiles = [...options.profiles]
     this.currentProfileName = options.currentProfileName
     this.sceneCollections = [...options.sceneCollections]
     this.currentSceneCollectionName = options.currentSceneCollectionName
     this.profileParameters = [...options.profileParameters]
+    this.recordDirectory = options.recordDirectory
+    this.videoSettings = {
+      baseWidth: 1920,
+      baseHeight: 1080,
+      outputWidth: 1280,
+      outputHeight: 720,
+      fpsNumerator: 30000,
+      fpsDenominator: 1001
+    }
   }
 
   public handleRequest(requestType: string, requestData: unknown, send: SendResponse): boolean {
@@ -53,7 +73,21 @@ export class FakeObsConfigState {
       return true
     }
     if (requestType === "GetRecordDirectory") {
-      send({ recordDirectory: this.options.recordDirectory })
+      send({ recordDirectory: this.recordDirectory })
+      return true
+    }
+    if (requestType === "SetRecordDirectory") {
+      this.recordDirectory = stringField(requestData, "recordDirectory") ?? this.recordDirectory
+      send({})
+      return true
+    }
+    if (requestType === "GetVideoSettings") {
+      send({ ...this.videoSettings })
+      return true
+    }
+    if (requestType === "SetVideoSettings") {
+      this.setVideoSettings(requestData)
+      send({})
       return true
     }
     if (requestType === "SetCurrentProfile") {
@@ -123,6 +157,17 @@ export class FakeObsConfigState {
       { parameterCategory, parameterName, parameterValue, defaultParameterValue: null }
     ]
   }
+
+  private setVideoSettings(requestData: unknown): void {
+    this.videoSettings = {
+      baseWidth: numberField(requestData, "baseWidth") ?? this.videoSettings.baseWidth,
+      baseHeight: numberField(requestData, "baseHeight") ?? this.videoSettings.baseHeight,
+      outputWidth: numberField(requestData, "outputWidth") ?? this.videoSettings.outputWidth,
+      outputHeight: numberField(requestData, "outputHeight") ?? this.videoSettings.outputHeight,
+      fpsNumerator: numberField(requestData, "fpsNumerator") ?? this.videoSettings.fpsNumerator,
+      fpsDenominator: numberField(requestData, "fpsDenominator") ?? this.videoSettings.fpsDenominator
+    }
+  }
 }
 
 const stringField = (requestData: unknown, field: string): string | undefined => {
@@ -137,4 +182,11 @@ const nullableStringField = (requestData: unknown, field: string): string | null
     ? Object.entries(requestData).find(([key]) => key === field)?.[1]
     : undefined
   return typeof value === "string" || value === null ? value : undefined
+}
+
+const numberField = (requestData: unknown, field: string): number | undefined => {
+  const value = typeof requestData === "object" && requestData !== null
+    ? Object.entries(requestData).find(([key]) => key === field)?.[1]
+    : undefined
+  return typeof value === "number" ? value : undefined
 }

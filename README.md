@@ -41,6 +41,9 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `list_scene_collections`
 - `get_profile_parameter`
 - `get_record_directory`
+- `set_record_directory`
+- `get_video_settings`
+- `set_video_settings`
 - `set_current_profile`
 - `create_profile`
 - `remove_profile`

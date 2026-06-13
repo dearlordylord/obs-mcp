@@ -12,7 +12,12 @@ import {
   SetCurrentProfileOutput,
   SetCurrentSceneCollectionOutput,
   SetProfileParameterInput,
-  SetProfileParameterOutput
+  SetProfileParameterOutput,
+  SetRecordDirectoryInput,
+  SetRecordDirectoryOutput,
+  SetVideoSettingsInput,
+  SetVideoSettingsOutput,
+  VideoSettingsOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
@@ -20,12 +25,15 @@ import {
   createSceneCollection,
   getProfileParameter,
   getRecordDirectory,
+  getVideoSettings,
   listProfiles,
   listSceneCollections,
   removeProfile,
   setCurrentProfile,
   setCurrentSceneCollection,
-  setProfileParameter
+  setProfileParameter,
+  setRecordDirectory,
+  setVideoSettings
 } from "../../obs/operations/config.js"
 import {
   CreateProfile,
@@ -34,10 +42,13 @@ import {
   GetProfileParameter,
   GetRecordDirectory,
   GetSceneCollectionList,
+  GetVideoSettings,
   RemoveProfile,
   SetCurrentProfile,
   SetCurrentSceneCollection,
-  SetProfileParameter
+  SetProfileParameter,
+  SetRecordDirectory,
+  SetVideoSettings
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -83,6 +94,38 @@ export const configTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: RecordDirectoryOutput,
     handler: async (_input, context) => getRecordDirectory(context.client)
+  }),
+  defineTool({
+    name: "set_record_directory",
+    title: "Set OBS Record Directory",
+    description:
+      "Global OBS state change: set OBS' recording directory as an opaque string without local filesystem checks.",
+    category: CATEGORY,
+    requiredObsRequests: [SetRecordDirectory.requestType],
+    inputSchema: SetRecordDirectoryInput,
+    outputSchema: SetRecordDirectoryOutput,
+    handler: async (input, context) => setRecordDirectory(context.client, input)
+  }),
+  defineTool({
+    name: "get_video_settings",
+    title: "Get OBS Video Settings",
+    description: "Return OBS base/output canvas dimensions and FPS numerator/denominator.",
+    category: CATEGORY,
+    requiredObsRequests: [GetVideoSettings.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: VideoSettingsOutput,
+    handler: async (_input, context) => getVideoSettings(context.client)
+  }),
+  defineTool({
+    name: "set_video_settings",
+    title: "Set OBS Video Settings",
+    description:
+      "Global OBS state change: set OBS video dimensions and FPS; base, output, and FPS fields must be paired.",
+    category: CATEGORY,
+    requiredObsRequests: [SetVideoSettings.requestType],
+    inputSchema: SetVideoSettingsInput,
+    outputSchema: SetVideoSettingsOutput,
+    handler: async (input, context) => setVideoSettings(context.client, input)
   }),
   defineTool({
     name: "set_current_profile",

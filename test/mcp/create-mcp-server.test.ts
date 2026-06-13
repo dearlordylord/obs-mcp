@@ -384,12 +384,25 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "GetRecordDirectory") {
           return { recordDirectory: "/opaque/obs-recordings" }
         }
+        if (requestType === "GetVideoSettings") {
+          return {
+            baseWidth: 1920,
+            baseHeight: 1080,
+            outputWidth: 1280,
+            outputHeight: 720,
+            fpsNumerator: 30000,
+            fpsDenominator: 1001
+          }
+        }
         return {}
       }, [
         "GetProfileList",
         "GetSceneCollectionList",
         "GetProfileParameter",
         "GetRecordDirectory",
+        "SetRecordDirectory",
+        "GetVideoSettings",
+        "SetVideoSettings",
         "SetCurrentProfile",
         "CreateProfile",
         "RemoveProfile",
@@ -405,6 +418,9 @@ describe("MCP server protocol handlers", () => {
       "list_scene_collections",
       "get_profile_parameter",
       "get_record_directory",
+      "set_record_directory",
+      "get_video_settings",
+      "set_video_settings",
       "set_current_profile",
       "create_profile",
       "remove_profile",
@@ -424,6 +440,16 @@ describe("MCP server protocol handlers", () => {
     })
     await expect(client.callTool({ name: "get_record_directory", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { recordDirectory: "/opaque/obs-recordings" } })
+    await expect(client.callTool({
+      name: "set_record_directory",
+      arguments: { recordDirectory: "opaque://recordings/show" }
+    })).resolves.toMatchObject({ structuredContent: { recordDirectory: "opaque://recordings/show" } })
+    await expect(client.callTool({ name: "get_video_settings", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputWidth: 1280, fpsDenominator: 1001 } })
+    await expect(client.callTool({
+      name: "set_video_settings",
+      arguments: { outputWidth: 1920, outputHeight: 1080 }
+    })).resolves.toMatchObject({ structuredContent: { outputWidth: 1920, outputHeight: 1080 } })
     await expect(client.callTool({ name: "set_current_profile", arguments: { profileName: "Production" } }))
       .resolves.toMatchObject({ structuredContent: { profileName: "Production", switched: true } })
     await expect(client.callTool({ name: "create_profile", arguments: { profileName: "Show" } }))

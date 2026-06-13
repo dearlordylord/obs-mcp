@@ -14,7 +14,12 @@ import {
   SetCurrentProfileOutput,
   SetCurrentSceneCollectionOutput,
   SetProfileParameterInput,
-  SetProfileParameterOutput
+  SetProfileParameterOutput,
+  SetRecordDirectoryInput,
+  SetRecordDirectoryOutput,
+  SetVideoSettingsInput,
+  SetVideoSettingsOutput,
+  VideoSettingsOutput
 } from "../../domain/schemas/config.js"
 import type { ObsClient } from "../client.js"
 import {
@@ -24,10 +29,13 @@ import {
   GetProfileParameter,
   GetRecordDirectory,
   GetSceneCollectionList,
+  GetVideoSettings,
   RemoveProfile,
   SetCurrentProfile,
   SetCurrentSceneCollection,
-  SetProfileParameter
+  SetProfileParameter,
+  SetRecordDirectory,
+  SetVideoSettings
 } from "../requests.js"
 
 export const listProfiles = async (client: ObsClient): Promise<ProfileListOutput> =>
@@ -46,6 +54,33 @@ export const getProfileParameter = async (
 
 export const getRecordDirectory = async (client: ObsClient): Promise<RecordDirectoryOutput> =>
   Schema.decodeUnknownSync(RecordDirectoryOutput)(await client.request(GetRecordDirectory))
+
+export const setRecordDirectory = async (
+  client: ObsClient,
+  input: SetRecordDirectoryInput
+): Promise<SetRecordDirectoryOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetRecordDirectoryInput)(input)
+  await client.request(SetRecordDirectory, decodedInput)
+  return Schema.decodeUnknownSync(SetRecordDirectoryOutput)({
+    ...decodedInput,
+    acknowledged: true
+  })
+}
+
+export const getVideoSettings = async (client: ObsClient): Promise<VideoSettingsOutput> =>
+  Schema.decodeUnknownSync(VideoSettingsOutput)(await client.request(GetVideoSettings))
+
+export const setVideoSettings = async (
+  client: ObsClient,
+  input: SetVideoSettingsInput
+): Promise<SetVideoSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetVideoSettingsInput)(input)
+  await client.request(SetVideoSettings, decodedInput)
+  return Schema.decodeUnknownSync(SetVideoSettingsOutput)({
+    ...decodedInput,
+    acknowledged: true
+  })
+}
 
 export const setCurrentProfile = async (
   client: ObsClient,

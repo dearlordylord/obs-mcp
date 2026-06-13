@@ -2,7 +2,12 @@ import { Option, Schema } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
-import { ProfileNameInput, ProfileParameterInput, SetProfileParameterInput } from "../../src/domain/schemas/config.js"
+import {
+  ProfileNameInput,
+  ProfileParameterInput,
+  SetProfileParameterInput,
+  SetVideoSettingsInput
+} from "../../src/domain/schemas/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
@@ -12,12 +17,15 @@ import {
   createSceneCollection,
   getProfileParameter,
   getRecordDirectory,
+  getVideoSettings,
   listProfiles,
   listSceneCollections,
   removeProfile,
   setCurrentProfile,
   setCurrentSceneCollection,
-  setProfileParameter
+  setProfileParameter,
+  setRecordDirectory,
+  setVideoSettings
 } from "../../src/obs/operations/config.js"
 import {
   getObsStats,
@@ -238,6 +246,14 @@ describe("OBS operations", () => {
       defaultParameterValue: null
     })
     await expect(getRecordDirectory(client)).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
+    await expect(getVideoSettings(client)).resolves.toEqual({
+      baseWidth: 1920,
+      baseHeight: 1080,
+      outputWidth: 1280,
+      outputHeight: 720,
+      fpsNumerator: 30000,
+      fpsDenominator: 1001
+    })
   })
 
   it("mutates config state through the fake OBS protocol", async () => {
@@ -316,6 +332,32 @@ describe("OBS operations", () => {
       parameterCategory: "SimpleOutput",
       parameterName: "VBitrate"
     })).resolves.toEqual({ parameterValue: null, defaultParameterValue: "2500" })
+
+    await expect(setRecordDirectory(client, { recordDirectory: "opaque://recordings/show" })).resolves.toEqual({
+      recordDirectory: "opaque://recordings/show",
+      acknowledged: true
+    })
+    await expect(getRecordDirectory(client)).resolves.toEqual({ recordDirectory: "opaque://recordings/show" })
+    await expect(setVideoSettings(client, {
+      baseWidth: 2560,
+      baseHeight: 1440,
+      fpsNumerator: 60,
+      fpsDenominator: 1
+    })).resolves.toEqual({
+      baseWidth: 2560,
+      baseHeight: 1440,
+      fpsNumerator: 60,
+      fpsDenominator: 1,
+      acknowledged: true
+    })
+    await expect(getVideoSettings(client)).resolves.toEqual({
+      baseWidth: 2560,
+      baseHeight: 1440,
+      outputWidth: 1280,
+      outputHeight: 720,
+      fpsNumerator: 60,
+      fpsDenominator: 1
+    })
   })
 
   it("validates config read and mutation schemas", () => {
@@ -330,13 +372,17 @@ describe("OBS operations", () => {
         parameterName: "Mode"
       })
     ).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ baseWidth: 1920 })).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputHeight: 720 })).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ fpsNumerator: 60 })).toThrow()
   })
 
   it("surfaces OBS config read and mutation request failures", async () => {
     const server = await FakeObsServer.start({
       failRequests: {
         GetProfileParameter: { code: 601, comment: "Parameter category not found" },
-        SetCurrentProfile: { code: 601, comment: "Profile not found" }
+        SetCurrentProfile: { code: 601, comment: "Profile not found" },
+        SetVideoSettings: { code: 500, comment: "Video output is active" }
       }
     })
     servers.push(server)
@@ -357,6 +403,16 @@ describe("OBS operations", () => {
         requestType: "SetCurrentProfile",
         code: 601,
         comment: "Profile not found"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setVideoSettings(client, {
+      baseWidth: 1920,
+      baseHeight: 1080
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetVideoSettings",
+        code: 500,
+        comment: "Video output is active"
       } satisfies Partial<ObsRequestError>
     )
   })

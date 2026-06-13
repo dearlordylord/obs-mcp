@@ -8,7 +8,10 @@ import {
   RecordDirectoryOutput,
   SceneCollectionListOutput,
   SceneCollectionNameInput,
-  SetProfileParameterInput
+  SetProfileParameterInput,
+  SetRecordDirectoryInput,
+  SetVideoSettingsInput,
+  VideoSettingsOutput
 } from "../../domain/schemas/config.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
@@ -37,6 +40,24 @@ export const GetRecordDirectory = {
   requestDataSchema: EmptyRequestData,
   responseSchema: RecordDirectoryOutput
 } satisfies ObsRequestDescriptor<RecordDirectoryOutput>
+
+export const SetRecordDirectory = {
+  requestType: "SetRecordDirectory",
+  requestDataSchema: SetRecordDirectoryInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetVideoSettings = {
+  requestType: "GetVideoSettings",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: VideoSettingsOutput
+} satisfies ObsRequestDescriptor<VideoSettingsOutput>
+
+export const SetVideoSettings = {
+  requestType: "SetVideoSettings",
+  requestDataSchema: SetVideoSettingsInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 
 export const SetCurrentProfile = {
   requestType: "SetCurrentProfile",

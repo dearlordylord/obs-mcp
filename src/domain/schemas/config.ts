@@ -57,6 +57,84 @@ export const RecordDirectoryOutput = Schema.Struct({
 export type RecordDirectoryOutput = typeof RecordDirectoryOutput.Type
 export const RecordDirectoryOutputJsonSchema = JSONSchema.make(RecordDirectoryOutput)
 
+export const SetRecordDirectoryInput = Schema.Struct({
+  recordDirectory: Schema.String
+})
+export type SetRecordDirectoryInput = typeof SetRecordDirectoryInput.Type
+export const SetRecordDirectoryInputJsonSchema = JSONSchema.make(SetRecordDirectoryInput)
+
+export const SetRecordDirectoryOutput = Schema.Struct({
+  recordDirectory: Schema.String,
+  acknowledged: Schema.Literal(true)
+})
+export type SetRecordDirectoryOutput = typeof SetRecordDirectoryOutput.Type
+export const SetRecordDirectoryOutputJsonSchema = JSONSchema.make(SetRecordDirectoryOutput)
+
+const VideoSettingInteger = Schema.Number.pipe(Schema.int(), Schema.positive())
+
+export const VideoSettingsOutput = Schema.Struct({
+  baseWidth: VideoSettingInteger,
+  baseHeight: VideoSettingInteger,
+  outputWidth: VideoSettingInteger,
+  outputHeight: VideoSettingInteger,
+  fpsNumerator: VideoSettingInteger,
+  fpsDenominator: VideoSettingInteger
+})
+export type VideoSettingsOutput = typeof VideoSettingsOutput.Type
+export const VideoSettingsOutputJsonSchema = JSONSchema.make(VideoSettingsOutput)
+
+const hasMatchingOptionalPair = <A>(
+  input: A,
+  firstField: keyof A,
+  secondField: keyof A
+): boolean => (input[firstField] === undefined) === (input[secondField] === undefined)
+
+const SetVideoSettingsFields = Schema.Struct({
+  baseWidth: Schema.optional(VideoSettingInteger),
+  baseHeight: Schema.optional(VideoSettingInteger),
+  outputWidth: Schema.optional(VideoSettingInteger),
+  outputHeight: Schema.optional(VideoSettingInteger),
+  fpsNumerator: Schema.optional(VideoSettingInteger),
+  fpsDenominator: Schema.optional(VideoSettingInteger)
+})
+
+type PairedVideoSettings = {
+  readonly baseWidth?: number | undefined
+  readonly baseHeight?: number | undefined
+  readonly outputWidth?: number | undefined
+  readonly outputHeight?: number | undefined
+  readonly fpsNumerator?: number | undefined
+  readonly fpsDenominator?: number | undefined
+}
+
+const pairedVideoSettingFilters = <A extends PairedVideoSettings, I, R>(
+  schema: Schema.Schema<A, I, R>
+): Schema.Schema<A, I, R> =>
+  schema.pipe(
+    Schema.filter((input) => hasMatchingOptionalPair(input, "baseWidth", "baseHeight"), {
+      message: () => "baseWidth and baseHeight must be provided together"
+    }),
+    Schema.filter((input) => hasMatchingOptionalPair(input, "outputWidth", "outputHeight"), {
+      message: () => "outputWidth and outputHeight must be provided together"
+    }),
+    Schema.filter((input) => hasMatchingOptionalPair(input, "fpsNumerator", "fpsDenominator"), {
+      message: () => "fpsNumerator and fpsDenominator must be provided together"
+    })
+  )
+
+export const SetVideoSettingsInput = pairedVideoSettingFilters(SetVideoSettingsFields)
+export type SetVideoSettingsInput = typeof SetVideoSettingsInput.Type
+export const SetVideoSettingsInputJsonSchema = JSONSchema.make(SetVideoSettingsInput)
+
+export const SetVideoSettingsOutput = pairedVideoSettingFilters(Schema.extend(
+  SetVideoSettingsFields,
+  Schema.Struct({
+    acknowledged: Schema.Literal(true)
+  })
+))
+export type SetVideoSettingsOutput = typeof SetVideoSettingsOutput.Type
+export const SetVideoSettingsOutputJsonSchema = JSONSchema.make(SetVideoSettingsOutput)
+
 export const ProfileNameInput = Schema.Struct({
   profileName: ProfileName
 })

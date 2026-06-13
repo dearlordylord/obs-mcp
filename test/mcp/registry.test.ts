@@ -105,6 +105,9 @@ const configToolNames = [
   "list_scene_collections",
   "get_profile_parameter",
   "get_record_directory",
+  "set_record_directory",
+  "get_video_settings",
+  "set_video_settings",
   "set_current_profile",
   "create_profile",
   "remove_profile",
@@ -481,6 +484,9 @@ describe("MCP tool registry", () => {
       getEnabledTools(["config"], [
         "GetProfileList",
         "GetProfileParameter",
+        "SetRecordDirectory",
+        "GetVideoSettings",
+        "SetVideoSettings",
         "SetCurrentProfile",
         "CreateProfile",
         "RemoveProfile",
@@ -491,6 +497,9 @@ describe("MCP tool registry", () => {
     ).toEqual([
       "list_profiles",
       "get_profile_parameter",
+      "set_record_directory",
+      "get_video_settings",
+      "set_video_settings",
       "set_current_profile",
       "create_profile",
       "remove_profile",
@@ -769,6 +778,16 @@ describe("MCP tool registry", () => {
       if (requestType === "GetRecordDirectory") {
         return { recordDirectory: "/opaque/obs-recordings" }
       }
+      if (requestType === "GetVideoSettings") {
+        return {
+          baseWidth: 1920,
+          baseHeight: 1080,
+          outputWidth: 1280,
+          outputHeight: 720,
+          fpsNumerator: 30000,
+          fpsDenominator: 1001
+        }
+      }
       return { recordDirectory: "/opaque/obs-recordings" }
     })
 
@@ -791,6 +810,38 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
     })).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
+    await expect(executeTool(toolByName("set_record_directory"), {
+      recordDirectory: "opaque://recordings/show"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ recordDirectory: "opaque://recordings/show", acknowledged: true })
+    await expect(executeTool(toolByName("get_video_settings"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      baseWidth: 1920,
+      baseHeight: 1080,
+      outputWidth: 1280,
+      outputHeight: 720,
+      fpsNumerator: 30000,
+      fpsDenominator: 1001
+    })
+    await expect(executeTool(toolByName("set_video_settings"), {
+      baseWidth: 1920,
+      baseHeight: 1080,
+      fpsNumerator: 60,
+      fpsDenominator: 1
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      baseWidth: 1920,
+      baseHeight: 1080,
+      fpsNumerator: 60,
+      fpsDenominator: 1,
+      acknowledged: true
+    })
     await expect(executeTool(toolByName("set_current_profile"), { profileName: "Production" }, {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
@@ -838,6 +889,13 @@ describe("MCP tool registry", () => {
         parameterCategory: "SimpleOutput",
         parameterName: "VBitrate",
         parameterValue: null
+      }],
+      ["SetRecordDirectory", { recordDirectory: "opaque://recordings/show" }],
+      ["SetVideoSettings", {
+        baseWidth: 1920,
+        baseHeight: 1080,
+        fpsNumerator: 60,
+        fpsDenominator: 1
       }]
     ]))
     await expect(executeTool(toolByName("get_profile_parameter"), {
@@ -848,6 +906,10 @@ describe("MCP tool registry", () => {
       client: fakeClient
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
     await expect(executeTool(toolByName("set_current_profile"), { profileName: "" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_video_settings"), { baseWidth: 1920 }, {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
@@ -1010,6 +1072,22 @@ describe("MCP tool registry", () => {
         requestType: "SetCurrentProfile",
         obsStatusCode: 601,
         comment: "Profile not found"
+      }
+    })
+    await expect(executeTool(toolByName("set_video_settings"), {
+      baseWidth: 1920,
+      baseHeight: 1080
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetVideoSettings", 500, "Video output is active")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetVideoSettings",
+        obsStatusCode: 500,
+        comment: "Video output is active"
       }
     })
   })
