@@ -210,6 +210,45 @@ describe("OBS operations", () => {
     await expect(getCurrentSceneTransitionCursor(client)).resolves.toEqual({ transitionCursor: 0.5 })
   })
 
+  it("sanitizes malformed scene transition rows into stable summaries", async () => {
+    const client = fakeClient(async (requestType) => {
+      expect(requestType).toBe("GetSceneTransitionList")
+      return {
+        currentSceneTransitionName: null,
+        currentSceneTransitionUuid: null,
+        currentSceneTransitionKind: null,
+        transitions: [
+          {
+            transitionName: 42,
+            transitionUuid: "transition-partial",
+            transitionKind: false,
+            transitionFixed: "nope",
+            transitionDuration: "300",
+            transitionSettings: { color: "black" }
+          },
+          {
+            transitionName: "Stinger",
+            transitionKind: "stinger_transition"
+          },
+          {
+            transitionName: "Cut",
+            transitionDuration: null
+          }
+        ]
+      }
+    })
+    await expect(listSceneTransitions(client)).resolves.toEqual({
+      currentSceneTransitionName: null,
+      currentSceneTransitionUuid: null,
+      currentSceneTransitionKind: null,
+      transitions: [
+        { transitionUuid: "transition-partial" },
+        { transitionName: "Stinger", transitionKind: "stinger_transition" },
+        { transitionName: "Cut", transitionDuration: null }
+      ]
+    })
+  })
+
   it("lists scenes and can filter groups", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
