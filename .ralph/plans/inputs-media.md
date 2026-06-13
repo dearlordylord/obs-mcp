@@ -2,24 +2,20 @@
 
 Branch: `ralph/inputs-media`
 
-## Completed baseline
-
-The merged foundation already includes input discovery (`list_inputs`, `list_input_kinds`, `get_special_inputs`) and a reusable input locator schema requiring exactly one of `inputName` or `inputUuid`. Treat those as established patterns, not tasks to redo.
-
 ## Tasks
 
-- [ ] `task-1` Add core input mute and volume controls
-- [ ] `task-2` Add input volume controls
-- [ ] `task-3` Add input balance and monitor controls
-- [ ] `task-4` Add input audio sync offset controls
-- [ ] `task-5` Add compact media input status
-- [ ] `task-6` Add media cursor controls
-- [ ] `task-7` Add media action trigger controls
-- [ ] `task-8` Harden input/media validation and fixtures
+- [x] `task-1` Add core input mute and volume controls
+- [x] `task-2` Add input volume controls
+- [x] `task-3` Add input balance and monitor controls
+- [x] `task-4` Add input audio sync offset controls
+- [x] `task-5` Add compact media input status
+- [x] `task-6` Add media cursor controls
+- [x] `task-7` Add media action trigger controls
+- [x] `task-8` Harden input/media validation and fixtures
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -27,7 +23,7 @@ Add core input mute controls: `get_input_mute`, `set_input_mute`, and `toggle_in
 
 ## task-2
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -35,7 +31,7 @@ Add `get_input_volume` and `set_input_volume`. For `set_input_volume`, require e
 
 ## task-3
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -43,7 +39,7 @@ Add advanced primitive input audio controls: `get_input_audio_balance`, `set_inp
 
 ## task-4
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -51,7 +47,7 @@ Add `get_input_audio_sync_offset` and `set_input_audio_sync_offset`. Reuse the i
 
 ## task-5
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -59,7 +55,7 @@ Add `get_media_input_status`. Reuse the input locator schema and require exactly
 
 ## task-6
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -67,7 +63,7 @@ Add media cursor mutations: `set_media_input_cursor` and `offset_media_input_cur
 
 ## task-7
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -75,7 +71,7 @@ Add `trigger_media_input_action`. Use the official `ObsMediaInputAction` enum va
 
 ## task-8
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

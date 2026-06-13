@@ -2,24 +2,20 @@
 
 Branch: `ralph/outputs-lifecycle`
 
-## Completed baseline
-
-The merged foundation already includes `get_obs_stats`, `get_record_status`, record pause/resume/toggle-pause, stream status/start/stop/toggle, and virtual camera status/start/stop/toggle. Treat those as established patterns, not tasks to redo.
-
 ## Tasks
 
-- [ ] `task-1` Complete record lifecycle and file/chapter controls
-- [ ] `task-2` Add record file split and chapter marker controls
-- [ ] `task-3` Add replay buffer lifecycle controls
-- [ ] `task-4` Add replay buffer save and last-replay metadata
-- [ ] `task-5` Add stream captions
-- [ ] `task-6` Harden lifecycle capability and disabled-toolset coverage
-- [ ] `task-7` Add lifecycle operation/test fixture consolidation
-- [ ] `task-8` Add opt-in real OBS lifecycle smoke coverage
+- [x] `task-1` Complete record lifecycle and file/chapter controls
+- [x] `task-2` Add record file split and chapter marker controls
+- [x] `task-3` Add replay buffer lifecycle controls
+- [x] `task-4` Add replay buffer save and last-replay metadata
+- [x] `task-5` Add stream captions
+- [x] `task-6` Harden lifecycle capability and disabled-toolset coverage
+- [x] `task-7` Add lifecycle operation/test fixture consolidation
+- [x] `task-8` Add opt-in real OBS lifecycle smoke coverage
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -27,7 +23,7 @@ Add the core remaining record lifecycle tools: `start_record`, `stop_record`, an
 
 ## task-2
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -35,7 +31,7 @@ Add `split_record_file` and `create_record_chapter`. Use the official `SplitReco
 
 ## task-3
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -43,7 +39,7 @@ Add replay buffer lifecycle tools in the existing `outputs` category: `get_repla
 
 ## task-4
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -51,7 +47,7 @@ Add `save_replay_buffer` and `get_last_replay_buffer_replay`. Treat `savedReplay
 
 ## task-5
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -59,7 +55,7 @@ Add `send_stream_caption` from `SendStreamCaption` to the existing `stream` cate
 
 ## task-6
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -67,7 +63,7 @@ After tasks 1-5 land, add table-driven coverage proving every lifecycle tool is 
 
 ## task-7
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -75,7 +71,7 @@ Consolidate lifecycle operation and fake-server test helpers introduced by this 
 
 ## task-8
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

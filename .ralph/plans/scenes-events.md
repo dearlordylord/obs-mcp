@@ -2,24 +2,20 @@
 
 Branch: `ralph/scenes-events`
 
-## Completed baseline
-
-The merged foundation already includes core scenes, scene-item discovery/identity, event subscription masks, safe-event filtering policy, and protocol event envelope decoding. Treat those as established patterns, not tasks to redo.
-
 ## Tasks
 
-- [ ] `task-1` Add scene-item enabled and locked controls
-- [ ] `task-2` Add scene-item index and blend mode read controls
-- [ ] `task-3` Add scene-item index and blend mode mutation controls
-- [ ] `task-4` Add source active read tools
-- [ ] `task-5` Build bounded OBS event buffer service
-- [ ] `task-6` Expose recent safe OBS events behind an events toolset
-- [ ] `task-7` Add typed low-volume scene/input/output/media events
-- [ ] `task-8` Harden event subscription and stdout-purity coverage
+- [x] `task-1` Add scene-item enabled and locked controls
+- [x] `task-2` Add scene-item index and blend mode read controls
+- [x] `task-3` Add scene-item index and blend mode mutation controls
+- [x] `task-4` Add source active read tools
+- [x] `task-5` Build bounded OBS event buffer service
+- [x] `task-6` Expose recent safe OBS events behind an events toolset
+- [x] `task-7` Add typed low-volume scene/input/output/media events
+- [x] `task-8` Harden event subscription and stdout-purity coverage
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -27,7 +23,7 @@ Add bounded scene-item read/mutation tools: `get_scene_item_enabled`, `set_scene
 
 ## task-2
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -35,7 +31,7 @@ Add read-only scene-item position/state tools: `get_scene_item_index` and `get_s
 
 ## task-3
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -43,7 +39,7 @@ Add bounded scene-item mutation tools: `set_scene_item_index` and `set_scene_ite
 
 ## task-4
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -51,7 +47,7 @@ Add source activity read tools from `GetSourceActive` using the same source iden
 
 ## task-5
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -59,7 +55,7 @@ Implement bounded low-volume event capture using the existing typed event primit
 
 ## task-6
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -67,7 +63,7 @@ Expose `get_recent_obs_events` behind a new `events` toolset only after task 5 i
 
 ## task-7
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -75,7 +71,7 @@ Add typed low-volume event schemas for the first useful categories: scene curren
 
 ## task-8
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
