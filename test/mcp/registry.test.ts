@@ -548,13 +548,7 @@ describe("MCP tool registry", () => {
         "GetCurrentProgramScene",
         "SetCurrentProgramScene"
       ]).map((tool) => tool.name)
-    ).toEqual([
-      "get_obs_context",
-      "get_version",
-      "list_scenes",
-      "get_current_scene",
-      "set_current_scene"
-    ])
+    ).toEqual(["list_scenes", "get_current_scene", "set_current_scene"])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

@@ -1,6 +1,16 @@
 import { createHash } from "node:crypto"
 import { type WebSocket, WebSocketServer } from "ws"
 
+import {
+  DEFAULT_AVAILABLE_REQUESTS,
+  DEFAULT_INPUTS,
+  DEFAULT_SCENES,
+  type FakeObsInput,
+  type FakeObsReceivedRequest,
+  type FakeObsScene,
+  sceneItemsFor
+} from "./fake-obs-fixtures.js"
+
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
 const OP_EVENT = 5
@@ -9,35 +19,6 @@ const REQUEST_STATUS_SUCCESS = 100
 const AUTH_FAILURE_CLOSE_CODE = 4009
 const BINARY_FRAME_HEX = "010203"
 const BINARY_FRAME = Buffer.from(BINARY_FRAME_HEX, "hex")
-
-interface FakeObsScene {
-  readonly sceneName: string
-  readonly sceneUuid?: string
-  readonly sceneIndex: number
-  readonly isGroup?: boolean
-}
-
-interface FakeObsSceneItem {
-  readonly sceneItemId: number
-  readonly sceneItemIndex: number
-  readonly sourceName: string
-  readonly sourceUuid: string
-  readonly sourceType?: string
-  readonly inputKind?: string | null
-  readonly isGroup?: boolean | null
-}
-
-interface FakeObsInput {
-  readonly inputName: string
-  readonly inputUuid?: string
-  readonly inputKind: string
-  readonly unversionedInputKind: string
-}
-
-interface FakeObsReceivedRequest {
-  readonly requestType: string
-  readonly requestData?: unknown
-}
 
 interface FakeObsServerOptions {
   readonly password?: string
@@ -99,25 +80,8 @@ export class FakeObsServer {
         }
       })
     })
-    const scenes = options.scenes ?? [
-      { sceneName: "Intro", sceneUuid: "scene-intro", sceneIndex: 0 },
-      { sceneName: "Main", sceneUuid: "scene-main", sceneIndex: 1 },
-      { sceneName: "Group", sceneUuid: "scene-group", sceneIndex: 2, isGroup: true }
-    ]
-    const inputs = options.inputs ?? [
-      {
-        inputName: "Desktop Audio",
-        inputUuid: "input-desktop-audio",
-        inputKind: "wasapi_output_capture",
-        unversionedInputKind: "wasapi_output_capture"
-      },
-      {
-        inputName: "Mic/Aux",
-        inputUuid: "input-mic-aux",
-        inputKind: "wasapi_input_capture",
-        unversionedInputKind: "wasapi_input_capture"
-      }
-    ]
+    const scenes = options.scenes ?? DEFAULT_SCENES
+    const inputs = options.inputs ?? DEFAULT_INPUTS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
     fake.installHandlers(options, scenes, inputs)
     return fake
@@ -266,32 +230,7 @@ export class FakeObsServer {
         obsVersion: "31.0.0",
         obsWebSocketVersion: "5.6.0",
         rpcVersion: 1,
-        availableRequests: options.availableRequestsValue ?? [
-          "GetVersion",
-          "GetStats",
-          "GetSceneList",
-          "GetCurrentProgramScene",
-          "SetCurrentProgramScene",
-          "GetSceneItemList",
-          "GetGroupSceneItemList",
-          "GetSceneItemId",
-          "GetSceneItemSource",
-          "GetInputList",
-          "GetInputKindList",
-          "GetSpecialInputs",
-          "GetVirtualCamStatus",
-          "StartVirtualCam",
-          "StopVirtualCam",
-          "ToggleVirtualCam",
-          "GetRecordStatus",
-          "PauseRecord",
-          "ResumeRecord",
-          "ToggleRecordPause",
-          "GetStreamStatus",
-          "StartStream",
-          "StopStream",
-          "ToggleStream"
-        ],
+        availableRequests: options.availableRequestsValue ?? DEFAULT_AVAILABLE_REQUESTS,
         supportedImageFormats: ["png", "jpg"],
         platform: "ubuntu",
         platformDescription: "Ubuntu 24.04"
@@ -336,17 +275,17 @@ export class FakeObsServer {
       return
     }
     if (requestType === "GetSceneItemList" || requestType === "GetGroupSceneItemList") {
-      send({ sceneItems: this.sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
+      send({ sceneItems: sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
       return
     }
     if (requestType === "GetSceneItemId") {
-      const sceneItem = this.sceneItemsFor(envelope.d.requestData, false)
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
         .find((item) => item.sourceName === envelope.d.requestData.sourceName)
       send({ sceneItemId: sceneItem?.sceneItemId ?? 0 })
       return
     }
     if (requestType === "GetSceneItemSource") {
-      const sceneItem = this.sceneItemsFor(envelope.d.requestData, false)
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
         .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
       send({ sourceName: sceneItem?.sourceName ?? "Camera", sourceUuid: sceneItem?.sourceUuid ?? "source-camera" })
       return
@@ -431,34 +370,5 @@ export class FakeObsServer {
       return
     }
     send()
-  }
-
-  private sceneItemsFor(
-    requestData: { readonly sceneName?: string; readonly sceneUuid?: string },
-    group: boolean
-  ): ReadonlyArray<FakeObsSceneItem> {
-    if (group || requestData.sceneName === "Group" || requestData.sceneUuid === "scene-group") {
-      return [{ sceneItemId: 3, sceneItemIndex: 0, sourceName: "Nested", sourceUuid: "source-nested" }]
-    }
-    return [
-      {
-        sceneItemId: 7,
-        sceneItemIndex: 0,
-        sourceName: "Camera",
-        sourceUuid: "source-camera",
-        sourceType: "OBS_SOURCE_TYPE_INPUT",
-        inputKind: "dshow_input",
-        isGroup: null
-      },
-      {
-        sceneItemId: 9,
-        sceneItemIndex: 1,
-        sourceName: "Lower Third",
-        sourceUuid: "source-lower-third",
-        sourceType: "OBS_SOURCE_TYPE_SCENE",
-        inputKind: null,
-        isGroup: true
-      }
-    ]
   }
 }

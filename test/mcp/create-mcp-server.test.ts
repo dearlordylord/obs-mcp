@@ -362,12 +362,15 @@ describe("MCP server protocol handlers", () => {
   })
 
   it("returns structured virtual camera status and switch results", async () => {
-    const client = await connect(obsClient(async (requestType) => {
-      if (requestType === "GetVirtualCamStatus" || requestType === "ToggleVirtualCam") {
-        return { outputActive: true }
-      }
-      return {}
-    }))
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetVirtualCamStatus" || requestType === "ToggleVirtualCam") {
+          return { outputActive: true }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
     await expect(client.callTool({ name: "get_virtual_cam_status", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { outputActive: true } })
     await expect(client.callTool({ name: "toggle_virtual_cam", arguments: {} }))
