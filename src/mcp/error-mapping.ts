@@ -1,5 +1,4 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js"
-import { ParseResult } from "effect"
 
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../obs/errors.js"
 
@@ -55,9 +54,6 @@ export const toMcpError = (error: unknown): McpError => {
   }
   if (error instanceof ObsTimeoutError || error instanceof ObsProtocolError) {
     return new McpError(ErrorCode.InternalError, error.message)
-  }
-  if (ParseResult.isParseError(error)) {
-    return new McpError(ErrorCode.InvalidParams, error.message)
   }
   if (error instanceof Error) {
     return new McpError(ErrorCode.InternalError, error.message)

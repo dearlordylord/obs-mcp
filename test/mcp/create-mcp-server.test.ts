@@ -8,6 +8,7 @@ import type { ObsConfig } from "../../src/config/config.js"
 import { createObsMcpServer } from "../../src/mcp/create-mcp-server.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
+import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "../obs/fake-obs-server.js"
 import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
@@ -26,8 +27,9 @@ const fakeObsServers: Array<FakeObsServer> = []
 
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
-  availableRequests: ReadonlyArray<string> = allAvailableRequests
-): ObsClient => fakeObsClient(handler, availableRequests)
+  availableRequests: ReadonlyArray<string> = allAvailableRequests,
+  bufferedEvents: ReturnType<ObsClient["getBufferedEvents"]> = { capacity: 0, droppedEvents: 0, events: [] }
+): ObsClient => fakeObsClient(handler, availableRequests, bufferedEvents)
 
 const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promise<Client> => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
@@ -61,6 +63,15 @@ describe("MCP server protocol handlers", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked",
+      "get_scene_item_index",
+      "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode",
+      "get_source_active",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -111,6 +122,11 @@ describe("MCP server protocol handlers", () => {
     expect(sceneItemsTool?.inputSchema.type).toBe("object")
     expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "set_scene_item_enabled")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "set_scene_item_index")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "get_source_active")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "get_scene_item_blend_mode")?.outputSchema?.properties)
+      .toHaveProperty("sceneItemBlendMode")
   })
 
   it("lists only context and available capability-backed tools", async () => {
@@ -130,6 +146,15 @@ describe("MCP server protocol handlers", () => {
       "get_version",
       "get_obs_stats"
     ])
+  })
+
+  it("lists recent event tools only for the events toolset", async () => {
+    const client = await connect(obsClient(async () => ({})), {
+      ...config,
+      enabledToolsets: ["events"]
+    })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual(["get_recent_obs_events"])
   })
 
   it("hides record lifecycle and pause tools when fake OBS does not advertise the capabilities", async () => {
@@ -316,6 +341,18 @@ describe("MCP server protocol handlers", () => {
           outputBytes: 67890
         }
       }
+      if (requestType === "GetSceneItemEnabled") {
+        return { sceneItemEnabled: true }
+      }
+      if (requestType === "GetSceneItemIndex") {
+        return { sceneItemIndex: 2 }
+      }
+      if (requestType === "GetSceneItemBlendMode") {
+        return { sceneItemBlendMode: "OBS_BLEND_LIGHTEN" }
+      }
+      if (requestType === "GetSourceActive") {
+        return { videoActive: true, videoShowing: false }
+      }
       return { sceneName: "Intro", sceneUuid: "scene-intro" }
     }))
     await expect(client.callTool({ name: "get_current_scene", arguments: {} }))
@@ -346,6 +383,162 @@ describe("MCP server protocol handlers", () => {
           outputBytes: 67890
         }
       })
+    await expect(client.callTool({
+      name: "get_scene_item_enabled",
+      arguments: { sceneName: "Scene", sceneItemId: 42 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemEnabled: true } })
+    await expect(client.callTool({
+      name: "set_scene_item_enabled",
+      arguments: { sceneName: "Scene", sceneItemId: 42, sceneItemEnabled: false }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemEnabled: false, updated: true } })
+    await expect(client.callTool({
+      name: "get_scene_item_index",
+      arguments: { sceneName: "Scene", sceneItemId: 42 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemIndex: 2 } })
+    await expect(client.callTool({
+      name: "get_scene_item_blend_mode",
+      arguments: { sceneUuid: "scene-uuid", sceneItemId: 42 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemBlendMode: "OBS_BLEND_LIGHTEN" } })
+    await expect(client.callTool({
+      name: "set_scene_item_index",
+      arguments: { sceneName: "Scene", sceneItemId: 42, sceneItemIndex: 3 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemIndex: 3, updated: true } })
+    await expect(client.callTool({
+      name: "set_scene_item_blend_mode",
+      arguments: { sceneUuid: "scene-uuid", sceneItemId: 42, sceneItemBlendMode: "OBS_BLEND_MULTIPLY" }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemBlendMode: "OBS_BLEND_MULTIPLY", updated: true } })
+    await expect(client.callTool({
+      name: "get_source_active",
+      arguments: { sourceName: "Camera" }
+    })).resolves.toMatchObject({
+      structuredContent: { sourceName: "Camera", videoActive: true, videoShowing: false }
+    })
+  })
+
+  it("returns structured recent safe OBS events", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 3,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "get_recent_obs_events",
+      arguments: { order: "oldest_first", categories: ["scenes"] }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        capacity: 3,
+        droppedEvents: 0,
+        returnedEvents: 1,
+        order: "oldest_first",
+        events: [{
+          sequence: 1,
+          eventType: "CurrentProgramSceneChanged",
+          category: "scenes",
+          eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+        }]
+      }
+    })
+  })
+
+  it("rejects invalid recent event limits before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({ name: "get_recent_obs_events", arguments: { limit: 0 } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams
+          }
+        }
+      })
+  })
+
+  it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(obsClient(async (requestType) => {
+      requested.push(requestType)
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "get_scene_item_locked",
+      arguments: { sceneName: "Scene", sceneItemId: -1 }
+    })).resolves.toMatchObject({
+      isError: true,
+      content: [{ type: "text" }],
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    expect(requested).toEqual([])
+  })
+
+  it("rejects invalid scene item mutation values before OBS requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(obsClient(async (requestType) => {
+      requested.push(requestType)
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "set_scene_item_index",
+      arguments: { sceneName: "Scene", sceneItemId: 1, sceneItemIndex: -1 }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    await expect(client.callTool({
+      name: "set_scene_item_blend_mode",
+      arguments: { sceneName: "Scene", sceneItemId: 1, sceneItemBlendMode: "invalid" }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    expect(requested).toEqual([])
+  })
+
+  it("reports malformed scene item getter responses as internal errors", async () => {
+    const client = await connect(obsClient(async (requestType) => {
+      if (requestType === "GetSceneItemLocked") {
+        return { sceneItemLocked: "not-a-boolean" }
+      }
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "get_scene_item_locked",
+      arguments: { sceneName: "Scene", sceneItemId: 1 }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InternalError
+        }
+      }
+    })
   })
 
   it("rejects extra arguments for no-arg status tools", async () => {

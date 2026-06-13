@@ -13,6 +13,9 @@ export interface FakeObsSceneItem {
   readonly sourceType?: string
   readonly inputKind?: string | null
   readonly isGroup?: boolean | null
+  readonly sceneItemEnabled?: boolean
+  readonly sceneItemLocked?: boolean
+  readonly sceneItemBlendMode?: string
 }
 
 export interface FakeObsInput {
@@ -132,6 +135,15 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetGroupSceneItemList",
   "GetSceneItemId",
   "GetSceneItemSource",
+  "GetSceneItemEnabled",
+  "SetSceneItemEnabled",
+  "GetSceneItemLocked",
+  "SetSceneItemLocked",
+  "GetSceneItemIndex",
+  "GetSceneItemBlendMode",
+  "SetSceneItemIndex",
+  "SetSceneItemBlendMode",
+  "GetSourceActive",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -181,7 +193,13 @@ export const sceneItemsFor = (
   group: boolean
 ): ReadonlyArray<FakeObsSceneItem> => {
   if (group || requestData.sceneName === "Group" || requestData.sceneUuid === "scene-group") {
-    return [{ sceneItemId: 3, sceneItemIndex: 0, sourceName: "Nested", sourceUuid: "source-nested" }]
+    return [{
+      sceneItemId: 3,
+      sceneItemIndex: 0,
+      sourceName: "Nested",
+      sourceUuid: "source-nested",
+      sceneItemBlendMode: "OBS_BLEND_NORMAL"
+    }]
   }
   return [
     {
@@ -191,7 +209,10 @@ export const sceneItemsFor = (
       sourceUuid: "source-camera",
       sourceType: "OBS_SOURCE_TYPE_INPUT",
       inputKind: "dshow_input",
-      isGroup: null
+      isGroup: null,
+      sceneItemEnabled: true,
+      sceneItemLocked: false,
+      sceneItemBlendMode: "OBS_BLEND_NORMAL"
     },
     {
       sceneItemId: 9,
@@ -200,7 +221,10 @@ export const sceneItemsFor = (
       sourceUuid: "source-lower-third",
       sourceType: "OBS_SOURCE_TYPE_SCENE",
       inputKind: null,
-      isGroup: true
+      isGroup: true,
+      sceneItemEnabled: false,
+      sceneItemLocked: true,
+      sceneItemBlendMode: "OBS_BLEND_MULTIPLY"
     }
   ]
 }

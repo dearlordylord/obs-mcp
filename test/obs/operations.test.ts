@@ -74,6 +74,7 @@ const fakeClient = (handler: (requestType: ObsRequestType) => Promise<unknown>):
   availableRequests: [],
   request: async (descriptor) =>
     Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType)),
+  getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
   close: async () => undefined
 })
 

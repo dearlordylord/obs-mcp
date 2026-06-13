@@ -1,15 +1,29 @@
 import { Schema } from "effect"
 
 import {
+  GetSceneItemBlendModeInput,
+  GetSceneItemBlendModeOutput,
+  GetSceneItemEnabledInput,
+  GetSceneItemEnabledOutput,
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
+  GetSceneItemIndexInput,
+  GetSceneItemIndexOutput,
+  GetSceneItemLockedInput,
+  GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
+  GetSourceActiveInput,
+  GetSourceActiveOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
   ListSceneItemsInput,
   ListSceneItemsOutput,
-  ListScenesOutput
+  ListScenesOutput,
+  SetSceneItemBlendModeInput,
+  SetSceneItemEnabledInput,
+  SetSceneItemIndexInput,
+  SetSceneItemLockedInput
 } from "../../domain/schemas/scenes.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
@@ -67,3 +81,57 @@ export const GetSceneItemSource = {
   requestDataSchema: GetSceneItemSourceInput,
   responseSchema: GetSceneItemSourceOutput
 } satisfies ObsRequestDescriptor<GetSceneItemSourceOutput>
+
+export const GetSceneItemEnabled = {
+  requestType: "GetSceneItemEnabled",
+  requestDataSchema: GetSceneItemEnabledInput,
+  responseSchema: GetSceneItemEnabledOutput
+} satisfies ObsRequestDescriptor<GetSceneItemEnabledOutput>
+
+export const SetSceneItemEnabled = {
+  requestType: "SetSceneItemEnabled",
+  requestDataSchema: SetSceneItemEnabledInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSceneItemLocked = {
+  requestType: "GetSceneItemLocked",
+  requestDataSchema: GetSceneItemLockedInput,
+  responseSchema: GetSceneItemLockedOutput
+} satisfies ObsRequestDescriptor<GetSceneItemLockedOutput>
+
+export const SetSceneItemLocked = {
+  requestType: "SetSceneItemLocked",
+  requestDataSchema: SetSceneItemLockedInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSceneItemIndex = {
+  requestType: "GetSceneItemIndex",
+  requestDataSchema: GetSceneItemIndexInput,
+  responseSchema: GetSceneItemIndexOutput
+} satisfies ObsRequestDescriptor<GetSceneItemIndexOutput>
+
+export const GetSceneItemBlendMode = {
+  requestType: "GetSceneItemBlendMode",
+  requestDataSchema: GetSceneItemBlendModeInput,
+  responseSchema: GetSceneItemBlendModeOutput
+} satisfies ObsRequestDescriptor<GetSceneItemBlendModeOutput>
+
+export const SetSceneItemIndex = {
+  requestType: "SetSceneItemIndex",
+  requestDataSchema: SetSceneItemIndexInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const SetSceneItemBlendMode = {
+  requestType: "SetSceneItemBlendMode",
+  requestDataSchema: SetSceneItemBlendModeInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSourceActive = {
+  requestType: "GetSourceActive",
+  requestDataSchema: GetSourceActiveInput,
+  responseSchema: GetSourceActiveOutput
+} satisfies ObsRequestDescriptor<GetSourceActiveOutput>

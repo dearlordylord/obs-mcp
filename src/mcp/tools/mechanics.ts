@@ -1,4 +1,5 @@
-import { JSONSchema, Schema } from "effect"
+import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js"
+import { JSONSchema, ParseResult, Schema } from "effect"
 
 import type { ObsConfig } from "../../config/config.js"
 import type { ObsClient } from "../../obs/client.js"
@@ -10,7 +11,7 @@ export interface ToolContext {
 }
 
 export type RuntimeSchema = Schema.Schema.AnyNoContext
-export type ToolCategory = "general" | "inputs" | "outputs" | "record" | "scenes" | "stream"
+export type ToolCategory = "events" | "general" | "inputs" | "outputs" | "record" | "scenes" | "stream"
 type ToolHandler<Input> = {
   bivarianceHack(input: Input, context: ToolContext): Promise<unknown>
 }["bivarianceHack"]
@@ -69,8 +70,18 @@ export const executeTool = async (
   input: unknown,
   context: ToolContext
 ): Promise<unknown> => {
+  let decodedInput: unknown
   try {
-    const decodedInput = Schema.decodeUnknownSync(tool.inputSchema, { onExcessProperty: "error" })(input ?? {})
+    decodedInput = Schema.decodeUnknownSync(tool.inputSchema, { onExcessProperty: "error" })(input ?? {})
+  } catch (error) {
+    if (ParseResult.isParseError(error)) {
+      throw new McpError(ErrorCode.InvalidParams, error.message)
+    }
+    /* v8 ignore next -- defensive: Effect schema input decoding throws ParseError. */
+    throw toMcpError(error)
+  }
+
+  try {
     const result = await tool.handler(decodedInput, context)
     return Schema.decodeUnknownSync(tool.outputSchema)(result)
   } catch (error) {

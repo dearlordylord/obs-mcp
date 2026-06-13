@@ -42,7 +42,9 @@ interface FakeObsServerOptions {
   readonly scenes?: ReadonlyArray<FakeObsScene>
   readonly inputs?: ReadonlyArray<FakeObsInput>
   readonly rpcVersion?: number
+  readonly eventAfterIdentify?: Record<string, unknown>
   readonly eventBeforeResponse?: Record<string, unknown>
+  readonly eventBurstBeforeResponse?: ReadonlyArray<Record<string, unknown>>
   readonly eventBeforeResponseFor?: string
   readonly envelopeBeforeResponse?: Record<string, unknown>
   readonly envelopeBeforeResponseFor?: string
@@ -149,6 +151,9 @@ export class FakeObsServer {
           return
         }
         socket.send(JSON.stringify({ op: options.identifiedOp ?? OP_IDENTIFIED, d: { negotiatedRpcVersion: 1 } }))
+        if (options.eventAfterIdentify !== undefined) {
+          socket.send(JSON.stringify({ op: OP_EVENT, d: options.eventAfterIdentify }))
+        }
         if (options.sendBinaryAfterIdentify === true) {
           socket.send(BINARY_FRAME)
         }
@@ -213,6 +218,12 @@ export class FakeObsServer {
         && (options.eventBeforeResponseFor === undefined || options.eventBeforeResponseFor === requestType)
       ) {
         socket.send(JSON.stringify({ op: OP_EVENT, d: options.eventBeforeResponse }))
+      }
+      if (
+        options.eventBurstBeforeResponse !== undefined
+        && (options.eventBeforeResponseFor === undefined || options.eventBeforeResponseFor === requestType)
+      ) {
+        for (const event of options.eventBurstBeforeResponse) socket.send(JSON.stringify({ op: OP_EVENT, d: event }))
       }
       if (
         options.envelopeBeforeResponse !== undefined
@@ -293,6 +304,54 @@ export class FakeObsServer {
       const sceneItem = sceneItemsFor(envelope.d.requestData, false)
         .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
       send({ sourceName: sceneItem?.sourceName ?? "Camera", sourceUuid: sceneItem?.sourceUuid ?? "source-camera" })
+      return
+    }
+    if (requestType === "GetSceneItemEnabled") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemEnabled: sceneItem?.sceneItemEnabled ?? true })
+      return
+    }
+    if (requestType === "SetSceneItemEnabled") {
+      send()
+      return
+    }
+    if (requestType === "GetSceneItemLocked") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemLocked: sceneItem?.sceneItemLocked ?? false })
+      return
+    }
+    if (requestType === "SetSceneItemLocked") {
+      send()
+      return
+    }
+    if (requestType === "GetSceneItemIndex") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemIndex: sceneItem?.sceneItemIndex ?? 0 })
+      return
+    }
+    if (requestType === "GetSceneItemBlendMode") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemBlendMode: sceneItem?.sceneItemBlendMode ?? "OBS_BLEND_NORMAL" })
+      return
+    }
+    if (requestType === "SetSceneItemIndex" || requestType === "SetSceneItemBlendMode") {
+      send()
+      return
+    }
+    if (requestType === "GetSourceActive") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) =>
+          item.sourceName === envelope.d.requestData.sourceName
+          || item.sourceUuid === envelope.d.requestData.sourceUuid
+        )
+      send({
+        videoActive: sceneItem?.sceneItemEnabled ?? false,
+        videoShowing: sceneItem !== undefined
+      })
       return
     }
     if (requestType === "GetInputList") {

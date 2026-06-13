@@ -123,24 +123,28 @@ export const GetSceneItemIdOutput = Schema.Struct({
 export type GetSceneItemIdOutput = typeof GetSceneItemIdOutput.Type
 export const GetSceneItemIdOutputJsonSchema = JSONSchema.make(GetSceneItemIdOutput)
 
-const SceneItemSourceLookupFields = {
+const SceneItemLocatorFields = {
   sceneItemId: SceneItemId
 } as const
 
-export const GetSceneItemSourceInput = Schema.Union(
+export const SceneItemLocatorInput = Schema.Union(
   Schema.Struct({
     sceneName: Schema.NonEmptyString,
     sceneUuid: ForbiddenLocatorField,
     canvasUuid: Schema.optional(Schema.NonEmptyString),
-    ...SceneItemSourceLookupFields
+    ...SceneItemLocatorFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
     sceneUuid: Schema.NonEmptyString,
     canvasUuid: ForbiddenLocatorField,
-    ...SceneItemSourceLookupFields
+    ...SceneItemLocatorFields
   })
 )
+export type SceneItemLocatorInput = typeof SceneItemLocatorInput.Type
+export const SceneItemLocatorInputJsonSchema = JSONSchema.make(SceneItemLocatorInput)
+
+export const GetSceneItemSourceInput = SceneItemLocatorInput
 export type GetSceneItemSourceInput = typeof GetSceneItemSourceInput.Type
 export const GetSceneItemSourceInputJsonSchema = JSONSchema.make(GetSceneItemSourceInput)
 
@@ -150,3 +154,189 @@ export const GetSceneItemSourceOutput = Schema.Struct({
 })
 export type GetSceneItemSourceOutput = typeof GetSceneItemSourceOutput.Type
 export const GetSceneItemSourceOutputJsonSchema = JSONSchema.make(GetSceneItemSourceOutput)
+
+export const SourceNameLocator = Schema.Struct({
+  sourceName: Schema.NonEmptyString,
+  sourceUuid: ForbiddenLocatorField,
+  canvasUuid: Schema.optional(Schema.NonEmptyString)
+})
+export type SourceNameLocator = typeof SourceNameLocator.Type
+
+export const SourceUuidLocator = Schema.Struct({
+  sourceName: ForbiddenLocatorField,
+  sourceUuid: Schema.NonEmptyString,
+  canvasUuid: ForbiddenLocatorField
+})
+export type SourceUuidLocator = typeof SourceUuidLocator.Type
+
+export const SourceLocatorInput = Schema.Union(SourceNameLocator, SourceUuidLocator)
+export type SourceLocatorInput = typeof SourceLocatorInput.Type
+export const SourceLocatorInputJsonSchema = JSONSchema.make(SourceLocatorInput)
+
+export const GetSourceActiveInput = SourceLocatorInput
+export type GetSourceActiveInput = typeof GetSourceActiveInput.Type
+export const GetSourceActiveInputJsonSchema = JSONSchema.make(GetSourceActiveInput)
+
+export const GetSourceActiveOutput = Schema.Struct({
+  videoActive: Schema.Boolean,
+  videoShowing: Schema.Boolean,
+  sourceName: Schema.optional(Schema.String),
+  sourceUuid: Schema.optional(Schema.String)
+})
+export type GetSourceActiveOutput = typeof GetSourceActiveOutput.Type
+export const GetSourceActiveOutputJsonSchema = JSONSchema.make(GetSourceActiveOutput)
+
+export const GetSceneItemEnabledInput = SceneItemLocatorInput
+export type GetSceneItemEnabledInput = typeof GetSceneItemEnabledInput.Type
+export const GetSceneItemEnabledInputJsonSchema = JSONSchema.make(GetSceneItemEnabledInput)
+
+export const GetSceneItemEnabledOutput = Schema.Struct({
+  sceneItemEnabled: Schema.Boolean
+})
+export type GetSceneItemEnabledOutput = typeof GetSceneItemEnabledOutput.Type
+export const GetSceneItemEnabledOutputJsonSchema = JSONSchema.make(GetSceneItemEnabledOutput)
+
+export const SetSceneItemEnabledInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SceneItemLocatorFields,
+    sceneItemEnabled: Schema.Boolean
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SceneItemLocatorFields,
+    sceneItemEnabled: Schema.Boolean
+  })
+)
+export type SetSceneItemEnabledInput = typeof SetSceneItemEnabledInput.Type
+export const SetSceneItemEnabledInputJsonSchema = JSONSchema.make(SetSceneItemEnabledInput)
+
+export const SetSceneItemEnabledOutput = Schema.Struct({
+  sceneItemEnabled: Schema.Boolean,
+  updated: Schema.Literal(true)
+})
+export type SetSceneItemEnabledOutput = typeof SetSceneItemEnabledOutput.Type
+export const SetSceneItemEnabledOutputJsonSchema = JSONSchema.make(SetSceneItemEnabledOutput)
+
+export const GetSceneItemLockedInput = SceneItemLocatorInput
+export type GetSceneItemLockedInput = typeof GetSceneItemLockedInput.Type
+export const GetSceneItemLockedInputJsonSchema = JSONSchema.make(GetSceneItemLockedInput)
+
+export const GetSceneItemLockedOutput = Schema.Struct({
+  sceneItemLocked: Schema.Boolean
+})
+export type GetSceneItemLockedOutput = typeof GetSceneItemLockedOutput.Type
+export const GetSceneItemLockedOutputJsonSchema = JSONSchema.make(GetSceneItemLockedOutput)
+
+export const SetSceneItemLockedInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SceneItemLocatorFields,
+    sceneItemLocked: Schema.Boolean
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SceneItemLocatorFields,
+    sceneItemLocked: Schema.Boolean
+  })
+)
+export type SetSceneItemLockedInput = typeof SetSceneItemLockedInput.Type
+export const SetSceneItemLockedInputJsonSchema = JSONSchema.make(SetSceneItemLockedInput)
+
+export const SetSceneItemLockedOutput = Schema.Struct({
+  sceneItemLocked: Schema.Boolean,
+  updated: Schema.Literal(true)
+})
+export type SetSceneItemLockedOutput = typeof SetSceneItemLockedOutput.Type
+export const SetSceneItemLockedOutputJsonSchema = JSONSchema.make(SetSceneItemLockedOutput)
+
+export const GetSceneItemIndexInput = SceneItemLocatorInput
+export type GetSceneItemIndexInput = typeof GetSceneItemIndexInput.Type
+export const GetSceneItemIndexInputJsonSchema = JSONSchema.make(GetSceneItemIndexInput)
+
+export const GetSceneItemIndexOutput = Schema.Struct({
+  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+})
+export type GetSceneItemIndexOutput = typeof GetSceneItemIndexOutput.Type
+export const GetSceneItemIndexOutputJsonSchema = JSONSchema.make(GetSceneItemIndexOutput)
+
+export const SceneItemBlendMode = Schema.Literal(
+  "OBS_BLEND_NORMAL",
+  "OBS_BLEND_ADDITIVE",
+  "OBS_BLEND_SUBTRACT",
+  "OBS_BLEND_SCREEN",
+  "OBS_BLEND_MULTIPLY",
+  "OBS_BLEND_LIGHTEN",
+  "OBS_BLEND_DARKEN"
+)
+export type SceneItemBlendMode = typeof SceneItemBlendMode.Type
+
+export const GetSceneItemBlendModeInput = SceneItemLocatorInput
+export type GetSceneItemBlendModeInput = typeof GetSceneItemBlendModeInput.Type
+export const GetSceneItemBlendModeInputJsonSchema = JSONSchema.make(GetSceneItemBlendModeInput)
+
+export const GetSceneItemBlendModeOutput = Schema.Struct({
+  sceneItemBlendMode: SceneItemBlendMode
+})
+export type GetSceneItemBlendModeOutput = typeof GetSceneItemBlendModeOutput.Type
+export const GetSceneItemBlendModeOutputJsonSchema = JSONSchema.make(GetSceneItemBlendModeOutput)
+
+export const SetSceneItemIndexInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SceneItemLocatorFields,
+    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SceneItemLocatorFields,
+    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  })
+)
+export type SetSceneItemIndexInput = typeof SetSceneItemIndexInput.Type
+export const SetSceneItemIndexInputJsonSchema = JSONSchema.make(SetSceneItemIndexInput)
+
+export const SetSceneItemIndexOutput = Schema.Struct({
+  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  updated: Schema.Literal(true)
+})
+export type SetSceneItemIndexOutput = typeof SetSceneItemIndexOutput.Type
+export const SetSceneItemIndexOutputJsonSchema = JSONSchema.make(SetSceneItemIndexOutput)
+
+export const SetSceneItemBlendModeInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SceneItemLocatorFields,
+    sceneItemBlendMode: SceneItemBlendMode
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SceneItemLocatorFields,
+    sceneItemBlendMode: SceneItemBlendMode
+  })
+)
+export type SetSceneItemBlendModeInput = typeof SetSceneItemBlendModeInput.Type
+export const SetSceneItemBlendModeInputJsonSchema = JSONSchema.make(SetSceneItemBlendModeInput)
+
+export const SetSceneItemBlendModeOutput = Schema.Struct({
+  sceneItemBlendMode: SceneItemBlendMode,
+  updated: Schema.Literal(true)
+})
+export type SetSceneItemBlendModeOutput = typeof SetSceneItemBlendModeOutput.Type
+export const SetSceneItemBlendModeOutputJsonSchema = JSONSchema.make(SetSceneItemBlendModeOutput)

@@ -28,7 +28,9 @@ import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
+import type { ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
+import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
@@ -87,6 +89,12 @@ const inputAvailableRequests = [
   "OffsetMediaInputCursor",
   "TriggerMediaInputAction"
 ] satisfies ReadonlyArray<ObsRequestType>
+
+const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
+  fakeObsClient(handler, allAvailableRequests)
+
+const clientWithData = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
+  fakeObsClient(handler, allAvailableRequests)
 
 const toolByName = (name: string): ToolDefinition => {
   const tool = allTools.find((entry) => entry.name === name)
@@ -157,6 +165,14 @@ const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): Ar
 const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
   tools.map(([requestName]) => requestName)
 
+const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsClient => ({
+  negotiatedRpcVersion: 1,
+  availableRequests: allAvailableRequests,
+  request: async (descriptor) => Schema.decodeUnknownSync(descriptor.responseSchema)({}),
+  getBufferedEvents: () => events,
+  close: async () => undefined
+})
+
 describe("MCP tool registry", () => {
   it("exposes exactly the enabled tools by default", () => {
     expect(getEnabledTools(config.enabledToolsets).map((tool) => tool.name)).toEqual([
@@ -170,6 +186,15 @@ describe("MCP tool registry", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked",
+      "get_scene_item_index",
+      "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode",
+      "get_source_active",
       ...inputToolNames,
       "get_record_status",
       "start_record",
@@ -202,6 +227,14 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("exposes recent safe OBS events only when the events toolset is enabled", () => {
+    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_recent_obs_events"
+    ])
+    expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name))
+      .not.toContain("get_recent_obs_events")
+  })
+
   it("filters disabled categories", () => {
     expect(getEnabledTools([])).toEqual([])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).not.toContain(
@@ -214,6 +247,9 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_version",
       "get_obs_stats"
+    ])
+    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_recent_obs_events"
     ])
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
@@ -233,7 +269,16 @@ describe("MCP tool registry", () => {
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
-      "get_scene_item_source"
+      "get_scene_item_source",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked",
+      "get_scene_item_index",
+      "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode",
+      "get_source_active"
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual(inputToolNames)
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
@@ -854,6 +899,213 @@ describe("MCP tool registry", () => {
       .rejects.toBeInstanceOf(McpError)
   })
 
+  it("rejects invalid recent event limits through schema validation", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 0 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 10, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+
+    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 101 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 10, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("returns recent safe OBS event summaries with ordering and category filters", async () => {
+    const obsEvents = eventClient({
+      capacity: 6,
+      droppedEvents: 1,
+      events: [
+        {
+          sequence: 1,
+          eventType: "CurrentProgramSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+        },
+        {
+          sequence: 2,
+          eventType: "InputMuteStateChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputMuted: true }
+        },
+        {
+          sequence: 3,
+          eventType: "RecordStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: {
+            outputActive: false,
+            outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
+            outputPath: "/tmp/recording.mkv"
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+          }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 3 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: obsEvents
+    })).resolves.toEqual({
+      capacity: 6,
+      droppedEvents: 1,
+      returnedEvents: 3,
+      order: "newest_first",
+      events: [
+        {
+          sequence: 4,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          category: "media_inputs",
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+          }
+        },
+        {
+          sequence: 3,
+          eventType: "RecordStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          category: "outputs",
+          eventData: {
+            outputActive: false,
+            outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
+            outputPath: "/tmp/recording.mkv"
+          }
+        },
+        {
+          sequence: 2,
+          eventType: "InputMuteStateChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputMuted: true }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["scenes"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: obsEvents
+    })).resolves.toEqual({
+      capacity: 6,
+      droppedEvents: 1,
+      returnedEvents: 1,
+      order: "oldest_first",
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        category: "scenes",
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    })
+  })
+
+  it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 7,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+          },
+          {
+            sequence: 2,
+            eventType: "VendorEvent",
+            eventIntent: EventSubscription.Vendors,
+            eventData: { vendorName: "plugin", payload: { secret: true } }
+          },
+          {
+            sequence: 3,
+            eventType: "CustomEvent",
+            eventIntent: EventSubscription.General,
+            eventData: { arbitrary: true }
+          },
+          {
+            sequence: 4,
+            eventType: "InputVolumeMeters",
+            eventIntent: EventSubscription.InputVolumeMeters,
+            eventData: { inputs: [] }
+          },
+          {
+            sequence: 5,
+            eventType: "InputActiveStateChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Camera", videoActive: true }
+          },
+          {
+            sequence: 6,
+            eventType: "InputShowStateChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Camera", videoShowing: true }
+          },
+          {
+            sequence: 7,
+            eventType: "SceneItemTransformChanged",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: { sceneName: "Scene", sceneItemId: 1 }
+          }
+        ]
+      } as ReturnType<ObsClient["getBufferedEvents"]>)
+    })).resolves.toEqual({
+      capacity: 7,
+      droppedEvents: 0,
+      returnedEvents: 1,
+      order: "oldest_first",
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        category: "scenes",
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    })
+  })
+
+  it("summarizes buffered events with unknown categories", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { categories: ["unknown"] }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 1,
+        droppedEvents: 0,
+        events: [{
+          sequence: 1,
+          eventType: "MysteryEvent",
+          eventIntent: EventSubscription.None,
+          eventData: undefined
+        }]
+      })
+    })).resolves.toEqual({
+      capacity: 1,
+      droppedEvents: 0,
+      returnedEvents: 1,
+      order: "newest_first",
+      events: [{
+        sequence: 1,
+        eventType: "MysteryEvent",
+        eventIntent: EventSubscription.None,
+        category: "unknown"
+      }]
+    })
+  })
+
   it("rejects invalid scene-item locator params through schema validation", async () => {
     await expect(
       executeTool(toolByName("list_scene_items"), { sceneName: "Scene", sceneUuid: "scene-uuid" }, {
@@ -873,6 +1125,61 @@ describe("MCP tool registry", () => {
       executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Camera", searchOffset: -2 }, {
         config,
         client: fakeObsClient(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("get_scene_item_enabled"), { sceneName: "Scene", sceneItemId: -1 }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("set_scene_item_locked"), {
+        sceneUuid: "scene-uuid",
+        canvasUuid: "canvas-uuid",
+        sceneItemId: 1,
+        sceneItemLocked: true
+      }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("set_scene_item_index"), {
+        sceneName: "Scene",
+        sceneItemId: 1,
+        sceneItemIndex: -1
+      }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("set_scene_item_blend_mode"), {
+        sceneName: "Scene",
+        sceneItemId: 1,
+        sceneItemBlendMode: "invalid"
+      }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("get_source_active"), { sourceName: "Camera", sourceUuid: "source-camera" }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("get_source_active"), { sourceUuid: "source-camera", canvasUuid: "canvas-main" }, {
+        config,
+        client: client(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
   })
@@ -989,6 +1296,162 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ sourceName: "Camera", sourceUuid: "source-camera" })
   })
 
+  it("gets and sets scene item enabled and locked state", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("get_scene_item_enabled"), {
+      sceneName: "Scene",
+      sceneItemId: 42
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sceneItemEnabled: false }
+      })
+    })).resolves.toEqual({ sceneItemEnabled: false })
+
+    await expect(executeTool(toolByName("set_scene_item_enabled"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemEnabled: true
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemEnabled: true, updated: true })
+
+    await expect(executeTool(toolByName("get_scene_item_locked"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sceneItemLocked: true }
+      })
+    })).resolves.toEqual({ sceneItemLocked: true })
+
+    await expect(executeTool(toolByName("set_scene_item_locked"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42,
+      sceneItemLocked: false
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemLocked: false, updated: true })
+
+    expect(requests).toEqual([
+      { sceneName: "Scene", sceneItemId: 42 },
+      { sceneName: "Scene", sceneItemId: 42, sceneItemEnabled: true },
+      { sceneUuid: "scene-uuid", sceneItemId: 42 },
+      { sceneUuid: "scene-uuid", sceneItemId: 42, sceneItemLocked: false }
+    ])
+  })
+
+  it("gets scene item index and blend mode", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("get_scene_item_index"), {
+      sceneName: "Scene",
+      sceneItemId: 42
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sceneItemIndex: 2 }
+      })
+    })).resolves.toEqual({ sceneItemIndex: 2 })
+
+    await expect(executeTool(toolByName("get_scene_item_blend_mode"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sceneItemBlendMode: "OBS_BLEND_SCREEN" }
+      })
+    })).resolves.toEqual({ sceneItemBlendMode: "OBS_BLEND_SCREEN" })
+
+    expect(requests).toEqual([
+      { sceneName: "Scene", sceneItemId: 42 },
+      { sceneUuid: "scene-uuid", sceneItemId: 42 }
+    ])
+  })
+
+  it("sets scene item index and blend mode", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("set_scene_item_index"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemIndex: 3
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemIndex: 3, updated: true })
+
+    await expect(executeTool(toolByName("set_scene_item_blend_mode"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42,
+      sceneItemBlendMode: "OBS_BLEND_DARKEN"
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemBlendMode: "OBS_BLEND_DARKEN", updated: true })
+
+    expect(requests).toEqual([
+      { sceneName: "Scene", sceneItemId: 42, sceneItemIndex: 3 },
+      { sceneUuid: "scene-uuid", sceneItemId: 42, sceneItemBlendMode: "OBS_BLEND_DARKEN" }
+    ])
+  })
+
+  it("gets source active state and echoes supplied source identity", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("get_source_active"), {
+      sourceName: "Camera",
+      canvasUuid: "canvas-main"
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { videoActive: true, videoShowing: true }
+      })
+    })).resolves.toEqual({
+      sourceName: "Camera",
+      videoActive: true,
+      videoShowing: true
+    })
+
+    await expect(executeTool(toolByName("get_source_active"), {
+      sourceUuid: "source-camera"
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sourceName: "Camera", videoActive: false, videoShowing: true }
+      })
+    })).resolves.toEqual({
+      sourceName: "Camera",
+      sourceUuid: "source-camera",
+      videoActive: false,
+      videoShowing: true
+    })
+
+    expect(requests).toEqual([
+      { sourceName: "Camera", canvasUuid: "canvas-main" },
+      { sourceUuid: "source-camera" }
+    ])
+  })
+
   it("maps OBS missing scene item errors to MCP errors", async () => {
     await expect(executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Missing" }, {
       config,
@@ -998,15 +1461,131 @@ describe("MCP tool registry", () => {
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
   })
 
+  it("maps scene item state OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("set_scene_item_enabled"), {
+      sceneName: "Scene",
+      sceneItemId: 404,
+      sceneItemEnabled: true
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("SetSceneItemEnabled", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
+  })
+
+  it("maps scene item index OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("get_scene_item_index"), {
+      sceneName: "Scene",
+      sceneItemId: 404
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("GetSceneItemIndex", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetSceneItemIndex",
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
+  })
+
+  it("maps scene item mutation OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("set_scene_item_index"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemIndex: 99
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("SetSceneItemIndex", 601, "Index out of range")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetSceneItemIndex",
+        obsStatusCode: 601,
+        comment: "Index out of range"
+      }
+    })
+
+    await expect(executeTool(toolByName("set_scene_item_blend_mode"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemBlendMode: "OBS_BLEND_LIGHTEN"
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("SetSceneItemBlendMode", 402, "Invalid blend mode")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetSceneItemBlendMode",
+        obsStatusCode: 402,
+        comment: "Invalid blend mode"
+      }
+    })
+  })
+
+  it("maps source active OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("get_source_active"), {
+      sourceName: "Missing"
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("GetSourceActive", 601, "Source not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetSourceActive",
+        obsStatusCode: 601,
+        comment: "Source not found"
+      }
+    })
+  })
+
   it("filters unavailable scene-item requests by negotiated OBS capabilities", () => {
     expect(
       getEnabledTools(["scenes"], [
         "GetVersion",
         "GetSceneList",
         "GetCurrentProgramScene",
-        "SetCurrentProgramScene"
+        "SetCurrentProgramScene",
+        "GetSceneItemEnabled",
+        "SetSceneItemEnabled",
+        "GetSceneItemLocked",
+        "SetSceneItemLocked",
+        "GetSceneItemIndex",
+        "GetSceneItemBlendMode",
+        "SetSceneItemIndex",
+        "SetSceneItemBlendMode",
+        "GetSourceActive"
       ]).map((tool) => tool.name)
-    ).toEqual(["list_scenes", "get_current_scene", "set_current_scene"])
+    ).toEqual([
+      "list_scenes",
+      "get_current_scene",
+      "set_current_scene",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked",
+      "get_scene_item_index",
+      "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode",
+      "get_source_active"
+    ])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

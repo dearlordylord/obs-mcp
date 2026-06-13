@@ -1,9 +1,19 @@
 import {
   CurrentSceneOutput,
+  GetSceneItemBlendModeInput,
+  GetSceneItemBlendModeOutput,
+  GetSceneItemEnabledInput,
+  GetSceneItemEnabledOutput,
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
+  GetSceneItemIndexInput,
+  GetSceneItemIndexOutput,
+  GetSceneItemLockedInput,
+  GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
+  GetSourceActiveInput,
+  GetSourceActiveOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
   ListSceneItemsInput,
@@ -11,26 +21,52 @@ import {
   ListScenesInput,
   ListScenesOutput,
   SetCurrentSceneInput,
-  SetCurrentSceneOutput
+  SetCurrentSceneOutput,
+  SetSceneItemBlendModeInput,
+  SetSceneItemBlendModeOutput,
+  SetSceneItemEnabledInput,
+  SetSceneItemEnabledOutput,
+  SetSceneItemIndexInput,
+  SetSceneItemIndexOutput,
+  SetSceneItemLockedInput,
+  SetSceneItemLockedOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getCurrentScene,
+  getSceneItemBlendMode,
+  getSceneItemEnabled,
   getSceneItemId,
+  getSceneItemIndex,
+  getSceneItemLocked,
   getSceneItemSource,
+  getSourceActive,
   listGroupSceneItems,
   listSceneItems,
   listScenes,
-  setCurrentScene
+  setCurrentScene,
+  setSceneItemBlendMode,
+  setSceneItemEnabled,
+  setSceneItemIndex,
+  setSceneItemLocked
 } from "../../obs/operations/scenes.js"
 import {
   GetCurrentProgramScene,
   GetGroupSceneItemList,
+  GetSceneItemBlendMode,
+  GetSceneItemEnabled,
   GetSceneItemId,
+  GetSceneItemIndex,
   GetSceneItemList,
+  GetSceneItemLocked,
   GetSceneItemSource,
   GetSceneList,
-  SetCurrentProgramScene
+  GetSourceActive,
+  SetCurrentProgramScene,
+  SetSceneItemBlendMode,
+  SetSceneItemEnabled,
+  SetSceneItemIndex,
+  SetSceneItemLocked
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -106,5 +142,95 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: GetSceneItemSourceInput,
     outputSchema: GetSceneItemSourceOutput,
     handler: async (input, context) => getSceneItemSource(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_enabled",
+    title: "Get OBS Scene Item Enabled",
+    description: "Return whether a scene item is enabled.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemEnabled.requestType],
+    inputSchema: GetSceneItemEnabledInput,
+    outputSchema: GetSceneItemEnabledOutput,
+    handler: async (input, context) => getSceneItemEnabled(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_enabled",
+    title: "Set OBS Scene Item Enabled",
+    description: "Set whether a scene item is enabled.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemEnabled.requestType],
+    inputSchema: SetSceneItemEnabledInput,
+    outputSchema: SetSceneItemEnabledOutput,
+    handler: async (input, context) => setSceneItemEnabled(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_locked",
+    title: "Get OBS Scene Item Locked",
+    description: "Return whether a scene item is locked.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemLocked.requestType],
+    inputSchema: GetSceneItemLockedInput,
+    outputSchema: GetSceneItemLockedOutput,
+    handler: async (input, context) => getSceneItemLocked(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_locked",
+    title: "Set OBS Scene Item Locked",
+    description: "Set whether a scene item is locked.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemLocked.requestType],
+    inputSchema: SetSceneItemLockedInput,
+    outputSchema: SetSceneItemLockedOutput,
+    handler: async (input, context) => setSceneItemLocked(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_index",
+    title: "Get OBS Scene Item Index",
+    description: "Return a scene item's index position in its scene.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemIndex.requestType],
+    inputSchema: GetSceneItemIndexInput,
+    outputSchema: GetSceneItemIndexOutput,
+    handler: async (input, context) => getSceneItemIndex(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_blend_mode",
+    title: "Get OBS Scene Item Blend Mode",
+    description: "Return a scene item's OBS blend mode.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemBlendMode.requestType],
+    inputSchema: GetSceneItemBlendModeInput,
+    outputSchema: GetSceneItemBlendModeOutput,
+    handler: async (input, context) => getSceneItemBlendMode(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_index",
+    title: "Set OBS Scene Item Index",
+    description: "Set a scene item's index position in its scene.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemIndex.requestType],
+    inputSchema: SetSceneItemIndexInput,
+    outputSchema: SetSceneItemIndexOutput,
+    handler: async (input, context) => setSceneItemIndex(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_blend_mode",
+    title: "Set OBS Scene Item Blend Mode",
+    description: "Set a scene item's OBS blend mode.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemBlendMode.requestType],
+    inputSchema: SetSceneItemBlendModeInput,
+    outputSchema: SetSceneItemBlendModeOutput,
+    handler: async (input, context) => setSceneItemBlendMode(context.client, input)
+  }),
+  defineTool({
+    name: "get_source_active",
+    title: "Get OBS Source Active State",
+    description: "Return whether a source is active in program and showing in OBS UI.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSourceActive.requestType],
+    inputSchema: GetSourceActiveInput,
+    outputSchema: GetSourceActiveOutput,
+    handler: async (input, context) => getSourceActive(context.client, input)
   })
 ]
