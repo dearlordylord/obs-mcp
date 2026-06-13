@@ -1,7 +1,10 @@
+import { readFileSync } from "node:fs"
+
 import { describe, expect, it } from "vitest"
 
 import { decodeTypedObsEventData } from "../../src/domain/schemas/events.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
+import { createObsEventBuffer } from "../../src/obs/events.js"
 import {
   decodeEventEnvelope,
   decodeJsonTextEnvelope,
@@ -11,6 +14,123 @@ import {
   SAFE_EVENT_SUBSCRIPTION_MASK,
   shouldSurfaceSafeEvent
 } from "../../src/obs/protocol.js"
+
+type EventLedgerStatus = "typed-safe" | "high-volume" | "raw-only" | "deferred"
+
+interface MatrixEventRow {
+  readonly name: string
+  readonly official: {
+    readonly eventSubscription: keyof typeof EventSubscription
+  }
+}
+
+const matrix = JSON.parse(
+  readFileSync(new URL("../../plans/obs-websocket-surface-matrix.json", import.meta.url), "utf8")
+) as { readonly events: ReadonlyArray<MatrixEventRow> }
+
+const EVENT_LEDGER = {
+  CanvasCreated: "deferred",
+  CanvasRemoved: "deferred",
+  CanvasNameChanged: "deferred",
+  CurrentSceneCollectionChanging: "deferred",
+  CurrentSceneCollectionChanged: "deferred",
+  SceneCollectionListChanged: "deferred",
+  CurrentProfileChanging: "deferred",
+  CurrentProfileChanged: "deferred",
+  ProfileListChanged: "deferred",
+  SourceFilterListReindexed: "deferred",
+  SourceFilterCreated: "deferred",
+  SourceFilterRemoved: "deferred",
+  SourceFilterNameChanged: "deferred",
+  SourceFilterSettingsChanged: "deferred",
+  SourceFilterEnableStateChanged: "deferred",
+  ExitStarted: "deferred",
+  InputCreated: "deferred",
+  InputRemoved: "deferred",
+  InputNameChanged: "deferred",
+  InputSettingsChanged: "deferred",
+  InputActiveStateChanged: "high-volume",
+  InputShowStateChanged: "high-volume",
+  InputMuteStateChanged: "typed-safe",
+  InputVolumeChanged: "typed-safe",
+  InputAudioBalanceChanged: "typed-safe",
+  InputAudioSyncOffsetChanged: "typed-safe",
+  InputAudioTracksChanged: "typed-safe",
+  InputAudioMonitorTypeChanged: "typed-safe",
+  InputVolumeMeters: "high-volume",
+  MediaInputPlaybackStarted: "typed-safe",
+  MediaInputPlaybackEnded: "typed-safe",
+  MediaInputActionTriggered: "typed-safe",
+  StreamStateChanged: "typed-safe",
+  RecordStateChanged: "typed-safe",
+  RecordFileChanged: "deferred",
+  ReplayBufferStateChanged: "typed-safe",
+  VirtualcamStateChanged: "deferred",
+  ReplayBufferSaved: "typed-safe",
+  SceneItemCreated: "deferred",
+  SceneItemRemoved: "deferred",
+  SceneItemListReindexed: "deferred",
+  SceneItemEnableStateChanged: "deferred",
+  SceneItemLockStateChanged: "deferred",
+  SceneItemSelected: "deferred",
+  SceneItemTransformChanged: "high-volume",
+  SceneCreated: "deferred",
+  SceneRemoved: "deferred",
+  SceneNameChanged: "deferred",
+  CurrentProgramSceneChanged: "typed-safe",
+  CurrentPreviewSceneChanged: "deferred",
+  SceneListChanged: "typed-safe",
+  CurrentSceneTransitionChanged: "deferred",
+  CurrentSceneTransitionDurationChanged: "deferred",
+  SceneTransitionStarted: "deferred",
+  SceneTransitionEnded: "deferred",
+  SceneTransitionVideoEnded: "deferred",
+  StudioModeStateChanged: "deferred",
+  ScreenshotSaved: "deferred",
+  VendorEvent: "raw-only",
+  CustomEvent: "raw-only"
+} satisfies Record<string, EventLedgerStatus>
+const EVENT_LEDGER_BY_NAME: Record<string, EventLedgerStatus> = EVENT_LEDGER
+
+const TYPED_EVENT_FIXTURES = {
+  CurrentProgramSceneChanged: { sceneName: "Program", sceneUuid: "scene-program" },
+  SceneListChanged: { scenes: [{ sceneName: "Program", sceneUuid: "scene-program", sceneIndex: 0 }] },
+  InputMuteStateChanged: { inputName: "Mic", inputUuid: "input-mic", inputMuted: true },
+  InputVolumeChanged: { inputName: "Mic", inputUuid: "input-mic", inputVolumeMul: 0.5, inputVolumeDb: -6 },
+  InputAudioBalanceChanged: { inputName: "Mic", inputUuid: "input-mic", inputAudioBalance: 0.25 },
+  InputAudioSyncOffsetChanged: { inputName: "Mic", inputUuid: "input-mic", inputAudioSyncOffset: 120 },
+  InputAudioTracksChanged: {
+    inputName: "Mic",
+    inputUuid: "input-mic",
+    inputAudioTracks: { "1": true, "2": false, "3": false, "4": false, "5": false, "6": false }
+  },
+  InputAudioMonitorTypeChanged: {
+    inputName: "Mic",
+    inputUuid: "input-mic",
+    monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+  },
+  StreamStateChanged: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" },
+  RecordStateChanged: { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED", outputPath: null },
+  ReplayBufferStateChanged: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" },
+  ReplayBufferSaved: { savedReplayPath: "/tmp/replay.mkv" },
+  MediaInputPlaybackStarted: { inputName: "Media", inputUuid: "input-media" },
+  MediaInputPlaybackEnded: { inputName: "Media", inputUuid: "input-media" },
+  MediaInputActionTriggered: {
+    inputName: "Media",
+    inputUuid: "input-media",
+    mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+  }
+} as const
+
+const envelopeFor = (event: MatrixEventRow, eventData: Record<string, unknown> = {}) =>
+  decodeEventEnvelope(JSON.stringify({
+    op: 5,
+    d: {
+      eventType: event.name,
+      eventIntent: EventSubscription[event.official.eventSubscription],
+      eventData
+    }
+  }))
 
 describe("OBS protocol envelopes", () => {
   it("decodes request responses", () => {
@@ -33,6 +153,78 @@ describe("OBS protocol envelopes", () => {
 })
 
 describe("OBS event protocol foundation", () => {
+  it("maps every official matrix event row to the current event policy ledger", () => {
+    expect(matrix.events).toHaveLength(60)
+    expect(new Set(matrix.events.map((event) => event.name)).size).toBe(matrix.events.length)
+
+    const ledgerNames = Object.keys(EVENT_LEDGER)
+    expect(ledgerNames.toSorted()).toEqual(matrix.events.map((event) => event.name).toSorted())
+    expect(
+      Object.entries(EVENT_LEDGER).reduce<Record<EventLedgerStatus, number>>(
+        (counts, [, status]) => ({ ...counts, [status]: counts[status] + 1 }),
+        { "typed-safe": 0, "high-volume": 0, "raw-only": 0, deferred: 0 }
+      )
+    ).toEqual({
+      "typed-safe": 15,
+      "high-volume": 4,
+      "raw-only": 2,
+      deferred: 39
+    })
+
+    for (const event of matrix.events) {
+      const status = EVENT_LEDGER_BY_NAME[event.name]
+      const eventIntent = EventSubscription[event.official.eventSubscription]
+      expect(eventIntent, event.name).toBeGreaterThan(0)
+
+      if (status === "typed-safe") {
+        const fixture = TYPED_EVENT_FIXTURES[event.name as keyof typeof TYPED_EVENT_FIXTURES]
+        expect(fixture, event.name).toBeDefined()
+        const envelope = envelopeFor(event, fixture)
+        expect(shouldSurfaceSafeEvent(envelope), event.name).toBe(true)
+        expect(decodeTypedObsEventData(event.name, fixture), event.name).toEqual(fixture)
+
+        const buffer = createObsEventBuffer()
+        buffer.record(envelope)
+        expect(buffer.snapshot().events).toEqual([{
+          sequence: 1,
+          eventType: event.name,
+          eventIntent,
+          eventData: fixture
+        }])
+        continue
+      }
+
+      expect(decodeTypedObsEventData(event.name, {}), event.name).toBeUndefined()
+
+      if (status === "high-volume") {
+        expect(HIGH_VOLUME_EVENT_SUBSCRIPTIONS).toContain(event.name)
+        expect(SAFE_EVENT_SUBSCRIPTION_MASK & eventIntent, event.name).toBe(0)
+        expect(shouldSurfaceSafeEvent(envelopeFor(event)), event.name).toBe(false)
+        const buffer = createObsEventBuffer()
+        buffer.record(envelopeFor(event))
+        expect(buffer.snapshot().events, event.name).toEqual([])
+        continue
+      }
+
+      if (status === "raw-only") {
+        expect(["VendorEvent", "CustomEvent"]).toContain(event.name)
+        expect(shouldSurfaceSafeEvent(envelopeFor(event)), event.name).toBe(false)
+        continue
+      }
+
+      expect(SAFE_EVENT_SUBSCRIPTION_MASK & eventIntent, event.name).toBe(eventIntent)
+      expect(shouldSurfaceSafeEvent(envelopeFor(event)), event.name).toBe(true)
+      const buffer = createObsEventBuffer()
+      buffer.record(envelopeFor(event))
+      expect(buffer.snapshot().events).toEqual([{
+        sequence: 1,
+        eventType: event.name,
+        eventIntent,
+        eventData: undefined
+      }])
+    }
+  })
+
   it("decodes typed low-volume event payloads", () => {
     const cases = [
       ["CurrentProgramSceneChanged", { sceneName: "Program", sceneUuid: "scene-program" }],
