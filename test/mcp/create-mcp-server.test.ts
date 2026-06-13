@@ -497,7 +497,10 @@ describe("MCP server protocol handlers", () => {
       "list_source_filter_kinds",
       "list_source_filters",
       "get_source_filter_default_settings",
-      "get_source_filter"
+      "get_source_filter",
+      "set_source_filter_enabled",
+      "set_source_filter_index",
+      "set_source_filter_name"
     ])
     await expect(client.callTool({ name: "list_source_filter_kinds", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { sourceFilterKinds: ["color_filter_v2", "gain_filter"] } })
@@ -545,6 +548,24 @@ describe("MCP server protocol handlers", () => {
         ],
         rawSettingsDeferred: true
       }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_enabled",
+      arguments: { sourceName: "Camera", filterName: "Color Correction", filterEnabled: false }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Color Correction", filterEnabled: false, acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_index",
+      arguments: { sourceName: "Camera", filterName: "Color Correction", filterIndex: 1 }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Color Correction", filterIndex: 1, acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_name",
+      arguments: { sourceUuid: "source-camera", filterName: "Color Correction", newFilterName: "Primary Color" }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Primary Color", acknowledged: true }
     })
   })
 

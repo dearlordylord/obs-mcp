@@ -6,6 +6,12 @@ import type { ObsConfig } from "../../src/config/config.js"
 import {
   ListSourceFilterKindsOutput,
   ListSourceFiltersOutput,
+  SetSourceFilterEnabledInput,
+  SetSourceFilterEnabledOutput,
+  SetSourceFilterIndexInput,
+  SetSourceFilterIndexOutput,
+  SetSourceFilterNameInput,
+  SetSourceFilterNameOutput,
   SourceFilterDefaultSettingsOutput,
   SourceFilterKindInput,
   SourceFilterLocatorInput,
@@ -111,14 +117,20 @@ const filterToolNames = [
   "list_source_filter_kinds",
   "list_source_filters",
   "get_source_filter_default_settings",
-  "get_source_filter"
+  "get_source_filter",
+  "set_source_filter_enabled",
+  "set_source_filter_index",
+  "set_source_filter_name"
 ]
 
 const filterAvailableRequests = [
   "GetSourceFilterKindList",
   "GetSourceFilterList",
   "GetSourceFilterDefaultSettings",
-  "GetSourceFilter"
+  "GetSourceFilter",
+  "SetSourceFilterEnabled",
+  "SetSourceFilterIndex",
+  "SetSourceFilterName"
 ] satisfies ReadonlyArray<ObsRequestType>
 
 const inputAvailableRequests = [
@@ -758,6 +770,30 @@ describe("MCP tool registry", () => {
       filterSettings: settings,
       rawSettingsDeferred: true
     })
+    await expect(executeTool(toolByName("set_source_filter_enabled"), {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterEnabled: false
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Color Correction", filterEnabled: false, acknowledged: true })
+    await expect(executeTool(toolByName("set_source_filter_index"), {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: 1
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Color Correction", filterIndex: 1, acknowledged: true })
+    await expect(executeTool(toolByName("set_source_filter_name"), {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction",
+      newFilterName: "Primary Color"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Primary Color", acknowledged: true })
   })
 
   it("executes input discovery handlers with structured output", async () => {
@@ -854,6 +890,47 @@ describe("MCP tool registry", () => {
       rawSettingsDeferred: true
     })
     expect(Schema.decodeUnknownSync(SourceFilterOutput)(filterOutput)).toEqual(filterOutput)
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterEnabledInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterEnabled: false
+      })
+    ).toEqual({ sourceName: "Camera", filterName: "Color Correction", filterEnabled: false })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterEnabledOutput)({
+        filterName: "Color Correction",
+        filterEnabled: false,
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Color Correction", filterEnabled: false, acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterIndexInput)({
+        sourceUuid: "source-camera",
+        filterName: "Color Correction",
+        filterIndex: 1
+      })
+    ).toEqual({ sourceUuid: "source-camera", filterName: "Color Correction", filterIndex: 1 })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterIndexOutput)({
+        filterName: "Color Correction",
+        filterIndex: 1,
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Color Correction", filterIndex: 1, acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterNameInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        newFilterName: "Primary Color"
+      })
+    ).toEqual({ sourceName: "Camera", filterName: "Color Correction", newFilterName: "Primary Color" })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterNameOutput)({
+        filterName: "Primary Color",
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Primary Color", acknowledged: true })
     expect(() => Schema.decodeUnknownSync(SourceFilterKindInput)({ filterKind: "" })).toThrow(
       "Expected a non empty string"
     )
@@ -868,6 +945,20 @@ describe("MCP tool registry", () => {
       Schema.decodeUnknownSync(SourceFilterLocatorInput)({
         sourceName: "Camera",
         filterName: ""
+      })
+    ).toThrow("Expected a non empty string")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterIndexInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterIndex: -1
+      })
+    ).toThrow("Expected a non-negative number")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterNameInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        newFilterName: ""
       })
     ).toThrow("Expected a non empty string")
   })

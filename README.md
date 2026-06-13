@@ -53,6 +53,9 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `list_source_filters`
 - `get_source_filter_default_settings`
 - `get_source_filter`
+- `set_source_filter_enabled`
+- `set_source_filter_index`
+- `set_source_filter_name`
 - `list_inputs`
 - `list_input_kinds`
 - `get_special_inputs`

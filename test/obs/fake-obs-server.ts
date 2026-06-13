@@ -54,6 +54,40 @@ interface FakeObsServerOptions {
   readonly envelopeBeforeResponseFor?: string
 }
 
+interface FakeObsSourceFilter {
+  readonly filterName: string
+  readonly filterEnabled: boolean
+  readonly filterIndex: number
+  readonly filterKind: string
+  readonly filterSettings: Readonly<Record<string, unknown>>
+}
+
+const defaultSourceFilters = (): Array<FakeObsSourceFilter> => [
+  {
+    filterName: "Color Correction",
+    filterEnabled: true,
+    filterIndex: 0,
+    filterKind: "color_filter_v2",
+    filterSettings: {
+      brightness: 0.1,
+      color_multiply: 4_294_967_295,
+      secret_path: "/tmp/private",
+      nested_policy: { omitted: true }
+    }
+  },
+  {
+    filterName: "Gain",
+    filterEnabled: false,
+    filterIndex: 1,
+    filterKind: "gain_filter",
+    filterSettings: {
+      db: 3,
+      enabled_by_default: false,
+      labels: ["left", "right"]
+    }
+  }
+]
+
 const sha256Base64 = (input: string): string => createHash("sha256").update(input).digest("base64")
 
 const authString = (password: string, salt: string, challenge: string): string => {
@@ -67,6 +101,7 @@ export class FakeObsServer {
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private inputState: FakeObsInputState = new FakeObsInputState([])
+  private sourceFilters: Array<FakeObsSourceFilter> = defaultSourceFilters()
   private readonly outputState = new FakeObsOutputState()
   public lastIdentifyEventSubscriptions: unknown
 
@@ -91,6 +126,7 @@ export class FakeObsServer {
     const inputs = options.inputs ?? DEFAULT_INPUTS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
     fake.inputState = new FakeObsInputState([...inputs])
+    fake.sourceFilters = defaultSourceFilters()
     fake.installHandlers(options, scenes, inputs)
     return fake
   }
@@ -360,33 +396,7 @@ export class FakeObsServer {
       return
     }
     if (requestType === "GetSourceFilterList") {
-      send({
-        filters: [
-          {
-            filterName: "Color Correction",
-            filterEnabled: true,
-            filterIndex: 0,
-            filterKind: "color_filter_v2",
-            filterSettings: {
-              brightness: 0.1,
-              color_multiply: 4_294_967_295,
-              secret_path: "/tmp/private",
-              nested_policy: { omitted: true }
-            }
-          },
-          {
-            filterName: "Gain",
-            filterEnabled: false,
-            filterIndex: 1,
-            filterKind: "gain_filter",
-            filterSettings: {
-              db: 3,
-              enabled_by_default: false,
-              labels: ["left", "right"]
-            }
-          }
-        ]
-      })
+      send({ filters: this.sourceFilters })
       return
     }
     if (requestType === "GetSourceFilterDefaultSettings") {
@@ -400,16 +410,47 @@ export class FakeObsServer {
       return
     }
     if (requestType === "GetSourceFilter") {
+      const filter = this.sourceFilters.find((entry) => entry.filterName === envelope.d.requestData.filterName)
+        ?? this.sourceFilters[0]
       send({
-        filterEnabled: true,
-        filterIndex: 0,
-        filterKind: "color_filter_v2",
-        filterSettings: {
-          brightness: 0.1,
-          nested_policy: { omitted: true },
-          secret_path: "/tmp/private"
-        }
+        filterEnabled: filter?.filterEnabled ?? true,
+        filterIndex: filter?.filterIndex ?? 0,
+        filterKind: filter?.filterKind ?? "color_filter_v2",
+        filterSettings: filter?.filterSettings ?? {}
       })
+      return
+    }
+    if (requestType === "SetSourceFilterEnabled") {
+      this.sourceFilters = this.sourceFilters.map((filter) =>
+        filter.filterName === envelope.d.requestData.filterName
+          ? { ...filter, filterEnabled: envelope.d.requestData.filterEnabled === true }
+          : filter
+      )
+      send()
+      return
+    }
+    if (requestType === "SetSourceFilterIndex") {
+      const currentIndex = this.sourceFilters.findIndex((filter) =>
+        filter.filterName === envelope.d.requestData.filterName
+      )
+      if (currentIndex >= 0) {
+        const reordered = [...this.sourceFilters]
+        const [filter] = reordered.splice(currentIndex, 1)
+        if (filter !== undefined) {
+          reordered.splice(envelope.d.requestData.filterIndex, 0, filter)
+          this.sourceFilters = reordered.map((entry, filterIndex) => ({ ...entry, filterIndex }))
+        }
+      }
+      send()
+      return
+    }
+    if (requestType === "SetSourceFilterName") {
+      this.sourceFilters = this.sourceFilters.map((filter) =>
+        filter.filterName === envelope.d.requestData.filterName
+          ? { ...filter, filterName: envelope.d.requestData.newFilterName ?? filter.filterName }
+          : filter
+      )
+      send()
       return
     }
     if (requestType === "GetInputList") {

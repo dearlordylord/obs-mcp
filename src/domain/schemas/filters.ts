@@ -69,6 +69,56 @@ export const SourceFilterOutput = SourceFilterSummary
 export type SourceFilterOutput = typeof SourceFilterOutput.Type
 export const SourceFilterOutputJsonSchema = JSONSchema.make(SourceFilterOutput)
 
+export const SetSourceFilterEnabledInput = Schema.extend(
+  SourceFilterLocatorInput,
+  Schema.Struct({
+    filterEnabled: Schema.Boolean
+  })
+)
+export type SetSourceFilterEnabledInput = typeof SetSourceFilterEnabledInput.Type
+export const SetSourceFilterEnabledInputJsonSchema = JSONSchema.make(SetSourceFilterEnabledInput)
+
+export const SetSourceFilterEnabledOutput = Schema.Struct({
+  filterName: Schema.String,
+  filterEnabled: Schema.Boolean,
+  acknowledged: Schema.Literal(true)
+})
+export type SetSourceFilterEnabledOutput = typeof SetSourceFilterEnabledOutput.Type
+export const SetSourceFilterEnabledOutputJsonSchema = JSONSchema.make(SetSourceFilterEnabledOutput)
+
+export const SetSourceFilterIndexInput = Schema.extend(
+  SourceFilterLocatorInput,
+  Schema.Struct({
+    filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  })
+)
+export type SetSourceFilterIndexInput = typeof SetSourceFilterIndexInput.Type
+export const SetSourceFilterIndexInputJsonSchema = JSONSchema.make(SetSourceFilterIndexInput)
+
+export const SetSourceFilterIndexOutput = Schema.Struct({
+  filterName: Schema.String,
+  filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  acknowledged: Schema.Literal(true)
+})
+export type SetSourceFilterIndexOutput = typeof SetSourceFilterIndexOutput.Type
+export const SetSourceFilterIndexOutputJsonSchema = JSONSchema.make(SetSourceFilterIndexOutput)
+
+export const SetSourceFilterNameInput = Schema.extend(
+  SourceFilterLocatorInput,
+  Schema.Struct({
+    newFilterName: Schema.NonEmptyString
+  })
+)
+export type SetSourceFilterNameInput = typeof SetSourceFilterNameInput.Type
+export const SetSourceFilterNameInputJsonSchema = JSONSchema.make(SetSourceFilterNameInput)
+
+export const SetSourceFilterNameOutput = Schema.Struct({
+  filterName: Schema.String,
+  acknowledged: Schema.Literal(true)
+})
+export type SetSourceFilterNameOutput = typeof SetSourceFilterNameOutput.Type
+export const SetSourceFilterNameOutputJsonSchema = JSONSchema.make(SetSourceFilterNameOutput)
+
 export const ObsSourceFilterDefaultSettingsOutput = Schema.Struct({
   defaultFilterSettings: UnknownRecord
 })

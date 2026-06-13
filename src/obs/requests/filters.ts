@@ -1,13 +1,19 @@
+import { Schema } from "effect"
 import {
   ListSourceFilterKindsOutput,
   ObsSourceFilterDefaultSettingsOutput,
   ObsSourceFilterListOutput,
   ObsSourceFilterOutput,
+  SetSourceFilterEnabledInput,
+  SetSourceFilterIndexInput,
+  SetSourceFilterNameInput,
   SourceFilterKindInput,
   SourceFilterLocatorInput
 } from "../../domain/schemas/filters.js"
 import { SourceLocatorInput } from "../../domain/schemas/scenes.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
+
+const EmptyResponseData = Schema.Struct({})
 
 export const GetSourceFilterKindList = {
   requestType: "GetSourceFilterKindList",
@@ -32,3 +38,21 @@ export const GetSourceFilter = {
   requestDataSchema: SourceFilterLocatorInput,
   responseSchema: ObsSourceFilterOutput
 } satisfies ObsRequestDescriptor<ObsSourceFilterOutput>
+
+export const SetSourceFilterEnabled = {
+  requestType: "SetSourceFilterEnabled",
+  requestDataSchema: SetSourceFilterEnabledInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const SetSourceFilterIndex = {
+  requestType: "SetSourceFilterIndex",
+  requestDataSchema: SetSourceFilterIndexInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const SetSourceFilterName = {
+  requestType: "SetSourceFilterName",
+  requestDataSchema: SetSourceFilterNameInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>

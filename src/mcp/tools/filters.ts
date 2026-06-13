@@ -4,13 +4,19 @@ import {
   getSourceFilter,
   getSourceFilterDefaultSettings,
   listSourceFilterKinds,
-  listSourceFilters
+  listSourceFilters,
+  setSourceFilterEnabled,
+  setSourceFilterIndex,
+  setSourceFilterName
 } from "../../obs/operations/filters.js"
 import {
   GetSourceFilter,
   GetSourceFilterDefaultSettings,
   GetSourceFilterKindList,
-  GetSourceFilterList
+  GetSourceFilterList,
+  SetSourceFilterEnabled,
+  SetSourceFilterIndex,
+  SetSourceFilterName
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -56,5 +62,35 @@ export const filterTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: FilterSchemas.SourceFilterLocatorInput,
     outputSchema: FilterSchemas.SourceFilterOutput,
     handler: async (input, context) => getSourceFilter(context.client, input)
+  }),
+  defineTool({
+    name: "set_source_filter_enabled",
+    title: "Set OBS Source Filter Enabled",
+    description: "Set whether an OBS source filter is enabled.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSourceFilterEnabled.requestType],
+    inputSchema: FilterSchemas.SetSourceFilterEnabledInput,
+    outputSchema: FilterSchemas.SetSourceFilterEnabledOutput,
+    handler: async (input, context) => setSourceFilterEnabled(context.client, input)
+  }),
+  defineTool({
+    name: "set_source_filter_index",
+    title: "Set OBS Source Filter Index",
+    description: "Set a source filter's non-negative index position.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSourceFilterIndex.requestType],
+    inputSchema: FilterSchemas.SetSourceFilterIndexInput,
+    outputSchema: FilterSchemas.SetSourceFilterIndexOutput,
+    handler: async (input, context) => setSourceFilterIndex(context.client, input)
+  }),
+  defineTool({
+    name: "set_source_filter_name",
+    title: "Rename OBS Source Filter",
+    description: "Rename an OBS source filter.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSourceFilterName.requestType],
+    inputSchema: FilterSchemas.SetSourceFilterNameInput,
+    outputSchema: FilterSchemas.SetSourceFilterNameOutput,
+    handler: async (input, context) => setSourceFilterName(context.client, input)
   })
 ]

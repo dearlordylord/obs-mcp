@@ -5,6 +5,9 @@ import type {
   ListSourceFiltersOutput,
   SanitizedFilterSetting,
   SanitizedFilterValueType,
+  SetSourceFilterEnabledOutput,
+  SetSourceFilterIndexOutput,
+  SetSourceFilterNameOutput,
   SourceFilterDefaultSettingsOutput,
   SourceFilterKindInput,
   SourceFilterLocatorInput,
@@ -14,6 +17,9 @@ import type {
 import {
   ListSourceFilterKindsOutput as ListSourceFilterKindsOutputSchema,
   ListSourceFiltersOutput as ListSourceFiltersOutputSchema,
+  SetSourceFilterEnabledInput,
+  SetSourceFilterIndexInput,
+  SetSourceFilterNameInput,
   SourceFilterDefaultSettingsOutput as SourceFilterDefaultSettingsOutputSchema,
   SourceFilterKindInput as SourceFilterKindInputSchema,
   SourceFilterLocatorInput as SourceFilterLocatorInputSchema,
@@ -25,7 +31,10 @@ import {
   GetSourceFilter,
   GetSourceFilterDefaultSettings,
   GetSourceFilterKindList,
-  GetSourceFilterList
+  GetSourceFilterList,
+  SetSourceFilterEnabled,
+  SetSourceFilterIndex,
+  SetSourceFilterName
 } from "../requests.js"
 
 const filterValueType = (value: unknown): SanitizedFilterValueType => {
@@ -122,4 +131,42 @@ export const getSourceFilter = async (
       decodedInput.filterName
     )
   )
+}
+
+export const setSourceFilterEnabled = async (
+  client: ObsClient,
+  input: SetSourceFilterEnabledInput
+): Promise<SetSourceFilterEnabledOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSourceFilterEnabledInput)(input)
+  await client.request(SetSourceFilterEnabled, decodedInput)
+  return {
+    filterName: decodedInput.filterName,
+    filterEnabled: decodedInput.filterEnabled,
+    acknowledged: true
+  }
+}
+
+export const setSourceFilterIndex = async (
+  client: ObsClient,
+  input: SetSourceFilterIndexInput
+): Promise<SetSourceFilterIndexOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSourceFilterIndexInput)(input)
+  await client.request(SetSourceFilterIndex, decodedInput)
+  return {
+    filterName: decodedInput.filterName,
+    filterIndex: decodedInput.filterIndex,
+    acknowledged: true
+  }
+}
+
+export const setSourceFilterName = async (
+  client: ObsClient,
+  input: SetSourceFilterNameInput
+): Promise<SetSourceFilterNameOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSourceFilterNameInput)(input)
+  await client.request(SetSourceFilterName, decodedInput)
+  return {
+    filterName: decodedInput.newFilterName,
+    acknowledged: true
+  }
 }

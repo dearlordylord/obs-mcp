@@ -9,7 +9,10 @@ import {
   getSourceFilter,
   getSourceFilterDefaultSettings,
   listSourceFilterKinds,
-  listSourceFilters
+  listSourceFilters,
+  setSourceFilterEnabled,
+  setSourceFilterIndex,
+  setSourceFilterName
 } from "../../src/obs/operations/filters.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import {
@@ -1157,6 +1160,7 @@ describe("OBS operations", () => {
       filterKind: "color_filter_v2",
       filterSettings: [
         { settingName: "brightness", valueType: "number" },
+        { settingName: "color_multiply", valueType: "number" },
         { settingName: "nested_policy", valueType: "object" },
         { settingName: "secret_path", valueType: "string" }
       ],
@@ -1169,6 +1173,67 @@ describe("OBS operations", () => {
       {
         requestType: "GetSourceFilter",
         requestData: { sourceUuid: "source-camera", filterName: "Color Correction" }
+      }
+    ])
+  })
+
+  it("mutates source filter enabled state, index, and name through fake OBS state", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    await expect(setSourceFilterEnabled(client, {
+      sourceName: "Camera",
+      canvasUuid: "canvas-main",
+      filterName: "Color Correction",
+      filterEnabled: false
+    })).resolves.toEqual({ filterName: "Color Correction", filterEnabled: false, acknowledged: true })
+    await expect(setSourceFilterIndex(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: 1
+    })).resolves.toEqual({ filterName: "Color Correction", filterIndex: 1, acknowledged: true })
+    await expect(setSourceFilterName(client, {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction",
+      newFilterName: "Primary Color"
+    })).resolves.toEqual({ filterName: "Primary Color", acknowledged: true })
+    await expect(listSourceFilters(client, { sourceUuid: "source-camera" })).resolves.toMatchObject({
+      filters: [
+        { filterName: "Gain", filterIndex: 0 },
+        { filterName: "Primary Color", filterEnabled: false, filterIndex: 1 }
+      ]
+    })
+    await expect(getSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Primary Color"
+    })).resolves.toMatchObject({
+      filterName: "Primary Color",
+      filterEnabled: false,
+      filterIndex: 1,
+      filterKind: "color_filter_v2"
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "SetSourceFilterEnabled"
+      || request.requestType === "SetSourceFilterIndex"
+      || request.requestType === "SetSourceFilterName"
+    )).toEqual([
+      {
+        requestType: "SetSourceFilterEnabled",
+        requestData: {
+          sourceName: "Camera",
+          canvasUuid: "canvas-main",
+          filterName: "Color Correction",
+          filterEnabled: false
+        }
+      },
+      {
+        requestType: "SetSourceFilterIndex",
+        requestData: { sourceName: "Camera", filterName: "Color Correction", filterIndex: 1 }
+      },
+      {
+        requestType: "SetSourceFilterName",
+        requestData: { sourceUuid: "source-camera", filterName: "Color Correction", newFilterName: "Primary Color" }
       }
     ])
   })
@@ -1196,6 +1261,70 @@ describe("OBS operations", () => {
         requestType: "GetSourceFilter",
         code: 602,
         comment: "Filter not found"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("surfaces validation and OBS failures for source filter mutations", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        SetSourceFilterEnabled: { code: 606, comment: "Filter enable rejected" },
+        SetSourceFilterIndex: { code: 607, comment: "Filter index rejected" },
+        SetSourceFilterName: { code: 608, comment: "Filter rename rejected" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    const setSourceFilterIndexUnchecked = setSourceFilterIndex as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setSourceFilterIndex>
+    const setSourceFilterNameUnchecked = setSourceFilterName as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setSourceFilterName>
+    await expect(setSourceFilterIndexUnchecked(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: -1
+    })).rejects.toThrow("Expected a non-negative number")
+    await expect(setSourceFilterNameUnchecked(client, {
+      sourceName: "Camera",
+      filterName: "",
+      newFilterName: "Primary Color"
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(setSourceFilterEnabled(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterEnabled: false
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetSourceFilterEnabled",
+        code: 606,
+        comment: "Filter enable rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setSourceFilterIndex(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: 1
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetSourceFilterIndex",
+        code: 607,
+        comment: "Filter index rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setSourceFilterName(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      newFilterName: "Primary Color"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetSourceFilterName",
+        code: 608,
+        comment: "Filter rename rejected"
       } satisfies Partial<ObsRequestError>
     )
   })
