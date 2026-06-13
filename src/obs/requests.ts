@@ -13,6 +13,8 @@ export const ObsRequestType = Schema.Literal(
   "SetRecordDirectory",
   "GetVideoSettings",
   "SetVideoSettings",
+  "GetStreamServiceSettings",
+  "SetStreamServiceSettings",
   "SetCurrentProfile",
   "CreateProfile",
   "RemoveProfile",

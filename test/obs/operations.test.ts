@@ -6,6 +6,7 @@ import {
   ProfileNameInput,
   ProfileParameterInput,
   SetProfileParameterInput,
+  SetStreamServiceSettingsInput,
   SetVideoSettingsInput
 } from "../../src/domain/schemas/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -17,6 +18,7 @@ import {
   createSceneCollection,
   getProfileParameter,
   getRecordDirectory,
+  getStreamServiceSettings,
   getVideoSettings,
   listProfiles,
   listSceneCollections,
@@ -25,6 +27,7 @@ import {
   setCurrentSceneCollection,
   setProfileParameter,
   setRecordDirectory,
+  setStreamServiceSettings,
   setVideoSettings
 } from "../../src/obs/operations/config.js"
 import {
@@ -254,6 +257,13 @@ describe("OBS operations", () => {
       fpsNumerator: 30000,
       fpsDenominator: 1001
     })
+    await expect(getStreamServiceSettings(client)).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        keyConfigured: true
+      }
+    })
   })
 
   it("mutates config state through the fake OBS protocol", async () => {
@@ -358,6 +368,56 @@ describe("OBS operations", () => {
       fpsNumerator: 60,
       fpsDenominator: 1
     })
+
+    await expect(setStreamServiceSettings(client, {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        key: "redacted-test-key"
+      }
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        keyConfigured: true
+      },
+      acknowledged: true
+    })
+    await expect(getStreamServiceSettings(client)).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        keyConfigured: true
+      }
+    })
+    await expect(setStreamServiceSettings(client, {
+      streamServiceType: "rtmp_common",
+      streamServiceSettings: {
+        fields: {
+          service: "Example",
+          bwtest: true,
+          key: "redacted-generic-key"
+        }
+      }
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_common",
+      streamServiceSettings: {
+        fields: {
+          service: "Example",
+          bwtest: true
+        }
+      },
+      acknowledged: true
+    })
+    await expect(getStreamServiceSettings(client)).resolves.toEqual({
+      streamServiceType: "rtmp_common",
+      streamServiceSettings: {
+        fields: {
+          service: "Example",
+          bwtest: true
+        }
+      }
+    })
   })
 
   it("validates config read and mutation schemas", () => {
@@ -379,6 +439,18 @@ describe("OBS operations", () => {
       .toThrow()
     expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputWidth: 1920, outputHeight: 4097 }))
       .toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SetStreamServiceSettingsInput)({
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: { fields: { server: "rtmp://example.invalid/live" } }
+      })
+    ).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SetStreamServiceSettingsInput)({
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: { server: "rtmp://example.invalid/live", key: "" }
+      })
+    ).toThrow()
   })
 
   it("surfaces OBS config read and mutation request failures", async () => {
@@ -386,7 +458,8 @@ describe("OBS operations", () => {
       failRequests: {
         GetProfileParameter: { code: 601, comment: "Parameter category not found" },
         SetCurrentProfile: { code: 601, comment: "Profile not found" },
-        SetVideoSettings: { code: 500, comment: "Video output is active" }
+        SetVideoSettings: { code: 500, comment: "Video output is active" },
+        SetStreamServiceSettings: { code: 500, comment: "Stream output is active" }
       }
     })
     servers.push(server)
@@ -417,6 +490,19 @@ describe("OBS operations", () => {
         requestType: "SetVideoSettings",
         code: 500,
         comment: "Video output is active"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setStreamServiceSettings(client, {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        key: "redacted-failure-key"
+      }
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetStreamServiceSettings",
+        code: 500,
+        comment: "Stream output is active"
       } satisfies Partial<ObsRequestError>
     )
   })

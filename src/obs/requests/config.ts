@@ -1,6 +1,8 @@
 import { Schema } from "effect"
 
 import {
+  ObsSetStreamServiceSettingsInput,
+  ObsStreamServiceSettingsResponse,
   ProfileListOutput,
   ProfileNameInput,
   ProfileParameterInput,
@@ -56,6 +58,18 @@ export const GetVideoSettings = {
 export const SetVideoSettings = {
   requestType: "SetVideoSettings",
   requestDataSchema: SetVideoSettingsInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetStreamServiceSettings = {
+  requestType: "GetStreamServiceSettings",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: ObsStreamServiceSettingsResponse
+} satisfies ObsRequestDescriptor<ObsStreamServiceSettingsResponse>
+
+export const SetStreamServiceSettings = {
+  requestType: "SetStreamServiceSettings",
+  requestDataSchema: ObsSetStreamServiceSettingsInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 

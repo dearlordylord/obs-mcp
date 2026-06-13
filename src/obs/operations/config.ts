@@ -3,6 +3,8 @@ import { Schema } from "effect"
 import {
   CreateProfileOutput,
   CreateSceneCollectionOutput,
+  ObsSetStreamServiceSettingsInput,
+  ObsStreamServiceSettingsResponse,
   ProfileListOutput,
   ProfileNameInput,
   ProfileParameterInput,
@@ -17,8 +19,11 @@ import {
   SetProfileParameterOutput,
   SetRecordDirectoryInput,
   SetRecordDirectoryOutput,
+  SetStreamServiceSettingsInput,
+  SetStreamServiceSettingsOutput,
   SetVideoSettingsInput,
   SetVideoSettingsOutput,
+  StreamServiceSettingsOutput,
   VideoSettingsOutput
 } from "../../domain/schemas/config.js"
 import type { ObsClient } from "../client.js"
@@ -29,12 +34,14 @@ import {
   GetProfileParameter,
   GetRecordDirectory,
   GetSceneCollectionList,
+  GetStreamServiceSettings,
   GetVideoSettings,
   RemoveProfile,
   SetCurrentProfile,
   SetCurrentSceneCollection,
   SetProfileParameter,
   SetRecordDirectory,
+  SetStreamServiceSettings,
   SetVideoSettings
 } from "../requests.js"
 
@@ -78,6 +85,26 @@ export const setVideoSettings = async (
   await client.request(SetVideoSettings, decodedInput)
   return Schema.decodeUnknownSync(SetVideoSettingsOutput)({
     ...decodedInput,
+    acknowledged: true
+  })
+}
+
+export const getStreamServiceSettings = async (client: ObsClient): Promise<StreamServiceSettingsOutput> => {
+  const response = Schema.decodeUnknownSync(ObsStreamServiceSettingsResponse)(
+    await client.request(GetStreamServiceSettings)
+  )
+  return sanitizeStreamServiceSettings(response)
+}
+
+export const setStreamServiceSettings = async (
+  client: ObsClient,
+  input: SetStreamServiceSettingsInput
+): Promise<SetStreamServiceSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetStreamServiceSettingsInput)(input)
+  const requestData = toObsStreamServiceSettingsInput(decodedInput)
+  await client.request(SetStreamServiceSettings, requestData)
+  return Schema.decodeUnknownSync(SetStreamServiceSettingsOutput)({
+    ...sanitizeStreamServiceSettings(requestData),
     acknowledged: true
   })
 }
@@ -153,5 +180,46 @@ export const setProfileParameter = async (
   return Schema.decodeUnknownSync(SetProfileParameterOutput)({
     ...decodedInput,
     acknowledged: true
+  })
+}
+
+const SecretStreamServiceSettingPattern = /key|password|secret|token/iu
+
+const sanitizeStreamServiceSettings = (
+  input: ObsStreamServiceSettingsResponse
+): StreamServiceSettingsOutput => {
+  if (input.streamServiceType === "rtmp_custom") {
+    const server = input.streamServiceSettings["server"]
+    const key = input.streamServiceSettings["key"]
+    return Schema.decodeUnknownSync(StreamServiceSettingsOutput)({
+      streamServiceType: input.streamServiceType,
+      streamServiceSettings: {
+        ...(typeof server === "string" ? { server } : {}),
+        keyConfigured: typeof key === "string" && key.length > 0
+      }
+    })
+  }
+  return Schema.decodeUnknownSync(StreamServiceSettingsOutput)({
+    streamServiceType: input.streamServiceType,
+    streamServiceSettings: { fields: sanitizedTypedSettings(input.streamServiceSettings) }
+  })
+}
+
+const sanitizedTypedSettings = (
+  settings: ObsStreamServiceSettingsResponse["streamServiceSettings"]
+): ObsStreamServiceSettingsResponse["streamServiceSettings"] =>
+  Object.fromEntries(
+    Object.entries(settings).filter(([key]) => !SecretStreamServiceSettingPattern.test(key))
+  )
+
+const toObsStreamServiceSettingsInput = (
+  input: SetStreamServiceSettingsInput
+): ObsSetStreamServiceSettingsInput => {
+  const streamServiceSettings = "fields" in input.streamServiceSettings
+    ? input.streamServiceSettings.fields
+    : input.streamServiceSettings
+  return Schema.decodeUnknownSync(ObsSetStreamServiceSettingsInput)({
+    streamServiceType: input.streamServiceType,
+    streamServiceSettings
   })
 }

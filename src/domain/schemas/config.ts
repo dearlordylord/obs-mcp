@@ -137,6 +137,76 @@ export const SetVideoSettingsOutput = pairedVideoSettingFilters(Schema.extend(
 export type SetVideoSettingsOutput = typeof SetVideoSettingsOutput.Type
 export const SetVideoSettingsOutputJsonSchema = JSONSchema.make(SetVideoSettingsOutput)
 
+export const StreamServiceSettingValue = Schema.Union(Schema.String, Schema.Number, Schema.Boolean, Schema.Null)
+export type StreamServiceSettingValue = typeof StreamServiceSettingValue.Type
+
+export const StreamServiceSettingsRecord = Schema.Record({
+  key: Schema.String,
+  value: StreamServiceSettingValue
+})
+export type StreamServiceSettingsRecord = typeof StreamServiceSettingsRecord.Type
+
+export const ObsStreamServiceSettingsResponse = Schema.Struct({
+  streamServiceType: Schema.NonEmptyString,
+  streamServiceSettings: StreamServiceSettingsRecord
+})
+export type ObsStreamServiceSettingsResponse = typeof ObsStreamServiceSettingsResponse.Type
+
+export const ObsSetStreamServiceSettingsInput = ObsStreamServiceSettingsResponse
+export type ObsSetStreamServiceSettingsInput = typeof ObsSetStreamServiceSettingsInput.Type
+
+export const RtmpCustomStreamServiceSettingsInput = Schema.Struct({
+  server: Schema.NonEmptyString,
+  key: Schema.NonEmptyString
+})
+export type RtmpCustomStreamServiceSettingsInput = typeof RtmpCustomStreamServiceSettingsInput.Type
+
+export const GenericStreamServiceSettingsInput = Schema.Struct({
+  fields: StreamServiceSettingsRecord
+})
+export type GenericStreamServiceSettingsInput = typeof GenericStreamServiceSettingsInput.Type
+
+export const SetStreamServiceSettingsInput = Schema.Struct({
+  streamServiceType: Schema.NonEmptyString,
+  streamServiceSettings: Schema.Union(RtmpCustomStreamServiceSettingsInput, GenericStreamServiceSettingsInput)
+}).pipe(
+  Schema.filter((input) =>
+    input.streamServiceType === "rtmp_custom"
+      ? "server" in input.streamServiceSettings
+      : "fields" in input.streamServiceSettings, {
+    message: () => "rtmp_custom requires server/key settings; other stream services require typed fields"
+  })
+)
+export type SetStreamServiceSettingsInput = typeof SetStreamServiceSettingsInput.Type
+export const SetStreamServiceSettingsInputJsonSchema = JSONSchema.make(SetStreamServiceSettingsInput)
+
+export const RtmpCustomStreamServiceSettingsOutput = Schema.Struct({
+  server: Schema.optional(Schema.String),
+  keyConfigured: Schema.Boolean
+})
+export type RtmpCustomStreamServiceSettingsOutput = typeof RtmpCustomStreamServiceSettingsOutput.Type
+
+export const GenericStreamServiceSettingsOutput = Schema.Struct({
+  fields: StreamServiceSettingsRecord
+})
+export type GenericStreamServiceSettingsOutput = typeof GenericStreamServiceSettingsOutput.Type
+
+export const StreamServiceSettingsOutput = Schema.Struct({
+  streamServiceType: Schema.NonEmptyString,
+  streamServiceSettings: Schema.Union(RtmpCustomStreamServiceSettingsOutput, GenericStreamServiceSettingsOutput)
+})
+export type StreamServiceSettingsOutput = typeof StreamServiceSettingsOutput.Type
+export const StreamServiceSettingsOutputJsonSchema = JSONSchema.make(StreamServiceSettingsOutput)
+
+export const SetStreamServiceSettingsOutput = Schema.extend(
+  StreamServiceSettingsOutput,
+  Schema.Struct({
+    acknowledged: Schema.Literal(true)
+  })
+)
+export type SetStreamServiceSettingsOutput = typeof SetStreamServiceSettingsOutput.Type
+export const SetStreamServiceSettingsOutputJsonSchema = JSONSchema.make(SetStreamServiceSettingsOutput)
+
 export const ProfileNameInput = Schema.Struct({
   profileName: ProfileName
 })

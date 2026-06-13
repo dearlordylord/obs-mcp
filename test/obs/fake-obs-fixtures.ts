@@ -225,6 +225,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetRecordDirectory",
   "GetVideoSettings",
   "SetVideoSettings",
+  "GetStreamServiceSettings",
+  "SetStreamServiceSettings",
   "SetCurrentProfile",
   "CreateProfile",
   "RemoveProfile",

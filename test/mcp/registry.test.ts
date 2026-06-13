@@ -108,6 +108,8 @@ const configToolNames = [
   "set_record_directory",
   "get_video_settings",
   "set_video_settings",
+  "get_stream_service_settings",
+  "set_stream_service_settings",
   "set_current_profile",
   "create_profile",
   "remove_profile",
@@ -487,6 +489,8 @@ describe("MCP tool registry", () => {
         "SetRecordDirectory",
         "GetVideoSettings",
         "SetVideoSettings",
+        "GetStreamServiceSettings",
+        "SetStreamServiceSettings",
         "SetCurrentProfile",
         "CreateProfile",
         "RemoveProfile",
@@ -500,6 +504,8 @@ describe("MCP tool registry", () => {
       "set_record_directory",
       "get_video_settings",
       "set_video_settings",
+      "get_stream_service_settings",
+      "set_stream_service_settings",
       "set_current_profile",
       "create_profile",
       "remove_profile",
@@ -788,6 +794,15 @@ describe("MCP tool registry", () => {
           fpsDenominator: 1001
         }
       }
+      if (requestType === "GetStreamServiceSettings") {
+        return {
+          streamServiceType: "rtmp_custom",
+          streamServiceSettings: {
+            server: "rtmp://example.invalid/live",
+            key: "redacted-registry-key"
+          }
+        }
+      }
       return { recordDirectory: "/opaque/obs-recordings" }
     })
 
@@ -840,6 +855,33 @@ describe("MCP tool registry", () => {
       baseHeight: 1080,
       fpsNumerator: 60,
       fpsDenominator: 1,
+      acknowledged: true
+    })
+    await expect(executeTool(toolByName("get_stream_service_settings"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        keyConfigured: true
+      }
+    })
+    await expect(executeTool(toolByName("set_stream_service_settings"), {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        key: "redacted-registry-set-key"
+      }
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        keyConfigured: true
+      },
       acknowledged: true
     })
     await expect(executeTool(toolByName("set_current_profile"), { profileName: "Production" }, {
@@ -896,6 +938,13 @@ describe("MCP tool registry", () => {
         baseHeight: 1080,
         fpsNumerator: 60,
         fpsDenominator: 1
+      }],
+      ["SetStreamServiceSettings", {
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: {
+          server: "rtmp://example.invalid/show",
+          key: "redacted-registry-set-key"
+        }
       }]
     ]))
     await expect(executeTool(toolByName("get_profile_parameter"), {
@@ -916,6 +965,13 @@ describe("MCP tool registry", () => {
     await expect(executeTool(toolByName("set_video_settings"), {
       baseWidth: 4097,
       baseHeight: 1080
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_stream_service_settings"), {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: { fields: { server: "rtmp://example.invalid/live" } }
     }, {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
@@ -1095,6 +1151,25 @@ describe("MCP tool registry", () => {
         requestType: "SetVideoSettings",
         obsStatusCode: 500,
         comment: "Video output is active"
+      }
+    })
+    await expect(executeTool(toolByName("set_stream_service_settings"), {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        key: "redacted-error-key"
+      }
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetStreamServiceSettings", 500, "Stream output is active")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetStreamServiceSettings",
+        obsStatusCode: 500,
+        comment: "Stream output is active"
       }
     })
   })

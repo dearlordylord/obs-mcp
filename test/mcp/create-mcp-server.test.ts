@@ -394,6 +394,15 @@ describe("MCP server protocol handlers", () => {
             fpsDenominator: 1001
           }
         }
+        if (requestType === "GetStreamServiceSettings") {
+          return {
+            streamServiceType: "rtmp_custom",
+            streamServiceSettings: {
+              server: "rtmp://example.invalid/live",
+              key: "redacted-mcp-server-key"
+            }
+          }
+        }
         return {}
       }, [
         "GetProfileList",
@@ -403,6 +412,8 @@ describe("MCP server protocol handlers", () => {
         "SetRecordDirectory",
         "GetVideoSettings",
         "SetVideoSettings",
+        "GetStreamServiceSettings",
+        "SetStreamServiceSettings",
         "SetCurrentProfile",
         "CreateProfile",
         "RemoveProfile",
@@ -421,6 +432,8 @@ describe("MCP server protocol handlers", () => {
       "set_record_directory",
       "get_video_settings",
       "set_video_settings",
+      "get_stream_service_settings",
+      "set_stream_service_settings",
       "set_current_profile",
       "create_profile",
       "remove_profile",
@@ -450,6 +463,23 @@ describe("MCP server protocol handlers", () => {
       name: "set_video_settings",
       arguments: { outputWidth: 1920, outputHeight: 1080 }
     })).resolves.toMatchObject({ structuredContent: { outputWidth: 1920, outputHeight: 1080 } })
+    await expect(client.callTool({ name: "get_stream_service_settings", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          streamServiceSettings: { server: "rtmp://example.invalid/live", keyConfigured: true }
+        }
+      })
+    await expect(client.callTool({
+      name: "set_stream_service_settings",
+      arguments: {
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: { server: "rtmp://example.invalid/show", key: "redacted-mcp-set-key" }
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        streamServiceSettings: { server: "rtmp://example.invalid/show", keyConfigured: true }
+      }
+    })
     await expect(client.callTool({ name: "set_current_profile", arguments: { profileName: "Production" } }))
       .resolves.toMatchObject({ structuredContent: { profileName: "Production", switched: true } })
     await expect(client.callTool({ name: "create_profile", arguments: { profileName: "Show" } }))

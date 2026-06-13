@@ -11,6 +11,13 @@ interface FakeObsVideoSettings {
   readonly fpsDenominator: number
 }
 
+type FakeObsStreamServiceSettingValue = string | number | boolean | null
+
+interface FakeObsStreamServiceSettings {
+  readonly streamServiceType: string
+  readonly streamServiceSettings: Record<string, FakeObsStreamServiceSettingValue>
+}
+
 export interface FakeObsConfigStateOptions {
   readonly profiles: ReadonlyArray<string>
   readonly currentProfileName: string
@@ -28,6 +35,7 @@ export class FakeObsConfigState {
   private profileParameters: Array<FakeObsProfileParameter>
   private recordDirectory: string
   private videoSettings: FakeObsVideoSettings
+  private streamServiceSettings: FakeObsStreamServiceSettings
 
   public constructor(options: FakeObsConfigStateOptions) {
     this.profiles = [...options.profiles]
@@ -43,6 +51,13 @@ export class FakeObsConfigState {
       outputHeight: 720,
       fpsNumerator: 30000,
       fpsDenominator: 1001
+    }
+    this.streamServiceSettings = {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        key: "configured-stream-key"
+      }
     }
   }
 
@@ -87,6 +102,15 @@ export class FakeObsConfigState {
     }
     if (requestType === "SetVideoSettings") {
       this.setVideoSettings(requestData)
+      send({})
+      return true
+    }
+    if (requestType === "GetStreamServiceSettings") {
+      send({ ...this.streamServiceSettings })
+      return true
+    }
+    if (requestType === "SetStreamServiceSettings") {
+      this.setStreamServiceSettings(requestData)
       send({})
       return true
     }
@@ -168,6 +192,15 @@ export class FakeObsConfigState {
       fpsDenominator: numberField(requestData, "fpsDenominator") ?? this.videoSettings.fpsDenominator
     }
   }
+
+  private setStreamServiceSettings(requestData: unknown): void {
+    const streamServiceType = stringField(requestData, "streamServiceType")
+    const streamServiceSettings = recordField(requestData, "streamServiceSettings")
+    if (streamServiceType === undefined || streamServiceSettings === undefined) {
+      return
+    }
+    this.streamServiceSettings = { streamServiceType, streamServiceSettings }
+  }
 }
 
 const stringField = (requestData: unknown, field: string): string | undefined => {
@@ -190,3 +223,23 @@ const numberField = (requestData: unknown, field: string): number | undefined =>
     : undefined
   return typeof value === "number" ? value : undefined
 }
+
+const recordField = (
+  requestData: unknown,
+  field: string
+): Record<string, FakeObsStreamServiceSettingValue> | undefined => {
+  const value = typeof requestData === "object" && requestData !== null
+    ? Object.entries(requestData).find(([key]) => key === field)?.[1]
+    : undefined
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return undefined
+  }
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, FakeObsStreamServiceSettingValue] =>
+      isStreamServiceSettingValue(entry[1])
+    )
+  )
+}
+
+const isStreamServiceSettingValue = (value: unknown): value is FakeObsStreamServiceSettingValue =>
+  typeof value === "string" || typeof value === "number" || typeof value === "boolean" || value === null

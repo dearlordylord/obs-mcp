@@ -15,8 +15,11 @@ import {
   SetProfileParameterOutput,
   SetRecordDirectoryInput,
   SetRecordDirectoryOutput,
+  SetStreamServiceSettingsInput,
+  SetStreamServiceSettingsOutput,
   SetVideoSettingsInput,
   SetVideoSettingsOutput,
+  StreamServiceSettingsOutput,
   VideoSettingsOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
@@ -25,6 +28,7 @@ import {
   createSceneCollection,
   getProfileParameter,
   getRecordDirectory,
+  getStreamServiceSettings,
   getVideoSettings,
   listProfiles,
   listSceneCollections,
@@ -33,6 +37,7 @@ import {
   setCurrentSceneCollection,
   setProfileParameter,
   setRecordDirectory,
+  setStreamServiceSettings,
   setVideoSettings
 } from "../../obs/operations/config.js"
 import {
@@ -42,12 +47,14 @@ import {
   GetProfileParameter,
   GetRecordDirectory,
   GetSceneCollectionList,
+  GetStreamServiceSettings,
   GetVideoSettings,
   RemoveProfile,
   SetCurrentProfile,
   SetCurrentSceneCollection,
   SetProfileParameter,
   SetRecordDirectory,
+  SetStreamServiceSettings,
   SetVideoSettings
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
@@ -126,6 +133,28 @@ export const configTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SetVideoSettingsInput,
     outputSchema: SetVideoSettingsOutput,
     handler: async (input, context) => setVideoSettings(context.client, input)
+  }),
+  defineTool({
+    name: "get_stream_service_settings",
+    title: "Get OBS Stream Service Settings",
+    description:
+      "Return OBS stream destination settings with stream keys redacted; rtmp_custom reports keyConfigured only.",
+    category: CATEGORY,
+    requiredObsRequests: [GetStreamServiceSettings.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: StreamServiceSettingsOutput,
+    handler: async (_input, context) => getStreamServiceSettings(context.client)
+  }),
+  defineTool({
+    name: "set_stream_service_settings",
+    title: "Set OBS Stream Service Settings",
+    description:
+      "Global OBS state change: set stream destination settings; rtmp_custom accepts server/key but responses redact keys.",
+    category: CATEGORY,
+    requiredObsRequests: [SetStreamServiceSettings.requestType],
+    inputSchema: SetStreamServiceSettingsInput,
+    outputSchema: SetStreamServiceSettingsOutput,
+    handler: async (input, context) => setStreamServiceSettings(context.client, input)
   }),
   defineTool({
     name: "set_current_profile",
