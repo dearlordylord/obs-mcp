@@ -20,6 +20,7 @@ export interface FakeObsInput {
   readonly inputUuid?: string
   readonly inputKind: string
   readonly unversionedInputKind: string
+  readonly inputMuted?: boolean
 }
 
 export interface FakeObsReceivedRequest {
@@ -61,6 +62,9 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
+  "GetInputMute",
+  "SetInputMute",
+  "ToggleInputMute",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",

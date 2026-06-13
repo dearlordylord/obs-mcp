@@ -3,7 +3,7 @@ import { JSONSchema, Option, Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
-import { InputLocatorInput, ListInputKindsInput } from "../../src/domain/schemas/inputs.js"
+import { InputLocatorInput, ListInputKindsInput, SetInputMuteInput } from "../../src/domain/schemas/inputs.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
@@ -31,6 +31,9 @@ const allAvailableRequests = [
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
+  "GetInputMute",
+  "SetInputMute",
+  "ToggleInputMute",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -87,6 +90,9 @@ describe("MCP tool registry", () => {
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -98,7 +104,10 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual([
       "list_inputs",
       "list_input_kinds",
-      "get_special_inputs"
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute"
     ])
   })
 
@@ -142,9 +151,13 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_inputs",
       "list_input_kinds",
-      "get_special_inputs"
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute"
     ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
+    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_mute")
   })
 
   it("filters tools by negotiated OBS capabilities", () => {
@@ -168,6 +181,19 @@ describe("MCP tool registry", () => {
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
     expect(getEnabledTools(["inputs"], ["GetInputList"]).map((tool) => tool.name)).toEqual(["list_inputs"])
+    expect(
+      getEnabledTools(["inputs"], [
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute"
+      ]).map((tool) => tool.name)
+    ).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute"
+    ])
   })
 
   it("keeps protocol schemas owned by each registered tool definition", () => {
@@ -305,10 +331,47 @@ describe("MCP tool registry", () => {
     expect(Schema.decodeUnknownSync(InputLocatorInput)({ inputUuid: "input-mic-aux" })).toEqual({
       inputUuid: "input-mic-aux"
     })
+    expect(Schema.decodeUnknownSync(SetInputMuteInput)({ inputUuid: "input-mic-aux", inputMuted: true })).toEqual({
+      inputUuid: "input-mic-aux",
+      inputMuted: true
+    })
     expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
     expect(() => Schema.decodeUnknownSync(InputLocatorInput)({})).toThrow("Exactly one")
     const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
     expect(() => Schema.decodeUnknownSync(InputLocatorInput)(duplicateLocator)).toThrow("Exactly one")
+    expect(() => Schema.decodeUnknownSync(SetInputMuteInput)({ ...duplicateLocator, inputMuted: false }))
+      .toThrow("Exactly one")
+  })
+
+  it("executes input mute handlers with structured output", async () => {
+    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const fakeClient = client(async (requestType, requestData) => {
+      seen.push({ requestType, requestData })
+      if (requestType === "GetInputMute") {
+        return { inputMuted: false }
+      }
+      if (requestType === "ToggleInputMute") {
+        return { inputMuted: true }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("get_input_mute"), { inputName: "Mic/Aux" }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({ inputMuted: false })
+    await expect(executeTool(toolByName("set_input_mute"), { inputUuid: "input-mic-aux", inputMuted: true }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({ inputMuted: true })
+    await expect(executeTool(toolByName("toggle_input_mute"), { inputUuid: "input-mic-aux" }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({ inputMuted: true })
+    expect(seen).toEqual([
+      { requestType: "GetInputMute", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputMute", requestData: { inputUuid: "input-mic-aux", inputMuted: true } },
+      { requestType: "ToggleInputMute", requestData: { inputUuid: "input-mic-aux" } }
+    ])
   })
 
   it("executes get_special_inputs handler", async () => {

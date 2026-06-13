@@ -59,6 +59,7 @@ export class FakeObsServer {
   private readonly server: WebSocketServer
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
+  private inputMuteByKey: Map<string, boolean> = new Map()
   private streamActive = false
   private virtualCamActive = false
   public lastIdentifyEventSubscriptions: unknown
@@ -83,6 +84,13 @@ export class FakeObsServer {
     const scenes = options.scenes ?? DEFAULT_SCENES
     const inputs = options.inputs ?? DEFAULT_INPUTS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
+    fake.inputMuteByKey = new Map(inputs.flatMap((input) => {
+      const muted = input.inputMuted ?? false
+      return [
+        [input.inputName, muted],
+        ...(input.inputUuid === undefined ? [] : [[input.inputUuid, muted] as const])
+      ] as const
+    }))
     fake.installHandlers(options, scenes, inputs)
     return fake
   }
@@ -102,6 +110,16 @@ export class FakeObsServer {
 
   public get requests(): ReadonlyArray<FakeObsReceivedRequest> {
     return this.receivedRequests
+  }
+
+  private inputMuteKeysFor(
+    inputs: ReadonlyArray<FakeObsInput>,
+    locator: string
+  ): ReadonlyArray<string> {
+    const input = inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
+    return input === undefined
+      ? [locator]
+      : [input.inputName, ...(input.inputUuid === undefined ? [] : [input.inputUuid])]
   }
 
   private installHandlers(
@@ -306,6 +324,28 @@ export class FakeObsServer {
     }
     if (requestType === "GetSpecialInputs") {
       send({ desktop1: "Desktop Audio", desktop2: null, mic1: "Mic/Aux", mic2: null, mic3: null, mic4: null })
+      return
+    }
+    if (requestType === "GetInputMute") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      send({ inputMuted: this.inputMuteByKey.get(locator) ?? false })
+      return
+    }
+    if (requestType === "SetInputMute") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      for (const key of this.inputMuteKeysFor(inputs, locator)) {
+        this.inputMuteByKey.set(key, envelope.d.requestData.inputMuted)
+      }
+      send()
+      return
+    }
+    if (requestType === "ToggleInputMute") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      const inputMuted = !(this.inputMuteByKey.get(locator) ?? false)
+      for (const key of this.inputMuteKeysFor(inputs, locator)) {
+        this.inputMuteByKey.set(key, inputMuted)
+      }
+      send({ inputMuted })
       return
     }
     if (requestType === "GetVirtualCamStatus") {

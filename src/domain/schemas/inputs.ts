@@ -11,6 +11,21 @@ export const InputLocatorInput = Schema.Struct({
 export type InputLocatorInput = typeof InputLocatorInput.Type
 export const InputLocatorInputJsonSchema = JSONSchema.make(InputLocatorInput)
 
+export const SetInputMuteInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputMuted: Schema.Boolean
+  })
+)
+export type SetInputMuteInput = typeof SetInputMuteInput.Type
+export const SetInputMuteInputJsonSchema = JSONSchema.make(SetInputMuteInput)
+
+export const InputMuteOutput = Schema.Struct({
+  inputMuted: Schema.Boolean
+})
+export type InputMuteOutput = typeof InputMuteOutput.Type
+export const InputMuteOutputJsonSchema = JSONSchema.make(InputMuteOutput)
+
 export const ListInputsInput = Schema.Struct({
   inputKind: Schema.optional(Schema.NonEmptyString)
 })

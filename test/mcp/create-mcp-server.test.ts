@@ -36,6 +36,9 @@ const allAvailableRequests = [
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
+  "GetInputMute",
+  "SetInputMute",
+  "ToggleInputMute",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -96,6 +99,9 @@ describe("MCP server protocol handlers", () => {
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -195,6 +201,15 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "GetInputKindList") {
           return { inputKinds: ["wasapi_input_capture"] }
         }
+        if (requestType === "GetInputMute") {
+          return { inputMuted: false }
+        }
+        if (requestType === "ToggleInputMute") {
+          return { inputMuted: true }
+        }
+        if (requestType === "SetInputMute") {
+          return {}
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -210,7 +225,10 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       "list_inputs",
       "list_input_kinds",
-      "get_special_inputs"
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute"
     ])
     await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
       .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
@@ -218,6 +236,14 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { inputKinds: ["wasapi_input_capture"] } })
     await expect(client.callTool({ name: "get_special_inputs", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
+    await expect(client.callTool({ name: "get_input_mute", arguments: { inputName: "Mic/Aux" } }))
+      .resolves.toMatchObject({ structuredContent: { inputMuted: false } })
+    await expect(client.callTool({
+      name: "set_input_mute",
+      arguments: { inputUuid: "input-mic-aux", inputMuted: true }
+    })).resolves.toMatchObject({ structuredContent: { inputMuted: true } })
+    await expect(client.callTool({ name: "toggle_input_mute", arguments: { inputUuid: "input-mic-aux" } }))
+      .resolves.toMatchObject({ structuredContent: { inputMuted: true } })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

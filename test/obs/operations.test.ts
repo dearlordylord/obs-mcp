@@ -6,7 +6,14 @@ import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
-import { getSpecialInputs, listInputKinds, listInputs } from "../../src/obs/operations/inputs.js"
+import {
+  getInputMute,
+  getSpecialInputs,
+  listInputKinds,
+  listInputs,
+  setInputMute,
+  toggleInputMute
+} from "../../src/obs/operations/inputs.js"
 import {
   getVirtualCamStatus,
   startVirtualCam,
@@ -143,6 +150,41 @@ describe("OBS operations", () => {
     })
   })
 
+  it("controls input mute over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputMute(client, { inputName: "Mic/Aux" })).resolves.toEqual({ inputMuted: false })
+    await expect(setInputMute(client, { inputName: "Mic/Aux", inputMuted: true })).resolves.toEqual({
+      inputMuted: true
+    })
+    await expect(getInputMute(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({ inputMuted: true })
+    await expect(toggleInputMute(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({ inputMuted: false })
+    expect(server.requests.filter((request) => request.requestType.includes("InputMute"))).toEqual([
+      { requestType: "GetInputMute", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputMute", requestData: { inputName: "Mic/Aux", inputMuted: true } },
+      { requestType: "GetInputMute", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "ToggleInputMute", requestData: { inputUuid: "input-mic-aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input mute controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputMute: { code: 600, comment: "Input not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputMute(client, { inputName: "Missing", inputMuted: true })).rejects.toMatchObject(
+      {
+        requestType: "SetInputMute",
+        code: 600,
+        comment: "Input not found"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -234,5 +276,19 @@ describe("OBS operations", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     expect(getEnabledTools(["stream"], client.availableRequests)).toEqual([])
+  })
+
+  it("filters input mute tools when OBS does not advertise input mute capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "GetInputList", "GetInputKindList", "GetSpecialInputs"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs"
+    ])
   })
 })

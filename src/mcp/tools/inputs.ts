@@ -1,13 +1,30 @@
 import {
+  InputLocatorInput,
+  InputMuteOutput,
   ListInputKindsInput,
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
+  SetInputMuteInput,
   SpecialInputsOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
-import { getSpecialInputs, listInputKinds, listInputs } from "../../obs/operations/inputs.js"
-import { GetInputKindList, GetInputList, GetSpecialInputs } from "../../obs/requests.js"
+import {
+  getInputMute,
+  getSpecialInputs,
+  listInputKinds,
+  listInputs,
+  setInputMute,
+  toggleInputMute
+} from "../../obs/operations/inputs.js"
+import {
+  GetInputKindList,
+  GetInputList,
+  GetInputMute,
+  GetSpecialInputs,
+  SetInputMute,
+  ToggleInputMute
+} from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
 const CATEGORY = "inputs" as const
@@ -42,5 +59,35 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: SpecialInputsOutput,
     handler: async (_input, context) => getSpecialInputs(context.client)
+  }),
+  defineTool({
+    name: "get_input_mute",
+    title: "Get OBS Input Mute",
+    description: "Return whether an OBS input is muted.",
+    category: CATEGORY,
+    requiredObsRequests: [GetInputMute.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: InputMuteOutput,
+    handler: async (input, context) => getInputMute(context.client, input)
+  }),
+  defineTool({
+    name: "set_input_mute",
+    title: "Set OBS Input Mute",
+    description: "Set whether an OBS input is muted.",
+    category: CATEGORY,
+    requiredObsRequests: [SetInputMute.requestType],
+    inputSchema: SetInputMuteInput,
+    outputSchema: InputMuteOutput,
+    handler: async (input, context) => setInputMute(context.client, input)
+  }),
+  defineTool({
+    name: "toggle_input_mute",
+    title: "Toggle OBS Input Mute",
+    description: "Toggle whether an OBS input is muted.",
+    category: CATEGORY,
+    requiredObsRequests: [ToggleInputMute.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: InputMuteOutput,
+    handler: async (input, context) => toggleInputMute(context.client, input)
   })
 ]
