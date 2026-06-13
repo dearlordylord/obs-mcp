@@ -1,4 +1,4 @@
-import { JSONSchema, Schema } from "effect"
+import { Schema } from "effect"
 
 export const StringArray = Schema.Array(Schema.String)
 export const UnknownRecord = Schema.Record({ key: Schema.String, value: Schema.Unknown })
@@ -10,5 +10,3 @@ export const EmptyInput = Schema.Struct({}).pipe(
 ).annotations({
   jsonSchema: { type: "object", properties: {}, additionalProperties: false }
 })
-export type EmptyInput = typeof EmptyInput.Type
-export const EmptyInputJsonSchema = JSONSchema.make(EmptyInput)

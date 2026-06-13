@@ -32,7 +32,11 @@ const allAvailableRequests = [
   "GetRecordStatus",
   "PauseRecord",
   "ResumeRecord",
-  "ToggleRecordPause"
+  "ToggleRecordPause",
+  "GetStreamStatus",
+  "StartStream",
+  "StopStream",
+  "ToggleStream"
 ]
 
 const obsClient = (
@@ -125,6 +129,25 @@ describe("MCP server protocol handlers", () => {
     const client = await connect(obs, { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("pause_record")
+  })
+
+  it("lists stream tools only when the stream toolset and OBS capabilities are available", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), [
+        "GetStreamStatus",
+        "StartStream",
+        "StopStream",
+        "ToggleStream"
+      ]),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "get_stream_status",
+      "start_stream",
+      "stop_stream",
+      "toggle_stream"
+    ])
   })
 
   it("returns structured success content", async () => {
@@ -228,6 +251,38 @@ describe("MCP server protocol handlers", () => {
         .resolves.toMatchObject({ isError: true })
     }
     expect(requested).toEqual([])
+  })
+
+  it("returns structured stream lifecycle content", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetStreamStatus") {
+          return {
+            outputActive: true,
+            outputReconnecting: false,
+            outputTimecode: "00:00:12.345",
+            outputDuration: 12345,
+            outputCongestion: 0,
+            outputBytes: 4096,
+            outputSkippedFrames: 0,
+            outputTotalFrames: 740
+          }
+        }
+        if (requestType === "ToggleStream") {
+          return { outputActive: false }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    await expect(client.callTool({ name: "get_stream_status", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true, outputTotalFrames: 740 } })
+    await expect(client.callTool({ name: "start_stream", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "stop_stream", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "toggle_stream", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {

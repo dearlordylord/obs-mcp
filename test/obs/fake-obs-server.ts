@@ -49,6 +49,7 @@ export class FakeObsServer {
   public readonly url: string
   private readonly server: WebSocketServer
   private currentSceneName: string
+  private streamActive = false
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
     this.server = server
@@ -211,7 +212,11 @@ export class FakeObsServer {
           "GetRecordStatus",
           "PauseRecord",
           "ResumeRecord",
-          "ToggleRecordPause"
+          "ToggleRecordPause",
+          "GetStreamStatus",
+          "StartStream",
+          "StopStream",
+          "ToggleStream"
         ],
         supportedImageFormats: ["png", "jpg"],
         platform: "ubuntu",
@@ -271,6 +276,34 @@ export class FakeObsServer {
     }
     if (requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause") {
       send()
+      return
+    }
+    if (requestType === "GetStreamStatus") {
+      send({
+        outputActive: this.streamActive,
+        outputReconnecting: false,
+        outputTimecode: this.streamActive ? "00:00:12.345" : "00:00:00.000",
+        outputDuration: this.streamActive ? 12345 : 0,
+        outputCongestion: 0,
+        outputBytes: this.streamActive ? 4096 : 0,
+        outputSkippedFrames: 0,
+        outputTotalFrames: this.streamActive ? 740 : 0
+      })
+      return
+    }
+    if (requestType === "StartStream") {
+      this.streamActive = true
+      send()
+      return
+    }
+    if (requestType === "StopStream") {
+      this.streamActive = false
+      send()
+      return
+    }
+    if (requestType === "ToggleStream") {
+      this.streamActive = !this.streamActive
+      send({ outputActive: this.streamActive })
       return
     }
     send()

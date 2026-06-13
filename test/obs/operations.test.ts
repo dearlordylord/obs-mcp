@@ -2,10 +2,13 @@ import { Option, Schema } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
+import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import { pauseRecord, resumeRecord, toggleRecordPause } from "../../src/obs/operations/record.js"
+import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
+import { getStreamStatus, startStream, stopStream, toggleStream } from "../../src/obs/operations/stream.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -122,5 +125,43 @@ describe("OBS operations", () => {
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
     clients.push(client)
     await expect(pauseRecord(client)).rejects.toThrow("PauseRecord failed")
+  })
+
+  it("gets and controls stream lifecycle state", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getStreamStatus(client)).resolves.toMatchObject({ outputActive: false, outputDuration: 0 })
+    await expect(startStream(client)).resolves.toEqual({ outputActive: true })
+    await expect(getStreamStatus(client)).resolves.toMatchObject({ outputActive: true, outputDuration: 12345 })
+    await expect(toggleStream(client)).resolves.toEqual({ outputActive: false })
+    await expect(stopStream(client)).resolves.toEqual({ outputActive: false })
+  })
+
+  it("surfaces OBS stream lifecycle request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { StartStream: { code: 207, comment: "Output already active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(startStream(client)).rejects.toMatchObject(
+      {
+        requestType: "StartStream",
+        code: 207,
+        comment: "Output already active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("filters stream tools when OBS does not advertise stream capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    expect(getEnabledTools(["stream"], client.availableRequests)).toEqual([])
   })
 })

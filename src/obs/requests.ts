@@ -3,6 +3,7 @@ import { Schema } from "effect"
 import { ObsStatsOutput, RecordStatusOutput } from "../domain/schemas/general.js"
 import { ListScenesOutput } from "../domain/schemas/scenes.js"
 import { StringArray, UnknownRecord } from "../domain/schemas/shared.js"
+import { StreamStatusOutput, ToggleStreamOutput } from "../domain/schemas/stream.js"
 
 export const ObsRequestType = Schema.Literal(
   "GetVersion",
@@ -13,7 +14,11 @@ export const ObsRequestType = Schema.Literal(
   "GetRecordStatus",
   "PauseRecord",
   "ResumeRecord",
-  "ToggleRecordPause"
+  "ToggleRecordPause",
+  "GetStreamStatus",
+  "StartStream",
+  "StopStream",
+  "ToggleStream"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
@@ -101,3 +106,27 @@ export const ToggleRecordPause = {
   requestDataSchema: EmptyRequestData,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetStreamStatus = {
+  requestType: "GetStreamStatus",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: StreamStatusOutput
+} satisfies ObsRequestDescriptor<StreamStatusOutput>
+
+export const StartStream = {
+  requestType: "StartStream",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const StopStream = {
+  requestType: "StopStream",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const ToggleStream = {
+  requestType: "ToggleStream",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: ToggleStreamOutput
+} satisfies ObsRequestDescriptor<ToggleStreamOutput>
