@@ -10,7 +10,7 @@ Recommended first run:
 cd .ralph
 pnpm install
 pnpm check
-RALPH_LANES=status-record-stream \
+RALPH_LANES=status-record-core \
 RALPH_AGENT_MODE=codex \
 RALPH_MAX_TASKS_PER_LANE=1 \
 RALPH_MAX_REVIEW_ATTEMPTS=12 \
@@ -26,5 +26,5 @@ tail -f .ralph/logs/events.jsonl
 ```
 
 The first run should stop after one task by default. Inspect the resulting
-`ralph/status-record-stream` branch and only then continue the lane or increase
+`ralph/status-record-core` branch and only then continue the lane or increase
 concurrency.

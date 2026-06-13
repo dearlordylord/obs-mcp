@@ -29,7 +29,7 @@ pnpm run run
 Run a subset:
 
 ```bash
-RALPH_LANES=status-record-stream,inputs-audio-media pnpm run run
+RALPH_LANES=status-record-core,inputs-discovery-audio-core pnpm run run
 ```
 
 ## Current Lanes
@@ -38,8 +38,12 @@ Lane specs live in `run.ts`. Tracked task plans live in `plans/` so future
 Ralph runs resume from explicit product intent instead of replanning from
 scratch.
 
-- `status-record-stream`: first safe status/control slice.
-- `inputs-audio-media`: input discovery, primitive audio controls, media input
+- `status-record-core`: stats, record status, and core record lifecycle.
+- `record-advanced`: record pause, split-file, and chapter-marker controls.
+- `stream-control`: stream status, lifecycle, and captions.
+- `inputs-discovery-audio-core`: input discovery, locator schema, mute, and
+  volume.
+- `inputs-audio-advanced-media`: input balance/monitor controls and media input
   controls.
 - `scene-items-identity`: scene-item discovery and bounded toggles.
 - `outputs-replay-virtualcam`: replay buffer and virtual camera controls.

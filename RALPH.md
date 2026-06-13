@@ -10,8 +10,12 @@ high-volume events, or HTTP transport before a human-readable plan exists.
 
 ## Current Lane Map
 
-- `status-record-stream`: `GetStats`, record tools, stream tools.
-- `inputs-audio-media`: input discovery, primitive audio controls, media input
+- `status-record-core`: `GetStats`, record status, and core record lifecycle.
+- `record-advanced`: record pause, split-file, and chapter-marker controls.
+- `stream-control`: stream status, lifecycle, and captions.
+- `inputs-discovery-audio-core`: input discovery, input locator schema, mute,
+  and volume.
+- `inputs-audio-advanced-media`: input balance/monitor controls and media input
   controls.
 - `scene-items-identity`: scene-item discovery plus enabled/locked toggles.
 - `outputs-replay-virtualcam`: virtual camera and replay buffer controls.
@@ -35,7 +39,7 @@ Run only one lane:
 
 ```bash
 cd .ralph
-RALPH_LANES=status-record-stream RALPH_AGENT_MODE=codex pnpm run run
+RALPH_LANES=status-record-core RALPH_AGENT_MODE=codex pnpm run run
 ```
 
 ## Guardrails
@@ -43,6 +47,9 @@ RALPH_LANES=status-record-stream RALPH_AGENT_MODE=codex pnpm run run
 - Official obs-websocket protocol is the implementation source of truth.
 - Competitor references and the surface matrix are priority signals only.
 - Every new tool needs explicit Effect Schema input/output types.
+- Locator schemas should make ambiguity impossible: exactly one of name or UUID
+  where OBS exposes both, and protocol-specific constraints such as `canvasUuid`
+  only with `sceneName`.
 - Preserve capability gating through `GetVersion.availableRequests`.
 - Use fake OBS websocket tests for CI; real OBS integration remains optional or
   mutation-opt-in.

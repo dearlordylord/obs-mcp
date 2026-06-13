@@ -159,19 +159,43 @@ const ensureSandcastleRuntimeAnchor = (): Effect.Effect<void, Error> =>
 
 const laneSpecs: ReadonlyArray<RalphLaneSpec> = [
   {
-    laneId: makeRalphLaneId("status-record-stream"),
-    branch: makeRalphBranchName("ralph/status-record-stream"),
-    planFile: makeRalphPlanFile("status-record-stream.md"),
+    laneId: makeRalphLaneId("status-record-core"),
+    branch: makeRalphBranchName("ralph/status-record-core"),
+    planFile: makeRalphPlanFile("status-record-core.md"),
     prompt: makeRalphPromptText(
-      "Production lane for the first OBS MCP widening batch. Add the high-value flat status/control tools from the protocol matrix: get_obs_stats, record status/control, and stream status/control. Preserve the current foundation pattern: explicit Effect Schema input/output types, request descriptors, operations, MCP registry metadata, capability gating through GetVersion.availableRequests, fake OBS websocket coverage, MCP handler tests, structured outputs, and OBS error metadata. Do not add screenshots, events, raw requests, batches, HTTP transport, or unrelated OBS categories."
+      "Production lane for the first OBS MCP widening batch. Add only get_obs_stats plus record status and core lifecycle controls: GetRecordStatus, StartRecord, StopRecord, and ToggleRecord. Treat StopRecord outputPath as opaque OBS metadata only. Preserve the current foundation pattern: explicit Effect Schema input/output types, request descriptors, operations, MCP registry metadata, capability gating through GetVersion.availableRequests, fake OBS websocket coverage, MCP handler tests, structured outputs, and OBS error metadata. Do not add stream tools, record pause/split/chapter tools, screenshots, events, raw requests, batches, HTTP transport, or unrelated OBS categories."
     )
   },
   {
-    laneId: makeRalphLaneId("inputs-audio-media"),
-    branch: makeRalphBranchName("ralph/inputs-audio-media"),
-    planFile: makeRalphPlanFile("inputs-audio-media.md"),
+    laneId: makeRalphLaneId("record-advanced"),
+    branch: makeRalphBranchName("ralph/record-advanced"),
+    planFile: makeRalphPlanFile("record-advanced.md"),
     prompt: makeRalphPromptText(
-      "Production lane for the OBS MCP inputs/media widening batch. Add input discovery and primitive audio controls first, then compact media input controls if the first task lands cleanly. Use exact official request shapes for GetInputList, GetInputKindList, GetSpecialInputs, GetInputMute, SetInputMute, ToggleInputMute, GetInputVolume, SetInputVolume, GetInputAudioBalance, SetInputAudioBalance, GetInputAudioMonitorType, SetInputAudioMonitorType, GetMediaInputStatus, SetMediaInputCursor, OffsetMediaInputCursor, and TriggerMediaInputAction. Avoid Object-shaped input settings, create/remove input lifecycle, screenshots, events, and raw passthroughs."
+      "Production lane for bounded advanced record controls after status-record-core lands. Add record pause/resume/toggle-pause, then split-file and chapter-marker tools with explicit official protocol caveats. Preserve capability gating, structured outputs, OBS error metadata, fake websocket coverage, and MCP handler tests. Do not add stream tools, generic outputs, filesystem path reads/writes, screenshots, raw requests, or events."
+    )
+  },
+  {
+    laneId: makeRalphLaneId("stream-control"),
+    branch: makeRalphBranchName("ralph/stream-control"),
+    planFile: makeRalphPlanFile("stream-control.md"),
+    prompt: makeRalphPromptText(
+      "Production lane for compact stream controls after the status/control foundation lands. Add GetStreamStatus, StartStream, StopStream, ToggleStream, and SendStreamCaption with explicit schemas and capability-gated tests. Do not add stream service settings, generic output APIs, vendor/raw requests, event subscriptions, or HTTP transport."
+    )
+  },
+  {
+    laneId: makeRalphLaneId("inputs-discovery-audio-core"),
+    branch: makeRalphBranchName("ralph/inputs-discovery-audio-core"),
+    planFile: makeRalphPlanFile("inputs-discovery-audio-core.md"),
+    prompt: makeRalphPromptText(
+      "Production lane for OBS MCP input discovery and core audio controls. Add GetInputList, GetInputKindList, GetSpecialInputs, GetInputMute, SetInputMute, ToggleInputMute, GetInputVolume, and SetInputVolume. Establish a reusable input locator schema requiring exactly one of inputName or inputUuid, and require SetInputVolume to accept exactly one of inputVolumeMul or inputVolumeDb. Avoid Object-shaped input settings, advanced audio controls, media input controls, create/remove input lifecycle, screenshots, events, and raw passthroughs."
+    )
+  },
+  {
+    laneId: makeRalphLaneId("inputs-audio-advanced-media"),
+    branch: makeRalphBranchName("ralph/inputs-audio-advanced-media"),
+    planFile: makeRalphPlanFile("inputs-audio-advanced-media.md"),
+    prompt: makeRalphPromptText(
+      "Production lane for advanced input audio controls and compact media input controls after inputs-discovery-audio-core lands. Add GetInputAudioBalance, SetInputAudioBalance, GetInputAudioMonitorType, SetInputAudioMonitorType, GetMediaInputStatus, SetMediaInputCursor, OffsetMediaInputCursor, and TriggerMediaInputAction. Reuse the core input locator schema and allow nullable mediaDuration/mediaCursor in media status output. Do not add input settings objects, properties buttons, input lifecycle mutations, screenshots, events, or raw passthroughs."
     )
   },
   {
@@ -179,7 +203,7 @@ const laneSpecs: ReadonlyArray<RalphLaneSpec> = [
     branch: makeRalphBranchName("ralph/scene-items-identity"),
     planFile: makeRalphPlanFile("scene-items-identity.md"),
     prompt: makeRalphPromptText(
-      "Production lane for the OBS MCP scene-item identity batch. Add scene-item discovery and bounded toggles only: GetSceneItemList, GetGroupSceneItemList, GetSceneItemId, GetSceneItemSource, GetSceneItemEnabled, SetSceneItemEnabled, GetSceneItemLocked, and SetSceneItemLocked. Establish reusable scene/scene-item locator conventions with sceneName and optional sceneUuid/canvasUuid where the official protocol supports them. Defer transforms, create/remove/duplicate, filters, screenshots, and broad source lifecycle until identity is proven by tests."
+      "Production lane for the OBS MCP scene-item identity batch. Add scene-item discovery and bounded toggles only: GetSceneItemList, GetGroupSceneItemList, GetSceneItemId, GetSceneItemSource, GetSceneItemEnabled, SetSceneItemEnabled, GetSceneItemLocked, and SetSceneItemLocked. Establish reusable scene/scene-item locator conventions requiring exactly one of sceneName or sceneUuid, with canvasUuid allowed only when using sceneName. Do not expose sourceUuid as an input for GetSceneItemId; the first-batch official request uses sourceName. Defer transforms, create/remove/duplicate, filters, screenshots, and broad source lifecycle until identity is proven by tests."
     )
   },
   {
@@ -187,7 +211,7 @@ const laneSpecs: ReadonlyArray<RalphLaneSpec> = [
     branch: makeRalphBranchName("ralph/outputs-replay-virtualcam"),
     planFile: makeRalphPlanFile("outputs-replay-virtualcam.md"),
     prompt: makeRalphPromptText(
-      "Production lane for the OBS MCP outputs widening batch. Add the safe output subset around virtual camera and replay buffer: GetVirtualCamStatus, StartVirtualCam, StopVirtualCam, ToggleVirtualCam, GetReplayBufferStatus, StartReplayBuffer, StopReplayBuffer, ToggleReplayBuffer, SaveReplayBuffer, and GetLastReplayBufferReplay. Keep generic outputs, output settings, raw output names, screenshots, and filesystem-heavy behavior out of this lane unless explicitly required by the official request response."
+      "Production lane for the OBS MCP outputs widening batch. Add the safe output subset around virtual camera and replay buffer: GetVirtualCamStatus, StartVirtualCam, StopVirtualCam, ToggleVirtualCam, GetReplayBufferStatus, StartReplayBuffer, StopReplayBuffer, ToggleReplayBuffer, SaveReplayBuffer, and GetLastReplayBufferReplay. Treat savedReplayPath as opaque OBS metadata only: no reads, writes, normalization, existence checks, or path policy. Keep generic outputs, output settings, raw output names, screenshots, and filesystem-heavy behavior out of this lane unless explicitly required by the official request response."
     )
   },
   {
@@ -195,7 +219,7 @@ const laneSpecs: ReadonlyArray<RalphLaneSpec> = [
     branch: makeRalphBranchName("ralph/events-foundation"),
     planFile: makeRalphPlanFile("events-foundation.md"),
     prompt: makeRalphPromptText(
-      "Production lane for the OBS MCP events foundation. Do not expose broad event streaming yet. Design and implement the smallest typed event infrastructure needed for future lanes: subscription categories, low-volume event decoding, bounded recent-event buffering or resource-shaped access if appropriate, high-volume opt-in policy, and fake websocket tests. Event support must preserve stdio stdout purity and keep high-volume events disabled by default."
+      "Production lane for the OBS MCP events foundation. Do not expose broad event streaming yet. Design and implement the smallest typed event infrastructure needed for future lanes: subscription categories, low-volume event decoding, bounded recent-event buffering or resource-shaped access if appropriate, high-volume opt-in policy, and fake websocket tests. Event support must preserve stdio stdout purity and keep high-volume events disabled by default, including InputVolumeMeters, InputActiveStateChanged, InputShowStateChanged, and SceneItemTransformChanged. Local safe-all semantics must also exclude Vendors, VendorEvent, and CustomEvent."
     )
   }
 ]
