@@ -54,8 +54,13 @@ import {
   duplicateSceneItem,
   getCurrentPreviewScene,
   getCurrentScene,
+  getSceneItemBlendMode,
+  getSceneItemEnabled,
+  getSceneItemIndex,
+  getSceneItemSource,
   getSceneItemTransform,
   getSceneTransitionOverride,
+  getSourceActive,
   listGroups,
   listGroupSceneItems,
   listSceneItems,
@@ -328,6 +333,16 @@ describe("OBS operations", () => {
           { sceneItemId: 11, sceneItemIndex: 3, sourceName: "Camera" }
         ]
       })
+    await expect(getSceneItemEnabled(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sceneItemEnabled: false })
+    await expect(getSceneItemIndex(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sceneItemIndex: 2 })
+    await expect(getSceneItemBlendMode(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sceneItemBlendMode: "OBS_BLEND_NORMAL" })
+    await expect(getSceneItemSource(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sourceName: "Title", sourceUuid: "source-10" })
+    await expect(getSourceActive(client, { sourceName: "Title" }))
+      .resolves.toEqual({ sourceName: "Title", videoActive: false, videoShowing: true })
     await expect(removeSceneItem(client, { sceneName: "Intro", sceneItemId: 9 }))
       .resolves.toEqual({ sceneName: "Intro", sceneItemId: 9, removed: true })
     await expect(listSceneItems(client, { sceneName: "Intro" }))
@@ -365,6 +380,23 @@ describe("OBS operations", () => {
         requestType: "DuplicateSceneItem",
         code: 600,
         comment: "Scene item not found"
+      })
+  })
+
+  it("duplicates scene items into the source scene when selected by scene UUID", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(duplicateSceneItem(client, { sceneUuid: "scene-intro", sceneItemId: 7 }))
+      .resolves.toEqual({ sceneUuid: "scene-intro", sceneItemId: 10, duplicated: true })
+    await expect(listSceneItems(client, { sceneUuid: "scene-intro" }))
+      .resolves.toMatchObject({
+        sceneItems: [
+          { sceneItemId: 7, sceneItemIndex: 0, sourceName: "Camera" },
+          { sceneItemId: 9, sceneItemIndex: 1, sourceName: "Lower Third" },
+          { sceneItemId: 10, sceneItemIndex: 2, sourceName: "Camera" }
+        ]
       })
   })
 

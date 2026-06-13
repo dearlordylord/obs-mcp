@@ -114,7 +114,11 @@ export const handleFakeObsSceneItemReadRequest = (
     }
     const destinationData = requestData.destinationSceneUuid !== undefined
       ? { sceneUuid: requestData.destinationSceneUuid }
-      : { sceneName: requestData.destinationSceneName ?? requestData.sceneName ?? "Intro" }
+      : requestData.destinationSceneName !== undefined
+      ? { sceneName: requestData.destinationSceneName }
+      : requestData.sceneUuid !== undefined
+      ? { sceneUuid: requestData.sceneUuid }
+      : { sceneName: requestData.sceneName ?? "Intro" }
     const key = sceneItemListKey(destinationData)
     const destinationItems = sceneItemsForState(destinationData, false, sceneItems)
     const sceneItemId = Math.max(0, ...destinationItems.map((item) => item.sceneItemId)) + 1
@@ -132,6 +136,43 @@ export const handleFakeObsSceneItemReadRequest = (
     const sceneItem = sceneItemsForState(requestData, false, sceneItems)
       .find((item) => item.sceneItemId === requestData.sceneItemId)
     send({ sourceName: sceneItem?.sourceName ?? "Camera", sourceUuid: sceneItem?.sourceUuid ?? "source-camera" })
+    return true
+  }
+  if (requestType === "GetSceneItemEnabled") {
+    const sceneItem = sceneItemsForState(requestData, false, sceneItems)
+      .find((item) => item.sceneItemId === requestData.sceneItemId)
+    send({ sceneItemEnabled: sceneItem?.sceneItemEnabled ?? true })
+    return true
+  }
+  if (requestType === "GetSceneItemLocked") {
+    const sceneItem = sceneItemsForState(requestData, false, sceneItems)
+      .find((item) => item.sceneItemId === requestData.sceneItemId)
+    send({ sceneItemLocked: sceneItem?.sceneItemLocked ?? false })
+    return true
+  }
+  if (requestType === "GetSceneItemIndex") {
+    const sceneItem = sceneItemsForState(requestData, false, sceneItems)
+      .find((item) => item.sceneItemId === requestData.sceneItemId)
+    send({ sceneItemIndex: sceneItem?.sceneItemIndex ?? 0 })
+    return true
+  }
+  if (requestType === "GetSceneItemBlendMode") {
+    const sceneItem = sceneItemsForState(requestData, false, sceneItems)
+      .find((item) => item.sceneItemId === requestData.sceneItemId)
+    send({ sceneItemBlendMode: sceneItem?.sceneItemBlendMode ?? "OBS_BLEND_NORMAL" })
+    return true
+  }
+  if (requestType === "GetSourceActive") {
+    const stateItems = [...sceneItems.values()].flat()
+    const sceneItem = [...stateItems, ...sceneItemsFor(requestData, false)]
+      .find((item) =>
+        item.sourceName === requestData.sourceName
+        || item.sourceUuid === requestData.sourceUuid
+      )
+    send({
+      videoActive: sceneItem?.sceneItemEnabled ?? false,
+      videoShowing: sceneItem !== undefined
+    })
     return true
   }
   if (requestType === "GetSceneItemTransform") {
