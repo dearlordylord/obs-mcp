@@ -369,7 +369,7 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { studioModeEnabled: true } })
   })
 
-  it("lists and calls config inventory tools through in-memory MCP handlers", async () => {
+  it("lists and calls config inventory and mutation tools through in-memory MCP handlers", async () => {
     const client = await connect(
       obsClient(async (requestType) => {
         if (requestType === "GetProfileList") {
@@ -381,8 +381,22 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "GetProfileParameter") {
           return { parameterValue: null, defaultParameterValue: "2500" }
         }
-        return { recordDirectory: "/opaque/obs-recordings" }
-      }, ["GetProfileList", "GetSceneCollectionList", "GetProfileParameter", "GetRecordDirectory"]),
+        if (requestType === "GetRecordDirectory") {
+          return { recordDirectory: "/opaque/obs-recordings" }
+        }
+        return {}
+      }, [
+        "GetProfileList",
+        "GetSceneCollectionList",
+        "GetProfileParameter",
+        "GetRecordDirectory",
+        "SetCurrentProfile",
+        "CreateProfile",
+        "RemoveProfile",
+        "SetCurrentSceneCollection",
+        "CreateSceneCollection",
+        "SetProfileParameter"
+      ]),
       { ...config, enabledToolsets: ["config"] }
     )
     const tools = await client.listTools()
@@ -390,7 +404,13 @@ describe("MCP server protocol handlers", () => {
       "list_profiles",
       "list_scene_collections",
       "get_profile_parameter",
-      "get_record_directory"
+      "get_record_directory",
+      "set_current_profile",
+      "create_profile",
+      "remove_profile",
+      "set_current_scene_collection",
+      "create_scene_collection",
+      "set_profile_parameter"
     ])
     await expect(client.callTool({ name: "list_profiles", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { currentProfileName: "Production" } })
@@ -404,6 +424,18 @@ describe("MCP server protocol handlers", () => {
     })
     await expect(client.callTool({ name: "get_record_directory", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { recordDirectory: "/opaque/obs-recordings" } })
+    await expect(client.callTool({ name: "set_current_profile", arguments: { profileName: "Production" } }))
+      .resolves.toMatchObject({ structuredContent: { profileName: "Production", switched: true } })
+    await expect(client.callTool({ name: "create_profile", arguments: { profileName: "Show" } }))
+      .resolves.toMatchObject({ structuredContent: { profileName: "Show", created: true, switched: true } })
+    await expect(client.callTool({
+      name: "set_current_scene_collection",
+      arguments: { sceneCollectionName: "Main Scenes" }
+    })).resolves.toMatchObject({ structuredContent: { sceneCollectionName: "Main Scenes", switched: true } })
+    await expect(client.callTool({
+      name: "set_profile_parameter",
+      arguments: { parameterCategory: "SimpleOutput", parameterName: "VBitrate", parameterValue: null }
+    })).resolves.toMatchObject({ structuredContent: { parameterValue: null, acknowledged: true } })
   })
 
   it("lists and calls transition inventory tools through in-memory MCP handlers", async () => {

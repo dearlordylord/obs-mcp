@@ -100,7 +100,18 @@ const inputAvailableRequests = [
 ] satisfies ReadonlyArray<ObsRequestType>
 
 const canvasToolNames = ["list_canvases"]
-const configToolNames = ["list_profiles", "list_scene_collections", "get_profile_parameter", "get_record_directory"]
+const configToolNames = [
+  "list_profiles",
+  "list_scene_collections",
+  "get_profile_parameter",
+  "get_record_directory",
+  "set_current_profile",
+  "create_profile",
+  "remove_profile",
+  "set_current_scene_collection",
+  "create_scene_collection",
+  "set_profile_parameter"
+]
 const uiToolNames = ["get_studio_mode_enabled"]
 const transitionToolNames = [
   "list_transition_kinds",
@@ -469,9 +480,24 @@ describe("MCP tool registry", () => {
     expect(
       getEnabledTools(["config"], [
         "GetProfileList",
-        "GetProfileParameter"
+        "GetProfileParameter",
+        "SetCurrentProfile",
+        "CreateProfile",
+        "RemoveProfile",
+        "SetCurrentSceneCollection",
+        "CreateSceneCollection",
+        "SetProfileParameter"
       ]).map((tool) => tool.name)
-    ).toEqual(["list_profiles", "get_profile_parameter"])
+    ).toEqual([
+      "list_profiles",
+      "get_profile_parameter",
+      "set_current_profile",
+      "create_profile",
+      "remove_profile",
+      "set_current_scene_collection",
+      "create_scene_collection",
+      "set_profile_parameter"
+    ])
     expect(getEnabledTools(["config"], []).map((tool) => tool.name)).toEqual([])
   })
 
@@ -727,8 +753,10 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ studioModeEnabled: true })
   })
 
-  it("executes config inventory handlers with structured output", async () => {
-    const fakeClient = clientWithData(async (requestType) => {
+  it("executes config inventory and mutation handlers with structured output", async () => {
+    const seenRequests: Array<readonly [ObsRequestType, unknown]> = []
+    const fakeClient = clientWithData(async (requestType, requestData) => {
+      seenRequests.push([requestType, requestData])
       if (requestType === "GetProfileList") {
         return { currentProfileName: "Production", profiles: ["Untitled", "Production"] }
       }
@@ -737,6 +765,9 @@ describe("MCP tool registry", () => {
       }
       if (requestType === "GetProfileParameter") {
         return { parameterValue: null, defaultParameterValue: "2500" }
+      }
+      if (requestType === "GetRecordDirectory") {
+        return { recordDirectory: "/opaque/obs-recordings" }
       }
       return { recordDirectory: "/opaque/obs-recordings" }
     })
@@ -760,10 +791,63 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
     })).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
+    await expect(executeTool(toolByName("set_current_profile"), { profileName: "Production" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ profileName: "Production", switched: true })
+    await expect(executeTool(toolByName("create_profile"), { profileName: "Show" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ profileName: "Show", created: true, switched: true })
+    await expect(executeTool(toolByName("remove_profile"), { profileName: "Show" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ profileName: "Show", removed: true })
+    await expect(executeTool(toolByName("set_current_scene_collection"), {
+      sceneCollectionName: "Main Scenes"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ sceneCollectionName: "Main Scenes", switched: true })
+    await expect(executeTool(toolByName("create_scene_collection"), {
+      sceneCollectionName: "Event Scenes"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ sceneCollectionName: "Event Scenes", created: true, switched: true })
+    await expect(executeTool(toolByName("set_profile_parameter"), {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: null
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: null,
+      acknowledged: true
+    })
+    expect(seenRequests).toEqual(expect.arrayContaining([
+      ["SetCurrentProfile", { profileName: "Production" }],
+      ["CreateProfile", { profileName: "Show" }],
+      ["RemoveProfile", { profileName: "Show" }],
+      ["SetCurrentSceneCollection", { sceneCollectionName: "Main Scenes" }],
+      ["CreateSceneCollection", { sceneCollectionName: "Event Scenes" }],
+      ["SetProfileParameter", {
+        parameterCategory: "SimpleOutput",
+        parameterName: "VBitrate",
+        parameterValue: null
+      }]
+    ]))
     await expect(executeTool(toolByName("get_profile_parameter"), {
       parameterCategory: "",
       parameterName: "VBitrate"
     }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_current_profile"), { profileName: "" }, {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
@@ -896,7 +980,7 @@ describe("MCP tool registry", () => {
     })
   })
 
-  it("maps config read OBS errors to MCP errors with OBS status metadata", async () => {
+  it("maps config read and mutation OBS errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("get_profile_parameter"), {
       parameterCategory: "Missing",
       parameterName: "Value"
@@ -911,6 +995,21 @@ describe("MCP tool registry", () => {
         requestType: "GetProfileParameter",
         obsStatusCode: 601,
         comment: "Parameter category not found"
+      }
+    })
+    await expect(executeTool(toolByName("set_current_profile"), {
+      profileName: "Missing"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetCurrentProfile", 601, "Profile not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetCurrentProfile",
+        obsStatusCode: 601,
+        comment: "Profile not found"
       }
     })
   })

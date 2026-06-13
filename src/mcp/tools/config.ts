@@ -1,18 +1,44 @@
 import {
+  CreateProfileOutput,
+  CreateSceneCollectionOutput,
   ProfileListOutput,
+  ProfileNameInput,
   ProfileParameterInput,
   ProfileParameterOutput,
   RecordDirectoryOutput,
-  SceneCollectionListOutput
+  RemoveProfileOutput,
+  SceneCollectionListOutput,
+  SceneCollectionNameInput,
+  SetCurrentProfileOutput,
+  SetCurrentSceneCollectionOutput,
+  SetProfileParameterInput,
+  SetProfileParameterOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  createProfile,
+  createSceneCollection,
   getProfileParameter,
   getRecordDirectory,
   listProfiles,
-  listSceneCollections
+  listSceneCollections,
+  removeProfile,
+  setCurrentProfile,
+  setCurrentSceneCollection,
+  setProfileParameter
 } from "../../obs/operations/config.js"
-import { GetProfileList, GetProfileParameter, GetRecordDirectory, GetSceneCollectionList } from "../../obs/requests.js"
+import {
+  CreateProfile,
+  CreateSceneCollection,
+  GetProfileList,
+  GetProfileParameter,
+  GetRecordDirectory,
+  GetSceneCollectionList,
+  RemoveProfile,
+  SetCurrentProfile,
+  SetCurrentSceneCollection,
+  SetProfileParameter
+} from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
 const CATEGORY = "config" as const
@@ -57,5 +83,65 @@ export const configTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: RecordDirectoryOutput,
     handler: async (_input, context) => getRecordDirectory(context.client)
+  }),
+  defineTool({
+    name: "set_current_profile",
+    title: "Set Current OBS Profile",
+    description: "Global OBS state change: switch the current OBS profile to a non-empty existing profile name.",
+    category: CATEGORY,
+    requiredObsRequests: [SetCurrentProfile.requestType],
+    inputSchema: ProfileNameInput,
+    outputSchema: SetCurrentProfileOutput,
+    handler: async (input, context) => setCurrentProfile(context.client, input)
+  }),
+  defineTool({
+    name: "create_profile",
+    title: "Create OBS Profile",
+    description: "Global OBS state change: create a non-empty OBS profile name and switch OBS to that profile.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateProfile.requestType],
+    inputSchema: ProfileNameInput,
+    outputSchema: CreateProfileOutput,
+    handler: async (input, context) => createProfile(context.client, input)
+  }),
+  defineTool({
+    name: "remove_profile",
+    title: "Remove OBS Profile",
+    description: "Global OBS state change: remove a non-empty OBS profile name; OBS may switch profiles first.",
+    category: CATEGORY,
+    requiredObsRequests: [RemoveProfile.requestType],
+    inputSchema: ProfileNameInput,
+    outputSchema: RemoveProfileOutput,
+    handler: async (input, context) => removeProfile(context.client, input)
+  }),
+  defineTool({
+    name: "set_current_scene_collection",
+    title: "Set Current OBS Scene Collection",
+    description: "Global OBS state change: switch the current OBS scene collection to a non-empty existing name.",
+    category: CATEGORY,
+    requiredObsRequests: [SetCurrentSceneCollection.requestType],
+    inputSchema: SceneCollectionNameInput,
+    outputSchema: SetCurrentSceneCollectionOutput,
+    handler: async (input, context) => setCurrentSceneCollection(context.client, input)
+  }),
+  defineTool({
+    name: "create_scene_collection",
+    title: "Create OBS Scene Collection",
+    description: "Global OBS state change: create a non-empty OBS scene collection name and switch OBS to it.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateSceneCollection.requestType],
+    inputSchema: SceneCollectionNameInput,
+    outputSchema: CreateSceneCollectionOutput,
+    handler: async (input, context) => createSceneCollection(context.client, input)
+  }),
+  defineTool({
+    name: "set_profile_parameter",
+    title: "Set OBS Profile Parameter",
+    description: "Global OBS state change: set or delete a current profile parameter by category and name.",
+    category: CATEGORY,
+    requiredObsRequests: [SetProfileParameter.requestType],
+    inputSchema: SetProfileParameterInput,
+    outputSchema: SetProfileParameterOutput,
+    handler: async (input, context) => setProfileParameter(context.client, input)
   })
 ]

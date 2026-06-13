@@ -2,16 +2,22 @@ import { Option, Schema } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
-import { ProfileParameterInput } from "../../src/domain/schemas/config.js"
+import { ProfileNameInput, ProfileParameterInput, SetProfileParameterInput } from "../../src/domain/schemas/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { listCanvases } from "../../src/obs/operations/canvases.js"
 import {
+  createProfile,
+  createSceneCollection,
   getProfileParameter,
   getRecordDirectory,
   listProfiles,
-  listSceneCollections
+  listSceneCollections,
+  removeProfile,
+  setCurrentProfile,
+  setCurrentSceneCollection,
+  setProfileParameter
 } from "../../src/obs/operations/config.js"
 import {
   getObsStats,
@@ -234,16 +240,104 @@ describe("OBS operations", () => {
     await expect(getRecordDirectory(client)).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
   })
 
-  it("validates config read schemas", () => {
+  it("mutates config state through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      profiles: ["Untitled", "Production"],
+      currentProfileName: "Untitled",
+      sceneCollections: ["Main Scenes"],
+      currentSceneCollectionName: "Main Scenes",
+      profileParameters: [{
+        parameterCategory: "SimpleOutput",
+        parameterName: "VBitrate",
+        parameterValue: "2500",
+        defaultParameterValue: "2500"
+      }]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(createProfile(client, { profileName: "Show" })).resolves.toEqual({
+      profileName: "Show",
+      created: true,
+      switched: true
+    })
+    await expect(listProfiles(client)).resolves.toEqual({
+      currentProfileName: "Show",
+      profiles: ["Untitled", "Production", "Show"]
+    })
+    await expect(setCurrentProfile(client, { profileName: "Production" })).resolves.toEqual({
+      profileName: "Production",
+      switched: true
+    })
+    await expect(removeProfile(client, { profileName: "Production" })).resolves.toEqual({
+      profileName: "Production",
+      removed: true
+    })
+    await expect(listProfiles(client)).resolves.toEqual({
+      currentProfileName: "Untitled",
+      profiles: ["Untitled", "Show"]
+    })
+
+    await expect(createSceneCollection(client, { sceneCollectionName: "Event Scenes" })).resolves.toEqual({
+      sceneCollectionName: "Event Scenes",
+      created: true,
+      switched: true
+    })
+    await expect(setCurrentSceneCollection(client, { sceneCollectionName: "Main Scenes" })).resolves.toEqual({
+      sceneCollectionName: "Main Scenes",
+      switched: true
+    })
+    await expect(listSceneCollections(client)).resolves.toEqual({
+      currentSceneCollectionName: "Main Scenes",
+      sceneCollections: ["Main Scenes", "Event Scenes"]
+    })
+
+    await expect(setProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: "6000"
+    })).resolves.toEqual({
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: "6000",
+      acknowledged: true
+    })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate"
+    })).resolves.toEqual({ parameterValue: "6000", defaultParameterValue: "2500" })
+    await expect(setProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: null
+    })).resolves.toMatchObject({ parameterValue: null })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate"
+    })).resolves.toEqual({ parameterValue: null, defaultParameterValue: "2500" })
+  })
+
+  it("validates config read and mutation schemas", () => {
     expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "", parameterName: "Mode" }))
       .toThrow()
     expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "Output", parameterName: "" }))
       .toThrow()
+    expect(() => Schema.decodeUnknownSync(ProfileNameInput)({ profileName: "" })).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SetProfileParameterInput)({
+        parameterCategory: "Output",
+        parameterName: "Mode"
+      })
+    ).toThrow()
   })
 
-  it("surfaces OBS config read request failures", async () => {
+  it("surfaces OBS config read and mutation request failures", async () => {
     const server = await FakeObsServer.start({
-      failRequests: { GetProfileParameter: { code: 601, comment: "Parameter category not found" } }
+      failRequests: {
+        GetProfileParameter: { code: 601, comment: "Parameter category not found" },
+        SetCurrentProfile: { code: 601, comment: "Profile not found" }
+      }
     })
     servers.push(server)
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["config"] })
@@ -256,6 +350,13 @@ describe("OBS operations", () => {
         requestType: "GetProfileParameter",
         code: 601,
         comment: "Parameter category not found"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setCurrentProfile(client, { profileName: "Missing" })).rejects.toMatchObject(
+      {
+        requestType: "SetCurrentProfile",
+        code: 601,
+        comment: "Profile not found"
       } satisfies Partial<ObsRequestError>
     )
   })
