@@ -3,7 +3,7 @@ import { shouldSurfaceSafeEvent } from "./protocol.js"
 
 const DEFAULT_OBS_EVENT_BUFFER_CAPACITY = 100
 
-interface BufferedObsEvent {
+export interface BufferedObsEvent {
   readonly sequence: number
   readonly eventType: string
   readonly eventIntent: number

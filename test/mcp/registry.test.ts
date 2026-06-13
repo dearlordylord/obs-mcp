@@ -9,6 +9,7 @@ import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/regi
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
 import type { ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
+import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 
 const config: ObsConfig = {
@@ -82,6 +83,14 @@ const toolByName = (name: string): ToolDefinition => {
   return tool
 }
 
+const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsClient => ({
+  negotiatedRpcVersion: 1,
+  availableRequests: allAvailableRequests,
+  request: async (descriptor) => Schema.decodeUnknownSync(descriptor.responseSchema)({}),
+  getBufferedEvents: () => events,
+  close: async () => undefined
+})
+
 describe("MCP tool registry", () => {
   it("exposes exactly the enabled tools by default", () => {
     expect(getEnabledTools(config.enabledToolsets).map((tool) => tool.name)).toEqual([
@@ -131,6 +140,14 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("exposes recent safe OBS events only when the events toolset is enabled", () => {
+    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_recent_obs_events"
+    ])
+    expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name))
+      .not.toContain("get_recent_obs_events")
+  })
+
   it("filters disabled categories", () => {
     expect(getEnabledTools([])).toEqual([])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).not.toContain(
@@ -143,6 +160,9 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_version",
       "get_obs_stats"
+    ])
+    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_recent_obs_events"
     ])
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
@@ -423,6 +443,175 @@ describe("MCP tool registry", () => {
       executeTool(toolByName("set_current_scene"), { sceneName: "" }, { config, client: client(async () => ({})) })
     )
       .rejects.toBeInstanceOf(McpError)
+  })
+
+  it("rejects invalid recent event limits through schema validation", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 0 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 10, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+
+    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 101 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 10, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("returns recent safe OBS event summaries with ordering and category filters", async () => {
+    const obsEvents = eventClient({
+      capacity: 5,
+      droppedEvents: 1,
+      events: [
+        {
+          sequence: 1,
+          eventType: "CurrentProgramSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Intro" }
+        },
+        {
+          sequence: 2,
+          eventType: "InputMuteStateChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Mic/Aux", inputMuted: true }
+        },
+        {
+          sequence: 3,
+          eventType: "RecordStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: undefined
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("get_recent_obs_events"), { limit: 2 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: obsEvents
+    })).resolves.toEqual({
+      capacity: 5,
+      droppedEvents: 1,
+      returnedEvents: 2,
+      order: "newest_first",
+      events: [
+        { sequence: 3, eventType: "RecordStateChanged", eventIntent: EventSubscription.Outputs, category: "outputs" },
+        {
+          sequence: 2,
+          eventType: "InputMuteStateChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs"
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["scenes"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: obsEvents
+    })).resolves.toEqual({
+      capacity: 5,
+      droppedEvents: 1,
+      returnedEvents: 1,
+      order: "oldest_first",
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        category: "scenes"
+      }]
+    })
+  })
+
+  it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 7,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Intro" }
+          },
+          {
+            sequence: 2,
+            eventType: "VendorEvent",
+            eventIntent: EventSubscription.Vendors,
+            eventData: { vendorName: "plugin", payload: { secret: true } }
+          },
+          {
+            sequence: 3,
+            eventType: "CustomEvent",
+            eventIntent: EventSubscription.General,
+            eventData: { arbitrary: true }
+          },
+          {
+            sequence: 4,
+            eventType: "InputVolumeMeters",
+            eventIntent: EventSubscription.InputVolumeMeters,
+            eventData: { inputs: [] }
+          },
+          {
+            sequence: 5,
+            eventType: "InputActiveStateChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Camera", videoActive: true }
+          },
+          {
+            sequence: 6,
+            eventType: "InputShowStateChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Camera", videoShowing: true }
+          },
+          {
+            sequence: 7,
+            eventType: "SceneItemTransformChanged",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: { sceneName: "Scene", sceneItemId: 1 }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 7,
+      droppedEvents: 0,
+      returnedEvents: 1,
+      order: "oldest_first",
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        category: "scenes"
+      }]
+    })
+  })
+
+  it("summarizes buffered events with unknown categories", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { categories: ["unknown"] }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 1,
+        droppedEvents: 0,
+        events: [{
+          sequence: 1,
+          eventType: "MysteryEvent",
+          eventIntent: EventSubscription.None,
+          eventData: undefined
+        }]
+      })
+    })).resolves.toEqual({
+      capacity: 1,
+      droppedEvents: 0,
+      returnedEvents: 1,
+      order: "newest_first",
+      events: [{
+        sequence: 1,
+        eventType: "MysteryEvent",
+        eventIntent: EventSubscription.None,
+        category: "unknown"
+      }]
+    })
   })
 
   it("rejects invalid scene-item locator params through schema validation", async () => {

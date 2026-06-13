@@ -8,6 +8,7 @@ import type { ObsConfig } from "../../src/config/config.js"
 import { createObsMcpServer } from "../../src/mcp/create-mcp-server.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
+import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "../obs/fake-obs-server.js"
 
@@ -61,13 +62,14 @@ const allAvailableRequests = [
 
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
-  availableRequests: ReadonlyArray<string> = allAvailableRequests
+  availableRequests: ReadonlyArray<string> = allAvailableRequests,
+  bufferedEvents: ReturnType<ObsClient["getBufferedEvents"]> = { capacity: 0, droppedEvents: 0, events: [] }
 ): ObsClient => ({
   negotiatedRpcVersion: 1,
   availableRequests,
   request: async (descriptor) =>
     Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType)),
-  getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
+  getBufferedEvents: () => bufferedEvents,
   close: async () => undefined
 })
 
@@ -162,6 +164,15 @@ describe("MCP server protocol handlers", () => {
       "get_version",
       "get_obs_stats"
     ])
+  })
+
+  it("lists recent event tools only for the events toolset", async () => {
+    const client = await connect(obsClient(async () => ({})), {
+      ...config,
+      enabledToolsets: ["events"]
+    })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual(["get_recent_obs_events"])
   })
 
   it("hides record pause tools when fake OBS does not advertise the pause capabilities", async () => {
@@ -348,6 +359,56 @@ describe("MCP server protocol handlers", () => {
     })).resolves.toMatchObject({
       structuredContent: { sourceName: "Camera", videoActive: true, videoShowing: false }
     })
+  })
+
+  it("returns structured recent safe OBS events", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 3,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Intro" }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "get_recent_obs_events",
+      arguments: { order: "oldest_first", categories: ["scenes"] }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        capacity: 3,
+        droppedEvents: 0,
+        returnedEvents: 1,
+        order: "oldest_first",
+        events: [{
+          sequence: 1,
+          eventType: "CurrentProgramSceneChanged",
+          category: "scenes"
+        }]
+      }
+    })
+  })
+
+  it("rejects invalid recent event limits before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({ name: "get_recent_obs_events", arguments: { limit: 0 } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams
+          }
+        }
+      })
   })
 
   it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {
