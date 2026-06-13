@@ -1,6 +1,8 @@
 import { Schema } from "effect"
 
 import {
+  CreateSceneInput,
+  CreateSceneOutput,
   CurrentSceneOutput,
   GetSceneItemBlendModeInput,
   GetSceneItemBlendModeOutput,
@@ -23,6 +25,8 @@ import {
   ListSceneItemsOutput,
   ListScenesInput,
   ListScenesOutput,
+  RemoveSceneInput,
+  RemoveSceneOutput,
   SetCurrentPreviewSceneInput,
   SetCurrentPreviewSceneOutput,
   SetCurrentSceneInput,
@@ -34,10 +38,13 @@ import {
   SetSceneItemIndexInput,
   SetSceneItemIndexOutput,
   SetSceneItemLockedInput,
-  SetSceneItemLockedOutput
+  SetSceneItemLockedOutput,
+  SetSceneNameInput,
+  SetSceneNameOutput
 } from "../../domain/schemas/scenes.js"
 import type { ObsClient } from "../client.js"
 import {
+  CreateScene,
   GetCurrentPreviewScene,
   GetCurrentProgramScene,
   GetGroupList,
@@ -51,12 +58,14 @@ import {
   GetSceneItemSource,
   GetSceneList,
   GetSourceActive,
+  RemoveScene,
   SetCurrentPreviewScene,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
   SetSceneItemIndex,
-  SetSceneItemLocked
+  SetSceneItemLocked,
+  SetSceneName
 } from "../requests.js"
 
 export const listScenes = async (client: ObsClient, input: ListScenesInput): Promise<ListScenesOutput> => {
@@ -114,6 +123,50 @@ export const setCurrentPreviewScene = async (
     : { sceneName: decodedInput.sceneName }
   await client.request(SetCurrentPreviewScene, requestData)
   return Schema.decodeUnknownSync(SetCurrentPreviewSceneOutput)({ ...requestData, updated: true })
+}
+
+const sceneLocatorRequestData = (input: RemoveSceneInput): Record<string, string> =>
+  input.sceneUuid !== undefined
+    ? { sceneUuid: input.sceneUuid }
+    : input.canvasUuid === undefined
+    ? { sceneName: input.sceneName }
+    : { sceneName: input.sceneName, canvasUuid: input.canvasUuid }
+
+export const createScene = async (
+  client: ObsClient,
+  input: CreateSceneInput
+): Promise<CreateSceneOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(CreateSceneInput)(input)
+  const response = await client.request(CreateScene, decodedInput)
+  return Schema.decodeUnknownSync(CreateSceneOutput)({
+    sceneName: decodedInput.sceneName,
+    sceneUuid: response.sceneUuid,
+    created: true
+  })
+}
+
+export const removeScene = async (
+  client: ObsClient,
+  input: RemoveSceneInput
+): Promise<RemoveSceneOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(RemoveSceneInput)(input)
+  const requestData = sceneLocatorRequestData(decodedInput)
+  await client.request(RemoveScene, requestData)
+  return Schema.decodeUnknownSync(RemoveSceneOutput)({ ...requestData, removed: true })
+}
+
+export const setSceneName = async (
+  client: ObsClient,
+  input: SetSceneNameInput
+): Promise<SetSceneNameOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSceneNameInput)(input)
+  const locator = sceneLocatorRequestData(decodedInput)
+  await client.request(SetSceneName, { ...locator, newSceneName: decodedInput.newSceneName })
+  return Schema.decodeUnknownSync(SetSceneNameOutput)({
+    ...locator,
+    newSceneName: decodedInput.newSceneName,
+    renamed: true
+  })
 }
 
 export const listSceneItems = async (

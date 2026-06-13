@@ -1,6 +1,7 @@
 import { Schema } from "effect"
 
 import {
+  CreateSceneInput,
   GetSceneItemBlendModeInput,
   GetSceneItemBlendModeOutput,
   GetSceneItemEnabledInput,
@@ -21,10 +22,12 @@ import {
   ListSceneItemsInput,
   ListSceneItemsOutput,
   ListScenesOutput,
+  RemoveSceneInput,
   SetSceneItemBlendModeInput,
   SetSceneItemEnabledInput,
   SetSceneItemIndexInput,
-  SetSceneItemLockedInput
+  SetSceneItemLockedInput,
+  SetSceneNameInput
 } from "../../domain/schemas/scenes.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
@@ -93,6 +96,29 @@ const SetCurrentPreviewSceneRequest = Schema.Union(
 export const SetCurrentPreviewScene = {
   requestType: "SetCurrentPreviewScene",
   requestDataSchema: SetCurrentPreviewSceneRequest,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+const CreateSceneResponse = Schema.Struct({
+  sceneUuid: Schema.optional(Schema.String)
+})
+type CreateSceneResponse = typeof CreateSceneResponse.Type
+
+export const CreateScene = {
+  requestType: "CreateScene",
+  requestDataSchema: CreateSceneInput,
+  responseSchema: CreateSceneResponse
+} satisfies ObsRequestDescriptor<CreateSceneResponse>
+
+export const RemoveScene = {
+  requestType: "RemoveScene",
+  requestDataSchema: RemoveSceneInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const SetSceneName = {
+  requestType: "SetSceneName",
+  requestDataSchema: SetSceneNameInput,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
 

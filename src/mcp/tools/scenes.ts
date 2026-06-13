@@ -1,6 +1,7 @@
 import * as SceneSchemas from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  createScene,
   getCurrentPreviewScene,
   getCurrentScene,
   getSceneItemBlendMode,
@@ -14,14 +15,17 @@ import {
   listGroupSceneItems,
   listSceneItems,
   listScenes,
+  removeScene,
   setCurrentPreviewScene,
   setCurrentScene,
   setSceneItemBlendMode,
   setSceneItemEnabled,
   setSceneItemIndex,
-  setSceneItemLocked
+  setSceneItemLocked,
+  setSceneName
 } from "../../obs/operations/scenes.js"
 import {
+  CreateScene,
   GetCurrentPreviewScene,
   GetCurrentProgramScene,
   GetGroupList,
@@ -35,12 +39,14 @@ import {
   GetSceneItemSource,
   GetSceneList,
   GetSourceActive,
+  RemoveScene,
   SetCurrentPreviewScene,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
   SetSceneItemIndex,
-  SetSceneItemLocked
+  SetSceneItemLocked,
+  SetSceneName
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -107,6 +113,36 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.SetCurrentPreviewSceneInput,
     outputSchema: SceneSchemas.SetCurrentPreviewSceneOutput,
     handler: async (input, context) => setCurrentPreviewScene(context.client, input)
+  }),
+  defineTool({
+    name: "create_scene",
+    title: "Create OBS Scene",
+    description: "Create an empty OBS scene by name and return its UUID when OBS provides one.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateScene.requestType],
+    inputSchema: SceneSchemas.CreateSceneInput,
+    outputSchema: SceneSchemas.CreateSceneOutput,
+    handler: async (input, context) => createScene(context.client, input)
+  }),
+  defineTool({
+    name: "remove_scene",
+    title: "Remove OBS Scene",
+    description: "Remove an OBS scene selected by name or UUID.",
+    category: CATEGORY,
+    requiredObsRequests: [RemoveScene.requestType],
+    inputSchema: SceneSchemas.RemoveSceneInput,
+    outputSchema: SceneSchemas.RemoveSceneOutput,
+    handler: async (input, context) => removeScene(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_name",
+    title: "Rename OBS Scene",
+    description: "Rename an OBS scene selected by name or UUID.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneName.requestType],
+    inputSchema: SceneSchemas.SetSceneNameInput,
+    outputSchema: SceneSchemas.SetSceneNameOutput,
+    handler: async (input, context) => setSceneName(context.client, input)
   }),
   defineTool({
     name: "list_scene_items",

@@ -81,6 +81,63 @@ export const SetCurrentPreviewSceneOutput = Schema.Struct({
 export type SetCurrentPreviewSceneOutput = typeof SetCurrentPreviewSceneOutput.Type
 export const SetCurrentPreviewSceneOutputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneOutput)
 
+export const CreateSceneInput = Schema.Struct({
+  sceneName: Schema.NonEmptyString,
+  canvasUuid: Schema.optional(Schema.NonEmptyString)
+})
+export type CreateSceneInput = typeof CreateSceneInput.Type
+export const CreateSceneInputJsonSchema = JSONSchema.make(CreateSceneInput)
+
+export const CreateSceneOutput = Schema.Struct({
+  sceneName: Schema.String,
+  sceneUuid: Schema.optional(Schema.String),
+  created: Schema.Literal(true)
+})
+export type CreateSceneOutput = typeof CreateSceneOutput.Type
+export const CreateSceneOutputJsonSchema = JSONSchema.make(CreateSceneOutput)
+
+export const RemoveSceneInput = SceneLocator
+export type RemoveSceneInput = typeof RemoveSceneInput.Type
+export const RemoveSceneInputJsonSchema = JSONSchema.make(RemoveSceneInput)
+
+export const RemoveSceneOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  removed: Schema.Literal(true)
+})
+export type RemoveSceneOutput = typeof RemoveSceneOutput.Type
+export const RemoveSceneOutputJsonSchema = JSONSchema.make(RemoveSceneOutput)
+
+const SetSceneNameFields = {
+  newSceneName: Schema.NonEmptyString
+} as const
+
+export const SetSceneNameInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SetSceneNameFields
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SetSceneNameFields
+  })
+)
+export type SetSceneNameInput = typeof SetSceneNameInput.Type
+export const SetSceneNameInputJsonSchema = JSONSchema.make(SetSceneNameInput)
+
+export const SetSceneNameOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  newSceneName: Schema.String,
+  renamed: Schema.Literal(true)
+})
+export type SetSceneNameOutput = typeof SetSceneNameOutput.Type
+export const SetSceneNameOutputJsonSchema = JSONSchema.make(SetSceneNameOutput)
+
 const SceneItemId = Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
 const LastMatchSearchOffset = -1
 

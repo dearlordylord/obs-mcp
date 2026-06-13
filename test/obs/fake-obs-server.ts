@@ -13,6 +13,7 @@ import {
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
+import { handleFakeObsSceneLifecycleRequest } from "./fake-obs-scene-requests.js"
 
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
@@ -114,9 +115,10 @@ export class FakeObsServer {
 
   private installHandlers(
     options: FakeObsServerOptions,
-    scenes: ReadonlyArray<FakeObsScene>,
+    initialScenes: ReadonlyArray<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>
   ): void {
+    const scenes = [...initialScenes]
     this.server.on("connection", (socket) => {
       const salt = "salt"
       const challenge = "challenge"
@@ -170,7 +172,7 @@ export class FakeObsServer {
     socket: WebSocket,
     text: string,
     options: FakeObsServerOptions,
-    scenes: ReadonlyArray<FakeObsScene>,
+    scenes: Array<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>
   ): void {
     const envelope = JSON.parse(text)
@@ -241,6 +243,12 @@ export class FakeObsServer {
         setTimeout(write, options.delayResponsesMs)
       }
     }
+    const sendError = (code: number, comment: string): void => {
+      socket.send(JSON.stringify({
+        op: OP_REQUEST_RESPONSE,
+        d: { requestType, requestId, requestStatus: { result: false, code, comment } }
+      }))
+    }
 
     if (requestType === "GetVersion") {
       send({
@@ -307,6 +315,23 @@ export class FakeObsServer {
       )
       this.currentPreviewSceneName = next?.sceneName ?? envelope.d.requestData.sceneName
       send()
+      return
+    }
+    const sceneLifecycle = handleFakeObsSceneLifecycleRequest(
+      requestType,
+      envelope.d.requestData ?? {},
+      scenes,
+      this.currentSceneName,
+      this.currentPreviewSceneName
+    )
+    if (sceneLifecycle.handled) {
+      this.currentSceneName = sceneLifecycle.currentSceneName ?? this.currentSceneName
+      this.currentPreviewSceneName = sceneLifecycle.currentPreviewSceneName ?? this.currentPreviewSceneName
+      if (sceneLifecycle.error === undefined) {
+        send(sceneLifecycle.responseData)
+      } else {
+        sendError(sceneLifecycle.error.code, sceneLifecycle.error.comment)
+      }
       return
     }
     if (requestType === "GetSceneItemList" || requestType === "GetGroupSceneItemList") {

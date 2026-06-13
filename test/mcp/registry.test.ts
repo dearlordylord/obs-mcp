@@ -185,6 +185,9 @@ describe("MCP tool registry", () => {
       "get_current_preview_scene",
       "set_current_scene",
       "set_current_preview_scene",
+      "create_scene",
+      "remove_scene",
+      "set_scene_name",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -243,6 +246,7 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).not.toContain(
       "get_stream_status"
     )
+    expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).not.toContain("create_scene")
   })
 
   it("filters tools by toolset category", () => {
@@ -272,6 +276,9 @@ describe("MCP tool registry", () => {
       "get_current_preview_scene",
       "set_current_scene",
       "set_current_preview_scene",
+      "create_scene",
+      "remove_scene",
+      "set_scene_name",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -516,6 +523,36 @@ describe("MCP tool registry", () => {
         return {}
       })
     })).resolves.toEqual({ sceneUuid: "scene-preview", updated: true })
+  })
+
+  it("executes scene lifecycle handlers with structured request payloads", async () => {
+    await expect(executeTool(toolByName("create_scene"), { sceneName: "Break" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("CreateScene")
+        expect(requestData).toEqual({ sceneName: "Break" })
+        return { sceneUuid: "scene-break" }
+      })
+    })).resolves.toEqual({ sceneName: "Break", sceneUuid: "scene-break", created: true })
+    await expect(executeTool(toolByName("remove_scene"), { sceneUuid: "scene-break" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("RemoveScene")
+        expect(requestData).toEqual({ sceneUuid: "scene-break" })
+        return {}
+      })
+    })).resolves.toEqual({ sceneUuid: "scene-break", removed: true })
+    await expect(executeTool(toolByName("set_scene_name"), {
+      sceneName: "Break",
+      newSceneName: "Intermission"
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetSceneName")
+        expect(requestData).toEqual({ sceneName: "Break", newSceneName: "Intermission" })
+        return {}
+      })
+    })).resolves.toEqual({ sceneName: "Break", newSceneName: "Intermission", renamed: true })
   })
 
   it("executes get_version, get_obs_stats, get_current_scene, and get_record_status handlers", async () => {
@@ -1012,6 +1049,20 @@ describe("MCP tool registry", () => {
   it("rejects invalid scene params through schema validation", async () => {
     await expect(
       executeTool(toolByName("set_current_scene"), { sceneName: "" }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("create_scene"), { sceneName: "" }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("set_scene_name"), { sceneName: "Intro", newSceneName: "" }, {
         config,
         client: fakeObsClient(async () => ({}))
       })

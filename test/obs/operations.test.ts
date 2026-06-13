@@ -49,12 +49,15 @@ import {
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
 import {
+  createScene,
   getCurrentPreviewScene,
   getCurrentScene,
   listGroups,
   listScenes,
+  removeScene,
   setCurrentPreviewScene,
-  setCurrentScene
+  setCurrentScene,
+  setSceneName
 } from "../../src/obs/operations/scenes.js"
 import {
   getStreamStatus,
@@ -156,6 +159,53 @@ describe("OBS operations", () => {
     await expect(setCurrentPreviewScene(client, { sceneUuid: "scene-main" }))
       .resolves.toEqual({ sceneUuid: "scene-main", updated: true })
     await expect(getCurrentPreviewScene(client)).resolves.toEqual({ sceneName: "Main", sceneUuid: "scene-main" })
+  })
+
+  it("creates, renames, and removes scenes through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createScene(client, { sceneName: "Break" }))
+      .resolves.toEqual({ sceneName: "Break", sceneUuid: "scene-break", created: true })
+    await expect(listScenes(client, { includeGroups: true }))
+      .resolves.toMatchObject({
+        scenes: expect.arrayContaining([expect.objectContaining({ sceneName: "Break", sceneUuid: "scene-break" })])
+      })
+    await expect(setSceneName(client, { sceneUuid: "scene-break", newSceneName: "Intermission" }))
+      .resolves.toEqual({ sceneUuid: "scene-break", newSceneName: "Intermission", renamed: true })
+    await expect(listScenes(client, { includeGroups: true }))
+      .resolves.toMatchObject({
+        scenes: expect.arrayContaining([
+          expect.objectContaining({ sceneName: "Intermission", sceneUuid: "scene-break" })
+        ])
+      })
+    await expect(removeScene(client, { sceneName: "Intermission" }))
+      .resolves.toEqual({ sceneName: "Intermission", removed: true })
+    const scenes = await listScenes(client, { includeGroups: true })
+    expect(scenes.scenes.map((scene) => scene.sceneName)).not.toContain("Intermission")
+  })
+
+  it("surfaces duplicate and missing scene lifecycle OBS errors", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createScene(client, { sceneName: "Intro" })).rejects.toMatchObject({
+      requestType: "CreateScene",
+      code: 601,
+      comment: "Scene already exists"
+    })
+    await expect(removeScene(client, { sceneName: "Missing" })).rejects.toMatchObject({
+      requestType: "RemoveScene",
+      code: 601,
+      comment: "Scene not found"
+    })
+    await expect(setSceneName(client, { sceneName: "Missing", newSceneName: "Other" })).rejects.toMatchObject({
+      requestType: "SetSceneName",
+      code: 601,
+      comment: "Scene not found"
+    })
   })
 
   it("discovers inputs and input kinds through the fake OBS protocol", async () => {
