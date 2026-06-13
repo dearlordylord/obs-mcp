@@ -180,8 +180,11 @@ describe("MCP tool registry", () => {
       "get_version",
       "get_obs_stats",
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -264,8 +267,11 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -492,6 +498,24 @@ describe("MCP tool registry", () => {
       }))
     })
     expect(output).toMatchObject({ scenes: [{ sceneName: "Intro" }] })
+  })
+
+  it("executes group and studio mode preview scene handlers", async () => {
+    await expect(executeTool(toolByName("list_groups"), {}, {
+      config,
+      client: fakeObsClient(async () => ({ groups: ["Group"] }))
+    })).resolves.toEqual({ groups: ["Group"] })
+    await expect(executeTool(toolByName("get_current_preview_scene"), {}, {
+      config,
+      client: fakeObsClient(async () => ({ sceneName: "Preview", sceneUuid: "scene-preview" }))
+    })).resolves.toEqual({ sceneName: "Preview", sceneUuid: "scene-preview" })
+    await expect(executeTool(toolByName("set_current_preview_scene"), { sceneUuid: "scene-preview" }, {
+      config,
+      client: fakeObsClient(async (_requestType, requestData) => {
+        expect(requestData).toEqual({ sceneUuid: "scene-preview" })
+        return {}
+      })
+    })).resolves.toEqual({ sceneUuid: "scene-preview", updated: true })
   })
 
   it("executes get_version, get_obs_stats, get_current_scene, and get_record_status handlers", async () => {
@@ -1656,8 +1680,11 @@ describe("MCP tool registry", () => {
       getEnabledTools(["scenes"], [
         "GetVersion",
         "GetSceneList",
+        "GetGroupList",
         "GetCurrentProgramScene",
+        "GetCurrentPreviewScene",
         "SetCurrentProgramScene",
+        "SetCurrentPreviewScene",
         "GetSceneItemEnabled",
         "SetSceneItemEnabled",
         "GetSceneItemLocked",
@@ -1670,8 +1697,11 @@ describe("MCP tool registry", () => {
       ]).map((tool) => tool.name)
     ).toEqual([
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -1691,6 +1721,22 @@ describe("MCP tool registry", () => {
         throw new ObsRequestError("SetCurrentProgramScene", 608, "Parameter: sceneName")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+  })
+
+  it("preserves OBS preview unavailable errors from studio mode preview operations", async () => {
+    await expect(executeTool(toolByName("set_current_preview_scene"), { sceneName: "Preview" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("SetCurrentPreviewScene", 207, "Studio mode is not enabled")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InternalError,
+      data: {
+        comment: "Studio mode is not enabled",
+        obsStatusCode: 207,
+        requestType: "SetCurrentPreviewScene"
+      }
+    })
   })
 
   it("maps stream operation errors to MCP errors with OBS status metadata", async () => {

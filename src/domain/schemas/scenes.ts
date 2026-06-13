@@ -24,6 +24,12 @@ export const ListScenesOutput = Schema.Struct({
 export type ListScenesOutput = typeof ListScenesOutput.Type
 export const ListScenesOutputJsonSchema = JSONSchema.make(ListScenesOutput)
 
+export const ListGroupsOutput = Schema.Struct({
+  groups: Schema.Array(Schema.String)
+})
+export type ListGroupsOutput = typeof ListGroupsOutput.Type
+export const ListGroupsOutputJsonSchema = JSONSchema.make(ListGroupsOutput)
+
 export const CurrentSceneOutput = Schema.Struct({
   sceneName: Schema.String,
   sceneUuid: Schema.optional(Schema.String)
@@ -62,6 +68,18 @@ export type SceneUuidLocator = typeof SceneUuidLocator.Type
 
 export const SceneLocator = Schema.Union(SceneNameLocator, SceneUuidLocator)
 export type SceneLocator = typeof SceneLocator.Type
+
+export const SetCurrentPreviewSceneInput = SceneLocator
+export type SetCurrentPreviewSceneInput = typeof SetCurrentPreviewSceneInput.Type
+export const SetCurrentPreviewSceneInputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneInput)
+
+export const SetCurrentPreviewSceneOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  updated: Schema.Literal(true)
+})
+export type SetCurrentPreviewSceneOutput = typeof SetCurrentPreviewSceneOutput.Type
+export const SetCurrentPreviewSceneOutputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneOutput)
 
 const SceneItemId = Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
 const LastMatchSearchOffset = -1

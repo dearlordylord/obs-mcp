@@ -17,6 +17,7 @@ import {
   GetSourceActiveOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
+  ListGroupsOutput,
   ListSceneItemsInput,
   ListSceneItemsOutput,
   ListScenesOutput,
@@ -34,6 +35,12 @@ export const GetSceneList = {
   responseSchema: ListScenesOutput
 } satisfies ObsRequestDescriptor<ListScenesOutput>
 
+export const GetGroupList = {
+  requestType: "GetGroupList",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: ListGroupsOutput
+} satisfies ObsRequestDescriptor<ListGroupsOutput>
+
 const GetCurrentProgramSceneResponse = Schema.Struct({
   sceneName: Schema.optional(Schema.String),
   sceneUuid: Schema.optional(Schema.String),
@@ -48,6 +55,20 @@ export const GetCurrentProgramScene = {
   responseSchema: GetCurrentProgramSceneResponse
 } satisfies ObsRequestDescriptor<GetCurrentProgramSceneResponse>
 
+const GetCurrentPreviewSceneResponse = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  currentPreviewSceneName: Schema.optional(Schema.String),
+  currentPreviewSceneUuid: Schema.optional(Schema.String)
+})
+type GetCurrentPreviewSceneResponse = typeof GetCurrentPreviewSceneResponse.Type
+
+export const GetCurrentPreviewScene = {
+  requestType: "GetCurrentPreviewScene",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: GetCurrentPreviewSceneResponse
+} satisfies ObsRequestDescriptor<GetCurrentPreviewSceneResponse>
+
 const SetCurrentProgramSceneRequest = Schema.Struct({
   sceneName: Schema.NonEmptyString
 })
@@ -55,6 +76,23 @@ const SetCurrentProgramSceneRequest = Schema.Struct({
 export const SetCurrentProgramScene = {
   requestType: "SetCurrentProgramScene",
   requestDataSchema: SetCurrentProgramSceneRequest,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+const SetCurrentPreviewSceneRequest = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: Schema.optional(Schema.Never)
+  }),
+  Schema.Struct({
+    sceneName: Schema.optional(Schema.Never),
+    sceneUuid: Schema.NonEmptyString
+  })
+)
+
+export const SetCurrentPreviewScene = {
+  requestType: "SetCurrentPreviewScene",
+  requestDataSchema: SetCurrentPreviewSceneRequest,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
 

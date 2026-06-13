@@ -1,6 +1,7 @@
 import * as SceneSchemas from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  getCurrentPreviewScene,
   getCurrentScene,
   getSceneItemBlendMode,
   getSceneItemEnabled,
@@ -9,9 +10,11 @@ import {
   getSceneItemLocked,
   getSceneItemSource,
   getSourceActive,
+  listGroups,
   listGroupSceneItems,
   listSceneItems,
   listScenes,
+  setCurrentPreviewScene,
   setCurrentScene,
   setSceneItemBlendMode,
   setSceneItemEnabled,
@@ -19,7 +22,9 @@ import {
   setSceneItemLocked
 } from "../../obs/operations/scenes.js"
 import {
+  GetCurrentPreviewScene,
   GetCurrentProgramScene,
+  GetGroupList,
   GetGroupSceneItemList,
   GetSceneItemBlendMode,
   GetSceneItemEnabled,
@@ -30,6 +35,7 @@ import {
   GetSceneItemSource,
   GetSceneList,
   GetSourceActive,
+  SetCurrentPreviewScene,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
@@ -52,6 +58,16 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     handler: async (input, context) => listScenes(context.client, input)
   }),
   defineTool({
+    name: "list_groups",
+    title: "List OBS Groups",
+    description: "Return OBS group names. OBS groups are represented as specialized scenes.",
+    category: CATEGORY,
+    requiredObsRequests: [GetGroupList.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: SceneSchemas.ListGroupsOutput,
+    handler: async (_input, context) => listGroups(context.client)
+  }),
+  defineTool({
     name: "get_current_scene",
     title: "Get Current OBS Scene",
     description: "Return the current OBS program scene name and UUID when OBS provides one.",
@@ -62,6 +78,16 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     handler: async (_input, context) => getCurrentScene(context.client)
   }),
   defineTool({
+    name: "get_current_preview_scene",
+    title: "Get Current OBS Preview Scene",
+    description: "Return the current OBS Studio Mode preview scene name and UUID when preview is available.",
+    category: CATEGORY,
+    requiredObsRequests: [GetCurrentPreviewScene.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: SceneSchemas.CurrentSceneOutput,
+    handler: async (_input, context) => getCurrentPreviewScene(context.client)
+  }),
+  defineTool({
     name: "set_current_scene",
     title: "Set Current OBS Scene",
     description: "Switch the current OBS program scene by scene name.",
@@ -70,6 +96,17 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.SetCurrentSceneInput,
     outputSchema: SceneSchemas.SetCurrentSceneOutput,
     handler: async (input, context) => setCurrentScene(context.client, input)
+  }),
+  defineTool({
+    name: "set_current_preview_scene",
+    title: "Set Current OBS Preview Scene",
+    description:
+      "Set the OBS Studio Mode preview scene by scene name or UUID. OBS returns an error when preview is unavailable.",
+    category: CATEGORY,
+    requiredObsRequests: [SetCurrentPreviewScene.requestType],
+    inputSchema: SceneSchemas.SetCurrentPreviewSceneInput,
+    outputSchema: SceneSchemas.SetCurrentPreviewSceneOutput,
+    handler: async (input, context) => setCurrentPreviewScene(context.client, input)
   }),
   defineTool({
     name: "list_scene_items",

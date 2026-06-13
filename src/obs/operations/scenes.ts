@@ -18,10 +18,13 @@ import {
   GetSourceActiveOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
+  ListGroupsOutput,
   ListSceneItemsInput,
   ListSceneItemsOutput,
   ListScenesInput,
   ListScenesOutput,
+  SetCurrentPreviewSceneInput,
+  SetCurrentPreviewSceneOutput,
   SetCurrentSceneInput,
   SetCurrentSceneOutput,
   SetSceneItemBlendModeInput,
@@ -35,7 +38,9 @@ import {
 } from "../../domain/schemas/scenes.js"
 import type { ObsClient } from "../client.js"
 import {
+  GetCurrentPreviewScene,
   GetCurrentProgramScene,
+  GetGroupList,
   GetGroupSceneItemList,
   GetSceneItemBlendMode,
   GetSceneItemEnabled,
@@ -46,6 +51,7 @@ import {
   GetSceneItemSource,
   GetSceneList,
   GetSourceActive,
+  SetCurrentPreviewScene,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
@@ -62,6 +68,9 @@ export const listScenes = async (client: ObsClient, input: ListScenesInput): Pro
   return Schema.decodeUnknownSync(ListScenesOutput)({ ...response, scenes })
 }
 
+export const listGroups = async (client: ObsClient): Promise<ListGroupsOutput> =>
+  Schema.decodeUnknownSync(ListGroupsOutput)(await client.request(GetGroupList))
+
 export const getCurrentScene = async (client: ObsClient): Promise<CurrentSceneOutput> => {
   const response = await client.request(GetCurrentProgramScene)
   const sceneName = response.sceneName ?? response.currentProgramSceneName
@@ -74,6 +83,18 @@ export const getCurrentScene = async (client: ObsClient): Promise<CurrentSceneOu
   })
 }
 
+export const getCurrentPreviewScene = async (client: ObsClient): Promise<CurrentSceneOutput> => {
+  const response = await client.request(GetCurrentPreviewScene)
+  const sceneName = response.sceneName ?? response.currentPreviewSceneName
+  if (sceneName === undefined) {
+    throw new Error("OBS did not return a current preview scene name")
+  }
+  return Schema.decodeUnknownSync(CurrentSceneOutput)({
+    sceneName,
+    sceneUuid: response.sceneUuid ?? response.currentPreviewSceneUuid
+  })
+}
+
 export const setCurrentScene = async (
   client: ObsClient,
   input: SetCurrentSceneInput
@@ -81,6 +102,18 @@ export const setCurrentScene = async (
   const decodedInput = Schema.decodeUnknownSync(SetCurrentSceneInput)(input)
   await client.request(SetCurrentProgramScene, { sceneName: decodedInput.sceneName })
   return Schema.decodeUnknownSync(SetCurrentSceneOutput)({ sceneName: decodedInput.sceneName, switched: true })
+}
+
+export const setCurrentPreviewScene = async (
+  client: ObsClient,
+  input: SetCurrentPreviewSceneInput
+): Promise<SetCurrentPreviewSceneOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetCurrentPreviewSceneInput)(input)
+  const requestData = "sceneUuid" in decodedInput
+    ? { sceneUuid: decodedInput.sceneUuid }
+    : { sceneName: decodedInput.sceneName }
+  await client.request(SetCurrentPreviewScene, requestData)
+  return Schema.decodeUnknownSync(SetCurrentPreviewSceneOutput)({ ...requestData, updated: true })
 }
 
 export const listSceneItems = async (

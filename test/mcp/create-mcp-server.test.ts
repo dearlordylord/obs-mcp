@@ -57,8 +57,11 @@ describe("MCP server protocol handlers", () => {
       "get_version",
       "get_obs_stats",
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -101,6 +104,8 @@ describe("MCP server protocol handlers", () => {
       "toggle_record_pause"
     ])
     expect(tools.tools.find((tool) => tool.name === "set_current_scene")?.inputSchema.required).toEqual(["sceneName"])
+    expect(tools.tools.find((tool) => tool.name === "set_current_preview_scene")?.inputSchema)
+      .toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_current_scene")?.outputSchema?.properties)
       .toHaveProperty("sceneName")
     expect(tools.tools.find((tool) => tool.name === "get_record_status")?.outputSchema?.properties)

@@ -34,8 +34,11 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `get_obs_stats`
 - `get_recent_obs_events`
 - `list_scenes`
+- `list_groups`
 - `get_current_scene`
+- `get_current_preview_scene`
 - `set_current_scene`
+- `set_current_preview_scene`
 - `list_scene_items`
 - `list_group_scene_items`
 - `get_scene_item_id`

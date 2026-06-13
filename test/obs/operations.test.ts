@@ -48,7 +48,14 @@ import {
   toggleRecord,
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
-import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
+import {
+  getCurrentPreviewScene,
+  getCurrentScene,
+  listGroups,
+  listScenes,
+  setCurrentPreviewScene,
+  setCurrentScene
+} from "../../src/obs/operations/scenes.js"
 import {
   getStreamStatus,
   sendStreamCaption,
@@ -122,6 +129,14 @@ describe("OBS operations", () => {
     expect(noGroups.scenes.map((scene) => scene.sceneName)).toEqual(["Intro", "Main"])
   })
 
+  it("lists groups through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listGroups(client)).resolves.toEqual({ groups: ["Group"] })
+  })
+
   it("gets and sets the current scene", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -130,6 +145,17 @@ describe("OBS operations", () => {
     await expect(getCurrentScene(client)).resolves.toEqual({ sceneName: "Intro", sceneUuid: "scene-intro" })
     await expect(setCurrentScene(client, { sceneName: "Main" })).resolves.toEqual({ sceneName: "Main", switched: true })
     await expect(getCurrentScene(client)).resolves.toEqual({ sceneName: "Main", sceneUuid: "scene-main" })
+  })
+
+  it("gets and sets the current studio mode preview scene", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getCurrentPreviewScene(client)).resolves.toEqual({ sceneName: "Intro", sceneUuid: "scene-intro" })
+    await expect(setCurrentPreviewScene(client, { sceneUuid: "scene-main" }))
+      .resolves.toEqual({ sceneUuid: "scene-main", updated: true })
+    await expect(getCurrentPreviewScene(client)).resolves.toEqual({ sceneName: "Main", sceneUuid: "scene-main" })
   })
 
   it("discovers inputs and input kinds through the fake OBS protocol", async () => {
@@ -593,6 +619,13 @@ describe("OBS operations", () => {
     await expect(getCurrentScene(fakeClient(async () => ({
       currentProgramSceneName: "Fallback",
       currentProgramSceneUuid: "fallback-uuid"
+    })))).resolves.toEqual({ sceneName: "Fallback", sceneUuid: "fallback-uuid" })
+  })
+
+  it("uses deprecated current preview scene fields as fallbacks", async () => {
+    await expect(getCurrentPreviewScene(fakeClient(async () => ({
+      currentPreviewSceneName: "Fallback",
+      currentPreviewSceneUuid: "fallback-uuid"
     })))).resolves.toEqual({ sceneName: "Fallback", sceneUuid: "fallback-uuid" })
   })
 

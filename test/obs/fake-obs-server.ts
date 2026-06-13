@@ -63,6 +63,7 @@ export class FakeObsServer {
   public readonly url: string
   private readonly server: WebSocketServer
   private currentSceneName: string
+  private currentPreviewSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private inputState: FakeObsInputState = new FakeObsInputState([])
   private readonly outputState = new FakeObsOutputState()
@@ -72,6 +73,7 @@ export class FakeObsServer {
     this.server = server
     this.url = url
     this.currentSceneName = currentSceneName
+    this.currentPreviewSceneName = currentSceneName
     this.lastIdentifyEventSubscriptions = undefined
   }
 
@@ -270,13 +272,18 @@ export class FakeObsServer {
     }
     if (requestType === "GetSceneList") {
       const current = scenes.find((scene) => scene.sceneName === this.currentSceneName) ?? scenes[0]
+      const preview = scenes.find((scene) => scene.sceneName === this.currentPreviewSceneName) ?? scenes[0]
       send({
         currentProgramSceneName: current?.sceneName ?? null,
         currentProgramSceneUuid: current?.sceneUuid ?? null,
-        currentPreviewSceneName: null,
-        currentPreviewSceneUuid: null,
+        currentPreviewSceneName: preview?.sceneName ?? null,
+        currentPreviewSceneUuid: preview?.sceneUuid ?? null,
         scenes
       })
+      return
+    }
+    if (requestType === "GetGroupList") {
+      send({ groups: scenes.filter((scene) => scene.isGroup === true).map((scene) => scene.sceneName) })
       return
     }
     if (requestType === "GetCurrentProgramScene") {
@@ -284,8 +291,21 @@ export class FakeObsServer {
       send({ sceneName: current?.sceneName ?? "Intro", sceneUuid: current?.sceneUuid })
       return
     }
+    if (requestType === "GetCurrentPreviewScene") {
+      const preview = scenes.find((scene) => scene.sceneName === this.currentPreviewSceneName) ?? scenes[0]
+      send({ sceneName: preview?.sceneName ?? "Intro", sceneUuid: preview?.sceneUuid })
+      return
+    }
     if (requestType === "SetCurrentProgramScene") {
       this.currentSceneName = envelope.d.requestData.sceneName
+      send()
+      return
+    }
+    if (requestType === "SetCurrentPreviewScene") {
+      const next = scenes.find((scene) =>
+        scene.sceneName === envelope.d.requestData.sceneName || scene.sceneUuid === envelope.d.requestData.sceneUuid
+      )
+      this.currentPreviewSceneName = next?.sceneName ?? envelope.d.requestData.sceneName
       send()
       return
     }
