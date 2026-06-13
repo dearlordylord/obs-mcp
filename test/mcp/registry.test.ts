@@ -235,6 +235,20 @@ describe("MCP tool registry", () => {
       .not.toContain("get_recent_obs_events")
   })
 
+  it("exposes persistent data tools only when the admin_raw toolset and OBS capabilities are enabled", () => {
+    expect(getEnabledTools(["admin_raw"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_persistent_data",
+      "set_persistent_data"
+    ])
+    expect(getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name))
+      .not.toContain("get_persistent_data")
+    expect(
+      getEnabledTools(["admin_raw"], allAvailableRequests.filter((request) => request !== "SetPersistentData"))
+        .map((tool) => tool.name)
+    )
+      .toEqual(["get_persistent_data"])
+  })
+
   it("filters disabled categories", () => {
     expect(getEnabledTools([])).toEqual([])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).not.toContain(
@@ -1595,6 +1609,60 @@ describe("MCP tool registry", () => {
         category: "unknown"
       }]
     })
+  })
+
+  it("executes persistent data handlers without echoing set slot values", async () => {
+    const seenRequests: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const client = fakeObsClient(async (requestType, requestData) => {
+      seenRequests.push({ requestType, requestData })
+      return requestType === "GetPersistentData"
+        ? { slotValue: { token: "visible-on-read", flags: [true, null] } }
+        : {}
+    })
+    const adminConfig: ObsConfig = { ...config, enabledToolsets: ["admin_raw"] }
+    const locator = { realm: "OBS_WEBSOCKET_DATA_REALM_GLOBAL", slotName: "ralph.secret" }
+
+    await expect(executeTool(toolByName("get_persistent_data"), locator, {
+      config: adminConfig,
+      client
+    })).resolves.toEqual({
+      ...locator,
+      slotValue: { token: "visible-on-read", flags: [true, null] }
+    })
+
+    const setOutput = await executeTool(toolByName("set_persistent_data"), {
+      ...locator,
+      slotValue: { token: "s3cr3t", nested: ["ok"] }
+    }, {
+      config: adminConfig,
+      client
+    })
+
+    expect(setOutput).toEqual({ ...locator, updated: true })
+    expect(JSON.stringify(setOutput)).not.toContain("s3cr3t")
+    expect(seenRequests).toContainEqual({
+      requestType: "SetPersistentData",
+      requestData: { ...locator, slotValue: { token: "s3cr3t", nested: ["ok"] } }
+    })
+  })
+
+  it("rejects non JSON-safe persistent data values and invalid realms", async () => {
+    await expect(executeTool(toolByName("set_persistent_data"), {
+      realm: "OBS_WEBSOCKET_DATA_REALM_PROFILE",
+      slotName: "bad",
+      slotValue: { missing: undefined }
+    }, {
+      config: { ...config, enabledToolsets: ["admin_raw"] },
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+
+    await expect(executeTool(toolByName("get_persistent_data"), {
+      realm: "OBS_WEBSOCKET_DATA_REALM_VENDOR",
+      slotName: "bad"
+    }, {
+      config: { ...config, enabledToolsets: ["admin_raw"] },
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
   })
 
   it("rejects invalid scene-item locator params through schema validation", async () => {

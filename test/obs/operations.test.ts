@@ -38,6 +38,7 @@ import {
   toggleReplayBuffer,
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
+import { getPersistentData, setPersistentData } from "../../src/obs/operations/persistent-data.js"
 import {
   createRecordChapter,
   pauseRecord,
@@ -109,6 +110,25 @@ describe("OBS operations", () => {
       outputDuration: 0,
       outputBytes: 0
     })
+  })
+
+  it("gets and sets JSON-safe OBS persistent data through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["admin_raw"] })
+    clients.push(client)
+    const locator = { realm: "OBS_WEBSOCKET_DATA_REALM_PROFILE" as const, slotName: "ralph.task8" }
+    const slotValue = { count: 2, nested: [true, null, "ok"] }
+
+    await expect(setPersistentData(client, { ...locator, slotValue })).resolves.toEqual({
+      ...locator,
+      updated: true
+    })
+    await expect(getPersistentData(client, locator)).resolves.toEqual({ ...locator, slotValue })
+    expect(server.requests.filter((request) => request.requestType.includes("PersistentData"))).toEqual([
+      { requestType: "SetPersistentData", requestData: { ...locator, slotValue } },
+      { requestType: "GetPersistentData", requestData: locator }
+    ])
   })
 
   it("lists scenes and can filter groups", async () => {

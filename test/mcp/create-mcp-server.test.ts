@@ -157,6 +157,30 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual(["get_recent_obs_events"])
   })
 
+  it("lists persistent data tools only for admin_raw and advertised OBS capabilities", async () => {
+    const adminClient = await connect(
+      obsClient(async () => ({}), ["GetPersistentData", "SetPersistentData"]),
+      { ...config, enabledToolsets: ["admin_raw"] }
+    )
+    const adminTools = await adminClient.listTools()
+    expect(adminTools.tools.map((tool) => tool.name)).toEqual([
+      "get_persistent_data",
+      "set_persistent_data"
+    ])
+
+    const partialClient = await connect(
+      obsClient(async () => ({}), ["GetPersistentData"]),
+      { ...config, enabledToolsets: ["admin_raw"] }
+    )
+    const partialTools = await partialClient.listTools()
+    expect(partialTools.tools.map((tool) => tool.name)).toEqual(["get_persistent_data"])
+
+    const defaultClient = await connect(obsClient(async () => ({}), ["GetPersistentData", "SetPersistentData"]))
+    const defaultTools = await defaultClient.listTools()
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("get_persistent_data")
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("set_persistent_data")
+  })
+
   it("hides record lifecycle and pause tools when fake OBS does not advertise the capabilities", async () => {
     const fakeObs = await FakeObsServer.start({ availableRequestsValue: ["GetVersion"] })
     fakeObsServers.push(fakeObs)
@@ -464,6 +488,84 @@ describe("MCP server protocol handlers", () => {
           }
         }
       })
+  })
+
+  it("returns structured persistent data results without echoing set slot values", async () => {
+    const requested: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const client = await connect(
+      fakeObsClient(async (requestType, requestData) => {
+        requested.push({ requestType, requestData })
+        return requestType === "GetPersistentData"
+          ? { slotValue: { token: "visible-on-read", flags: [true, null] } }
+          : {}
+      }, ["GetPersistentData", "SetPersistentData"]),
+      {
+        ...config,
+        enabledToolsets: ["admin_raw"]
+      }
+    )
+    const locator = { realm: "OBS_WEBSOCKET_DATA_REALM_PROFILE", slotName: "ralph.task8" }
+
+    await expect(client.callTool({ name: "get_persistent_data", arguments: locator }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          ...locator,
+          slotValue: { token: "visible-on-read", flags: [true, null] }
+        }
+      })
+
+    const setResult = await client.callTool({
+      name: "set_persistent_data",
+      arguments: { ...locator, slotValue: { token: "s3cr3t", nested: ["ok"] } }
+    })
+
+    expect(setResult).toMatchObject({ structuredContent: { ...locator, updated: true } })
+    expect(JSON.stringify(setResult.structuredContent)).not.toContain("s3cr3t")
+    expect(setResult.content).toEqual([{ type: "text", text: JSON.stringify({ ...locator, updated: true }) }])
+    expect(JSON.stringify(setResult.content)).not.toContain("s3cr3t")
+    expect(requested).toEqual([
+      { requestType: "GetPersistentData", requestData: locator },
+      {
+        requestType: "SetPersistentData",
+        requestData: { ...locator, slotValue: { token: "s3cr3t", nested: ["ok"] } }
+      }
+    ])
+  })
+
+  it("rejects invalid persistent data slot values before OBS requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      fakeObsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }, ["SetPersistentData"]),
+      {
+        ...config,
+        enabledToolsets: ["admin_raw"]
+      }
+    )
+
+    const result = await client.callTool({
+      name: "set_persistent_data",
+      arguments: {
+        realm: "OBS_WEBSOCKET_DATA_REALM_GLOBAL",
+        slotName: "ralph.bad",
+        slotValue: { token: "s3cr3t", missing: undefined }
+      }
+    })
+
+    expect(result).toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams,
+          message: expect.stringContaining("Invalid arguments for set_persistent_data")
+        }
+      }
+    })
+    expect(JSON.stringify(result.content)).not.toContain("s3cr3t")
+    expect(JSON.stringify(result._meta)).not.toContain("s3cr3t")
+    expect(requested).toEqual([])
   })
 
   it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {

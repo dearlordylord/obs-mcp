@@ -185,7 +185,9 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "StartStream",
   "StopStream",
   "ToggleStream",
-  "SendStreamCaption"
+  "SendStreamCaption",
+  "GetPersistentData",
+  "SetPersistentData"
 ]
 
 export const sceneItemsFor = (

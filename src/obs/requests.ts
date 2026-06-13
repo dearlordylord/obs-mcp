@@ -60,13 +60,16 @@ export const ObsRequestType = Schema.Literal(
   "StartStream",
   "StopStream",
   "ToggleStream",
-  "SendStreamCaption"
+  "SendStreamCaption",
+  "GetPersistentData",
+  "SetPersistentData"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
 export * from "./requests/general.js"
 export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"
+export * from "./requests/persistent-data.js"
 export * from "./requests/record.js"
 export * from "./requests/scenes.js"
 export type { ObsRequestDescriptor } from "./requests/shared.js"

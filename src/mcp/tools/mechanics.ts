@@ -11,7 +11,7 @@ export interface ToolContext {
 }
 
 export type RuntimeSchema = Schema.Schema.AnyNoContext
-export type ToolCategory = "events" | "general" | "inputs" | "outputs" | "record" | "scenes" | "stream"
+export type ToolCategory = "admin_raw" | "events" | "general" | "inputs" | "outputs" | "record" | "scenes" | "stream"
 type ToolHandler<Input> = {
   bivarianceHack(input: Input, context: ToolContext): Promise<unknown>
 }["bivarianceHack"]
@@ -75,7 +75,10 @@ export const executeTool = async (
     decodedInput = Schema.decodeUnknownSync(tool.inputSchema, { onExcessProperty: "error" })(input ?? {})
   } catch (error) {
     if (ParseResult.isParseError(error)) {
-      throw new McpError(ErrorCode.InvalidParams, error.message)
+      const message = tool.name === "set_persistent_data"
+        ? "Invalid arguments for set_persistent_data"
+        : error.message
+      throw new McpError(ErrorCode.InvalidParams, message)
     }
     /* v8 ignore next -- defensive: Effect schema input decoding throws ParseError. */
     throw toMcpError(error)

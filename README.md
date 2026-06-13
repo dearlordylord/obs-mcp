@@ -21,13 +21,15 @@ Environment variables:
 - `OBS_WEBSOCKET_PASSWORD`: optional OBS websocket password.
 - `OBS_WEBSOCKET_CONNECTION_TIMEOUT`: connection and request timeout in milliseconds. Defaults to `30000`.
 - `OBS_EVENT_BUFFER_CAPACITY`: optional maximum number of recent safe OBS events retained for `get_recent_obs_events`. Defaults to the built-in bounded buffer size.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `TOOLSETS`: optional comma-separated category filter. Available categories are `admin_raw`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
 - `OBS_INTEGRATION_TESTS`: set to `1` to run real OBS websocket integration tests.
 - `OBS_INTEGRATION_MUTATION_TESTS`: set to `1` to enable integration tests that send state-changing OBS requests.
 
 The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 
 Set `TOOLSETS=events` to expose `get_recent_obs_events`, a bounded recent-event snapshot. It returns typed payloads for safe low-volume OBS events, while vendor/custom and high-volume events remain excluded from the default safe event policy.
+
+Set `TOOLSETS=admin_raw` to expose OBS websocket persistent data tools. This is disabled by default; `set_persistent_data` accepts only JSON-safe slot values and does not echo the value in its response.
 
 ## Tools
 
@@ -94,6 +96,8 @@ Set `TOOLSETS=events` to expose `get_recent_obs_events`, a bounded recent-event 
 - `stop_stream`
 - `toggle_stream`
 - `send_stream_caption`
+- `get_persistent_data`
+- `set_persistent_data`
 <!-- tools:end -->
 
 Tool results use MCP structured content rather than textified JSON.

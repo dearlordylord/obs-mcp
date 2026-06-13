@@ -64,6 +64,7 @@ export class FakeObsServer {
   private readonly server: WebSocketServer
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
+  private readonly persistentData = new Map<string, unknown>()
   private inputState: FakeObsInputState = new FakeObsInputState([])
   private readonly outputState = new FakeObsOutputState()
   public lastIdentifyEventSubscriptions: unknown
@@ -108,6 +109,10 @@ export class FakeObsServer {
 
   public get requests(): ReadonlyArray<FakeObsReceivedRequest> {
     return this.receivedRequests
+  }
+
+  private persistentDataKey(realm: unknown, slotName: unknown): string {
+    return `${String(realm)}\u0000${String(slotName)}`
   }
 
   private installHandlers(
@@ -375,6 +380,18 @@ export class FakeObsServer {
       return
     }
     if (this.outputState.handleRequest(requestType, send)) {
+      return
+    }
+    if (requestType === "GetPersistentData") {
+      const requestData = envelope.d.requestData
+      const key = this.persistentDataKey(requestData.realm, requestData.slotName)
+      send({ slotValue: this.persistentData.has(key) ? this.persistentData.get(key) : null })
+      return
+    }
+    if (requestType === "SetPersistentData") {
+      const requestData = envelope.d.requestData
+      this.persistentData.set(this.persistentDataKey(requestData.realm, requestData.slotName), requestData.slotValue)
+      send()
       return
     }
     send()
