@@ -187,6 +187,71 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual(["get_recent_obs_events"])
   })
 
+  it("lists only the deliberate batch tool for the batch toolset and advertised OBS capabilities", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"]),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual(["run_obs_request_batch"])
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("sleep")
+
+    const partialClient = await connect(
+      obsClient(async () => ({}), ["GetCurrentProgramScene", "SetCurrentProgramScene"]),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+    const partialTools = await partialClient.listTools()
+    expect(partialTools.tools.map((tool) => tool.name)).toEqual([])
+  })
+
+  it("lists persistent data tools only for admin_raw and advertised OBS capabilities", async () => {
+    const adminClient = await connect(
+      obsClient(async () => ({}), ["GetPersistentData", "SetPersistentData"]),
+      { ...config, enabledToolsets: ["admin_raw"] }
+    )
+    const adminTools = await adminClient.listTools()
+    expect(adminTools.tools.map((tool) => tool.name)).toEqual([
+      "get_persistent_data",
+      "set_persistent_data"
+    ])
+
+    const partialClient = await connect(
+      obsClient(async () => ({}), ["GetPersistentData"]),
+      { ...config, enabledToolsets: ["admin_raw"] }
+    )
+    const partialTools = await partialClient.listTools()
+    expect(partialTools.tools.map((tool) => tool.name)).toEqual(["get_persistent_data"])
+
+    const defaultClient = await connect(obsClient(async () => ({}), ["GetPersistentData", "SetPersistentData"]))
+    const defaultTools = await defaultClient.listTools()
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("get_persistent_data")
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("set_persistent_data")
+  })
+
+  it("lists vendor tools only for the vendor toolset and advertised OBS capabilities", async () => {
+    const vendorClient = await connect(
+      obsClient(async () => ({}), ["CallVendorRequest", "BroadcastCustomEvent"]),
+      { ...config, enabledToolsets: ["vendor"] }
+    )
+    const vendorTools = await vendorClient.listTools()
+    expect(vendorTools.tools.map((tool) => tool.name)).toEqual([
+      "call_vendor_request",
+      "broadcast_custom_event"
+    ])
+
+    const partialClient = await connect(
+      obsClient(async () => ({}), ["CallVendorRequest"]),
+      { ...config, enabledToolsets: ["vendor"] }
+    )
+    const partialTools = await partialClient.listTools()
+    expect(partialTools.tools.map((tool) => tool.name)).toEqual(["call_vendor_request"])
+
+    const defaultClient = await connect(obsClient(async () => ({}), ["CallVendorRequest", "BroadcastCustomEvent"]))
+    const defaultTools = await defaultClient.listTools()
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("call_vendor_request")
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("broadcast_custom_event")
+  })
+
   it("hides record lifecycle and pause tools when fake OBS does not advertise the capabilities", async () => {
     const fakeObs = await FakeObsServer.start({ availableRequestsValue: ["GetVersion"] })
     fakeObsServers.push(fakeObs)
@@ -797,6 +862,282 @@ describe("MCP server protocol handlers", () => {
           }
         }
       })
+  })
+
+  it("returns structured request batch results and rejects invalid Sleep batches before OBS", async () => {
+    const batches: Array<Parameters<ObsClient["requestBatch"]>[0]> = []
+    const client = await connect(
+      fakeObsClient(
+        async () => ({}),
+        ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"],
+        { capacity: 0, droppedEvents: 0, events: [] },
+        async (batch) => {
+          batches.push(batch)
+          return [
+            {
+              requestType: "SetCurrentProgramScene",
+              requestId: "batch-0",
+              requestStatus: { result: true, code: 100 },
+              responseData: {}
+            },
+            {
+              requestType: "Sleep",
+              requestId: "batch-1",
+              requestStatus: { result: true, code: 100 },
+              responseData: {}
+            },
+            {
+              requestType: "GetCurrentProgramScene",
+              requestId: "batch-2",
+              requestStatus: { result: true, code: 100 },
+              responseData: { sceneName: "Main", sceneUuid: "scene-main" }
+            }
+          ]
+        }
+      ),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+
+    await expect(client.callTool({
+      name: "run_obs_request_batch",
+      arguments: {
+        requests: [
+          { kind: "set_current_scene", sceneName: "Main" },
+          { kind: "sleep", sleepMillis: 5 },
+          { kind: "get_current_scene" }
+        ]
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        executionType: "serial_realtime",
+        requestedRequests: 3,
+        returnedResults: 3,
+        results: [
+          { kind: "set_current_scene", requestType: "SetCurrentProgramScene", responseData: { sceneName: "Main" } },
+          { kind: "sleep", requestType: "Sleep" },
+          { kind: "get_current_scene", requestType: "GetCurrentProgramScene", responseData: { sceneName: "Main" } }
+        ]
+      }
+    })
+    expect(batches).toEqual([{
+      executionType: 0,
+      haltOnFailure: false,
+      requests: [
+        { requestType: "SetCurrentProgramScene", requestId: "batch-0", requestData: { sceneName: "Main" } },
+        { requestType: "Sleep", requestId: "batch-1", requestData: { sleepMillis: 5 } },
+        { requestType: "GetCurrentProgramScene", requestId: "batch-2" }
+      ]
+    }])
+
+    await expect(client.callTool({
+      name: "run_obs_request_batch",
+      arguments: {
+        executionType: "serial_realtime",
+        requests: [{ kind: "sleep", sleepFrames: 1 }]
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: { error: { code: ErrorCode.InvalidParams } }
+    })
+    expect(batches).toHaveLength(1)
+  })
+
+  it("returns MCP errors for duplicate or missing request batch results", async () => {
+    const duplicateClient = await connect(
+      fakeObsClient(
+        async () => ({}),
+        ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"],
+        { capacity: 0, droppedEvents: 0, events: [] },
+        async () => [
+          {
+            requestType: "GetCurrentProgramScene",
+            requestId: "batch-0",
+            requestStatus: { result: true, code: 100 },
+            responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+          },
+          {
+            requestType: "GetCurrentProgramScene",
+            requestId: "batch-0",
+            requestStatus: { result: true, code: 100 },
+            responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+          }
+        ]
+      ),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+
+    await expect(duplicateClient.callTool({
+      name: "run_obs_request_batch",
+      arguments: { requests: [{ kind: "get_current_scene" }] }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: { error: { message: expect.stringContaining("duplicate batch result") } }
+    })
+
+    const missingClient = await connect(
+      fakeObsClient(
+        async () => ({}),
+        ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"],
+        { capacity: 0, droppedEvents: 0, events: [] },
+        async () => []
+      ),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+
+    await expect(missingClient.callTool({
+      name: "run_obs_request_batch",
+      arguments: { requests: [{ kind: "get_current_scene" }] }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: { error: { message: expect.stringContaining("did not return batch result") } }
+    })
+  })
+
+  it("returns structured persistent data results without echoing set slot values", async () => {
+    const requested: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const client = await connect(
+      fakeObsClient(async (requestType, requestData) => {
+        requested.push({ requestType, requestData })
+        return requestType === "GetPersistentData"
+          ? { slotValue: { token: "visible-on-read", flags: [true, null] } }
+          : {}
+      }, ["GetPersistentData", "SetPersistentData"]),
+      {
+        ...config,
+        enabledToolsets: ["admin_raw"]
+      }
+    )
+    const locator = { realm: "OBS_WEBSOCKET_DATA_REALM_PROFILE", slotName: "ralph.task8" }
+
+    await expect(client.callTool({ name: "get_persistent_data", arguments: locator }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          ...locator,
+          slotValue: { token: "visible-on-read", flags: [true, null] }
+        }
+      })
+
+    const setResult = await client.callTool({
+      name: "set_persistent_data",
+      arguments: { ...locator, slotValue: { token: "s3cr3t", nested: ["ok"] } }
+    })
+
+    expect(setResult).toMatchObject({ structuredContent: { ...locator, updated: true } })
+    expect(JSON.stringify(setResult.structuredContent)).not.toContain("s3cr3t")
+    expect(setResult.content).toEqual([{ type: "text", text: JSON.stringify({ ...locator, updated: true }) }])
+    expect(JSON.stringify(setResult.content)).not.toContain("s3cr3t")
+    expect(requested).toEqual([
+      { requestType: "GetPersistentData", requestData: locator },
+      {
+        requestType: "SetPersistentData",
+        requestData: { ...locator, slotValue: { token: "s3cr3t", nested: ["ok"] } }
+      }
+    ])
+  })
+
+  it("rejects invalid persistent data slot values before OBS requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      fakeObsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }, ["SetPersistentData"]),
+      {
+        ...config,
+        enabledToolsets: ["admin_raw"]
+      }
+    )
+
+    const result = await client.callTool({
+      name: "set_persistent_data",
+      arguments: {
+        realm: "OBS_WEBSOCKET_DATA_REALM_GLOBAL",
+        slotName: "ralph.bad",
+        slotValue: { token: "s3cr3t", missing: undefined }
+      }
+    })
+
+    expect(result).toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams,
+          message: expect.stringContaining("Invalid arguments for set_persistent_data")
+        }
+      }
+    })
+    expect(JSON.stringify(result.content)).not.toContain("s3cr3t")
+    expect(JSON.stringify(result._meta)).not.toContain("s3cr3t")
+    expect(requested).toEqual([])
+  })
+
+  it("returns structured vendor tool results and rejects non JSON-safe vendor inputs before OBS requests", async () => {
+    const requested: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const client = await connect(
+      fakeObsClient(async (requestType, requestData) => {
+        requested.push({ requestType, requestData })
+        return requestType === "CallVendorRequest"
+          ? {
+            vendorName: "example.vendor",
+            requestType: "DoThing",
+            responseData: { accepted: true, echo: { ok: true } }
+          }
+          : {}
+      }, ["CallVendorRequest", "BroadcastCustomEvent"]),
+      {
+        ...config,
+        enabledToolsets: ["vendor"]
+      }
+    )
+
+    await expect(client.callTool({
+      name: "call_vendor_request",
+      arguments: {
+        vendorName: "example.vendor",
+        requestType: "DoThing",
+        requestData: { ok: true }
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        vendorName: "example.vendor",
+        requestType: "DoThing",
+        provenance: "vendor_plugin",
+        responseData: { accepted: true, echo: { ok: true } }
+      }
+    })
+    await expect(client.callTool({
+      name: "broadcast_custom_event",
+      arguments: { eventData: { eventName: "ralph.task9", ok: true } }
+    })).resolves.toMatchObject({
+      structuredContent: { provenance: "custom_event", broadcasted: true }
+    })
+
+    const invalid = await client.callTool({
+      name: "call_vendor_request",
+      arguments: {
+        vendorName: "example.vendor",
+        requestType: "DoThing",
+        requestData: { token: "s3cr3t", missing: undefined }
+      }
+    })
+    expect(invalid).toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams,
+          message: expect.stringContaining("Invalid arguments for call_vendor_request")
+        }
+      }
+    })
+    expect(JSON.stringify(invalid.content)).not.toContain("s3cr3t")
+    expect(JSON.stringify(invalid._meta)).not.toContain("s3cr3t")
+    expect(requested).toEqual([
+      {
+        requestType: "CallVendorRequest",
+        requestData: { vendorName: "example.vendor", requestType: "DoThing", requestData: { ok: true } }
+      },
+      { requestType: "BroadcastCustomEvent", requestData: { eventData: { eventName: "ralph.task9", ok: true } } }
+    ])
   })
 
   it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {

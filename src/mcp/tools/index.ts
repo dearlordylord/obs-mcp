@@ -1,3 +1,4 @@
+import { batchTools } from "./batch.js"
 import { canvasTools } from "./canvases.js"
 import { configTools } from "./config.js"
 import { eventTools } from "./events.js"
@@ -5,13 +6,16 @@ import { generalTools } from "./general.js"
 import { inputTools } from "./inputs.js"
 import { filterEnabledTools, type ToolDefinition } from "./mechanics.js"
 import { outputTools } from "./outputs.js"
+import { persistentDataTools } from "./persistent-data.js"
 import { recordTools } from "./record.js"
 import { sceneTools } from "./scenes.js"
 import { streamTools } from "./stream.js"
 import { transitionTools } from "./transitions.js"
 import { uiTools } from "./ui.js"
+import { vendorTools } from "./vendor.js"
 
 export const allTools: ReadonlyArray<ToolDefinition> = [
+  ...batchTools,
   ...generalTools,
   ...eventTools,
   ...canvasTools,
@@ -22,7 +26,9 @@ export const allTools: ReadonlyArray<ToolDefinition> = [
   ...recordTools,
   ...streamTools,
   ...transitionTools,
-  ...uiTools
+  ...uiTools,
+  ...persistentDataTools,
+  ...vendorTools
 ]
 
 export const getEnabledTools = (

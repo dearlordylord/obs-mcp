@@ -49,22 +49,17 @@ afterEach(async () => {
 })
 
 describe("OBS websocket client", () => {
-  it("connects through an unauthenticated handshake and caches available requests", async () => {
+  it("connects without event subscriptions when the events toolset is disabled", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     expect(client.negotiatedRpcVersion).toBe(1)
     expect(client.availableRequests).toContain("GetSceneList")
-    expect(server.lastIdentifyEventSubscriptions).toBe(SAFE_EVENT_SUBSCRIPTION_MASK)
-    const subscriptions = server.lastIdentifyEventSubscriptions as number
-    expect(subscriptions & EventSubscription.Vendors).toBe(0)
-    for (const subscription of HIGH_VOLUME_EVENT_SUBSCRIPTIONS) {
-      expect(subscriptions & EventSubscription[subscription]).toBe(0)
-    }
+    expect(server.lastIdentifyEventSubscriptions).toBe(EventSubscription.None)
   })
 
-  it("keeps raw vendor, custom, and high-volume subscriptions disabled for the events toolset", async () => {
+  it("subscribes to safe events and keeps raw vendor/custom/high-volume subscriptions disabled for the events toolset", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
     const client = await createObsClient(configFor(server.url, undefined, 300, ["events"]))
@@ -171,6 +166,58 @@ describe("OBS websocket client", () => {
     expect(client.getBufferedEvents()).toMatchObject({ droppedEvents: 0, events: [] })
   })
 
+  it("drops high-volume event bursts without leaking raw payloads", async () => {
+    const stdoutBytesBefore = process.stdout.bytesWritten
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "InputVolumeMeters",
+          eventIntent: EventSubscription.InputVolumeMeters,
+          eventData: { inputs: [{ inputName: "Mic/Aux", levels: [[0.5, 0.25]], raw: true }] }
+        },
+        {
+          eventType: "InputActiveStateChanged",
+          eventIntent: EventSubscription.InputActiveStateChanged,
+          eventData: { inputName: "Camera", inputUuid: "input-camera", videoActive: true, raw: true }
+        },
+        {
+          eventType: "InputShowStateChanged",
+          eventIntent: EventSubscription.InputShowStateChanged,
+          eventData: { inputName: "Camera", inputUuid: "input-camera", videoShowing: true, raw: true }
+        },
+        {
+          eventType: "SceneItemTransformChanged",
+          eventIntent: EventSubscription.SceneItemTransformChanged,
+          eventData: { sceneName: "Scene", sceneUuid: "scene", sceneItemId: 1, sceneItemTransform: { raw: true } }
+        },
+        {
+          eventType: "CurrentProgramSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["events"] }, {
+      eventBufferCapacity: 1
+    })
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents()).toEqual({
+      capacity: 1,
+      droppedEvents: 0,
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    })
+    expect(process.stdout.bytesWritten).toBe(stdoutBytesBefore)
+  })
+
   it("buffers safe low-volume event frames without surfacing a stream", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {
@@ -198,9 +245,106 @@ describe("OBS websocket client", () => {
   it("buffers typed low-volume event payloads from websocket frames", async () => {
     const cases = [
       {
+        eventType: "CurrentSceneCollectionChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection B" }
+      },
+      {
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: ["Profile A", "Profile B"] }
+      },
+      {
+        eventType: "ExitStarted",
+        eventIntent: EventSubscription.General,
+        eventData: {}
+      },
+      {
+        eventType: "SceneCreated",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+      },
+      {
+        eventType: "SceneNameChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneUuid: "scene-program", oldSceneName: "Old Program", sceneName: "Program" }
+      },
+      {
+        eventType: "CurrentPreviewSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Preview", sceneUuid: "scene-preview" }
+      },
+      {
         eventType: "SceneListChanged",
         eventIntent: EventSubscription.Scenes,
         eventData: { scenes: [{ sceneName: "Intro", sceneUuid: "scene-intro", sceneIndex: 0 }] }
+      },
+      {
+        eventType: "SceneItemCreated",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 12,
+          sceneItemIndex: 1
+        }
+      },
+      {
+        eventType: "SceneItemRemoved",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 12
+        }
+      },
+      {
+        eventType: "SceneItemListReindexed",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItems: [{ sceneItemId: 12, sceneItemIndex: 0 }]
+        }
+      },
+      {
+        eventType: "SceneItemEnableStateChanged",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItemId: 12,
+          sceneItemEnabled: true
+        }
+      },
+      {
+        eventType: "SceneItemLockStateChanged",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItemId: 12,
+          sceneItemLocked: true
+        }
+      },
+      {
+        eventType: "SceneItemSelected",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 }
+      },
+      {
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Camera", inputUuid: "input-camera" }
+      },
+      {
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
       },
       {
         eventType: "InputAudioMonitorTypeChanged",
@@ -219,6 +363,16 @@ describe("OBS websocket client", () => {
           outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
           outputPath: "/tmp/recording.mkv"
         }
+      },
+      {
+        eventType: "MediaInputPlaybackStarted",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media", inputUuid: "input-media" }
+      },
+      {
+        eventType: "MediaInputPlaybackEnded",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media", inputUuid: "input-media" }
       },
       {
         eventType: "MediaInputActionTriggered",
@@ -273,6 +427,77 @@ describe("OBS websocket client", () => {
     })
   })
 
+  it("buffers typed output, transition, ui, canvas, and filter event bursts", async () => {
+    const burst = [
+      {
+        eventType: "RecordFileChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+      },
+      {
+        eventType: "CurrentSceneTransitionChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true }
+      },
+      {
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasUuid: "canvas-a", oldCanvasName: "Old Canvas", canvasName: "Canvas A" }
+      },
+      {
+        eventType: "SourceFilterSettingsChanged",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filterName: "Color", filterSettings: { secret: true } }
+      }
+    ] as const
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: burst,
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([
+      {
+        sequence: 1,
+        eventType: "RecordFileChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentSceneTransitionChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 3,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true }
+      },
+      {
+        sequence: 4,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasUuid: "canvas-a", oldCanvasName: "Old Canvas", canvasName: "Canvas A" }
+      },
+      {
+        sequence: 5,
+        eventType: "SourceFilterSettingsChanged",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filterName: "Color" }
+      }
+    ])
+  })
+
   it("rejects malformed events queued immediately after Identified", async () => {
     const server = await FakeObsServer.start({ sendMalformedAfterIdentify: true })
     servers.push(server)
@@ -302,6 +527,30 @@ describe("OBS websocket client", () => {
       events: [
         { sequence: 2, eventType: "CurrentProgramSceneChanged" },
         { sequence: 3, eventType: "CurrentProgramSceneChanged" }
+      ]
+    })
+  })
+
+  it("uses configured event buffer capacity", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: Array.from({ length: 3 }, (_, index) => ({
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: `Scene ${index + 1}`, sceneUuid: `scene-${index + 1}` }
+      })),
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), eventBufferCapacity: 2 })
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents()).toMatchObject({
+      capacity: 2,
+      droppedEvents: 1,
+      events: [
+        { sequence: 2, eventData: { sceneName: "Scene 2", sceneUuid: "scene-2" } },
+        { sequence: 3, eventData: { sceneName: "Scene 3", sceneUuid: "scene-3" } }
       ]
     })
   })
@@ -391,12 +640,12 @@ describe("OBS websocket client", () => {
     expect(client.getBufferedEvents().events).toEqual([])
   })
 
-  it("rejects pending requests on malformed typed event payloads", async () => {
+  it("drops malformed typed event payloads without surfacing raw data", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {
-        eventType: "InputMuteStateChanged",
+        eventType: "InputNameChanged",
         eventIntent: EventSubscription.Inputs,
-        eventData: { inputName: "Mic/Aux", inputMuted: true }
+        eventData: { inputUuid: "input-camera", inputName: "Camera" }
       },
       eventBeforeResponseFor: "GetCurrentProgramScene"
     })
@@ -404,7 +653,48 @@ describe("OBS websocket client", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
 
-    await expect(client.request(GetCurrentProgramScene)).rejects.toThrow()
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([])
+  })
+
+  it("drops typed input and media events with mismatched event intents", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.General,
+          eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+        },
+        {
+          eventType: "MediaInputPlaybackStarted",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Media", inputUuid: "input-media" }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([])
+  })
+
+  it("drops no-payload events with unexpected raw event data", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "ExitStarted",
+        eventIntent: EventSubscription.General,
+        eventData: { raw: true }
+      },
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
     expect(client.getBufferedEvents().events).toEqual([])
   })
 

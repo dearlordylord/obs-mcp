@@ -14,11 +14,13 @@ describe("OBS config", () => {
   it("decodes environment defaults and toolset filtering", async () => {
     const config = await Effect.runPromise(
       loadObsConfigFromEnv({
-        TOOLSETS: "scenes,general,events,inputs,outputs,record,stream,canvases,config,transitions,ui,raw"
+        TOOLSETS:
+          "scenes,general,events,inputs,outputs,record,stream,canvases,config,transitions,ui,admin_raw,vendor,batch,raw"
       })
     )
     expect(config.url).toBe("ws://localhost:4455/")
     expect(config.connectionTimeoutMs).toBe(30_000)
+    expect(config.eventBufferCapacity).toBeUndefined()
     expect(config.enabledToolsets).toEqual([
       "scenes",
       "general",
@@ -30,8 +32,20 @@ describe("OBS config", () => {
       "canvases",
       "config",
       "transitions",
-      "ui"
+      "ui",
+      "admin_raw",
+      "vendor",
+      "batch"
     ])
+  })
+
+  it("decodes optional OBS event buffer capacity", async () => {
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "7" })))
+      .resolves.toMatchObject({ eventBufferCapacity: 7 })
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "0" })))
+      .rejects.toThrow()
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "nope" })))
+      .rejects.toThrow()
   })
 
   it("defaults blank toolsets and rejects non-websocket URLs", async () => {

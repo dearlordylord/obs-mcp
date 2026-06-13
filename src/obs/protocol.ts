@@ -8,6 +8,8 @@ export const OP_IDENTIFIED = 2
 export const OP_EVENT = 5
 export const OP_REQUEST = 6
 export const OP_REQUEST_RESPONSE = 7
+export const OP_REQUEST_BATCH = 8
+export const OP_REQUEST_BATCH_RESPONSE = 9
 
 export const EventSubscription = {
   None: 0,
@@ -57,6 +59,69 @@ const UNSAFE_SAFE_ALL_EVENT_TYPES = new Set<string>([
   "CustomEvent"
 ])
 
+const OFFICIAL_EVENT_SUBSCRIPTIONS = new Map<string, number>([
+  ["CanvasCreated", EventSubscription.Canvases],
+  ["CanvasRemoved", EventSubscription.Canvases],
+  ["CanvasNameChanged", EventSubscription.Canvases],
+  ["CurrentSceneCollectionChanging", EventSubscription.Config],
+  ["CurrentSceneCollectionChanged", EventSubscription.Config],
+  ["SceneCollectionListChanged", EventSubscription.Config],
+  ["CurrentProfileChanging", EventSubscription.Config],
+  ["CurrentProfileChanged", EventSubscription.Config],
+  ["ProfileListChanged", EventSubscription.Config],
+  ["SourceFilterListReindexed", EventSubscription.Filters],
+  ["SourceFilterCreated", EventSubscription.Filters],
+  ["SourceFilterRemoved", EventSubscription.Filters],
+  ["SourceFilterNameChanged", EventSubscription.Filters],
+  ["SourceFilterSettingsChanged", EventSubscription.Filters],
+  ["SourceFilterEnableStateChanged", EventSubscription.Filters],
+  ["ExitStarted", EventSubscription.General],
+  ["VendorEvent", EventSubscription.Vendors],
+  ["CustomEvent", EventSubscription.General],
+  ["InputCreated", EventSubscription.Inputs],
+  ["InputRemoved", EventSubscription.Inputs],
+  ["InputNameChanged", EventSubscription.Inputs],
+  ["InputSettingsChanged", EventSubscription.Inputs],
+  ["InputActiveStateChanged", EventSubscription.InputActiveStateChanged],
+  ["InputShowStateChanged", EventSubscription.InputShowStateChanged],
+  ["InputMuteStateChanged", EventSubscription.Inputs],
+  ["InputVolumeChanged", EventSubscription.Inputs],
+  ["InputAudioBalanceChanged", EventSubscription.Inputs],
+  ["InputAudioSyncOffsetChanged", EventSubscription.Inputs],
+  ["InputAudioTracksChanged", EventSubscription.Inputs],
+  ["InputAudioMonitorTypeChanged", EventSubscription.Inputs],
+  ["InputVolumeMeters", EventSubscription.InputVolumeMeters],
+  ["MediaInputPlaybackStarted", EventSubscription.MediaInputs],
+  ["MediaInputPlaybackEnded", EventSubscription.MediaInputs],
+  ["MediaInputActionTriggered", EventSubscription.MediaInputs],
+  ["StreamStateChanged", EventSubscription.Outputs],
+  ["RecordStateChanged", EventSubscription.Outputs],
+  ["RecordFileChanged", EventSubscription.Outputs],
+  ["ReplayBufferStateChanged", EventSubscription.Outputs],
+  ["VirtualcamStateChanged", EventSubscription.Outputs],
+  ["ReplayBufferSaved", EventSubscription.Outputs],
+  ["SceneItemCreated", EventSubscription.SceneItems],
+  ["SceneItemRemoved", EventSubscription.SceneItems],
+  ["SceneItemListReindexed", EventSubscription.SceneItems],
+  ["SceneItemEnableStateChanged", EventSubscription.SceneItems],
+  ["SceneItemLockStateChanged", EventSubscription.SceneItems],
+  ["SceneItemSelected", EventSubscription.SceneItems],
+  ["SceneItemTransformChanged", EventSubscription.SceneItemTransformChanged],
+  ["SceneCreated", EventSubscription.Scenes],
+  ["SceneRemoved", EventSubscription.Scenes],
+  ["SceneNameChanged", EventSubscription.Scenes],
+  ["CurrentProgramSceneChanged", EventSubscription.Scenes],
+  ["CurrentPreviewSceneChanged", EventSubscription.Scenes],
+  ["SceneListChanged", EventSubscription.Scenes],
+  ["CurrentSceneTransitionChanged", EventSubscription.Transitions],
+  ["CurrentSceneTransitionDurationChanged", EventSubscription.Transitions],
+  ["SceneTransitionStarted", EventSubscription.Transitions],
+  ["SceneTransitionEnded", EventSubscription.Transitions],
+  ["SceneTransitionVideoEnded", EventSubscription.Transitions],
+  ["StudioModeStateChanged", EventSubscription.Ui],
+  ["ScreenshotSaved", EventSubscription.Ui]
+])
+
 const ObsAuthenticationSchema = Schema.Struct({
   challenge: Schema.String,
   salt: Schema.String
@@ -96,6 +161,20 @@ export const RequestResponseEnvelope = Schema.Struct({
 })
 export type RequestResponseEnvelope = typeof RequestResponseEnvelope.Type
 
+export const RequestBatchResponseEnvelope = Schema.Struct({
+  op: Schema.Literal(OP_REQUEST_BATCH_RESPONSE),
+  d: Schema.Struct({
+    requestId: Schema.String,
+    results: Schema.Array(Schema.Struct({
+      requestType: Schema.String,
+      requestId: Schema.optional(Schema.String),
+      requestStatus: RequestStatus,
+      responseData: Schema.optional(UnknownRecord)
+    }))
+  })
+})
+export type RequestBatchResponseEnvelope = typeof RequestBatchResponseEnvelope.Type
+
 export const EventEnvelope = Schema.Struct({
   op: Schema.Literal(OP_EVENT),
   d: Schema.Struct({
@@ -115,6 +194,7 @@ const ObsEnvelope = Schema.Union(
   HelloEnvelope,
   IdentifiedEnvelope,
   RequestResponseEnvelope,
+  RequestBatchResponseEnvelope,
   RawEventEnvelope
 )
 type ObsEnvelope = typeof ObsEnvelope.Type
@@ -131,3 +211,9 @@ export const decodeEventEnvelope = (message: string): EventEnvelope => {
 
 export const shouldSurfaceSafeEvent = (event: EventEnvelope): boolean =>
   !UNSAFE_SAFE_ALL_EVENT_TYPES.has(event.d.eventType)
+
+export const officialEventSubscriptionFor = (eventType: string): number | undefined =>
+  OFFICIAL_EVENT_SUBSCRIPTIONS.get(eventType)
+
+export const eventMatchesOfficialSubscription = (eventType: string, eventIntent: number): boolean =>
+  officialEventSubscriptionFor(eventType) === eventIntent

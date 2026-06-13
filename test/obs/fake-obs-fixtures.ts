@@ -307,7 +307,12 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "OpenInputInteractDialog",
   "GetMonitorList",
   "OpenVideoMixProjector",
-  "OpenSourceProjector"
+  "OpenSourceProjector",
+  "GetPersistentData",
+  "SetPersistentData",
+  "CallVendorRequest",
+  "BroadcastCustomEvent",
+  "Sleep"
 ]
 
 export const sceneItemsFor = (

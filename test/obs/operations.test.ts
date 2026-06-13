@@ -11,7 +11,8 @@ import {
 } from "../../src/domain/schemas/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
-import type { ObsRequestError } from "../../src/obs/errors.js"
+import { type ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
+import { runObsRequestBatch } from "../../src/obs/operations/batch.js"
 import { listCanvases } from "../../src/obs/operations/canvases.js"
 import {
   createProfile,
@@ -70,6 +71,7 @@ import {
   toggleReplayBuffer,
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
+import { getPersistentData, setPersistentData } from "../../src/obs/operations/persistent-data.js"
 import {
   createRecordChapter,
   pauseRecord,
@@ -108,6 +110,7 @@ import {
   openSourceProjector,
   openVideoMixProjector
 } from "../../src/obs/operations/ui.js"
+import { broadcastCustomEvent, callVendorRequest } from "../../src/obs/operations/vendor.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -126,6 +129,7 @@ const fakeClient = (handler: (requestType: ObsRequestType) => Promise<unknown>):
   availableRequests: [],
   request: async (descriptor) =>
     Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType)),
+  requestBatch: async () => [],
   getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
   close: async () => undefined
 })
@@ -795,6 +799,376 @@ describe("OBS operations", () => {
         comment: "Transition not found"
       } satisfies Partial<ObsRequestError>
     )
+  })
+
+  it("gets and sets JSON-safe OBS persistent data through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["admin_raw"] })
+    clients.push(client)
+    const locator = { realm: "OBS_WEBSOCKET_DATA_REALM_PROFILE" as const, slotName: "ralph.task8" }
+    const slotValue = { count: 2, nested: [true, null, "ok"] }
+
+    await expect(setPersistentData(client, { ...locator, slotValue })).resolves.toEqual({
+      ...locator,
+      updated: true
+    })
+    await expect(getPersistentData(client, locator)).resolves.toEqual({ ...locator, slotValue })
+    expect(server.requests.filter((request) => request.requestType.includes("PersistentData"))).toEqual([
+      { requestType: "SetPersistentData", requestData: { ...locator, slotValue } },
+      { requestType: "GetPersistentData", requestData: locator }
+    ])
+  })
+
+  it("calls vendor requests and broadcasts custom events through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["vendor"] })
+    clients.push(client)
+    const requestData = { enabled: true, count: 2, nested: { label: "ok" } }
+
+    await expect(callVendorRequest(client, {
+      vendorName: "example.vendor",
+      requestType: "DoThing",
+      requestData
+    })).resolves.toEqual({
+      vendorName: "example.vendor",
+      requestType: "DoThing",
+      provenance: "vendor_plugin",
+      responseData: {
+        accepted: true,
+        echo: requestData
+      }
+    })
+    await expect(broadcastCustomEvent(client, { eventData: { eventName: "ralph.task9", requestData } }))
+      .resolves.toEqual({ provenance: "custom_event", broadcasted: true })
+    expect(
+      server.requests.filter((request) =>
+        request.requestType === "CallVendorRequest" || request.requestType === "BroadcastCustomEvent"
+      )
+    ).toEqual([
+      {
+        requestType: "CallVendorRequest",
+        requestData: { vendorName: "example.vendor", requestType: "DoThing", requestData }
+      },
+      { requestType: "BroadcastCustomEvent", requestData: { eventData: { eventName: "ralph.task9", requestData } } }
+    ])
+  })
+
+  it("runs schema-limited OBS request batches with batch-only Sleep through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["batch"] })
+    clients.push(client)
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [
+        { kind: "set_current_scene", sceneName: "Main" },
+        { kind: "sleep", sleepMillis: 5 },
+        { kind: "get_current_scene" }
+      ]
+    })).resolves.toMatchObject({
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requestedRequests: 3,
+      returnedResults: 3,
+      results: [
+        {
+          index: 0,
+          kind: "set_current_scene",
+          requestType: "SetCurrentProgramScene",
+          requestStatus: { result: true, code: 100 },
+          responseData: { sceneName: "Main", switched: true }
+        },
+        { index: 1, kind: "sleep", requestType: "Sleep", requestStatus: { result: true, code: 100 } },
+        {
+          index: 2,
+          kind: "get_current_scene",
+          requestType: "GetCurrentProgramScene",
+          requestStatus: { result: true, code: 100 },
+          responseData: { sceneName: "Main", sceneUuid: "scene-main" }
+        }
+      ]
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "SetCurrentProgramScene"
+      || request.requestType === "Sleep"
+      || request.requestType === "GetCurrentProgramScene"
+    )).toEqual([
+      { requestType: "SetCurrentProgramScene", requestData: { sceneName: "Main" } },
+      { requestType: "Sleep", requestData: { sleepMillis: 5 } },
+      { requestType: "GetCurrentProgramScene" }
+    ])
+  })
+
+  it("times out waiting for OBS request batch responses", async () => {
+    const server = await FakeObsServer.start({ skipResponsesFor: ["RequestBatch"] })
+    servers.push(server)
+    const client = await createObsClient({
+      ...configFor(server.url),
+      connectionTimeoutMs: 25,
+      enabledToolsets: ["batch"]
+    })
+    clients.push(client)
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [{ kind: "get_current_scene" }]
+    })).rejects.toBeInstanceOf(ObsTimeoutError)
+  })
+
+  it("preserves OBS request batch error metadata and halt-on-failure results", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetCurrentProgramScene: { code: 600, comment: "Scene not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["batch"] })
+    clients.push(client)
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: true,
+      requests: [
+        { kind: "set_current_scene", sceneName: "Missing" },
+        { kind: "get_current_scene" }
+      ]
+    })).resolves.toMatchObject({
+      requestedRequests: 2,
+      returnedResults: 1,
+      results: [{
+        index: 0,
+        kind: "set_current_scene",
+        requestType: "SetCurrentProgramScene",
+        requestStatus: { result: false, code: 600, comment: "Scene not found" }
+      }]
+    })
+  })
+
+  it("correlates reordered OBS request batch results by request id", async () => {
+    const server = await FakeObsServer.start({ reverseBatchResults: true })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["batch"] })
+    clients.push(client)
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [
+        { kind: "set_current_scene", sceneName: "Main" },
+        { kind: "get_current_scene" }
+      ]
+    })).resolves.toMatchObject({
+      results: [
+        { index: 0, kind: "set_current_scene", requestType: "SetCurrentProgramScene" },
+        { index: 1, kind: "get_current_scene", requestType: "GetCurrentProgramScene" }
+      ]
+    })
+  })
+
+  it("rejects OBS request batch results with mismatched request types", async () => {
+    const server = await FakeObsServer.start({ mismatchFirstBatchResultType: true })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["batch"] })
+    clients.push(client)
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [{ kind: "get_current_scene" }]
+    })).rejects.toThrow("expected GetCurrentProgramScene")
+  })
+
+  it("ignores unrelated OBS request batch responses before the correlated response", async () => {
+    const server = await FakeObsServer.start({ sendUnrelatedBatchResponseBeforeReal: true })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["batch"] })
+    clients.push(client)
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [{ kind: "get_current_scene" }]
+    })).resolves.toMatchObject({
+      returnedResults: 1,
+      results: [{ requestId: "batch-0", requestType: "GetCurrentProgramScene" }]
+    })
+  })
+
+  it("runs serial-frame Sleep batches with frame counts", async () => {
+    const requestedBatches: Array<Parameters<ObsClient["requestBatch"]>[0]> = []
+    const client: ObsClient = {
+      ...fakeClient(async () => ({})),
+      requestBatch: async (batch) => {
+        requestedBatches.push(batch)
+        return [{
+          requestType: "Sleep",
+          requestId: "batch-0",
+          requestStatus: { result: true, code: 100 },
+          responseData: {}
+        }]
+      }
+    }
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_frame",
+      haltOnFailure: false,
+      requests: [{ kind: "sleep", sleepFrames: 2 }]
+    })).resolves.toMatchObject({
+      results: [{ kind: "sleep", requestType: "Sleep", requestStatus: { result: true, code: 100 } }]
+    })
+    expect(requestedBatches).toEqual([{
+      executionType: 1,
+      haltOnFailure: false,
+      requests: [{ requestType: "Sleep", requestId: "batch-0", requestData: { sleepFrames: 2 } }]
+    }])
+  })
+
+  it("rejects missing, unexpected, and post-halt OBS request batch results", async () => {
+    const baseClient = fakeClient(async () => ({}))
+    const batchInput = {
+      executionType: "serial_realtime" as const,
+      haltOnFailure: false,
+      requests: [{ kind: "get_current_scene" as const }]
+    }
+    await expect(runObsRequestBatch({
+      ...baseClient,
+      requestBatch: async () => [{
+        requestType: "GetCurrentProgramScene",
+        requestStatus: { result: true, code: 100 },
+        responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    }, batchInput)).rejects.toThrow("did not include requestId")
+    await expect(runObsRequestBatch({
+      ...baseClient,
+      requestBatch: async () => [{
+        requestType: "GetCurrentProgramScene",
+        requestId: "unexpected",
+        requestStatus: { result: true, code: 100 },
+        responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    }, batchInput)).rejects.toThrow("unexpected batch result")
+    await expect(runObsRequestBatch({
+      ...baseClient,
+      requestBatch: async () => [
+        {
+          requestType: "GetCurrentProgramScene",
+          requestId: "batch-1",
+          requestStatus: { result: true, code: 100 },
+          responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+        },
+        {
+          requestType: "SetCurrentProgramScene",
+          requestId: "batch-0",
+          requestStatus: { result: false, code: 600, comment: "Scene not found" },
+          responseData: {}
+        }
+      ]
+    }, {
+      executionType: "serial_realtime",
+      haltOnFailure: true,
+      requests: [
+        { kind: "set_current_scene", sceneName: "Missing" },
+        { kind: "get_current_scene" }
+      ]
+    })).rejects.toThrow("after halt-on-failure")
+    await expect(runObsRequestBatch({
+      ...baseClient,
+      requestBatch: async () => [
+        {
+          requestType: "SetCurrentProgramScene",
+          requestId: "batch-0",
+          requestStatus: { result: false, code: 600, comment: "Scene not found" },
+          responseData: {}
+        },
+        {
+          requestType: "GetCurrentProgramScene",
+          requestId: "batch-1",
+          requestStatus: { result: true, code: 100 },
+          responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+        }
+      ]
+    }, {
+      executionType: "serial_realtime",
+      haltOnFailure: true,
+      requests: [
+        { kind: "set_current_scene", sceneName: "Missing" },
+        { kind: "get_current_scene" }
+      ]
+    })).rejects.toThrow("after halt-on-failure")
+    await expect(runObsRequestBatch({
+      ...baseClient,
+      requestBatch: async () => []
+    }, batchInput)).rejects.toThrow("did not return batch result")
+    await expect(runObsRequestBatch({
+      ...baseClient,
+      requestBatch: async () => [{
+        requestType: "GetCurrentProgramScene",
+        requestId: "batch-0",
+        requestStatus: { result: true, code: 100 }
+      }]
+    }, batchInput)).rejects.toThrow("did not include responseData")
+  })
+
+  it("rejects duplicate explicit and generated OBS request batch ids before sending", async () => {
+    let batchRequests = 0
+    const client: ObsClient = {
+      ...fakeClient(async () => ({})),
+      requestBatch: async () => {
+        batchRequests += 1
+        return []
+      }
+    }
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [
+        { kind: "get_current_scene", id: "same" },
+        { kind: "sleep", id: "same", sleepMillis: 1 }
+      ]
+    })).rejects.toThrow("Duplicate OBS batch request id same")
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [
+        { kind: "get_current_scene", id: "batch-1" },
+        { kind: "sleep", sleepMillis: 1 }
+      ]
+    })).rejects.toThrow("Duplicate OBS batch request id batch-1")
+    expect(batchRequests).toBe(0)
+  })
+
+  it("rejects request batches after the OBS client is closed", async () => {
+    const server = await FakeObsServer.start()
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["batch"] })
+    await client.close()
+    await server.stop()
+
+    await expect(runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [{ kind: "get_current_scene" }]
+    })).rejects.toThrow("OBS websocket is closed")
+  })
+
+  it("rejects pending request batches when OBS closes the websocket", async () => {
+    const server = await FakeObsServer.start({ skipResponsesFor: ["RequestBatch"] })
+    const client = await createObsClient({
+      ...configFor(server.url),
+      connectionTimeoutMs: 300,
+      enabledToolsets: ["batch"]
+    })
+    const pending = runObsRequestBatch(client, {
+      executionType: "serial_realtime",
+      haltOnFailure: false,
+      requests: [{ kind: "get_current_scene" }]
+    })
+    await server.stop()
+
+    await expect(pending).rejects.toThrow("OBS websocket closed")
   })
 
   it("lists scenes and can filter groups", async () => {

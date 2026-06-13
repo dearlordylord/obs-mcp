@@ -95,7 +95,12 @@ export const ObsRequestType = Schema.Literal(
   "OpenInputInteractDialog",
   "GetMonitorList",
   "OpenVideoMixProjector",
-  "OpenSourceProjector"
+  "OpenSourceProjector",
+  "GetPersistentData",
+  "SetPersistentData",
+  "CallVendorRequest",
+  "BroadcastCustomEvent",
+  "Sleep"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
@@ -104,9 +109,11 @@ export * from "./requests/config.js"
 export * from "./requests/general.js"
 export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"
+export * from "./requests/persistent-data.js"
 export * from "./requests/record.js"
 export * from "./requests/scenes.js"
 export type { ObsRequestDescriptor } from "./requests/shared.js"
 export * from "./requests/stream.js"
 export * from "./requests/transitions.js"
 export * from "./requests/ui.js"
+export * from "./requests/vendor.js"

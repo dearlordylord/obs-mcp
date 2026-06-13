@@ -14,6 +14,8 @@ export type RuntimeSchema = Schema.Schema.AnyNoContext
 export type ToolCategory =
   | "canvases"
   | "config"
+  | "admin_raw"
+  | "batch"
   | "events"
   | "general"
   | "inputs"
@@ -23,9 +25,16 @@ export type ToolCategory =
   | "stream"
   | "transitions"
   | "ui"
+  | "vendor"
 type ToolHandler<Input> = {
   bivarianceHack(input: Input, context: ToolContext): Promise<unknown>
 }["bivarianceHack"]
+
+const REDACTED_PARSE_ERROR_TOOLS = new Set([
+  "set_persistent_data",
+  "call_vendor_request",
+  "broadcast_custom_event"
+])
 
 // eslint-disable-next-line functional/no-mixed-types -- tool definitions carry metadata plus a handler.
 export interface ToolDefinition<Input = unknown> {
@@ -86,7 +95,10 @@ export const executeTool = async (
     decodedInput = Schema.decodeUnknownSync(tool.inputSchema, { onExcessProperty: "error" })(input ?? {})
   } catch (error) {
     if (ParseResult.isParseError(error)) {
-      throw new McpError(ErrorCode.InvalidParams, error.message)
+      const message = REDACTED_PARSE_ERROR_TOOLS.has(tool.name)
+        ? `Invalid arguments for ${tool.name}`
+        : error.message
+      throw new McpError(ErrorCode.InvalidParams, message)
     }
     /* v8 ignore next -- defensive: Effect schema input decoding throws ParseError. */
     throw toMcpError(error)

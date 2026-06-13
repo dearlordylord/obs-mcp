@@ -3,6 +3,8 @@ import { Effect, Schema } from "effect"
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
 
 const Toolset = Schema.Literal(
+  "admin_raw",
+  "batch",
   "canvases",
   "config",
   "events",
@@ -13,7 +15,8 @@ const Toolset = Schema.Literal(
   "scenes",
   "stream",
   "transitions",
-  "ui"
+  "ui",
+  "vendor"
 )
 type Toolset = typeof Toolset.Type
 const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes", "inputs"]
@@ -21,11 +24,14 @@ const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes",
 const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
 const DEFAULT_OBS_CONNECTION_TIMEOUT = 30_000
 
+const EventBufferCapacity = Schema.Number.pipe(Schema.int(), Schema.positive())
+
 export const ObsConfig = Schema.Struct({
   url: Schema.String,
   password: Schema.OptionFromNullOr(Schema.String),
   connectionTimeoutMs: Schema.Number.pipe(Schema.int(), Schema.positive()),
-  enabledToolsets: Schema.Array(Toolset)
+  enabledToolsets: Schema.Array(Toolset),
+  eventBufferCapacity: Schema.optional(EventBufferCapacity)
 })
 export type ObsConfig = typeof ObsConfig.Type
 
@@ -40,6 +46,8 @@ const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
   }
 
   const allowed = new Set<string>([
+    "admin_raw",
+    "batch",
     "canvases",
     "config",
     "events",
@@ -50,7 +58,8 @@ const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
     "scenes",
     "stream",
     "transitions",
-    "ui"
+    "ui",
+    "vendor"
   ])
   return values.filter((entry): entry is Toolset => allowed.has(entry))
 }
@@ -82,11 +91,15 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
     try: () => {
       const timeoutRaw = env["OBS_WEBSOCKET_CONNECTION_TIMEOUT"]
       const timeout = timeoutRaw === undefined ? DEFAULT_OBS_CONNECTION_TIMEOUT : Number.parseInt(timeoutRaw, 10)
+      const eventBufferCapacityRaw = env["OBS_EVENT_BUFFER_CAPACITY"]
       return Schema.decodeUnknownSync(ObsConfig)({
         url: normalizeObsWebSocketUrl(env["OBS_WEBSOCKET_URL"] ?? DEFAULT_OBS_WEBSOCKET_URL),
         password: env["OBS_WEBSOCKET_PASSWORD"] ?? null,
         connectionTimeoutMs: timeout,
-        enabledToolsets: parseToolsets(env["TOOLSETS"])
+        enabledToolsets: parseToolsets(env["TOOLSETS"]),
+        ...(eventBufferCapacityRaw === undefined
+          ? {}
+          : { eventBufferCapacity: Number.parseInt(eventBufferCapacityRaw, 10) })
       })
     },
     catch: (error) => {

@@ -257,10 +257,28 @@ const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): Ar
 const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
   tools.map(([requestName]) => requestName)
 
+const gatedToolsets = [
+  { toolset: "events", tools: ["get_recent_obs_events"] },
+  { toolset: "admin_raw", tools: ["get_persistent_data", "set_persistent_data"] },
+  { toolset: "vendor", tools: ["call_vendor_request", "broadcast_custom_event"] },
+  { toolset: "batch", tools: ["run_obs_request_batch"] }
+] as const
+
+const gatedToolNames = gatedToolsets.flatMap(({ tools }) => tools)
+const neverPublicToolNames = [
+  "sleep",
+  "get_input_volume_meters",
+  "get_high_volume_obs_events",
+  "stream_obs_events",
+  "call_raw_obs_request",
+  "run_raw_obs_request_batch"
+]
+
 const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsClient => ({
   negotiatedRpcVersion: 1,
   availableRequests: allAvailableRequests,
   request: async (descriptor) => Schema.decodeUnknownSync(descriptor.responseSchema)({}),
+  requestBatch: async () => [],
   getBufferedEvents: () => events,
   close: async () => undefined
 })
@@ -380,6 +398,36 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name))
       .not.toContain("get_recent_obs_events")
+  })
+
+  it("keeps raw, vendor, custom, high-volume, and batch tools out of default toolsets", () => {
+    const defaultToolNames = getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name)
+    for (const toolName of gatedToolNames) {
+      expect(defaultToolNames).not.toContain(toolName)
+    }
+    for (const toolName of neverPublicToolNames) {
+      expect(allTools.map((tool) => tool.name)).not.toContain(toolName)
+    }
+  })
+
+  it.each(gatedToolsets)("exposes $toolset tools only through explicit TOOLSETS opt-in", ({ tools, toolset }) => {
+    expect(getEnabledTools([toolset], allAvailableRequests).map((tool) => tool.name)).toEqual([...tools])
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .not.toEqual(expect.arrayContaining([...tools]))
+  })
+
+  it("exposes persistent data tools only when the admin_raw toolset and OBS capabilities are enabled", () => {
+    expect(getEnabledTools(["admin_raw"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_persistent_data",
+      "set_persistent_data"
+    ])
+    expect(getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name))
+      .not.toContain("get_persistent_data")
+    expect(
+      getEnabledTools(["admin_raw"], allAvailableRequests.filter((request) => request !== "SetPersistentData"))
+        .map((tool) => tool.name)
+    )
+      .toEqual(["get_persistent_data"])
   })
 
   it("filters disabled categories", () => {
@@ -1916,6 +1964,401 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("returns typed config and general OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["config", "general"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 3,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "CurrentSceneCollectionChanged",
+            eventIntent: EventSubscription.Config,
+            eventData: { sceneCollectionName: "Collection B" }
+          },
+          {
+            sequence: 2,
+            eventType: "ProfileListChanged",
+            eventIntent: EventSubscription.Config,
+            eventData: { profiles: ["Profile A", "Profile B"] }
+          },
+          {
+            sequence: 3,
+            eventType: "ExitStarted",
+            eventIntent: EventSubscription.General,
+            eventData: {}
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 3,
+      droppedEvents: 0,
+      returnedEvents: 3,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "CurrentSceneCollectionChanged",
+          eventIntent: EventSubscription.Config,
+          category: "config",
+          eventData: { sceneCollectionName: "Collection B" }
+        },
+        {
+          sequence: 2,
+          eventType: "ProfileListChanged",
+          eventIntent: EventSubscription.Config,
+          category: "config",
+          eventData: { profiles: ["Profile A", "Profile B"] }
+        },
+        {
+          sequence: 3,
+          eventType: "ExitStarted",
+          eventIntent: EventSubscription.General,
+          category: "general",
+          eventData: {}
+        }
+      ]
+    })
+  })
+
+  it("returns typed scene and scene-item OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["scenes", "scene_items"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 4,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "SceneCreated",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+          },
+          {
+            sequence: 2,
+            eventType: "CurrentPreviewSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Preview", sceneUuid: "scene-preview" }
+          },
+          {
+            sequence: 3,
+            eventType: "SceneItemCreated",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: {
+              sceneName: "Program",
+              sceneUuid: "scene-program",
+              sourceName: "Camera",
+              sourceUuid: "source-camera",
+              sceneItemId: 12,
+              sceneItemIndex: 1
+            }
+          },
+          {
+            sequence: 4,
+            eventType: "SceneItemListReindexed",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: {
+              sceneName: "Program",
+              sceneUuid: "scene-program",
+              sceneItems: [
+                { sceneItemId: 12, sceneItemIndex: 0 },
+                { sceneItemId: 13, sceneItemIndex: 1 }
+              ]
+            }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 4,
+      droppedEvents: 0,
+      returnedEvents: 4,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "SceneCreated",
+          eventIntent: EventSubscription.Scenes,
+          category: "scenes",
+          eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+        },
+        {
+          sequence: 2,
+          eventType: "CurrentPreviewSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          category: "scenes",
+          eventData: { sceneName: "Preview", sceneUuid: "scene-preview" }
+        },
+        {
+          sequence: 3,
+          eventType: "SceneItemCreated",
+          eventIntent: EventSubscription.SceneItems,
+          category: "scene_items",
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sourceName: "Camera",
+            sourceUuid: "source-camera",
+            sceneItemId: 12,
+            sceneItemIndex: 1
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "SceneItemListReindexed",
+          eventIntent: EventSubscription.SceneItems,
+          category: "scene_items",
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItems: [
+              { sceneItemId: 12, sceneItemIndex: 0 },
+              { sceneItemId: 13, sceneItemIndex: 1 }
+            ]
+          }
+        }
+      ]
+    })
+  })
+
+  it("returns typed input and media-input OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["inputs", "media_inputs"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 5,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+          },
+          {
+            sequence: 2,
+            eventType: "InputAudioSyncOffsetChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputAudioSyncOffset: 120 }
+          },
+          {
+            sequence: 3,
+            eventType: "InputAudioMonitorTypeChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: {
+              inputName: "Mic/Aux",
+              inputUuid: "input-mic",
+              monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+            }
+          },
+          {
+            sequence: 4,
+            eventType: "MediaInputPlaybackStarted",
+            eventIntent: EventSubscription.MediaInputs,
+            eventData: { inputName: "Media", inputUuid: "input-media" }
+          },
+          {
+            sequence: 5,
+            eventType: "MediaInputActionTriggered",
+            eventIntent: EventSubscription.MediaInputs,
+            eventData: {
+              inputName: "Media",
+              inputUuid: "input-media",
+              mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+            }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 5,
+      droppedEvents: 0,
+      returnedEvents: 5,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+        },
+        {
+          sequence: 2,
+          eventType: "InputAudioSyncOffsetChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputAudioSyncOffset: 120 }
+        },
+        {
+          sequence: 3,
+          eventType: "InputAudioMonitorTypeChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: {
+            inputName: "Mic/Aux",
+            inputUuid: "input-mic",
+            monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "MediaInputPlaybackStarted",
+          eventIntent: EventSubscription.MediaInputs,
+          category: "media_inputs",
+          eventData: { inputName: "Media", inputUuid: "input-media" }
+        },
+        {
+          sequence: 5,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          category: "media_inputs",
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+          }
+        }
+      ]
+    })
+  })
+
+  it("does not return input or media events with mismatched event intents", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 3,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.General,
+            eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+          },
+          {
+            sequence: 2,
+            eventType: "MediaInputPlaybackStarted",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Media", inputUuid: "input-media" }
+          },
+          {
+            sequence: 3,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 3,
+      droppedEvents: 0,
+      returnedEvents: 1,
+      order: "oldest_first",
+      events: [{
+        sequence: 3,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        category: "inputs",
+        eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+      }]
+    })
+  })
+
+  it("returns typed output, transition, ui, canvas, and filter OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["outputs", "transitions", "ui", "canvases", "filters"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 5,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "RecordFileChanged",
+            eventIntent: EventSubscription.Outputs,
+            eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+          },
+          {
+            sequence: 2,
+            eventType: "SceneTransitionVideoEnded",
+            eventIntent: EventSubscription.Transitions,
+            eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+          },
+          {
+            sequence: 3,
+            eventType: "StudioModeStateChanged",
+            eventIntent: EventSubscription.Ui,
+            eventData: { studioModeEnabled: true }
+          },
+          {
+            sequence: 4,
+            eventType: "CanvasCreated",
+            eventIntent: EventSubscription.Canvases,
+            eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+          },
+          {
+            sequence: 5,
+            eventType: "SourceFilterSettingsChanged",
+            eventIntent: EventSubscription.Filters,
+            eventData: { sourceName: "Camera", filterName: "Color" }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 5,
+      droppedEvents: 0,
+      returnedEvents: 5,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "RecordFileChanged",
+          eventIntent: EventSubscription.Outputs,
+          category: "outputs",
+          eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+        },
+        {
+          sequence: 2,
+          eventType: "SceneTransitionVideoEnded",
+          eventIntent: EventSubscription.Transitions,
+          category: "transitions",
+          eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+        },
+        {
+          sequence: 3,
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          category: "ui",
+          eventData: { studioModeEnabled: true }
+        },
+        {
+          sequence: 4,
+          eventType: "CanvasCreated",
+          eventIntent: EventSubscription.Canvases,
+          category: "canvases",
+          eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+        },
+        {
+          sequence: 5,
+          eventType: "SourceFilterSettingsChanged",
+          eventIntent: EventSubscription.Filters,
+          category: "filters",
+          eventData: { sourceName: "Camera", filterName: "Color" }
+        }
+      ]
+    })
+  })
+
   it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
     await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
       config: { ...config, enabledToolsets: ["events"] },
@@ -1966,7 +2409,7 @@ describe("MCP tool registry", () => {
             eventData: { sceneName: "Scene", sceneItemId: 1 }
           }
         ]
-      } as ReturnType<ObsClient["getBufferedEvents"]>)
+      })
     })).resolves.toEqual({
       capacity: 7,
       droppedEvents: 0,
@@ -2007,6 +2450,60 @@ describe("MCP tool registry", () => {
         category: "unknown"
       }]
     })
+  })
+
+  it("executes persistent data handlers without echoing set slot values", async () => {
+    const seenRequests: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const client = fakeObsClient(async (requestType, requestData) => {
+      seenRequests.push({ requestType, requestData })
+      return requestType === "GetPersistentData"
+        ? { slotValue: { token: "visible-on-read", flags: [true, null] } }
+        : {}
+    })
+    const adminConfig: ObsConfig = { ...config, enabledToolsets: ["admin_raw"] }
+    const locator = { realm: "OBS_WEBSOCKET_DATA_REALM_GLOBAL", slotName: "ralph.secret" }
+
+    await expect(executeTool(toolByName("get_persistent_data"), locator, {
+      config: adminConfig,
+      client
+    })).resolves.toEqual({
+      ...locator,
+      slotValue: { token: "visible-on-read", flags: [true, null] }
+    })
+
+    const setOutput = await executeTool(toolByName("set_persistent_data"), {
+      ...locator,
+      slotValue: { token: "s3cr3t", nested: ["ok"] }
+    }, {
+      config: adminConfig,
+      client
+    })
+
+    expect(setOutput).toEqual({ ...locator, updated: true })
+    expect(JSON.stringify(setOutput)).not.toContain("s3cr3t")
+    expect(seenRequests).toContainEqual({
+      requestType: "SetPersistentData",
+      requestData: { ...locator, slotValue: { token: "s3cr3t", nested: ["ok"] } }
+    })
+  })
+
+  it("rejects non JSON-safe persistent data values and invalid realms", async () => {
+    await expect(executeTool(toolByName("set_persistent_data"), {
+      realm: "OBS_WEBSOCKET_DATA_REALM_PROFILE",
+      slotName: "bad",
+      slotValue: { missing: undefined }
+    }, {
+      config: { ...config, enabledToolsets: ["admin_raw"] },
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+
+    await expect(executeTool(toolByName("get_persistent_data"), {
+      realm: "OBS_WEBSOCKET_DATA_REALM_VENDOR",
+      slotName: "bad"
+    }, {
+      config: { ...config, enabledToolsets: ["admin_raw"] },
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
   })
 
   it("rejects invalid scene-item locator params through schema validation", async () => {

@@ -10,11 +10,15 @@ import { createObsEventBuffer, type ObsEventBufferSnapshot } from "./events.js"
 import {
   decodeEventEnvelope,
   decodeJsonTextEnvelope,
+  EventSubscription,
   OP_EVENT,
   OP_IDENTIFIED,
   OP_IDENTIFY,
   OP_REQUEST,
+  OP_REQUEST_BATCH,
+  OP_REQUEST_BATCH_RESPONSE,
   OP_REQUEST_RESPONSE,
+  type RequestBatchResponseEnvelope,
   type RequestResponseEnvelope,
   SAFE_EVENT_SUBSCRIPTION_MASK
 } from "./protocol.js"
@@ -34,6 +38,29 @@ interface PendingRequestCallbacks {
 
 type PendingRequest = PendingRequestMetadata & PendingRequestCallbacks
 
+interface BatchRequestItem {
+  readonly requestType: string
+  readonly requestId?: string
+  readonly requestData?: Record<string, unknown>
+}
+
+interface BatchRequestPayload {
+  readonly executionType: number
+  readonly haltOnFailure: boolean
+  readonly requests: ReadonlyArray<BatchRequestItem>
+}
+
+export interface BatchRequestResult {
+  readonly requestType: string
+  readonly requestId?: string | undefined
+  readonly requestStatus: {
+    readonly result: boolean
+    readonly code: number
+    readonly comment?: string | undefined
+  }
+  readonly responseData?: Record<string, unknown> | undefined
+}
+
 interface ObsClientState {
   readonly negotiatedRpcVersion: number
   readonly availableRequests: ReadonlyArray<string>
@@ -44,6 +71,7 @@ interface ObsClientCommands {
     descriptor: ObsRequestDescriptor<Output>,
     requestData?: Record<string, unknown>
   ): Promise<Output>
+  requestBatch(batch: BatchRequestPayload): Promise<ReadonlyArray<BatchRequestResult>>
   getBufferedEvents(): ObsEventBufferSnapshot
   close(): Promise<void>
 }
@@ -55,11 +83,13 @@ interface ObsClientOptions {
 }
 
 export const createObsClient = async (config: ObsConfig, options: ObsClientOptions = {}): Promise<ObsClient> => {
+  const eventBufferCapacity = options.eventBufferCapacity ?? config.eventBufferCapacity
   const eventBuffer = createObsEventBuffer(
-    options.eventBufferCapacity === undefined ? {} : { capacity: options.eventBufferCapacity }
+    eventBufferCapacity === undefined ? {} : { capacity: eventBufferCapacity }
   )
   const ws = new WebSocket(config.url, "obswebsocket.json")
   const pending = new Map<string, PendingRequest>()
+  const pendingBatches = new Map<string, PendingRequestCallbacks & { readonly timer: NodeJS.Timeout }>()
   const queuedMessages: Array<{ readonly data: WebSocket.RawData; readonly isBinary: boolean }> = []
   const messageWaiters: Array<{
     readonly resolve: (message: { readonly data: WebSocket.RawData; readonly isBinary: boolean }) => void
@@ -83,6 +113,11 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
       request.reject(error)
     }
     pending.clear()
+    for (const request of pendingBatches.values()) {
+      clearTimeout(request.timer)
+      request.reject(error)
+    }
+    pendingBatches.clear()
   }
 
   const handleResponse = (response: RequestResponseEnvelope): void => {
@@ -101,6 +136,16 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     pendingRequest.resolve(response.d.responseData ?? {})
   }
 
+  const handleBatchResponse = (response: RequestBatchResponseEnvelope): void => {
+    const pendingRequest = pendingBatches.get(response.d.requestId)
+    if (pendingRequest === undefined) {
+      return
+    }
+    pendingBatches.delete(response.d.requestId)
+    clearTimeout(pendingRequest.timer)
+    pendingRequest.resolve({ results: response.d.results })
+  }
+
   const handlePostHandshakeMessage = (data: WebSocket.RawData, isBinary: boolean): void => {
     if (isBinary) {
       rejectAll(new ObsProtocolError("OBS sent a binary frame; JSON text frames are required"))
@@ -112,6 +157,10 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
       const envelope = decodeJsonTextEnvelope(text)
       if (envelope.op === OP_REQUEST_RESPONSE) {
         handleResponse(envelope)
+        return
+      }
+      if (envelope.op === OP_REQUEST_BATCH_RESPONSE) {
+        handleBatchResponse(envelope)
         return
       }
       if (envelope.op === OP_EVENT) {
@@ -194,9 +243,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     }
 
     const password = Option.getOrUndefined(config.password)
+    const eventSubscriptions = config.enabledToolsets.includes("events")
+      ? SAFE_EVENT_SUBSCRIPTION_MASK
+      : EventSubscription.None
     const identifyData: Record<string, unknown> = {
       rpcVersion: SUPPORTED_RPC_VERSION,
-      eventSubscriptions: SAFE_EVENT_SUBSCRIPTION_MASK
+      eventSubscriptions
     }
     if (hello.d.authentication !== undefined) {
       if (password === undefined || password.length === 0) {
@@ -268,6 +320,47 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     )
   }
 
+  const requestBatch = async (batch: BatchRequestPayload): Promise<ReadonlyArray<BatchRequestResult>> =>
+    new Promise((resolve, reject) => {
+      if (closed) {
+        reject(new ObsProtocolError("OBS websocket is closed"))
+        return
+      }
+      const requestId = randomUUID()
+      const timer = setTimeout(() => {
+        pendingBatches.delete(requestId)
+        reject(new ObsTimeoutError("Timed out waiting for OBS request batch response"))
+      }, config.connectionTimeoutMs)
+      pendingBatches.set(requestId, {
+        timer,
+        resolve: (value) => {
+          const decoded = Schema.decodeUnknownSync(Schema.Struct({
+            results: Schema.Array(Schema.Struct({
+              requestType: Schema.String,
+              requestId: Schema.optional(Schema.String),
+              requestStatus: Schema.Struct({
+                result: Schema.Boolean,
+                code: Schema.Number,
+                comment: Schema.optional(Schema.String)
+              }),
+              responseData: Schema.optional(UnknownRecord)
+            }))
+          }))(value)
+          resolve(decoded.results)
+        },
+        reject
+      })
+      ws.send(JSON.stringify({
+        op: OP_REQUEST_BATCH,
+        d: {
+          requestId,
+          haltOnFailure: batch.haltOnFailure,
+          executionType: batch.executionType,
+          requests: batch.requests
+        }
+      }))
+    })
+
   const getVersion = await request(GetVersion)
   const availableRequests = Schema.decodeUnknownSync(Schema.Array(Schema.String))(getVersion["availableRequests"])
 
@@ -275,6 +368,7 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     negotiatedRpcVersion,
     availableRequests,
     request,
+    requestBatch,
     getBufferedEvents: () => eventBuffer.snapshot(),
     close: async () => {
       rejectAll(new ObsProtocolError("OBS client closed"))
