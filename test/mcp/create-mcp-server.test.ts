@@ -37,6 +37,8 @@ const allAvailableRequests = [
   "SetSceneItemEnabled",
   "GetSceneItemLocked",
   "SetSceneItemLocked",
+  "GetSceneItemIndex",
+  "GetSceneItemBlendMode",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -101,6 +103,8 @@ describe("MCP server protocol handlers", () => {
       "set_scene_item_enabled",
       "get_scene_item_locked",
       "set_scene_item_locked",
+      "get_scene_item_index",
+      "get_scene_item_blend_mode",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -128,6 +132,8 @@ describe("MCP server protocol handlers", () => {
     expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_enabled")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "get_scene_item_blend_mode")?.outputSchema?.properties)
+      .toHaveProperty("sceneItemBlendMode")
   })
 
   it("lists only context and available capability-backed tools", async () => {
@@ -264,6 +270,12 @@ describe("MCP server protocol handlers", () => {
       if (requestType === "GetSceneItemEnabled") {
         return { sceneItemEnabled: true }
       }
+      if (requestType === "GetSceneItemIndex") {
+        return { sceneItemIndex: 2 }
+      }
+      if (requestType === "GetSceneItemBlendMode") {
+        return { sceneItemBlendMode: "OBS_BLEND_LIGHTEN" }
+      }
       return { sceneName: "Intro", sceneUuid: "scene-intro" }
     }))
     await expect(client.callTool({ name: "get_current_scene", arguments: {} }))
@@ -302,6 +314,14 @@ describe("MCP server protocol handlers", () => {
       name: "set_scene_item_enabled",
       arguments: { sceneName: "Scene", sceneItemId: 42, sceneItemEnabled: false }
     })).resolves.toMatchObject({ structuredContent: { sceneItemEnabled: false, updated: true } })
+    await expect(client.callTool({
+      name: "get_scene_item_index",
+      arguments: { sceneName: "Scene", sceneItemId: 42 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemIndex: 2 } })
+    await expect(client.callTool({
+      name: "get_scene_item_blend_mode",
+      arguments: { sceneUuid: "scene-uuid", sceneItemId: 42 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemBlendMode: "OBS_BLEND_LIGHTEN" } })
   })
 
   it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {

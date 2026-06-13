@@ -8,8 +8,10 @@ import { EventSubscription, SAFE_EVENT_SUBSCRIPTION_MASK } from "../../src/obs/p
 import {
   GetCurrentProgramScene,
   GetGroupSceneItemList,
+  GetSceneItemBlendMode,
   GetSceneItemEnabled,
   GetSceneItemId,
+  GetSceneItemIndex,
   GetSceneItemList,
   GetSceneItemLocked,
   GetSceneItemSource,
@@ -292,8 +294,12 @@ describe("OBS websocket client", () => {
       sceneItemId: 9,
       sceneItemLocked: false
     })).resolves.toEqual({})
+    await expect(client.request(GetSceneItemIndex, { sceneName: "Main", sceneItemId: 9 }))
+      .resolves.toEqual({ sceneItemIndex: 1 })
+    await expect(client.request(GetSceneItemBlendMode, { sceneUuid: "scene-main", sceneItemId: 9 }))
+      .resolves.toEqual({ sceneItemBlendMode: "OBS_BLEND_MULTIPLY" })
 
-    expect(server.requests.slice(-8)).toEqual([
+    expect(server.requests.slice(-10)).toEqual([
       { requestType: "GetSceneItemList", requestData: { sceneName: "Main", canvasUuid: "canvas-main" } },
       { requestType: "GetGroupSceneItemList", requestData: { sceneUuid: "scene-group" } },
       { requestType: "GetSceneItemId", requestData: { sceneName: "Main", sourceName: "Camera", searchOffset: 0 } },
@@ -307,7 +313,9 @@ describe("OBS websocket client", () => {
       {
         requestType: "SetSceneItemLocked",
         requestData: { sceneUuid: "scene-main", sceneItemId: 9, sceneItemLocked: false }
-      }
+      },
+      { requestType: "GetSceneItemIndex", requestData: { sceneName: "Main", sceneItemId: 9 } },
+      { requestType: "GetSceneItemBlendMode", requestData: { sceneUuid: "scene-main", sceneItemId: 9 } }
     ])
   })
 

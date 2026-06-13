@@ -1,10 +1,14 @@
 import { Schema } from "effect"
 
 import {
+  GetSceneItemBlendModeInput,
+  GetSceneItemBlendModeOutput,
   GetSceneItemEnabledInput,
   GetSceneItemEnabledOutput,
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
+  GetSceneItemIndexInput,
+  GetSceneItemIndexOutput,
   GetSceneItemLockedInput,
   GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
@@ -97,3 +101,15 @@ export const SetSceneItemLocked = {
   requestDataSchema: SetSceneItemLockedInput,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSceneItemIndex = {
+  requestType: "GetSceneItemIndex",
+  requestDataSchema: GetSceneItemIndexInput,
+  responseSchema: GetSceneItemIndexOutput
+} satisfies ObsRequestDescriptor<GetSceneItemIndexOutput>
+
+export const GetSceneItemBlendMode = {
+  requestType: "GetSceneItemBlendMode",
+  requestDataSchema: GetSceneItemBlendModeInput,
+  responseSchema: GetSceneItemBlendModeOutput
+} satisfies ObsRequestDescriptor<GetSceneItemBlendModeOutput>

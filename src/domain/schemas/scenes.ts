@@ -226,3 +226,34 @@ export const SetSceneItemLockedOutput = Schema.Struct({
 })
 export type SetSceneItemLockedOutput = typeof SetSceneItemLockedOutput.Type
 export const SetSceneItemLockedOutputJsonSchema = JSONSchema.make(SetSceneItemLockedOutput)
+
+export const GetSceneItemIndexInput = SceneItemLocatorInput
+export type GetSceneItemIndexInput = typeof GetSceneItemIndexInput.Type
+export const GetSceneItemIndexInputJsonSchema = JSONSchema.make(GetSceneItemIndexInput)
+
+export const GetSceneItemIndexOutput = Schema.Struct({
+  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+})
+export type GetSceneItemIndexOutput = typeof GetSceneItemIndexOutput.Type
+export const GetSceneItemIndexOutputJsonSchema = JSONSchema.make(GetSceneItemIndexOutput)
+
+export const SceneItemBlendMode = Schema.Literal(
+  "OBS_BLEND_NORMAL",
+  "OBS_BLEND_ADDITIVE",
+  "OBS_BLEND_SUBTRACT",
+  "OBS_BLEND_SCREEN",
+  "OBS_BLEND_MULTIPLY",
+  "OBS_BLEND_LIGHTEN",
+  "OBS_BLEND_DARKEN"
+)
+export type SceneItemBlendMode = typeof SceneItemBlendMode.Type
+
+export const GetSceneItemBlendModeInput = SceneItemLocatorInput
+export type GetSceneItemBlendModeInput = typeof GetSceneItemBlendModeInput.Type
+export const GetSceneItemBlendModeInputJsonSchema = JSONSchema.make(GetSceneItemBlendModeInput)
+
+export const GetSceneItemBlendModeOutput = Schema.Struct({
+  sceneItemBlendMode: SceneItemBlendMode
+})
+export type GetSceneItemBlendModeOutput = typeof GetSceneItemBlendModeOutput.Type
+export const GetSceneItemBlendModeOutputJsonSchema = JSONSchema.make(GetSceneItemBlendModeOutput)

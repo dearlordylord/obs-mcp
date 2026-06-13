@@ -1,9 +1,13 @@
 import {
   CurrentSceneOutput,
+  GetSceneItemBlendModeInput,
+  GetSceneItemBlendModeOutput,
   GetSceneItemEnabledInput,
   GetSceneItemEnabledOutput,
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
+  GetSceneItemIndexInput,
+  GetSceneItemIndexOutput,
   GetSceneItemLockedInput,
   GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
@@ -24,8 +28,10 @@ import {
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getCurrentScene,
+  getSceneItemBlendMode,
   getSceneItemEnabled,
   getSceneItemId,
+  getSceneItemIndex,
   getSceneItemLocked,
   getSceneItemSource,
   listGroupSceneItems,
@@ -38,8 +44,10 @@ import {
 import {
   GetCurrentProgramScene,
   GetGroupSceneItemList,
+  GetSceneItemBlendMode,
   GetSceneItemEnabled,
   GetSceneItemId,
+  GetSceneItemIndex,
   GetSceneItemList,
   GetSceneItemLocked,
   GetSceneItemSource,
@@ -162,5 +170,25 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SetSceneItemLockedInput,
     outputSchema: SetSceneItemLockedOutput,
     handler: async (input, context) => setSceneItemLocked(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_index",
+    title: "Get OBS Scene Item Index",
+    description: "Return a scene item's index position in its scene.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemIndex.requestType],
+    inputSchema: GetSceneItemIndexInput,
+    outputSchema: GetSceneItemIndexOutput,
+    handler: async (input, context) => getSceneItemIndex(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_blend_mode",
+    title: "Get OBS Scene Item Blend Mode",
+    description: "Return a scene item's OBS blend mode.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemBlendMode.requestType],
+    inputSchema: GetSceneItemBlendModeInput,
+    outputSchema: GetSceneItemBlendModeOutput,
+    handler: async (input, context) => getSceneItemBlendMode(context.client, input)
   })
 ]

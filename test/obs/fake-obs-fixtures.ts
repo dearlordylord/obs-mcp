@@ -15,6 +15,7 @@ export interface FakeObsSceneItem {
   readonly isGroup?: boolean | null
   readonly sceneItemEnabled?: boolean
   readonly sceneItemLocked?: boolean
+  readonly sceneItemBlendMode?: string
 }
 
 export interface FakeObsInput {
@@ -64,6 +65,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetSceneItemEnabled",
   "GetSceneItemLocked",
   "SetSceneItemLocked",
+  "GetSceneItemIndex",
+  "GetSceneItemBlendMode",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -86,7 +89,13 @@ export const sceneItemsFor = (
   group: boolean
 ): ReadonlyArray<FakeObsSceneItem> => {
   if (group || requestData.sceneName === "Group" || requestData.sceneUuid === "scene-group") {
-    return [{ sceneItemId: 3, sceneItemIndex: 0, sourceName: "Nested", sourceUuid: "source-nested" }]
+    return [{
+      sceneItemId: 3,
+      sceneItemIndex: 0,
+      sourceName: "Nested",
+      sourceUuid: "source-nested",
+      sceneItemBlendMode: "OBS_BLEND_NORMAL"
+    }]
   }
   return [
     {
@@ -98,7 +107,8 @@ export const sceneItemsFor = (
       inputKind: "dshow_input",
       isGroup: null,
       sceneItemEnabled: true,
-      sceneItemLocked: false
+      sceneItemLocked: false,
+      sceneItemBlendMode: "OBS_BLEND_NORMAL"
     },
     {
       sceneItemId: 9,
@@ -109,7 +119,8 @@ export const sceneItemsFor = (
       inputKind: null,
       isGroup: true,
       sceneItemEnabled: false,
-      sceneItemLocked: true
+      sceneItemLocked: true,
+      sceneItemBlendMode: "OBS_BLEND_MULTIPLY"
     }
   ]
 }

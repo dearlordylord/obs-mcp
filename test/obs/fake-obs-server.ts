@@ -310,6 +310,18 @@ export class FakeObsServer {
       send()
       return
     }
+    if (requestType === "GetSceneItemIndex") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemIndex: sceneItem?.sceneItemIndex ?? 0 })
+      return
+    }
+    if (requestType === "GetSceneItemBlendMode") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemBlendMode: sceneItem?.sceneItemBlendMode ?? "OBS_BLEND_NORMAL" })
+      return
+    }
     if (requestType === "GetInputList") {
       const inputKind = envelope.d.requestData?.inputKind
       send({
