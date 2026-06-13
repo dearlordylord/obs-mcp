@@ -494,7 +494,7 @@ describe("MCP server protocol handlers", () => {
           }
         }
         if (requestType === "GetOutputSettings") {
-          return { outputSettings: { server: "rtmp://live.example.invalid/app", key: "<redacted>", reconnect: true } }
+          return { outputSettings: { path: "/opaque/recordings", format_name: "mkv", stream_key: "<redacted>" } }
         }
         return {}
       }),
@@ -521,20 +521,20 @@ describe("MCP server protocol handlers", () => {
           outputTotalFrames: 740
         }
       })
-    await expect(client.callTool({ name: "get_output_settings", arguments: { outputName: "adv_stream" } }))
+    await expect(client.callTool({ name: "get_output_settings", arguments: { outputName: "adv_file_output" } }))
       .resolves.toMatchObject({
         structuredContent: {
-          outputName: "adv_stream",
-          outputSettings: { server: "rtmp://live.example.invalid/app", reconnect: true }
+          outputName: "adv_file_output",
+          outputSettings: { path: "/opaque/recordings", format_name: "mkv" }
         }
       })
     await expect(client.callTool({
       name: "set_output_settings",
-      arguments: { outputName: "adv_stream", outputSettings: { reconnect: false } }
+      arguments: { outputName: "adv_file_output", outputSettings: { max_time_sec: 60 } }
     })).resolves.toMatchObject({
       structuredContent: {
-        outputName: "adv_stream",
-        outputSettings: { reconnect: false },
+        outputName: "adv_file_output",
+        outputSettings: { max_time_sec: 60 },
         updated: true
       }
     })

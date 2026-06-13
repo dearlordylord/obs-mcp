@@ -54,21 +54,14 @@ export const OutputLifecycleOutputJsonSchema = JSONSchema.make(OutputLifecycleOu
 
 export const OutputSettings = Schema.Struct({
   path: Schema.optional(Schema.NonEmptyString),
-  url: Schema.optional(Schema.NonEmptyString),
-  server: Schema.optional(Schema.NonEmptyString),
-  formatName: Schema.optional(Schema.NonEmptyString),
-  videoEncoder: Schema.optional(Schema.NonEmptyString),
-  audioEncoder: Schema.optional(Schema.NonEmptyString),
-  muxerSettings: Schema.optional(Schema.String),
-  reconnect: Schema.optional(Schema.Boolean),
-  retryDelaySec: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  maxRetries: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  bitrateKbps: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  trackIndex: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  useAuthentication: Schema.optional(Schema.Boolean),
-  username: Schema.optional(Schema.NonEmptyString),
-  bindIp: Schema.optional(Schema.NonEmptyString),
-  ipFamily: Schema.optional(Schema.NonEmptyString)
+  format_name: Schema.optional(Schema.NonEmptyString),
+  muxer_settings: Schema.optional(Schema.String),
+  video_encoder: Schema.optional(Schema.NonEmptyString),
+  audio_encoder: Schema.optional(Schema.NonEmptyString),
+  replay_buffer: Schema.optional(Schema.Boolean),
+  max_time_sec: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
+  max_size_mb: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
+  max_shutdown_time_sec: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)))
 })
 export type OutputSettings = typeof OutputSettings.Type
 

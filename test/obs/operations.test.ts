@@ -946,27 +946,29 @@ describe("OBS operations", () => {
     servers.push(server)
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
-    await expect(getOutputSettings(client, { outputName: "adv_stream" })).resolves.toEqual({
-      outputName: "adv_stream",
+    await expect(getOutputSettings(client, { outputName: "adv_file_output" })).resolves.toEqual({
+      outputName: "adv_file_output",
       outputSettings: {
-        server: "rtmp://live.example.invalid/app",
-        reconnect: true,
-        retryDelaySec: 5,
-        maxRetries: 10,
-        bindIp: "default",
-        ipFamily: "IPv4+IPv6"
+        path: "/opaque/recordings",
+        format_name: "mkv",
+        video_encoder: "obs_x264",
+        audio_encoder: "ffmpeg_aac",
+        muxer_settings: "",
+        replay_buffer: true,
+        max_time_sec: 0,
+        max_size_mb: 0
       }
     })
     await expect(setOutputSettings(client, {
-      outputName: "adv_stream",
-      outputSettings: { retryDelaySec: 7, reconnect: false }
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false }
     })).resolves.toEqual({
-      outputName: "adv_stream",
-      outputSettings: { retryDelaySec: 7, reconnect: false },
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false },
       updated: true
     })
-    await expect(getOutputSettings(client, { outputName: "adv_stream" })).resolves.toMatchObject({
-      outputSettings: { reconnect: false, retryDelaySec: 7 }
+    await expect(getOutputSettings(client, { outputName: "adv_file_output" })).resolves.toMatchObject({
+      outputSettings: { replay_buffer: false, max_time_sec: 60 }
     })
     await expect(getOutputSettings(client, { outputName: "missing_output" })).rejects.toMatchObject({
       requestType: "GetOutputSettings",

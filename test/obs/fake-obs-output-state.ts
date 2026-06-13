@@ -230,24 +230,18 @@ export class FakeObsOutputState {
     const existingSettings = this.outputSettings.get(outputName)
     if (existingSettings !== undefined) return existingSettings
     if (outputName === "adv_stream") {
-      return {
-        server: "rtmp://live.example.invalid/app",
-        key: "<redacted>",
-        reconnect: true,
-        retryDelaySec: 5,
-        maxRetries: 10,
-        bindIp: "default",
-        ipFamily: "IPv4+IPv6"
-      }
+      return { max_shutdown_time_sec: 30 }
     }
     if (outputName === "adv_file_output") {
       return {
         path: "/opaque/recordings",
-        formatName: "mkv",
-        videoEncoder: "obs_x264",
-        audioEncoder: "ffmpeg_aac",
-        muxerSettings: "",
-        trackIndex: 1
+        format_name: "mkv",
+        video_encoder: "obs_x264",
+        audio_encoder: "ffmpeg_aac",
+        muxer_settings: "",
+        replay_buffer: true,
+        max_time_sec: 0,
+        max_size_mb: 0
       }
     }
     if (outputName === "virtualcam_output" || outputName === "replay_buffer") {

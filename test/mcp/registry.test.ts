@@ -299,31 +299,29 @@ describe("MCP tool registry", () => {
 
   it("gets and sets sanitized generic output settings", async () => {
     const requests: Array<unknown> = []
-    await expect(executeTool(toolByName("get_output_settings"), { outputName: "adv_stream" }, {
+    await expect(executeTool(toolByName("get_output_settings"), { outputName: "adv_file_output" }, {
       config,
       client: fakeObsClient(async (requestType, requestData) => {
         expect(requestType).toBe("GetOutputSettings")
         requests.push(requestData)
         return {
           outputSettings: {
-            server: "rtmp://live.example.invalid/app",
-            key: "<redacted>",
-            reconnect: true,
-            retryDelaySec: 5
+            path: "/opaque/recordings",
+            format_name: "mkv",
+            stream_key: "<redacted>"
           }
         }
       })
     })).resolves.toEqual({
-      outputName: "adv_stream",
+      outputName: "adv_file_output",
       outputSettings: {
-        server: "rtmp://live.example.invalid/app",
-        reconnect: true,
-        retryDelaySec: 5
+        path: "/opaque/recordings",
+        format_name: "mkv"
       }
     })
     await expect(executeTool(toolByName("set_output_settings"), {
-      outputName: "adv_stream",
-      outputSettings: { reconnect: false, retryDelaySec: 7 }
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false }
     }, {
       config,
       client: fakeObsClient(async (requestType, requestData) => {
@@ -332,13 +330,13 @@ describe("MCP tool registry", () => {
         return {}
       })
     })).resolves.toEqual({
-      outputName: "adv_stream",
-      outputSettings: { reconnect: false, retryDelaySec: 7 },
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false },
       updated: true
     })
     expect(requests).toEqual([
-      { outputName: "adv_stream" },
-      { outputName: "adv_stream", outputSettings: { reconnect: false, retryDelaySec: 7 } }
+      { outputName: "adv_file_output" },
+      { outputName: "adv_file_output", outputSettings: { max_time_sec: 60, replay_buffer: false } }
     ])
   })
 
