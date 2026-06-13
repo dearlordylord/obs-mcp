@@ -176,6 +176,12 @@ const laneOwnedRequestTools = [
   ["OpenSourceProjector", "open_source_projector", "ui"]
 ] satisfies ReadonlyArray<readonly [ObsRequestType, string, string]>
 
+const deferredLaneOwnedRequests = [{
+  requestType: "SetStudioModeEnabled",
+  reason:
+    "Deferred intentionally: studio mode writes are not exposed as a public tool in this lane; transition triggering remains in the transitions toolset."
+}] as const
+
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
   fakeObsClient(handler, allAvailableRequests)
 
@@ -292,13 +298,24 @@ describe("MCP tool registry", () => {
     ])
   })
 
-  it("represents every studio-admin lane request with exactly one public tool", () => {
+  it("represents every studio-admin lane request with exactly one public tool or deferred note", () => {
     for (const [requestType, toolName] of laneOwnedRequestTools) {
       expect(allTools.filter((tool) => tool.requiredObsRequests.includes(requestType)).map((tool) => tool.name))
         .toEqual([toolName])
     }
+    for (const { reason, requestType } of deferredLaneOwnedRequests) {
+      expect(reason.length).toBeGreaterThan(0)
+      expect(allTools.filter((tool) => tool.requiredObsRequests.includes(requestType)).map((tool) => tool.name))
+        .toEqual([])
+    }
+    const laneRequestNames = [
+      ...laneOwnedRequestTools.map(([requestType]) => requestType),
+      ...deferredLaneOwnedRequests.map(({ requestType }) => requestType)
+    ]
+    expect(new Set(laneRequestNames).size).toBe(laneRequestNames.length)
     expect(new Set(laneOwnedRequestTools.map(([, toolName]) => toolName)).size).toBe(laneOwnedRequestTools.length)
     expect(allTools.map((tool) => tool.name)).not.toContain("send_raw_obs_request")
+    expect(allTools.map((tool) => tool.name)).not.toContain("set_studio_mode_enabled")
   })
 
   it("capability-gates every studio-admin lane tool by its represented OBS request", () => {

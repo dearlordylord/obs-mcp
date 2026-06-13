@@ -63,3 +63,5 @@ The harness follows the Huly MCP baseline:
 ## Deferred Work
 
 HTTP transport, raw requests, batches, screenshots, VS Code packaging, arbitrary filesystem access, and advanced scene identity remain intentionally deferred. New OBS surfaces should keep using narrow schemas, explicit toolsets, request capability gating, and fake OBS protocol coverage before being exposed.
+
+`SetStudioModeEnabled` is intentionally deferred for this lane: studio-mode state writes are not exposed as a public tool, while the existing transition trigger remains available through the opt-in `transitions` toolset.
