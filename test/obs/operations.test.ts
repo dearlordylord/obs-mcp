@@ -228,17 +228,31 @@ describe("OBS operations", () => {
   })
 
   it("surfaces OBS failures for record file and chapter controls with metadata", async () => {
-    const server = await FakeObsServer.start({
+    const splitServer = await FakeObsServer.start({
       failRequests: { SplitRecordFile: { code: 703, comment: "Recording not active" } }
     })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
-    clients.push(client)
-    await expect(splitRecordFile(client)).rejects.toMatchObject(
+    servers.push(splitServer)
+    const splitClient = await createObsClient({ ...configFor(splitServer.url), enabledToolsets: ["record"] })
+    clients.push(splitClient)
+    await expect(splitRecordFile(splitClient)).rejects.toMatchObject(
       {
         requestType: "SplitRecordFile",
         code: 703,
         comment: "Recording not active"
+      } satisfies Partial<ObsRequestError>
+    )
+
+    const chapterServer = await FakeObsServer.start({
+      failRequests: { CreateRecordChapter: { code: 703, comment: "Chapter markers unavailable" } }
+    })
+    servers.push(chapterServer)
+    const chapterClient = await createObsClient({ ...configFor(chapterServer.url), enabledToolsets: ["record"] })
+    clients.push(chapterClient)
+    await expect(createRecordChapter(chapterClient, { chapterName: "Act 1" })).rejects.toMatchObject(
+      {
+        requestType: "CreateRecordChapter",
+        code: 703,
+        comment: "Chapter markers unavailable"
       } satisfies Partial<ObsRequestError>
     )
   })

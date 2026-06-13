@@ -394,7 +394,14 @@ describe("MCP server protocol handlers", () => {
       { ...config, enabledToolsets: ["record"] }
     )
     await expect(client.callTool({ name: "create_record_chapter", arguments: { chapterName: "" } }))
-      .resolves.toMatchObject({ isError: true })
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams
+          }
+        }
+      })
     expect(requested).toEqual([])
   })
 
@@ -412,7 +419,14 @@ describe("MCP server protocol handlers", () => {
         name: "create_record_chapter",
         arguments: { chapterName: "Act 1", unexpected: true }
       })
-    ).resolves.toMatchObject({ isError: true })
+    ).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
     expect(requested).toEqual([])
   })
 
@@ -483,7 +497,10 @@ describe("MCP server protocol handlers", () => {
   })
 
   it("keeps OBS status metadata for record file tool errors", async () => {
-    const client = await connect(obsClient(async () => {
+    const client = await connect(obsClient(async (requestType) => {
+      if (requestType === "CreateRecordChapter") {
+        throw new ObsRequestError("CreateRecordChapter", 703, "Chapter markers unavailable")
+      }
       throw new ObsRequestError("SplitRecordFile", 703, "Recording not active")
     }))
     await expect(client.callTool({ name: "split_record_file", arguments: {} }))
@@ -495,6 +512,18 @@ describe("MCP server protocol handlers", () => {
             requestType: "SplitRecordFile",
             obsStatusCode: 703,
             comment: "Recording not active"
+          }
+        }
+      })
+    await expect(client.callTool({ name: "create_record_chapter", arguments: { chapterName: "Act 1" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "CreateRecordChapter",
+            obsStatusCode: 703,
+            comment: "Chapter markers unavailable"
           }
         }
       })
