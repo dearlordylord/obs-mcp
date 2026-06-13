@@ -188,6 +188,8 @@ describe("MCP tool registry", () => {
       "create_scene",
       "remove_scene",
       "set_scene_name",
+      "get_scene_transition_override",
+      "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -279,6 +281,8 @@ describe("MCP tool registry", () => {
       "create_scene",
       "remove_scene",
       "set_scene_name",
+      "get_scene_transition_override",
+      "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -558,6 +562,37 @@ describe("MCP tool registry", () => {
       canvasUuid: "canvas-main",
       newSceneName: "Intermission",
       renamed: true
+    })
+  })
+
+  it("executes scene transition override handlers with structured request payloads", async () => {
+    await expect(executeTool(toolByName("get_scene_transition_override"), {
+      sceneName: "Intro",
+      canvasUuid: "canvas-main"
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetSceneSceneTransitionOverride")
+        expect(requestData).toEqual({ sceneName: "Intro", canvasUuid: "canvas-main" })
+        return { transitionName: null, transitionDuration: null }
+      })
+    })).resolves.toEqual({ transitionName: null, transitionDuration: null })
+    await expect(executeTool(toolByName("set_scene_transition_override"), {
+      sceneUuid: "scene-intro",
+      transitionName: "Fade",
+      transitionDuration: 300
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetSceneSceneTransitionOverride")
+        expect(requestData).toEqual({ sceneUuid: "scene-intro", transitionName: "Fade", transitionDuration: 300 })
+        return {}
+      })
+    })).resolves.toEqual({
+      sceneUuid: "scene-intro",
+      transitionName: "Fade",
+      transitionDuration: 300,
+      updated: true
     })
   })
 
@@ -1069,6 +1104,26 @@ describe("MCP tool registry", () => {
       .rejects.toBeInstanceOf(McpError)
     await expect(
       executeTool(toolByName("set_scene_name"), { sceneName: "Intro", newSceneName: "" }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("set_scene_transition_override"), {
+        sceneName: "Intro",
+        transitionName: ""
+      }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("set_scene_transition_override"), {
+        sceneName: "Intro",
+        transitionDuration: 49
+      }, {
         config,
         client: fakeObsClient(async () => ({}))
       })
@@ -1777,6 +1832,15 @@ describe("MCP tool registry", () => {
       "remove_scene"
     ])
     expect(getEnabledTools(["scenes"], ["SetSceneName"]).map((tool) => tool.name)).toEqual(["set_scene_name"])
+  })
+
+  it("filters scene transition override tools by partial OBS capabilities", () => {
+    expect(
+      getEnabledTools(["scenes"], ["GetSceneSceneTransitionOverride"]).map((tool) => tool.name)
+    ).toEqual(["get_scene_transition_override"])
+    expect(
+      getEnabledTools(["scenes"], ["SetSceneSceneTransitionOverride"]).map((tool) => tool.name)
+    ).toEqual(["set_scene_transition_override"])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

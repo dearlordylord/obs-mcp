@@ -137,6 +137,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "CreateScene",
   "RemoveScene",
   "SetSceneName",
+  "GetSceneSceneTransitionOverride",
+  "SetSceneSceneTransitionOverride",
   "GetSceneItemList",
   "GetGroupSceneItemList",
   "GetSceneItemId",

@@ -65,6 +65,8 @@ describe("MCP server protocol handlers", () => {
       "create_scene",
       "remove_scene",
       "set_scene_name",
+      "get_scene_transition_override",
+      "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
@@ -109,6 +111,8 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.find((tool) => tool.name === "set_current_scene")?.inputSchema.required).toEqual(["sceneName"])
     expect(tools.tools.find((tool) => tool.name === "create_scene")?.inputSchema.required).toEqual(["sceneName"])
     expect(tools.tools.find((tool) => tool.name === "set_current_preview_scene")?.inputSchema)
+      .toHaveProperty("anyOf")
+    expect(tools.tools.find((tool) => tool.name === "set_scene_transition_override")?.inputSchema)
       .toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_current_scene")?.outputSchema?.properties)
       .toHaveProperty("sceneName")

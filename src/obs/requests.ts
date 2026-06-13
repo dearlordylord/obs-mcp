@@ -12,6 +12,8 @@ export const ObsRequestType = Schema.Literal(
   "CreateScene",
   "RemoveScene",
   "SetSceneName",
+  "GetSceneSceneTransitionOverride",
+  "SetSceneSceneTransitionOverride",
   "GetSceneItemList",
   "GetGroupSceneItemList",
   "GetSceneItemId",

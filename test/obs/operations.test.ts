@@ -52,12 +52,14 @@ import {
   createScene,
   getCurrentPreviewScene,
   getCurrentScene,
+  getSceneTransitionOverride,
   listGroups,
   listScenes,
   removeScene,
   setCurrentPreviewScene,
   setCurrentScene,
-  setSceneName
+  setSceneName,
+  setSceneTransitionOverride
 } from "../../src/obs/operations/scenes.js"
 import {
   getStreamStatus,
@@ -218,6 +220,47 @@ describe("OBS operations", () => {
       code: 600,
       comment: "Scene not found"
     })
+  })
+
+  it("gets, sets, replaces, and clears scene transition overrides", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: null, transitionDuration: null })
+    await expect(setSceneTransitionOverride(client, {
+      sceneName: "Intro",
+      transitionName: "Fade",
+      transitionDuration: 300
+    })).resolves.toEqual({
+      sceneName: "Intro",
+      transitionName: "Fade",
+      transitionDuration: 300,
+      updated: true
+    })
+    await expect(getSceneTransitionOverride(client, { sceneUuid: "scene-intro" }))
+      .resolves.toEqual({ transitionName: "Fade", transitionDuration: 300 })
+    await expect(setSceneTransitionOverride(client, { sceneUuid: "scene-intro", transitionName: "Cut" }))
+      .resolves.toEqual({ sceneUuid: "scene-intro", transitionName: "Cut", updated: true })
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: "Cut", transitionDuration: 300 })
+    await expect(setSceneTransitionOverride(client, { sceneUuid: "scene-intro", transitionDuration: 500 }))
+      .resolves.toEqual({ sceneUuid: "scene-intro", transitionDuration: 500, updated: true })
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: "Cut", transitionDuration: 500 })
+    await expect(setSceneTransitionOverride(client, {
+      sceneName: "Intro",
+      transitionName: null,
+      transitionDuration: null
+    })).resolves.toEqual({
+      sceneName: "Intro",
+      transitionName: null,
+      transitionDuration: null,
+      updated: true
+    })
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: null, transitionDuration: null })
   })
 
   it("discovers inputs and input kinds through the fake OBS protocol", async () => {

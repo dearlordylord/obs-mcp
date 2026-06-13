@@ -140,6 +140,57 @@ export const SetSceneNameOutput = Schema.Struct({
 export type SetSceneNameOutput = typeof SetSceneNameOutput.Type
 export const SetSceneNameOutputJsonSchema = JSONSchema.make(SetSceneNameOutput)
 
+const MinTransitionDuration = 50
+const MaxTransitionDuration = 20000
+const TransitionDuration = Schema.Number.pipe(
+  Schema.greaterThanOrEqualTo(MinTransitionDuration),
+  Schema.lessThanOrEqualTo(MaxTransitionDuration)
+)
+
+export const GetSceneTransitionOverrideInput = SceneLocator
+export type GetSceneTransitionOverrideInput = typeof GetSceneTransitionOverrideInput.Type
+export const GetSceneTransitionOverrideInputJsonSchema = JSONSchema.make(GetSceneTransitionOverrideInput)
+
+export const SceneTransitionOverrideOutput = Schema.Struct({
+  transitionName: Schema.NullOr(Schema.String),
+  transitionDuration: Schema.NullOr(Schema.Number)
+})
+export type SceneTransitionOverrideOutput = typeof SceneTransitionOverrideOutput.Type
+export const SceneTransitionOverrideOutputJsonSchema = JSONSchema.make(SceneTransitionOverrideOutput)
+
+const SetSceneTransitionOverrideFields = {
+  transitionName: Schema.optional(Schema.NullOr(Schema.NonEmptyString)),
+  transitionDuration: Schema.optional(Schema.NullOr(TransitionDuration))
+} as const
+
+export const SetSceneTransitionOverrideInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SetSceneTransitionOverrideFields
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SetSceneTransitionOverrideFields
+  })
+)
+export type SetSceneTransitionOverrideInput = typeof SetSceneTransitionOverrideInput.Type
+export const SetSceneTransitionOverrideInputJsonSchema = JSONSchema.make(SetSceneTransitionOverrideInput)
+
+export const SetSceneTransitionOverrideOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  canvasUuid: Schema.optional(Schema.String),
+  transitionName: Schema.optional(Schema.NullOr(Schema.String)),
+  transitionDuration: Schema.optional(Schema.NullOr(Schema.Number)),
+  updated: Schema.Literal(true)
+})
+export type SetSceneTransitionOverrideOutput = typeof SetSceneTransitionOverrideOutput.Type
+export const SetSceneTransitionOverrideOutputJsonSchema = JSONSchema.make(SetSceneTransitionOverrideOutput)
+
 const SceneItemId = Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
 const LastMatchSearchOffset = -1
 

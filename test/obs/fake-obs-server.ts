@@ -13,7 +13,7 @@ import {
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
-import { handleFakeObsSceneLifecycleRequest } from "./fake-obs-scene-requests.js"
+import { type FakeObsSceneTransitionOverrides, handleFakeObsSceneRequest } from "./fake-obs-scene-requests.js"
 
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
@@ -119,6 +119,7 @@ export class FakeObsServer {
     inputs: ReadonlyArray<FakeObsInput>
   ): void {
     const scenes = [...initialScenes]
+    const sceneTransitionOverrides = new Map()
     this.server.on("connection", (socket) => {
       const salt = "salt"
       const challenge = "challenge"
@@ -163,7 +164,11 @@ export class FakeObsServer {
         if (options.sendMalformedAfterIdentify === true) {
           socket.send("{")
         }
-        socket.on("message", (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs))
+        socket.on(
+          "message",
+          (message) =>
+            this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs, sceneTransitionOverrides)
+        )
       })
     })
   }
@@ -173,7 +178,8 @@ export class FakeObsServer {
     text: string,
     options: FakeObsServerOptions,
     scenes: Array<FakeObsScene>,
-    inputs: ReadonlyArray<FakeObsInput>
+    inputs: ReadonlyArray<FakeObsInput>,
+    sceneTransitionOverrides: FakeObsSceneTransitionOverrides
   ): void {
     const envelope = JSON.parse(text)
     const requestType = envelope.d.requestType
@@ -317,20 +323,21 @@ export class FakeObsServer {
       send()
       return
     }
-    const sceneLifecycle = handleFakeObsSceneLifecycleRequest(
+    const sceneRequest = handleFakeObsSceneRequest(
       requestType,
       envelope.d.requestData ?? {},
       scenes,
       this.currentSceneName,
-      this.currentPreviewSceneName
+      this.currentPreviewSceneName,
+      sceneTransitionOverrides
     )
-    if (sceneLifecycle.handled) {
-      this.currentSceneName = sceneLifecycle.currentSceneName ?? this.currentSceneName
-      this.currentPreviewSceneName = sceneLifecycle.currentPreviewSceneName ?? this.currentPreviewSceneName
-      if (sceneLifecycle.error === undefined) {
-        send(sceneLifecycle.responseData)
+    if (sceneRequest.handled) {
+      this.currentSceneName = sceneRequest.currentSceneName ?? this.currentSceneName
+      this.currentPreviewSceneName = sceneRequest.currentPreviewSceneName ?? this.currentPreviewSceneName
+      if (sceneRequest.error === undefined) {
+        send(sceneRequest.responseData)
       } else {
-        sendError(sceneLifecycle.error.code, sceneLifecycle.error.comment)
+        sendError(sceneRequest.error.code, sceneRequest.error.comment)
       }
       return
     }

@@ -14,6 +14,7 @@ import {
   GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
+  GetSceneTransitionOverrideInput,
   GetSourceActiveInput,
   GetSourceActiveOutput,
   ListGroupSceneItemsInput,
@@ -23,11 +24,13 @@ import {
   ListSceneItemsOutput,
   ListScenesOutput,
   RemoveSceneInput,
+  SceneTransitionOverrideOutput,
   SetSceneItemBlendModeInput,
   SetSceneItemEnabledInput,
   SetSceneItemIndexInput,
   SetSceneItemLockedInput,
-  SetSceneNameInput
+  SetSceneNameInput,
+  SetSceneTransitionOverrideInput
 } from "../../domain/schemas/scenes.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
@@ -119,6 +122,18 @@ export const RemoveScene = {
 export const SetSceneName = {
   requestType: "SetSceneName",
   requestDataSchema: SetSceneNameInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSceneSceneTransitionOverride = {
+  requestType: "GetSceneSceneTransitionOverride",
+  requestDataSchema: GetSceneTransitionOverrideInput,
+  responseSchema: SceneTransitionOverrideOutput
+} satisfies ObsRequestDescriptor<SceneTransitionOverrideOutput>
+
+export const SetSceneSceneTransitionOverride = {
+  requestType: "SetSceneSceneTransitionOverride",
+  requestDataSchema: SetSceneTransitionOverrideInput,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
 

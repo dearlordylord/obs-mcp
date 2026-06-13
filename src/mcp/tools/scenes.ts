@@ -10,6 +10,7 @@ import {
   getSceneItemIndex,
   getSceneItemLocked,
   getSceneItemSource,
+  getSceneTransitionOverride,
   getSourceActive,
   listGroups,
   listGroupSceneItems,
@@ -22,7 +23,8 @@ import {
   setSceneItemEnabled,
   setSceneItemIndex,
   setSceneItemLocked,
-  setSceneName
+  setSceneName,
+  setSceneTransitionOverride
 } from "../../obs/operations/scenes.js"
 import {
   CreateScene,
@@ -38,6 +40,7 @@ import {
   GetSceneItemLocked,
   GetSceneItemSource,
   GetSceneList,
+  GetSceneSceneTransitionOverride,
   GetSourceActive,
   RemoveScene,
   SetCurrentPreviewScene,
@@ -46,7 +49,8 @@ import {
   SetSceneItemEnabled,
   SetSceneItemIndex,
   SetSceneItemLocked,
-  SetSceneName
+  SetSceneName,
+  SetSceneSceneTransitionOverride
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -143,6 +147,26 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.SetSceneNameInput,
     outputSchema: SceneSchemas.SetSceneNameOutput,
     handler: async (input, context) => setSceneName(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_transition_override",
+    title: "Get OBS Scene Transition Override",
+    description: "Return the per-scene transition override name and duration, or nulls when no override is set.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneSceneTransitionOverride.requestType],
+    inputSchema: SceneSchemas.GetSceneTransitionOverrideInput,
+    outputSchema: SceneSchemas.SceneTransitionOverrideOutput,
+    handler: async (input, context) => getSceneTransitionOverride(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_transition_override",
+    title: "Set OBS Scene Transition Override",
+    description: "Set, update, or clear a per-scene transition override name and duration.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneSceneTransitionOverride.requestType],
+    inputSchema: SceneSchemas.SetSceneTransitionOverrideInput,
+    outputSchema: SceneSchemas.SetSceneTransitionOverrideOutput,
+    handler: async (input, context) => setSceneTransitionOverride(context.client, input)
   }),
   defineTool({
     name: "list_scene_items",
