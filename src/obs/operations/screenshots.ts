@@ -33,12 +33,15 @@ const parseScreenshotData = (
   if (match === null) {
     return { base64Data: imageData, mimeType: mimeForFormat(requestedFormat) }
   }
-  const mimeType = Schema.decodeUnknownSync(ScreenshotSchemas.GetSourceScreenshotOutput.fields.mimeType)(match[1])
+  const [, mimeTypeText, base64Data] = match
+  const mimeType = Schema.decodeUnknownSync(ScreenshotSchemas.GetSourceScreenshotOutput.fields.mimeType)(
+    Schema.decodeUnknownSync(Schema.String)(mimeTypeText)
+  )
   const expectedMimeType = mimeForFormat(requestedFormat)
   if (mimeType !== expectedMimeType) {
     throw new Error(`OBS screenshot MIME ${mimeType} does not match requested ${expectedMimeType}`)
   }
-  return { base64Data: match[2] ?? "", mimeType }
+  return { base64Data: Schema.decodeUnknownSync(Schema.String)(base64Data), mimeType }
 }
 
 export const getSourceScreenshot = async (
@@ -76,9 +79,6 @@ export const saveSourceScreenshot = async (
   }
   const decodedInput = Schema.decodeUnknownSync(ScreenshotSchemas.SaveSourceScreenshotInput)(input)
   const imageFilePath = path.resolve(directory, decodedInput.fileName)
-  if (path.dirname(imageFilePath) !== directory) {
-    throw new Error("fileName must remain inside OBS_MCP_SCREENSHOT_OUTPUT_DIR")
-  }
   await client.request(SaveSourceScreenshot, {
     ...(decodedInput.sourceName === undefined ? {} : { sourceName: decodedInput.sourceName }),
     ...(decodedInput.sourceUuid === undefined ? {} : { sourceUuid: decodedInput.sourceUuid }),

@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 
@@ -100,11 +100,11 @@ const configFor = (url: string): ObsConfig => ({
   enabledToolsets: ["scenes"]
 })
 
-const fakeClient = (handler: (requestType: ObsRequestType) => Promise<unknown>): ObsClient => ({
+const fakeClient = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient => ({
   negotiatedRpcVersion: 1,
   availableRequests: [],
-  request: async (descriptor) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType)),
+  request: async (descriptor, requestData) =>
+    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
   getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
   close: async () => undefined
 })
@@ -1639,6 +1639,99 @@ describe("OBS operations", () => {
         comment: "Screenshot rejected"
       } satisfies Partial<ObsRequestError>
     )
+  })
+
+  it("enforces screenshot payload and output directory policies", async () => {
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "jpg"
+      }
+    )).resolves.toEqual({
+      imageFormat: "jpg",
+      mimeType: "image/jpeg",
+      imageBytes: 5,
+      maxImageBytes: 1_500_000,
+      base64Data: "aW1hZ2U="
+    })
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "webp"
+      }
+    )).resolves.toMatchObject({ mimeType: "image/webp" })
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "bmp"
+      }
+    )).resolves.toMatchObject({ mimeType: "image/bmp" })
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "data:image/jpeg;base64,aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "png"
+      }
+    )).rejects.toThrow("OBS screenshot MIME image/jpeg does not match requested image/png")
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: Buffer.alloc(1_500_001).toString("base64")
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "png"
+      }
+    )).rejects.toThrow("OBS screenshot exceeds 1500000 byte limit")
+
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-screenshot-policy-"))
+    const outputFile = path.join(outputDirectory, "not-a-directory")
+    const saveRequests: Array<unknown> = []
+    try {
+      await expect(saveSourceScreenshot(
+        fakeClient(async (_requestType, requestData) => {
+          saveRequests.push(requestData)
+          return {}
+        }),
+        {
+          sourceName: "Camera",
+          canvasUuid: "canvas-main",
+          imageFormat: "png",
+          imageCompressionQuality: 90,
+          fileName: "camera.png"
+        },
+        outputDirectory
+      )).resolves.toEqual({
+        imageFilePath: path.join(outputDirectory, "camera.png"),
+        imageFormat: "png",
+        saved: true
+      })
+      await writeFile(outputFile, "")
+      await expect(saveSourceScreenshot(fakeClient(async () => ({})), {
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "camera.png"
+      }, outputFile)).rejects.toThrow("OBS_MCP_SCREENSHOT_OUTPUT_DIR must point to an existing directory")
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true })
+    }
+    expect(saveRequests).toEqual([{
+      sourceName: "Camera",
+      canvasUuid: "canvas-main",
+      imageFormat: "png",
+      imageCompressionQuality: 90,
+      imageFilePath: path.join(outputDirectory, "camera.png")
+    }])
   })
 
   it("controls the virtual camera over the OBS protocol", async () => {
