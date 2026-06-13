@@ -49,22 +49,17 @@ afterEach(async () => {
 })
 
 describe("OBS websocket client", () => {
-  it("connects through an unauthenticated handshake and caches available requests", async () => {
+  it("connects without event subscriptions when the events toolset is disabled", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     expect(client.negotiatedRpcVersion).toBe(1)
     expect(client.availableRequests).toContain("GetSceneList")
-    expect(server.lastIdentifyEventSubscriptions).toBe(SAFE_EVENT_SUBSCRIPTION_MASK)
-    const subscriptions = server.lastIdentifyEventSubscriptions as number
-    expect(subscriptions & EventSubscription.Vendors).toBe(0)
-    for (const subscription of HIGH_VOLUME_EVENT_SUBSCRIPTIONS) {
-      expect(subscriptions & EventSubscription[subscription]).toBe(0)
-    }
+    expect(server.lastIdentifyEventSubscriptions).toBe(EventSubscription.None)
   })
 
-  it("keeps raw vendor, custom, and high-volume subscriptions disabled for the events toolset", async () => {
+  it("subscribes to safe events and keeps raw vendor/custom/high-volume subscriptions disabled for the events toolset", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
     const client = await createObsClient(configFor(server.url, undefined, 300, ["events"]))

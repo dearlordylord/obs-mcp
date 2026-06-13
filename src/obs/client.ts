@@ -10,6 +10,7 @@ import { createObsEventBuffer, type ObsEventBufferSnapshot } from "./events.js"
 import {
   decodeEventEnvelope,
   decodeJsonTextEnvelope,
+  EventSubscription,
   OP_EVENT,
   OP_IDENTIFIED,
   OP_IDENTIFY,
@@ -195,9 +196,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     }
 
     const password = Option.getOrUndefined(config.password)
+    const eventSubscriptions = config.enabledToolsets.includes("events")
+      ? SAFE_EVENT_SUBSCRIPTION_MASK
+      : EventSubscription.None
     const identifyData: Record<string, unknown> = {
       rpcVersion: SUPPORTED_RPC_VERSION,
-      eventSubscriptions: SAFE_EVENT_SUBSCRIPTION_MASK
+      eventSubscriptions
     }
     if (hello.d.authentication !== undefined) {
       if (password === undefined || password.length === 0) {
