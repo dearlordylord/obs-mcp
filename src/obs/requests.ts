@@ -16,6 +16,8 @@ export const ObsRequestType = Schema.Literal(
   "GetInputMute",
   "SetInputMute",
   "ToggleInputMute",
+  "GetInputVolume",
+  "SetInputVolume",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",

@@ -3,11 +3,14 @@ import { Schema } from "effect"
 import {
   InputLocatorInput,
   InputMuteOutput,
+  InputVolumeOutput,
   ListInputKindsInput,
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
   SetInputMuteInput,
+  SetInputVolumeInput,
+  SetInputVolumeOutput,
   SpecialInputsOutput
 } from "../../domain/schemas/inputs.js"
 import type { ObsClient } from "../client.js"
@@ -15,8 +18,10 @@ import {
   GetInputKindList,
   GetInputList,
   GetInputMute,
+  GetInputVolume,
   GetSpecialInputs,
   SetInputMute,
+  SetInputVolume,
   ToggleInputMute
 } from "../requests.js"
 
@@ -56,4 +61,23 @@ export const toggleInputMute = async (client: ObsClient, input: InputLocatorInpu
   const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
   const response = await client.request(ToggleInputMute, decodedInput)
   return Schema.decodeUnknownSync(InputMuteOutput)(response)
+}
+
+export const getInputVolume = async (client: ObsClient, input: InputLocatorInput): Promise<InputVolumeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputVolume, decodedInput)
+  return Schema.decodeUnknownSync(InputVolumeOutput)(response)
+}
+
+export const setInputVolume = async (
+  client: ObsClient,
+  input: SetInputVolumeInput
+): Promise<SetInputVolumeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputVolumeInput)(input)
+  await client.request(SetInputVolume, decodedInput)
+  return Schema.decodeUnknownSync(SetInputVolumeOutput)({
+    ...(decodedInput.inputVolumeMul === undefined ? {} : { inputVolumeMul: decodedInput.inputVolumeMul }),
+    ...(decodedInput.inputVolumeDb === undefined ? {} : { inputVolumeDb: decodedInput.inputVolumeDb }),
+    acknowledged: true
+  })
 }

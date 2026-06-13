@@ -21,7 +21,26 @@ export interface FakeObsInput {
   readonly inputKind: string
   readonly unversionedInputKind: string
   readonly inputMuted?: boolean
+  readonly inputVolumeMul?: number
+  readonly inputVolumeDb?: number
 }
+
+export interface FakeObsInputVolume {
+  readonly inputVolumeMul: number
+  readonly inputVolumeDb: number
+}
+
+export const DEFAULT_INPUT_VOLUME: FakeObsInputVolume = { inputVolumeMul: 1, inputVolumeDb: 0 }
+
+export const fakeInputVolumeFromRequest = (
+  requestData: { readonly inputVolumeMul?: number; readonly inputVolumeDb?: number }
+): FakeObsInputVolume =>
+  requestData.inputVolumeMul === undefined
+    ? { inputVolumeMul: 10 ** ((requestData.inputVolumeDb ?? 0) / 20), inputVolumeDb: requestData.inputVolumeDb ?? 0 }
+    : {
+      inputVolumeMul: requestData.inputVolumeMul,
+      inputVolumeDb: requestData.inputVolumeMul === 0 ? -100 : 20 * Math.log10(requestData.inputVolumeMul)
+    }
 
 export interface FakeObsReceivedRequest {
   readonly requestType: string
@@ -65,6 +84,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetInputMute",
   "SetInputMute",
   "ToggleInputMute",
+  "GetInputVolume",
+  "SetInputVolume",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",

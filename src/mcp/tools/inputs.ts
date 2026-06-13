@@ -1,28 +1,35 @@
 import {
   InputLocatorInput,
   InputMuteOutput,
+  InputVolumeOutput,
   ListInputKindsInput,
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
   SetInputMuteInput,
+  SetInputVolumeInput,
+  SetInputVolumeOutput,
   SpecialInputsOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getInputMute,
+  getInputVolume,
   getSpecialInputs,
   listInputKinds,
   listInputs,
   setInputMute,
+  setInputVolume,
   toggleInputMute
 } from "../../obs/operations/inputs.js"
 import {
   GetInputKindList,
   GetInputList,
   GetInputMute,
+  GetInputVolume,
   GetSpecialInputs,
   SetInputMute,
+  SetInputVolume,
   ToggleInputMute
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
@@ -89,5 +96,25 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: InputLocatorInput,
     outputSchema: InputMuteOutput,
     handler: async (input, context) => toggleInputMute(context.client, input)
+  }),
+  defineTool({
+    name: "get_input_volume",
+    title: "Get OBS Input Volume",
+    description: "Return an OBS input volume in multiplier and dB units.",
+    category: CATEGORY,
+    requiredObsRequests: [GetInputVolume.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: InputVolumeOutput,
+    handler: async (input, context) => getInputVolume(context.client, input)
+  }),
+  defineTool({
+    name: "set_input_volume",
+    title: "Set OBS Input Volume",
+    description: "Set an OBS input volume using either multiplier or dB units.",
+    category: CATEGORY,
+    requiredObsRequests: [SetInputVolume.requestType],
+    inputSchema: SetInputVolumeInput,
+    outputSchema: SetInputVolumeOutput,
+    handler: async (input, context) => setInputVolume(context.client, input)
   })
 ]

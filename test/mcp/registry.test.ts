@@ -3,7 +3,12 @@ import { JSONSchema, Option, Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
-import { InputLocatorInput, ListInputKindsInput, SetInputMuteInput } from "../../src/domain/schemas/inputs.js"
+import {
+  InputLocatorInput,
+  ListInputKindsInput,
+  SetInputMuteInput,
+  SetInputVolumeInput
+} from "../../src/domain/schemas/inputs.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
@@ -34,6 +39,8 @@ const allAvailableRequests = [
   "GetInputMute",
   "SetInputMute",
   "ToggleInputMute",
+  "GetInputVolume",
+  "SetInputVolume",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -93,6 +100,8 @@ describe("MCP tool registry", () => {
       "get_input_mute",
       "set_input_mute",
       "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -107,7 +116,9 @@ describe("MCP tool registry", () => {
       "get_special_inputs",
       "get_input_mute",
       "set_input_mute",
-      "toggle_input_mute"
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume"
     ])
   })
 
@@ -154,10 +165,13 @@ describe("MCP tool registry", () => {
       "get_special_inputs",
       "get_input_mute",
       "set_input_mute",
-      "toggle_input_mute"
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume"
     ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_mute")
+    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_volume")
   })
 
   it("filters tools by negotiated OBS capabilities", () => {
@@ -193,6 +207,25 @@ describe("MCP tool registry", () => {
       "list_input_kinds",
       "get_special_inputs",
       "get_input_mute"
+    ])
+    expect(
+      getEnabledTools(["inputs"], [
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute",
+        "GetInputVolume"
+      ]).map((tool) => tool.name)
+    ).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
+      "get_input_volume"
     ])
   })
 
@@ -335,12 +368,33 @@ describe("MCP tool registry", () => {
       inputUuid: "input-mic-aux",
       inputMuted: true
     })
+    expect(Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux", inputVolumeMul: 0 })).toEqual({
+      inputName: "Mic/Aux",
+      inputVolumeMul: 0
+    })
+    expect(Schema.decodeUnknownSync(SetInputVolumeInput)({ inputUuid: "input-mic-aux", inputVolumeDb: -100 }))
+      .toEqual({
+        inputUuid: "input-mic-aux",
+        inputVolumeDb: -100
+      })
     expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
     expect(() => Schema.decodeUnknownSync(InputLocatorInput)({})).toThrow("Exactly one")
     const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
     expect(() => Schema.decodeUnknownSync(InputLocatorInput)(duplicateLocator)).toThrow("Exactly one")
     expect(() => Schema.decodeUnknownSync(SetInputMuteInput)({ ...duplicateLocator, inputMuted: false }))
       .toThrow("Exactly one")
+    expect(() => Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux" })).toThrow("Exactly one")
+    expect(() =>
+      Schema.decodeUnknownSync(SetInputVolumeInput)({
+        inputName: "Mic/Aux",
+        inputVolumeMul: 1,
+        inputVolumeDb: 0
+      })
+    ).toThrow("Exactly one")
+    expect(() => Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux", inputVolumeMul: 21 }))
+      .toThrow("Expected a number less than or equal to 20")
+    expect(() => Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux", inputVolumeDb: -101 }))
+      .toThrow("Expected a number greater than or equal to -100")
   })
 
   it("executes input mute handlers with structured output", async () => {
@@ -371,6 +425,29 @@ describe("MCP tool registry", () => {
       { requestType: "GetInputMute", requestData: { inputName: "Mic/Aux" } },
       { requestType: "SetInputMute", requestData: { inputUuid: "input-mic-aux", inputMuted: true } },
       { requestType: "ToggleInputMute", requestData: { inputUuid: "input-mic-aux" } }
+    ])
+  })
+
+  it("executes input volume handlers with structured output", async () => {
+    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const fakeClient = client(async (requestType, requestData) => {
+      seen.push({ requestType, requestData })
+      if (requestType === "GetInputVolume") {
+        return { inputVolumeMul: 1, inputVolumeDb: 0 }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("get_input_volume"), { inputName: "Mic/Aux" }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({ inputVolumeMul: 1, inputVolumeDb: 0 })
+    await expect(executeTool(toolByName("set_input_volume"), { inputUuid: "input-mic-aux", inputVolumeDb: -6 }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({ inputVolumeDb: -6, acknowledged: true })
+    expect(seen).toEqual([
+      { requestType: "GetInputVolume", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputVolume", requestData: { inputUuid: "input-mic-aux", inputVolumeDb: -6 } }
     ])
   })
 

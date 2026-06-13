@@ -39,6 +39,8 @@ const allAvailableRequests = [
   "GetInputMute",
   "SetInputMute",
   "ToggleInputMute",
+  "GetInputVolume",
+  "SetInputVolume",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -102,6 +104,8 @@ describe("MCP server protocol handlers", () => {
       "get_input_mute",
       "set_input_mute",
       "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -210,6 +214,12 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "SetInputMute") {
           return {}
         }
+        if (requestType === "GetInputVolume") {
+          return { inputVolumeMul: 1, inputVolumeDb: 0 }
+        }
+        if (requestType === "SetInputVolume") {
+          return {}
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -228,7 +238,9 @@ describe("MCP server protocol handlers", () => {
       "get_special_inputs",
       "get_input_mute",
       "set_input_mute",
-      "toggle_input_mute"
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume"
     ])
     await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
       .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
@@ -244,6 +256,12 @@ describe("MCP server protocol handlers", () => {
     })).resolves.toMatchObject({ structuredContent: { inputMuted: true } })
     await expect(client.callTool({ name: "toggle_input_mute", arguments: { inputUuid: "input-mic-aux" } }))
       .resolves.toMatchObject({ structuredContent: { inputMuted: true } })
+    await expect(client.callTool({ name: "get_input_volume", arguments: { inputName: "Mic/Aux" } }))
+      .resolves.toMatchObject({ structuredContent: { inputVolumeMul: 1, inputVolumeDb: 0 } })
+    await expect(client.callTool({
+      name: "set_input_volume",
+      arguments: { inputUuid: "input-mic-aux", inputVolumeDb: -6 }
+    })).resolves.toMatchObject({ structuredContent: { inputVolumeDb: -6, acknowledged: true } })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

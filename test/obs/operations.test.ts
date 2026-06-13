@@ -8,10 +8,12 @@ import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import {
   getInputMute,
+  getInputVolume,
   getSpecialInputs,
   listInputKinds,
   listInputs,
   setInputMute,
+  setInputVolume,
   toggleInputMute
 } from "../../src/obs/operations/inputs.js"
 import {
@@ -185,6 +187,53 @@ describe("OBS operations", () => {
     )
   })
 
+  it("controls input volume over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputVolume(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputVolumeMul: 1,
+      inputVolumeDb: 0
+    })
+    await expect(setInputVolume(client, { inputName: "Mic/Aux", inputVolumeMul: 0.5 })).resolves.toEqual({
+      inputVolumeMul: 0.5,
+      acknowledged: true
+    })
+    const volume = await getInputVolume(client, { inputUuid: "input-mic-aux" })
+    expect(volume.inputVolumeMul).toBe(0.5)
+    expect(volume.inputVolumeDb).toBeCloseTo(-6.0206, 4)
+    await expect(setInputVolume(client, { inputUuid: "input-mic-aux", inputVolumeDb: -6 })).resolves.toEqual({
+      inputVolumeDb: -6,
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputVolume"))).toEqual([
+      { requestType: "GetInputVolume", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputVolume", requestData: { inputName: "Mic/Aux", inputVolumeMul: 0.5 } },
+      { requestType: "GetInputVolume", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "SetInputVolume", requestData: { inputUuid: "input-mic-aux", inputVolumeDb: -6 } }
+    ])
+  })
+
+  it("surfaces OBS failures for input volume controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputVolume: { code: 601, comment: "Volume out of range" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputVolume(client, { inputName: "Mic/Aux", inputVolumeMul: 21 })).rejects.toThrow(
+      "Expected a number less than or equal to 20"
+    )
+    await expect(setInputVolume(client, { inputName: "Mic/Aux", inputVolumeMul: 1 })).rejects.toMatchObject(
+      {
+        requestType: "SetInputVolume",
+        code: 601,
+        comment: "Volume out of range"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -289,6 +338,31 @@ describe("OBS operations", () => {
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs"
+    ])
+  })
+
+  it("filters input volume tools when OBS does not advertise input volume capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute"
     ])
   })
 })

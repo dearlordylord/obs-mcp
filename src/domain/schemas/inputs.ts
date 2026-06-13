@@ -26,6 +26,42 @@ export const InputMuteOutput = Schema.Struct({
 export type InputMuteOutput = typeof InputMuteOutput.Type
 export const InputMuteOutputJsonSchema = JSONSchema.make(InputMuteOutput)
 
+export const InputVolumeMul = Schema.Number.pipe(Schema.greaterThanOrEqualTo(0), Schema.lessThanOrEqualTo(20))
+export const InputVolumeDb = Schema.Number.pipe(Schema.greaterThanOrEqualTo(-100), Schema.lessThanOrEqualTo(26))
+
+export const SetInputVolumeInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputVolumeMul: Schema.optional(InputVolumeMul),
+    inputVolumeDb: Schema.optional(InputVolumeDb)
+  })
+).pipe(
+  Schema.filter((input) => (input.inputVolumeMul === undefined) !== (input.inputVolumeDb === undefined), {
+    message: () => "Exactly one of inputVolumeMul or inputVolumeDb is required"
+  })
+)
+export type SetInputVolumeInput = typeof SetInputVolumeInput.Type
+export const SetInputVolumeInputJsonSchema = JSONSchema.make(SetInputVolumeInput)
+
+export const InputVolumeOutput = Schema.Struct({
+  inputVolumeMul: Schema.Number,
+  inputVolumeDb: Schema.Number
+})
+export type InputVolumeOutput = typeof InputVolumeOutput.Type
+export const InputVolumeOutputJsonSchema = JSONSchema.make(InputVolumeOutput)
+
+export const SetInputVolumeOutput = Schema.Struct({
+  inputVolumeMul: Schema.optional(InputVolumeMul),
+  inputVolumeDb: Schema.optional(InputVolumeDb),
+  acknowledged: Schema.Literal(true)
+}).pipe(
+  Schema.filter((output) => (output.inputVolumeMul === undefined) !== (output.inputVolumeDb === undefined), {
+    message: () => "Exactly one of inputVolumeMul or inputVolumeDb is required"
+  })
+)
+export type SetInputVolumeOutput = typeof SetInputVolumeOutput.Type
+export const SetInputVolumeOutputJsonSchema = JSONSchema.make(SetInputVolumeOutput)
+
 export const ListInputsInput = Schema.Struct({
   inputKind: Schema.optional(Schema.NonEmptyString)
 })

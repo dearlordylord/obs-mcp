@@ -3,11 +3,13 @@ import { Schema } from "effect"
 import {
   InputLocatorInput,
   InputMuteOutput,
+  InputVolumeOutput,
   ListInputKindsInput,
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
   SetInputMuteInput,
+  SetInputVolumeInput,
   SpecialInputsOutput
 } from "../../domain/schemas/inputs.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
@@ -49,3 +51,15 @@ export const ToggleInputMute = {
   requestDataSchema: InputLocatorInput,
   responseSchema: InputMuteOutput
 } satisfies ObsRequestDescriptor<InputMuteOutput>
+
+export const GetInputVolume = {
+  requestType: "GetInputVolume",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputVolumeOutput
+} satisfies ObsRequestDescriptor<InputVolumeOutput>
+
+export const SetInputVolume = {
+  requestType: "SetInputVolume",
+  requestDataSchema: SetInputVolumeInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
