@@ -473,6 +473,75 @@ describe("MCP server protocol handlers", () => {
     })
   })
 
+  it("returns structured generic output content", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetOutputList") {
+          return {
+            outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+          }
+        }
+        if (requestType === "GetOutputStatus") {
+          return {
+            outputActive: true,
+            outputReconnecting: false,
+            outputTimecode: "00:00:12.345",
+            outputDuration: 12345,
+            outputCongestion: 0,
+            outputBytes: 4096,
+            outputSkippedFrames: 1,
+            outputTotalFrames: 740
+          }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+
+    await expect(client.callTool({ name: "list_outputs", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+        }
+      })
+    await expect(client.callTool({ name: "get_output_status", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputName: "adv_stream",
+          outputActive: true,
+          outputReconnecting: false,
+          outputTimecode: "00:00:12.345",
+          outputDuration: 12345,
+          outputCongestion: 0,
+          outputBytes: 4096,
+          outputSkippedFrames: 1,
+          outputTotalFrames: 740
+        }
+      })
+  })
+
+  it("returns generic output OBS error metadata", async () => {
+    const client = await connect(
+      obsClient(async () => {
+        throw new ObsRequestError("GetOutputStatus", 600, "Output not found")
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+
+    await expect(client.callTool({ name: "get_output_status", arguments: { outputName: "missing_output" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "GetOutputStatus",
+            obsStatusCode: 600,
+            comment: "Output not found"
+          }
+        }
+      })
+  })
+
   it("rejects invalid recent event limits before reading the buffer", async () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
     await expect(client.callTool({ name: "get_recent_obs_events", arguments: { limit: 0 } }))

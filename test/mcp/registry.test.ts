@@ -268,6 +268,8 @@ describe("MCP tool registry", () => {
           outputActive: true,
           outputReconnecting: false,
           outputTimecode: "00:00:12.345",
+          outputDuration: 12345,
+          outputCongestion: 0,
           outputBytes: 4096,
           outputSkippedFrames: 1,
           outputTotalFrames: 740
@@ -278,10 +280,16 @@ describe("MCP tool registry", () => {
       outputActive: true,
       outputReconnecting: false,
       outputTimecode: "00:00:12.345",
+      outputDuration: 12345,
+      outputCongestion: 0,
       outputBytes: 4096,
       outputSkippedFrames: 1,
       outputTotalFrames: 740
     })
+    await expect(executeTool(toolByName("get_output_status"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async () => ({ outputActive: true }))
+    })).rejects.toBeInstanceOf(McpError)
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {

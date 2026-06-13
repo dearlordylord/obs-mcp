@@ -23,13 +23,13 @@ export const GetOutputStatusInputJsonSchema = JSONSchema.make(GetOutputStatusInp
 
 export const OutputStatusResponse = Schema.Struct({
   outputActive: Schema.Boolean,
-  outputReconnecting: Schema.optional(Schema.Boolean),
-  outputTimecode: Schema.optional(Schema.String),
-  outputDuration: Schema.optional(Schema.Number),
-  outputCongestion: Schema.optional(Schema.Number),
-  outputBytes: Schema.optional(Schema.Number),
-  outputSkippedFrames: Schema.optional(Schema.Number.pipe(Schema.int())),
-  outputTotalFrames: Schema.optional(Schema.Number.pipe(Schema.int()))
+  outputReconnecting: Schema.Boolean,
+  outputTimecode: Schema.String,
+  outputDuration: Schema.Number,
+  outputCongestion: Schema.Number,
+  outputBytes: Schema.Number,
+  outputSkippedFrames: Schema.Number.pipe(Schema.int()),
+  outputTotalFrames: Schema.Number.pipe(Schema.int())
 })
 export type OutputStatusResponse = typeof OutputStatusResponse.Type
 

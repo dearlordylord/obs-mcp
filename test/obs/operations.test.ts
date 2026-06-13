@@ -923,9 +923,16 @@ describe("OBS operations", () => {
       outputName: "adv_stream",
       outputActive: true,
       outputReconnecting: false,
+      outputDuration: 12345,
+      outputCongestion: 0,
       outputBytes: 4096,
       outputSkippedFrames: 0,
       outputTotalFrames: 740
+    })
+    await expect(getOutputStatus(client, { outputName: "missing_output" })).rejects.toMatchObject({
+      requestType: "GetOutputStatus",
+      code: 600,
+      comment: "Output not found"
     })
   })
 

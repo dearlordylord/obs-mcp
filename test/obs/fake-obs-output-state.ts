@@ -1,4 +1,7 @@
 type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
+type SendFakeObsError = (code: number, comment: string) => void
+
+const RESOURCE_NOT_FOUND_STATUS_CODE = 600
 
 export class FakeObsOutputState {
   private recordActive = false
@@ -9,7 +12,8 @@ export class FakeObsOutputState {
   public handleRequest(
     requestType: string,
     requestData: { readonly outputName?: string } | undefined,
-    send: SendFakeObsResponse
+    send: SendFakeObsResponse,
+    sendError: SendFakeObsError
   ): boolean {
     if (requestType === "GetOutputList") {
       send({
@@ -23,7 +27,12 @@ export class FakeObsOutputState {
       return true
     }
     if (requestType === "GetOutputStatus") {
-      send(this.statusForOutput(requestData?.outputName ?? ""))
+      const status = this.statusForOutput(requestData?.outputName ?? "")
+      if (status === undefined) {
+        sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
+      } else {
+        send(status)
+      }
       return true
     }
     if (requestType === "GetVirtualCamStatus") {
@@ -117,7 +126,7 @@ export class FakeObsOutputState {
     return false
   }
 
-  private statusForOutput(outputName: string): Record<string, unknown> {
+  private statusForOutput(outputName: string): Record<string, unknown> | undefined {
     if (outputName === "adv_stream") {
       return {
         outputActive: this.streamActive,
@@ -136,19 +145,24 @@ export class FakeObsOutputState {
         outputReconnecting: false,
         outputTimecode: this.recordActive ? "00:00:12.345" : "00:00:00.000",
         outputDuration: this.recordActive ? 12345 : 0,
+        outputCongestion: 0,
         outputBytes: this.recordActive ? 67890 : 0,
         outputSkippedFrames: 0,
         outputTotalFrames: 0
       }
     }
-    return {
-      outputActive: outputName === "virtualcam_output" ? this.virtualCamActive : this.replayBufferActive,
-      outputReconnecting: false,
-      outputTimecode: "00:00:00.000",
-      outputDuration: 0,
-      outputBytes: 0,
-      outputSkippedFrames: 0,
-      outputTotalFrames: 0
+    if (outputName === "virtualcam_output" || outputName === "replay_buffer") {
+      return {
+        outputActive: outputName === "virtualcam_output" ? this.virtualCamActive : this.replayBufferActive,
+        outputReconnecting: false,
+        outputTimecode: "00:00:00.000",
+        outputDuration: 0,
+        outputCongestion: 0,
+        outputBytes: 0,
+        outputSkippedFrames: 0,
+        outputTotalFrames: 0
+      }
     }
+    return undefined
   }
 }
