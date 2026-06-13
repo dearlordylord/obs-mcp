@@ -1,22 +1,28 @@
 import * as FilterSchemas from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  createSourceFilter,
   getSourceFilter,
   getSourceFilterDefaultSettings,
   listSourceFilterKinds,
   listSourceFilters,
+  removeSourceFilter,
   setSourceFilterEnabled,
   setSourceFilterIndex,
-  setSourceFilterName
+  setSourceFilterName,
+  setSourceFilterSettings
 } from "../../obs/operations/filters.js"
 import {
+  CreateSourceFilter,
   GetSourceFilter,
   GetSourceFilterDefaultSettings,
   GetSourceFilterKindList,
   GetSourceFilterList,
+  RemoveSourceFilter,
   SetSourceFilterEnabled,
   SetSourceFilterIndex,
-  SetSourceFilterName
+  SetSourceFilterName,
+  SetSourceFilterSettings
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -62,6 +68,37 @@ export const filterTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: FilterSchemas.SourceFilterLocatorInput,
     outputSchema: FilterSchemas.SourceFilterOutput,
     handler: async (input, context) => getSourceFilter(context.client, input)
+  }),
+  defineTool({
+    name: "create_source_filter",
+    title: "Create OBS Source Filter",
+    description: "Create an OBS source filter. Optional filterSettings uses the narrow allowlisted settings patch.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateSourceFilter.requestType],
+    inputSchema: FilterSchemas.CreateSourceFilterInput,
+    outputSchema: FilterSchemas.CreateSourceFilterOutput,
+    handler: async (input, context) => createSourceFilter(context.client, input)
+  }),
+  defineTool({
+    name: "remove_source_filter",
+    title: "Remove OBS Source Filter",
+    description: "Remove an OBS source filter by non-empty filter name.",
+    category: CATEGORY,
+    requiredObsRequests: [RemoveSourceFilter.requestType],
+    inputSchema: FilterSchemas.SourceFilterLocatorInput,
+    outputSchema: FilterSchemas.SourceFilterAcknowledgedOutput,
+    handler: async (input, context) => removeSourceFilter(context.client, input)
+  }),
+  defineTool({
+    name: "set_source_filter_settings",
+    title: "Set OBS Source Filter Settings",
+    description:
+      "Apply a narrow allowlisted OBS source filter settings patch. Arbitrary raw settings are not accepted.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSourceFilterSettings.requestType],
+    inputSchema: FilterSchemas.SetSourceFilterSettingsInput,
+    outputSchema: FilterSchemas.SetSourceFilterSettingsOutput,
+    handler: async (input, context) => setSourceFilterSettings(context.client, input)
   }),
   defineTool({
     name: "set_source_filter_enabled",

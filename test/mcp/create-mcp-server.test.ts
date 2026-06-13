@@ -498,6 +498,9 @@ describe("MCP server protocol handlers", () => {
       "list_source_filters",
       "get_source_filter_default_settings",
       "get_source_filter",
+      "create_source_filter",
+      "remove_source_filter",
+      "set_source_filter_settings",
       "set_source_filter_enabled",
       "set_source_filter_index",
       "set_source_filter_name"
@@ -547,6 +550,34 @@ describe("MCP server protocol handlers", () => {
           { settingName: "secret_path", valueType: "string" }
         ],
         rawSettingsDeferred: true
+      }
+    })
+    await expect(client.callTool({
+      name: "create_source_filter",
+      arguments: { sourceName: "Camera", filterName: "Boost", filterKind: "gain_filter", filterSettings: { db: 6 } }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Boost", filterKind: "gain_filter", acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "remove_source_filter",
+      arguments: { sourceName: "Camera", filterName: "Boost" }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Boost", acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_settings",
+      arguments: {
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2 },
+        overlay: false
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2 },
+        overlay: false,
+        acknowledged: true
       }
     })
     await expect(client.callTool({

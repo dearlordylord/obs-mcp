@@ -1,6 +1,7 @@
 import { Schema } from "effect"
 
 import type {
+  CreateSourceFilterOutput,
   ListSourceFilterKindsOutput,
   ListSourceFiltersOutput,
   SanitizedFilterSetting,
@@ -8,6 +9,8 @@ import type {
   SetSourceFilterEnabledOutput,
   SetSourceFilterIndexOutput,
   SetSourceFilterNameOutput,
+  SetSourceFilterSettingsOutput,
+  SourceFilterAcknowledgedOutput,
   SourceFilterDefaultSettingsOutput,
   SourceFilterKindInput,
   SourceFilterLocatorInput,
@@ -15,11 +18,13 @@ import type {
   SourceFilterSummary
 } from "../../domain/schemas/filters.js"
 import {
+  CreateSourceFilterInput,
   ListSourceFilterKindsOutput as ListSourceFilterKindsOutputSchema,
   ListSourceFiltersOutput as ListSourceFiltersOutputSchema,
   SetSourceFilterEnabledInput,
   SetSourceFilterIndexInput,
   SetSourceFilterNameInput,
+  SetSourceFilterSettingsInput,
   SourceFilterDefaultSettingsOutput as SourceFilterDefaultSettingsOutputSchema,
   SourceFilterKindInput as SourceFilterKindInputSchema,
   SourceFilterLocatorInput as SourceFilterLocatorInputSchema,
@@ -28,13 +33,16 @@ import {
 import { SourceLocatorInput } from "../../domain/schemas/scenes.js"
 import type { ObsClient } from "../client.js"
 import {
+  CreateSourceFilter,
   GetSourceFilter,
   GetSourceFilterDefaultSettings,
   GetSourceFilterKindList,
   GetSourceFilterList,
+  RemoveSourceFilter,
   SetSourceFilterEnabled,
   SetSourceFilterIndex,
-  SetSourceFilterName
+  SetSourceFilterName,
+  SetSourceFilterSettings
 } from "../requests.js"
 
 const filterValueType = (value: unknown): SanitizedFilterValueType => {
@@ -91,6 +99,23 @@ const sanitizeFilterSummary = (
   rawSettingsDeferred: true
 })
 
+const filterSettingsPatchToObsSettings = (
+  settings: SetSourceFilterSettingsInput["filterSettings"]
+): Readonly<Record<string, unknown>> =>
+  Object.fromEntries(
+    [
+      ["brightness", settings.brightness],
+      ["contrast", settings.contrast],
+      ["gamma", settings.gamma],
+      ["saturation", settings.saturation],
+      ["hue_shift", settings.hueShift],
+      ["opacity", settings.opacity],
+      ["color_multiply", settings.colorMultiply],
+      ["color_add", settings.colorAdd],
+      ["db", settings.db]
+    ].filter(([, value]) => value !== undefined)
+  )
+
 export const listSourceFilterKinds = async (client: ObsClient): Promise<ListSourceFilterKindsOutput> =>
   Schema.decodeUnknownSync(ListSourceFilterKindsOutputSchema)(await client.request(GetSourceFilterKindList))
 
@@ -131,6 +156,59 @@ export const getSourceFilter = async (
       decodedInput.filterName
     )
   )
+}
+
+export const createSourceFilter = async (
+  client: ObsClient,
+  input: CreateSourceFilterInput
+): Promise<CreateSourceFilterOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(CreateSourceFilterInput)(input)
+  await client.request(CreateSourceFilter, {
+    ...(decodedInput.sourceName === undefined ? {} : { sourceName: decodedInput.sourceName }),
+    ...(decodedInput.sourceUuid === undefined ? {} : { sourceUuid: decodedInput.sourceUuid }),
+    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    filterName: decodedInput.filterName,
+    filterKind: decodedInput.filterKind,
+    ...(decodedInput.filterSettings === undefined
+      ? {}
+      : { filterSettings: filterSettingsPatchToObsSettings(decodedInput.filterSettings) })
+  })
+  return {
+    filterName: decodedInput.filterName,
+    filterKind: decodedInput.filterKind,
+    acknowledged: true
+  }
+}
+
+export const removeSourceFilter = async (
+  client: ObsClient,
+  input: SourceFilterLocatorInput
+): Promise<SourceFilterAcknowledgedOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SourceFilterLocatorInputSchema)(input)
+  await client.request(RemoveSourceFilter, decodedInput)
+  return { filterName: decodedInput.filterName, acknowledged: true }
+}
+
+export const setSourceFilterSettings = async (
+  client: ObsClient,
+  input: SetSourceFilterSettingsInput
+): Promise<SetSourceFilterSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSourceFilterSettingsInput)(input)
+  const overlay = decodedInput.overlay ?? true
+  await client.request(SetSourceFilterSettings, {
+    ...(decodedInput.sourceName === undefined ? {} : { sourceName: decodedInput.sourceName }),
+    ...(decodedInput.sourceUuid === undefined ? {} : { sourceUuid: decodedInput.sourceUuid }),
+    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    filterName: decodedInput.filterName,
+    filterSettings: filterSettingsPatchToObsSettings(decodedInput.filterSettings),
+    overlay
+  })
+  return {
+    filterName: decodedInput.filterName,
+    filterSettings: decodedInput.filterSettings,
+    overlay,
+    acknowledged: true
+  }
 }
 
 export const setSourceFilterEnabled = async (

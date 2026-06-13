@@ -4,14 +4,20 @@ import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import {
+  CreateSourceFilterInput,
+  CreateSourceFilterOutput,
   ListSourceFilterKindsOutput,
   ListSourceFiltersOutput,
+  ObsSetSourceFilterSettingsInput,
   SetSourceFilterEnabledInput,
   SetSourceFilterEnabledOutput,
   SetSourceFilterIndexInput,
   SetSourceFilterIndexOutput,
   SetSourceFilterNameInput,
   SetSourceFilterNameOutput,
+  SetSourceFilterSettingsInput,
+  SetSourceFilterSettingsOutput,
+  SourceFilterAcknowledgedOutput,
   SourceFilterDefaultSettingsOutput,
   SourceFilterKindInput,
   SourceFilterLocatorInput,
@@ -118,6 +124,9 @@ const filterToolNames = [
   "list_source_filters",
   "get_source_filter_default_settings",
   "get_source_filter",
+  "create_source_filter",
+  "remove_source_filter",
+  "set_source_filter_settings",
   "set_source_filter_enabled",
   "set_source_filter_index",
   "set_source_filter_name"
@@ -128,6 +137,9 @@ const filterAvailableRequests = [
   "GetSourceFilterList",
   "GetSourceFilterDefaultSettings",
   "GetSourceFilter",
+  "CreateSourceFilter",
+  "RemoveSourceFilter",
+  "SetSourceFilterSettings",
   "SetSourceFilterEnabled",
   "SetSourceFilterIndex",
   "SetSourceFilterName"
@@ -770,6 +782,36 @@ describe("MCP tool registry", () => {
       filterSettings: settings,
       rawSettingsDeferred: true
     })
+    await expect(executeTool(toolByName("create_source_filter"), {
+      sourceName: "Camera",
+      filterName: "Boost",
+      filterKind: "gain_filter",
+      filterSettings: { db: 6 }
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Boost", filterKind: "gain_filter", acknowledged: true })
+    await expect(executeTool(toolByName("remove_source_filter"), {
+      sourceName: "Camera",
+      filterName: "Boost"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Boost", acknowledged: true })
+    await expect(executeTool(toolByName("set_source_filter_settings"), {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, colorMultiply: 4_294_967_295 },
+      overlay: false
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, colorMultiply: 4_294_967_295 },
+      overlay: false,
+      acknowledged: true
+    })
     await expect(executeTool(toolByName("set_source_filter_enabled"), {
       sourceName: "Camera",
       filterName: "Color Correction",
@@ -891,6 +933,65 @@ describe("MCP tool registry", () => {
     })
     expect(Schema.decodeUnknownSync(SourceFilterOutput)(filterOutput)).toEqual(filterOutput)
     expect(
+      Schema.decodeUnknownSync(CreateSourceFilterInput)({
+        sourceName: "Camera",
+        filterName: "Boost",
+        filterKind: "gain_filter",
+        filterSettings: { db: 6 }
+      })
+    ).toEqual({ sourceName: "Camera", filterName: "Boost", filterKind: "gain_filter", filterSettings: { db: 6 } })
+    expect(
+      Schema.decodeUnknownSync(CreateSourceFilterOutput)({
+        filterName: "Boost",
+        filterKind: "gain_filter",
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Boost", filterKind: "gain_filter", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterAcknowledgedOutput)({
+        filterName: "Boost",
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Boost", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2, hueShift: 45 },
+        overlay: false
+      })
+    ).toEqual({
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, hueShift: 45 },
+      overlay: false
+    })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterSettingsOutput)({
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2, hueShift: 45 },
+        overlay: false,
+        acknowledged: true
+      })
+    ).toEqual({
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, hueShift: 45 },
+      overlay: false,
+      acknowledged: true
+    })
+    expect(
+      Schema.decodeUnknownSync(ObsSetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2 }
+      })
+    ).toEqual({
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2 },
+      overlay: true
+    })
+    expect(
       Schema.decodeUnknownSync(SetSourceFilterEnabledInput)({
         sourceName: "Camera",
         filterName: "Color Correction",
@@ -961,6 +1062,20 @@ describe("MCP tool registry", () => {
         newFilterName: ""
       })
     ).toThrow("Expected a non empty string")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { path: "/tmp/private" }
+      })
+    ).toThrow("At least one allowlisted filter setting is required")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { opacity: 2 }
+      })
+    ).toThrow("Expected a number less than or equal to 1")
   })
 
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {

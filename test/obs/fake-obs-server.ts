@@ -420,6 +420,41 @@ export class FakeObsServer {
       })
       return
     }
+    if (requestType === "CreateSourceFilter") {
+      this.sourceFilters = [
+        ...this.sourceFilters,
+        {
+          filterName: envelope.d.requestData.filterName,
+          filterEnabled: true,
+          filterIndex: this.sourceFilters.length,
+          filterKind: envelope.d.requestData.filterKind,
+          filterSettings: envelope.d.requestData.filterSettings ?? {}
+        }
+      ]
+      send()
+      return
+    }
+    if (requestType === "RemoveSourceFilter") {
+      this.sourceFilters = this.sourceFilters
+        .filter((filter) => filter.filterName !== envelope.d.requestData.filterName)
+        .map((filter, filterIndex) => ({ ...filter, filterIndex }))
+      send()
+      return
+    }
+    if (requestType === "SetSourceFilterSettings") {
+      this.sourceFilters = this.sourceFilters.map((filter) =>
+        filter.filterName === envelope.d.requestData.filterName
+          ? {
+            ...filter,
+            filterSettings: envelope.d.requestData.overlay === false
+              ? envelope.d.requestData.filterSettings
+              : { ...filter.filterSettings, ...envelope.d.requestData.filterSettings }
+          }
+          : filter
+      )
+      send()
+      return
+    }
     if (requestType === "SetSourceFilterEnabled") {
       this.sourceFilters = this.sourceFilters.map((filter) =>
         filter.filterName === envelope.d.requestData.filterName

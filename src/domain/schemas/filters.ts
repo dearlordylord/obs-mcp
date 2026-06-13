@@ -69,6 +69,95 @@ export const SourceFilterOutput = SourceFilterSummary
 export type SourceFilterOutput = typeof SourceFilterOutput.Type
 export const SourceFilterOutputJsonSchema = JSONSchema.make(SourceFilterOutput)
 
+const FilterSignedUnit = Schema.Number.pipe(Schema.greaterThanOrEqualTo(-1), Schema.lessThanOrEqualTo(1))
+const FilterColorInteger = Schema.Number.pipe(
+  Schema.int(),
+  Schema.greaterThanOrEqualTo(0),
+  Schema.lessThanOrEqualTo(4_294_967_295)
+)
+
+export const SourceFilterSettingsPatch = Schema.Struct({
+  brightness: Schema.optional(FilterSignedUnit),
+  contrast: Schema.optional(FilterSignedUnit),
+  gamma: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(-3), Schema.lessThanOrEqualTo(3))),
+  saturation: Schema.optional(FilterSignedUnit),
+  hueShift: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(-180), Schema.lessThanOrEqualTo(180))),
+  opacity: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(0), Schema.lessThanOrEqualTo(1))),
+  colorMultiply: Schema.optional(FilterColorInteger),
+  colorAdd: Schema.optional(FilterColorInteger),
+  db: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(-100), Schema.lessThanOrEqualTo(100)))
+}).pipe(
+  Schema.filter((settings) => Object.values(settings).some((value) => value !== undefined), {
+    message: () => "At least one allowlisted filter setting is required"
+  })
+)
+export type SourceFilterSettingsPatch = typeof SourceFilterSettingsPatch.Type
+export const SourceFilterSettingsPatchJsonSchema = JSONSchema.make(SourceFilterSettingsPatch)
+
+export const CreateSourceFilterInput = Schema.extend(
+  SourceLocatorInput,
+  Schema.Struct({
+    filterName: Schema.NonEmptyString,
+    filterKind: Schema.NonEmptyString,
+    filterSettings: Schema.optional(SourceFilterSettingsPatch)
+  })
+)
+export type CreateSourceFilterInput = typeof CreateSourceFilterInput.Type
+export const CreateSourceFilterInputJsonSchema = JSONSchema.make(CreateSourceFilterInput)
+
+export const CreateSourceFilterOutput = Schema.Struct({
+  filterName: Schema.String,
+  filterKind: Schema.String,
+  acknowledged: Schema.Literal(true)
+})
+export type CreateSourceFilterOutput = typeof CreateSourceFilterOutput.Type
+export const CreateSourceFilterOutputJsonSchema = JSONSchema.make(CreateSourceFilterOutput)
+
+export const ObsCreateSourceFilterInput = Schema.extend(
+  SourceLocatorInput,
+  Schema.Struct({
+    filterName: Schema.NonEmptyString,
+    filterKind: Schema.NonEmptyString,
+    filterSettings: Schema.optional(UnknownRecord)
+  })
+)
+export type ObsCreateSourceFilterInput = typeof ObsCreateSourceFilterInput.Type
+
+export const SetSourceFilterSettingsInput = Schema.extend(
+  SourceFilterLocatorInput,
+  Schema.Struct({
+    filterSettings: SourceFilterSettingsPatch,
+    overlay: Schema.optional(Schema.Boolean)
+  })
+)
+export type SetSourceFilterSettingsInput = typeof SetSourceFilterSettingsInput.Type
+export const SetSourceFilterSettingsInputJsonSchema = JSONSchema.make(SetSourceFilterSettingsInput)
+
+export const SetSourceFilterSettingsOutput = Schema.Struct({
+  filterName: Schema.String,
+  filterSettings: SourceFilterSettingsPatch,
+  overlay: Schema.Boolean,
+  acknowledged: Schema.Literal(true)
+})
+export type SetSourceFilterSettingsOutput = typeof SetSourceFilterSettingsOutput.Type
+export const SetSourceFilterSettingsOutputJsonSchema = JSONSchema.make(SetSourceFilterSettingsOutput)
+
+export const ObsSetSourceFilterSettingsInput = Schema.extend(
+  SourceFilterLocatorInput,
+  Schema.Struct({
+    filterSettings: UnknownRecord,
+    overlay: Schema.optionalWith(Schema.Boolean, { default: () => true })
+  })
+)
+export type ObsSetSourceFilterSettingsInput = typeof ObsSetSourceFilterSettingsInput.Type
+
+export const SourceFilterAcknowledgedOutput = Schema.Struct({
+  filterName: Schema.String,
+  acknowledged: Schema.Literal(true)
+})
+export type SourceFilterAcknowledgedOutput = typeof SourceFilterAcknowledgedOutput.Type
+export const SourceFilterAcknowledgedOutputJsonSchema = JSONSchema.make(SourceFilterAcknowledgedOutput)
+
 export const SetSourceFilterEnabledInput = Schema.extend(
   SourceFilterLocatorInput,
   Schema.Struct({

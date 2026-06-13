@@ -1,6 +1,8 @@
 import { Schema } from "effect"
 import {
   ListSourceFilterKindsOutput,
+  ObsCreateSourceFilterInput,
+  ObsSetSourceFilterSettingsInput,
   ObsSourceFilterDefaultSettingsOutput,
   ObsSourceFilterListOutput,
   ObsSourceFilterOutput,
@@ -38,6 +40,24 @@ export const GetSourceFilter = {
   requestDataSchema: SourceFilterLocatorInput,
   responseSchema: ObsSourceFilterOutput
 } satisfies ObsRequestDescriptor<ObsSourceFilterOutput>
+
+export const CreateSourceFilter = {
+  requestType: "CreateSourceFilter",
+  requestDataSchema: ObsCreateSourceFilterInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const RemoveSourceFilter = {
+  requestType: "RemoveSourceFilter",
+  requestDataSchema: SourceFilterLocatorInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const SetSourceFilterSettings = {
+  requestType: "SetSourceFilterSettings",
+  requestDataSchema: ObsSetSourceFilterSettingsInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 
 export const SetSourceFilterEnabled = {
   requestType: "SetSourceFilterEnabled",

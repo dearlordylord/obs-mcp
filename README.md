@@ -26,6 +26,8 @@ Environment variables:
 
 The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 
+Filter settings mutation tools accept only documented allowlisted setting fields and do not expose raw OBS settings object passthroughs.
+
 ## Tools
 
 <!-- tools:start -->
@@ -53,6 +55,9 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `list_source_filters`
 - `get_source_filter_default_settings`
 - `get_source_filter`
+- `create_source_filter`
+- `remove_source_filter`
+- `set_source_filter_settings`
 - `set_source_filter_enabled`
 - `set_source_filter_index`
 - `set_source_filter_name`
