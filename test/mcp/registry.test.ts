@@ -1627,6 +1627,23 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("rejects scene item lifecycle responses missing scene item IDs", async () => {
+    await expect(executeTool(toolByName("create_scene_item"), {
+      sceneName: "Scene",
+      sourceName: "Camera"
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+    await expect(executeTool(toolByName("duplicate_scene_item"), {
+      sceneName: "Scene",
+      sceneItemId: 7
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
   it("gets a scene item's transform", async () => {
     await expect(executeTool(toolByName("get_scene_item_transform"), {
       sceneName: "Scene",

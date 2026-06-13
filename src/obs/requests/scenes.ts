@@ -160,7 +160,7 @@ export const GetGroupSceneItemList = {
 } satisfies ObsRequestDescriptor<ListGroupSceneItemsOutput>
 
 const SceneItemIdResponse = Schema.Struct({
-  sceneItemId: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)))
+  sceneItemId: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
 })
 type SceneItemIdResponse = typeof SceneItemIdResponse.Type
 

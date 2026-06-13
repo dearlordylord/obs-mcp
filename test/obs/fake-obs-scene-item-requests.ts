@@ -97,13 +97,17 @@ export const handleFakeObsSceneItemReadRequest = (
   if (requestType === "RemoveSceneItem") {
     const key = sceneItemListKey(requestData)
     const items = sceneItemsForState(requestData, false, sceneItems)
+    if (!items.some((item) => item.sceneItemId === requestData.sceneItemId)) {
+      sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Scene item not found")
+      return true
+    }
     sceneItems.set(key, reindexSceneItems(items.filter((item) => item.sceneItemId !== requestData.sceneItemId)))
     send()
     return true
   }
   if (requestType === "DuplicateSceneItem") {
     const sourceItems = sceneItemsForState(requestData, false, sceneItems)
-    const sourceItem = sourceItems.find((item) => item.sceneItemId === requestData.sceneItemId) ?? sourceItems[0]
+    const sourceItem = sourceItems.find((item) => item.sceneItemId === requestData.sceneItemId)
     if (sourceItem === undefined) {
       sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Scene item not found")
       return true

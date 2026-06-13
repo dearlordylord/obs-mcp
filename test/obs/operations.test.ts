@@ -349,6 +349,25 @@ describe("OBS operations", () => {
       })
   })
 
+  it("surfaces fake OBS missing scene item lifecycle errors", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(removeSceneItem(client, { sceneName: "Intro", sceneItemId: 404 }))
+      .rejects.toMatchObject({
+        requestType: "RemoveSceneItem",
+        code: 600,
+        comment: "Scene item not found"
+      })
+    await expect(duplicateSceneItem(client, { sceneName: "Intro", sceneItemId: 404 }))
+      .rejects.toMatchObject({
+        requestType: "DuplicateSceneItem",
+        code: 600,
+        comment: "Scene item not found"
+      })
+  })
+
   it("sets scene item transform fields through the fake OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)

@@ -52,7 +52,7 @@ export const CreateSceneItemOutput = Schema.Struct({
   canvasUuid: Schema.optional(Schema.String),
   sourceName: Schema.optional(Schema.String),
   sourceUuid: Schema.optional(Schema.String),
-  sceneItemId: Schema.optional(SceneItemId),
+  sceneItemId: SceneItemId,
   created: Schema.Literal(true)
 })
 export type CreateSceneItemOutput = typeof CreateSceneItemOutput.Type
@@ -106,7 +106,7 @@ export const DuplicateSceneItemOutput = Schema.Struct({
   canvasUuid: Schema.optional(Schema.String),
   destinationSceneName: Schema.optional(Schema.String),
   destinationSceneUuid: Schema.optional(Schema.String),
-  sceneItemId: Schema.optional(SceneItemId),
+  sceneItemId: SceneItemId,
   duplicated: Schema.Literal(true)
 })
 export type DuplicateSceneItemOutput = typeof DuplicateSceneItemOutput.Type
