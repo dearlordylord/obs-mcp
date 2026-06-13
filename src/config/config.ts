@@ -2,8 +2,9 @@ import { Effect, Schema } from "effect"
 
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
 
-const Toolset = Schema.Literal("scenes")
+const Toolset = Schema.Literal("general", "record", "scenes")
 type Toolset = typeof Toolset.Type
+const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes"]
 
 const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
 const DEFAULT_OBS_CONNECTION_TIMEOUT = 30_000
@@ -18,15 +19,15 @@ export type ObsConfig = typeof ObsConfig.Type
 
 const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
   if (value === undefined || value.trim() === "") {
-    return ["scenes"]
+    return DEFAULT_TOOLSETS
   }
 
   const values = value.split(",").map((entry) => entry.trim()).filter((entry) => entry.length > 0)
   if (values.length === 0) {
-    return ["scenes"]
+    return DEFAULT_TOOLSETS
   }
 
-  const allowed = new Set<string>(["scenes"])
+  const allowed = new Set<string>(["general", "record", "scenes"])
   return values.filter((entry): entry is Toolset => allowed.has(entry))
 }
 

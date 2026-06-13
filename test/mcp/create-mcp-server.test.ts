@@ -14,13 +14,20 @@ const config: ObsConfig = {
   url: "ws://localhost:4455/",
   password: Option.none(),
   connectionTimeoutMs: 300,
-  enabledToolsets: ["scenes"]
+  enabledToolsets: ["general", "record", "scenes"]
 }
 
 const clients: Array<Client> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetStats",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetRecordStatus"
+]
 
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
@@ -33,9 +40,9 @@ const obsClient = (
   close: async () => undefined
 })
 
-const connect = async (obs: ObsClient): Promise<Client> => {
+const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promise<Client> => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
-  const server = createObsMcpServer(config, obs)
+  const server = createObsMcpServer(serverConfig, obs)
   const client = new Client({ name: "test-client", version: "0.0.0" })
   servers.push(server)
   clients.push(client)
@@ -55,13 +62,17 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_version",
+      "get_obs_stats",
       "list_scenes",
       "get_current_scene",
-      "set_current_scene"
+      "set_current_scene",
+      "get_record_status"
     ])
     expect(tools.tools.find((tool) => tool.name === "set_current_scene")?.inputSchema.required).toEqual(["sceneName"])
     expect(tools.tools.find((tool) => tool.name === "get_current_scene")?.outputSchema?.properties)
       .toHaveProperty("sceneName")
+    expect(tools.tools.find((tool) => tool.name === "get_record_status")?.outputSchema?.properties)
+      .toHaveProperty("outputActive")
   })
 
   it("lists only context and available capability-backed tools", async () => {
@@ -70,10 +81,89 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual(["get_obs_context", "get_version"])
   })
 
+  it("lists general tools together for the general toolset", async () => {
+    const client = await connect(obsClient(async () => ({})), {
+      ...config,
+      enabledToolsets: ["general"]
+    })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "get_obs_context",
+      "get_version",
+      "get_obs_stats"
+    ])
+  })
+
   it("returns structured success content", async () => {
-    const client = await connect(obsClient(async () => ({ sceneName: "Intro", sceneUuid: "scene-intro" })))
+    const client = await connect(obsClient(async (requestType) => {
+      if (requestType === "GetStats") {
+        return {
+          cpuUsage: 4,
+          memoryUsage: 256,
+          availableDiskSpace: 4096,
+          activeFps: 30,
+          averageFrameRenderTime: 2,
+          renderSkippedFrames: 1,
+          renderTotalFrames: 100,
+          outputSkippedFrames: 2,
+          outputTotalFrames: 90,
+          webSocketSessionIncomingMessages: 3,
+          webSocketSessionOutgoingMessages: 4
+        }
+      }
+      if (requestType === "GetRecordStatus") {
+        return {
+          outputActive: true,
+          outputPaused: false,
+          outputTimecode: "00:00:12.345",
+          outputDuration: 12345,
+          outputBytes: 67890
+        }
+      }
+      return { sceneName: "Intro", sceneUuid: "scene-intro" }
+    }))
     await expect(client.callTool({ name: "get_current_scene", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { sceneName: "Intro", sceneUuid: "scene-intro" } })
+    await expect(client.callTool({ name: "get_obs_stats", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          cpuUsage: 4,
+          memoryUsage: 256,
+          availableDiskSpace: 4096,
+          activeFps: 30,
+          averageFrameRenderTime: 2,
+          renderSkippedFrames: 1,
+          renderTotalFrames: 100,
+          outputSkippedFrames: 2,
+          outputTotalFrames: 90,
+          webSocketSessionIncomingMessages: 3,
+          webSocketSessionOutgoingMessages: 4
+        }
+      })
+    await expect(client.callTool({ name: "get_record_status", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputActive: true,
+          outputPaused: false,
+          outputTimecode: "00:00:12.345",
+          outputDuration: 12345,
+          outputBytes: 67890
+        }
+      })
+  })
+
+  it("rejects extra arguments for no-arg status tools", async () => {
+    const client = await connect(obsClient(async () => ({})))
+    await expect(client.callTool({ name: "get_obs_stats", arguments: { unexpected: true } }))
+      .resolves.toMatchObject({
+        isError: true,
+        content: [{ type: "text" }]
+      })
+    await expect(client.callTool({ name: "get_record_status", arguments: { unexpected: true } }))
+      .resolves.toMatchObject({
+        isError: true,
+        content: [{ type: "text" }]
+      })
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {

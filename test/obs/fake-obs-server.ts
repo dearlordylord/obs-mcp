@@ -204,13 +204,31 @@ export class FakeObsServer {
         rpcVersion: 1,
         availableRequests: options.availableRequestsValue ?? [
           "GetVersion",
+          "GetStats",
           "GetSceneList",
           "GetCurrentProgramScene",
-          "SetCurrentProgramScene"
+          "SetCurrentProgramScene",
+          "GetRecordStatus"
         ],
         supportedImageFormats: ["png", "jpg"],
         platform: "ubuntu",
         platformDescription: "Ubuntu 24.04"
+      })
+      return
+    }
+    if (requestType === "GetStats") {
+      send({
+        cpuUsage: 3.5,
+        memoryUsage: 512.25,
+        availableDiskSpace: 1024.5,
+        activeFps: 60,
+        averageFrameRenderTime: 1.75,
+        renderSkippedFrames: 2,
+        renderTotalFrames: 1000,
+        outputSkippedFrames: 3,
+        outputTotalFrames: 900,
+        webSocketSessionIncomingMessages: 10,
+        webSocketSessionOutgoingMessages: 11
       })
       return
     }
@@ -236,6 +254,16 @@ export class FakeObsServer {
     if (requestType === "SetCurrentProgramScene") {
       this.currentSceneName = envelope.d.requestData.sceneName
       send()
+      return
+    }
+    if (requestType === "GetRecordStatus") {
+      send({
+        outputActive: true,
+        outputPaused: false,
+        outputTimecode: "00:00:12.345",
+        outputDuration: 12345,
+        outputBytes: 67890
+      })
       return
     }
     send()

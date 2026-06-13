@@ -18,7 +18,8 @@ describe("OBS config properties", () => {
     await fc.assert(fc.asyncProperty(fc.array(fc.string()), async (entries) => {
       const config = await Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: entries.join(",") }))
       const enabledToolsets: ReadonlyArray<string> = config.enabledToolsets
-      expect(enabledToolsets).toEqual(enabledToolsets.filter((toolset) => toolset === "scenes"))
+      const knownToolsets = new Set(["general", "record", "scenes"])
+      expect(enabledToolsets).toEqual(enabledToolsets.filter((toolset) => knownToolsets.has(toolset)))
     }))
   })
 })
