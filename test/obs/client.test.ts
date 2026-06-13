@@ -484,6 +484,30 @@ describe("OBS websocket client", () => {
     })
   })
 
+  it("uses configured event buffer capacity", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: Array.from({ length: 3 }, (_, index) => ({
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: `Scene ${index + 1}`, sceneUuid: `scene-${index + 1}` }
+      })),
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), eventBufferCapacity: 2 })
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents()).toMatchObject({
+      capacity: 2,
+      droppedEvents: 1,
+      events: [
+        { sequence: 2, eventData: { sceneName: "Scene 2", sceneUuid: "scene-2" } },
+        { sequence: 3, eventData: { sceneName: "Scene 3", sceneUuid: "scene-3" } }
+      ]
+    })
+  })
+
   it("keeps event buffer capacity bounded under burst input", async () => {
     const server = await FakeObsServer.start({
       eventBurstBeforeResponse: Array.from({ length: 5 }, (_, index) => ({

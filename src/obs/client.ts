@@ -55,8 +55,9 @@ interface ObsClientOptions {
 }
 
 export const createObsClient = async (config: ObsConfig, options: ObsClientOptions = {}): Promise<ObsClient> => {
+  const eventBufferCapacity = options.eventBufferCapacity ?? config.eventBufferCapacity
   const eventBuffer = createObsEventBuffer(
-    options.eventBufferCapacity === undefined ? {} : { capacity: options.eventBufferCapacity }
+    eventBufferCapacity === undefined ? {} : { capacity: eventBufferCapacity }
   )
   const ws = new WebSocket(config.url, "obswebsocket.json")
   const pending = new Map<string, PendingRequest>()

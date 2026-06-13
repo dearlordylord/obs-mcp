@@ -17,7 +17,17 @@ describe("OBS config", () => {
     )
     expect(config.url).toBe("ws://localhost:4455/")
     expect(config.connectionTimeoutMs).toBe(30_000)
+    expect(config.eventBufferCapacity).toBeUndefined()
     expect(config.enabledToolsets).toEqual(["scenes", "general", "events", "inputs", "outputs", "record", "stream"])
+  })
+
+  it("decodes optional OBS event buffer capacity", async () => {
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "7" })))
+      .resolves.toMatchObject({ eventBufferCapacity: 7 })
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "0" })))
+      .rejects.toThrow()
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "nope" })))
+      .rejects.toThrow()
   })
 
   it("defaults blank toolsets and rejects non-websocket URLs", async () => {
