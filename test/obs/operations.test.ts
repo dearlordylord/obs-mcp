@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
-import { getVersion } from "../../src/obs/operations/general.js"
+import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
@@ -38,6 +38,25 @@ describe("OBS operations", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     await expect(getVersion(client)).resolves.toMatchObject({ obsVersion: "31.0.0", negotiatedRpcVersion: 1 })
+  })
+
+  it("returns OBS stats and record status from fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getObsStats(client)).resolves.toMatchObject({
+      cpuUsage: 3.5,
+      activeFps: 60,
+      webSocketSessionOutgoingMessages: 11
+    })
+    await expect(getRecordStatus(client)).resolves.toEqual({
+      outputActive: true,
+      outputPaused: false,
+      outputTimecode: "00:00:12.345",
+      outputDuration: 12345,
+      outputBytes: 67890
+    })
   })
 
   it("lists scenes and can filter groups", async () => {

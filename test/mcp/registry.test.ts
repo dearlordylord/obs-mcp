@@ -14,10 +14,17 @@ const config: ObsConfig = {
   url: "ws://localhost:4455/",
   password: Option.none(),
   connectionTimeoutMs: 300,
-  enabledToolsets: ["scenes"]
+  enabledToolsets: ["general", "record", "scenes"]
 }
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetStats",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetRecordStatus"
+]
 
 const client = (handler: (requestType: ObsRequestType) => Promise<unknown>): ObsClient => ({
   negotiatedRpcVersion: 1,
@@ -36,13 +43,15 @@ const toolByName = (name: string): ToolDefinition => {
 }
 
 describe("MCP tool registry", () => {
-  it("exposes exactly the scenes exemplar tools by default", () => {
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).toEqual([
+  it("exposes exactly the enabled tools by default", () => {
+    expect(getEnabledTools(["general", "record", "scenes"]).map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_version",
+      "get_obs_stats",
       "list_scenes",
       "get_current_scene",
-      "set_current_scene"
+      "set_current_scene",
+      "get_record_status"
     ])
   })
 
@@ -50,10 +59,30 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools([])).toEqual([])
   })
 
+  it("filters tools by toolset category", () => {
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_obs_context",
+      "get_version",
+      "get_obs_stats"
+    ])
+    expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_record_status"
+    ])
+    expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "list_scenes",
+      "get_current_scene",
+      "set_current_scene"
+    ])
+  })
+
   it("filters tools by negotiated OBS capabilities", () => {
-    expect(getEnabledTools(["scenes"], ["GetVersion"]).map((tool) => tool.name)).toEqual([
+    expect(getEnabledTools(["general"], ["GetVersion"]).map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_version"
+    ])
+    expect(getEnabledTools(["general", "record"], ["GetStats"]).map((tool) => tool.name)).toEqual([
+      "get_obs_context",
+      "get_obs_stats"
     ])
   })
 
@@ -86,9 +115,11 @@ describe("MCP tool registry", () => {
     expect(output).toMatchObject({ scenes: [{ sceneName: "Intro" }] })
   })
 
-  it("executes get_version and get_current_scene handlers", async () => {
+  it("executes get_version, get_obs_stats, get_current_scene, and get_record_status handlers", async () => {
     const versionTool = toolByName("get_version")
+    const statsTool = toolByName("get_obs_stats")
     const currentTool = toolByName("get_current_scene")
+    const recordTool = toolByName("get_record_status")
     const fakeClient = client(async (requestType) => {
       if (requestType === "GetVersion") {
         return {
@@ -99,12 +130,46 @@ describe("MCP tool registry", () => {
           supportedImageFormats: []
         }
       }
+      if (requestType === "GetStats") {
+        return {
+          cpuUsage: 4,
+          memoryUsage: 256,
+          availableDiskSpace: 4096,
+          activeFps: 30,
+          averageFrameRenderTime: 2,
+          renderSkippedFrames: 1,
+          renderTotalFrames: 100,
+          outputSkippedFrames: 2,
+          outputTotalFrames: 90,
+          webSocketSessionIncomingMessages: 3,
+          webSocketSessionOutgoingMessages: 4
+        }
+      }
+      if (requestType === "GetRecordStatus") {
+        return {
+          outputActive: false,
+          outputPaused: false,
+          outputTimecode: "00:00:00.000",
+          outputDuration: 0,
+          outputBytes: 0
+        }
+      }
       return { sceneName: "Intro", sceneUuid: "scene-intro" }
     })
     await expect(executeTool(versionTool, {}, { config, client: fakeClient }))
       .resolves.toMatchObject({ negotiatedRpcVersion: 1 })
+    await expect(executeTool(statsTool, {}, { config, client: fakeClient }))
+      .resolves.toMatchObject({ activeFps: 30, outputTotalFrames: 90 })
     await expect(executeTool(currentTool, {}, { config, client: fakeClient }))
       .resolves.toEqual({ sceneName: "Intro", sceneUuid: "scene-intro" })
+    await expect(executeTool(recordTool, {}, { config, client: fakeClient }))
+      .resolves.toEqual({
+        outputActive: false,
+        outputPaused: false,
+        outputTimecode: "00:00:00.000",
+        outputDuration: 0,
+        outputBytes: 0
+      })
   })
 
   it("rejects invalid scene params through schema validation", async () => {

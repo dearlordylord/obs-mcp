@@ -1,13 +1,16 @@
 import { Schema } from "effect"
 
+import { ObsStatsOutput, RecordStatusOutput } from "../domain/schemas/general.js"
 import { ListScenesOutput } from "../domain/schemas/scenes.js"
 import { StringArray, UnknownRecord } from "../domain/schemas/shared.js"
 
 export const ObsRequestType = Schema.Literal(
   "GetVersion",
+  "GetStats",
   "GetSceneList",
   "GetCurrentProgramScene",
-  "SetCurrentProgramScene"
+  "SetCurrentProgramScene",
+  "GetRecordStatus"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
@@ -35,6 +38,12 @@ export const GetVersion = {
   requestDataSchema: EmptyRequestData,
   responseSchema: GetVersionResponse
 } satisfies ObsRequestDescriptor<GetVersionResponse>
+
+export const GetStats = {
+  requestType: "GetStats",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: ObsStatsOutput
+} satisfies ObsRequestDescriptor<ObsStatsOutput>
 
 export const GetSceneList = {
   requestType: "GetSceneList",
@@ -65,3 +74,9 @@ export const SetCurrentProgramScene = {
   requestDataSchema: SetCurrentProgramSceneRequest,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetRecordStatus = {
+  requestType: "GetRecordStatus",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: RecordStatusOutput
+} satisfies ObsRequestDescriptor<RecordStatusOutput>
