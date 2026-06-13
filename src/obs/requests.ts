@@ -18,6 +18,7 @@ export const ObsRequestType = Schema.Literal(
   "GetSceneItemBlendMode",
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
+  "GetSourceActive",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",

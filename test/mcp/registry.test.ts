@@ -36,6 +36,7 @@ const allAvailableRequests = [
   "GetSceneItemBlendMode",
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
+  "GetSourceActive",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -100,6 +101,7 @@ describe("MCP tool registry", () => {
       "get_scene_item_blend_mode",
       "set_scene_item_index",
       "set_scene_item_blend_mode",
+      "get_source_active",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -161,7 +163,8 @@ describe("MCP tool registry", () => {
       "get_scene_item_index",
       "get_scene_item_blend_mode",
       "set_scene_item_index",
-      "set_scene_item_blend_mode"
+      "set_scene_item_blend_mode",
+      "get_source_active"
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_inputs",
@@ -482,6 +485,20 @@ describe("MCP tool registry", () => {
         client: client(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("get_source_active"), { sourceName: "Camera", sourceUuid: "source-camera" }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("get_source_active"), { sourceUuid: "source-camera", canvasUuid: "canvas-main" }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
   })
 
   it("lists scene items by scene name and preserves ordered item identity", async () => {
@@ -714,6 +731,44 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("gets source active state and echoes supplied source identity", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("get_source_active"), {
+      sourceName: "Camera",
+      canvasUuid: "canvas-main"
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { videoActive: true, videoShowing: true }
+      })
+    })).resolves.toEqual({
+      sourceName: "Camera",
+      videoActive: true,
+      videoShowing: true
+    })
+
+    await expect(executeTool(toolByName("get_source_active"), {
+      sourceUuid: "source-camera"
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sourceName: "Camera", videoActive: false, videoShowing: true }
+      })
+    })).resolves.toEqual({
+      sourceName: "Camera",
+      sourceUuid: "source-camera",
+      videoActive: false,
+      videoShowing: true
+    })
+
+    expect(requests).toEqual([
+      { sourceName: "Camera", canvasUuid: "canvas-main" },
+      { sourceUuid: "source-camera" }
+    ])
+  })
+
   it("maps OBS missing scene item errors to MCP errors", async () => {
     await expect(executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Missing" }, {
       config,
@@ -799,6 +854,24 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("maps source active OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("get_source_active"), {
+      sourceName: "Missing"
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("GetSourceActive", 601, "Source not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetSourceActive",
+        obsStatusCode: 601,
+        comment: "Source not found"
+      }
+    })
+  })
+
   it("filters unavailable scene-item requests by negotiated OBS capabilities", () => {
     expect(
       getEnabledTools(["scenes"], [
@@ -813,7 +886,8 @@ describe("MCP tool registry", () => {
         "GetSceneItemIndex",
         "GetSceneItemBlendMode",
         "SetSceneItemIndex",
-        "SetSceneItemBlendMode"
+        "SetSceneItemBlendMode",
+        "GetSourceActive"
       ]).map((tool) => tool.name)
     ).toEqual([
       "list_scenes",
@@ -826,7 +900,8 @@ describe("MCP tool registry", () => {
       "get_scene_item_index",
       "get_scene_item_blend_mode",
       "set_scene_item_index",
-      "set_scene_item_blend_mode"
+      "set_scene_item_blend_mode",
+      "get_source_active"
     ])
   })
 

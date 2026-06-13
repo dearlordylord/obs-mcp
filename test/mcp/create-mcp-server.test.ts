@@ -41,6 +41,7 @@ const allAvailableRequests = [
   "GetSceneItemBlendMode",
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
+  "GetSourceActive",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -109,6 +110,7 @@ describe("MCP server protocol handlers", () => {
       "get_scene_item_blend_mode",
       "set_scene_item_index",
       "set_scene_item_blend_mode",
+      "get_source_active",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -137,6 +139,7 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_enabled")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_index")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "get_source_active")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_blend_mode")?.outputSchema?.properties)
       .toHaveProperty("sceneItemBlendMode")
   })
@@ -281,6 +284,9 @@ describe("MCP server protocol handlers", () => {
       if (requestType === "GetSceneItemBlendMode") {
         return { sceneItemBlendMode: "OBS_BLEND_LIGHTEN" }
       }
+      if (requestType === "GetSourceActive") {
+        return { videoActive: true, videoShowing: false }
+      }
       return { sceneName: "Intro", sceneUuid: "scene-intro" }
     }))
     await expect(client.callTool({ name: "get_current_scene", arguments: {} }))
@@ -335,6 +341,12 @@ describe("MCP server protocol handlers", () => {
       name: "set_scene_item_blend_mode",
       arguments: { sceneUuid: "scene-uuid", sceneItemId: 42, sceneItemBlendMode: "OBS_BLEND_MULTIPLY" }
     })).resolves.toMatchObject({ structuredContent: { sceneItemBlendMode: "OBS_BLEND_MULTIPLY", updated: true } })
+    await expect(client.callTool({
+      name: "get_source_active",
+      arguments: { sourceName: "Camera" }
+    })).resolves.toMatchObject({
+      structuredContent: { sourceName: "Camera", videoActive: true, videoShowing: false }
+    })
   })
 
   it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {

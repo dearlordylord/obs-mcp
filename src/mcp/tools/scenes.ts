@@ -12,6 +12,8 @@ import {
   GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
+  GetSourceActiveInput,
+  GetSourceActiveOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
   ListSceneItemsInput,
@@ -38,6 +40,7 @@ import {
   getSceneItemIndex,
   getSceneItemLocked,
   getSceneItemSource,
+  getSourceActive,
   listGroupSceneItems,
   listSceneItems,
   listScenes,
@@ -58,6 +61,7 @@ import {
   GetSceneItemLocked,
   GetSceneItemSource,
   GetSceneList,
+  GetSourceActive,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
@@ -218,5 +222,15 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SetSceneItemBlendModeInput,
     outputSchema: SetSceneItemBlendModeOutput,
     handler: async (input, context) => setSceneItemBlendMode(context.client, input)
+  }),
+  defineTool({
+    name: "get_source_active",
+    title: "Get OBS Source Active State",
+    description: "Return whether a source is active in program and showing in OBS UI.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSourceActive.requestType],
+    inputSchema: GetSourceActiveInput,
+    outputSchema: GetSourceActiveOutput,
+    handler: async (input, context) => getSourceActive(context.client, input)
   })
 ]

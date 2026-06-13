@@ -15,6 +15,7 @@ import {
   GetSceneItemList,
   GetSceneItemLocked,
   GetSceneItemSource,
+  GetSourceActive,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
@@ -310,8 +311,12 @@ describe("OBS websocket client", () => {
       sceneItemId: 9,
       sceneItemBlendMode: "OBS_BLEND_SCREEN"
     })).resolves.toEqual({})
+    await expect(client.request(GetSourceActive, { sourceName: "Camera", canvasUuid: "canvas-main" }))
+      .resolves.toEqual({ videoActive: true, videoShowing: true })
+    await expect(client.request(GetSourceActive, { sourceUuid: "source-missing" }))
+      .resolves.toEqual({ videoActive: false, videoShowing: false })
 
-    expect(server.requests.slice(-12)).toEqual([
+    expect(server.requests.slice(-14)).toEqual([
       { requestType: "GetSceneItemList", requestData: { sceneName: "Main", canvasUuid: "canvas-main" } },
       { requestType: "GetGroupSceneItemList", requestData: { sceneUuid: "scene-group" } },
       { requestType: "GetSceneItemId", requestData: { sceneName: "Main", sourceName: "Camera", searchOffset: 0 } },
@@ -332,7 +337,9 @@ describe("OBS websocket client", () => {
       {
         requestType: "SetSceneItemBlendMode",
         requestData: { sceneUuid: "scene-main", sceneItemId: 9, sceneItemBlendMode: "OBS_BLEND_SCREEN" }
-      }
+      },
+      { requestType: "GetSourceActive", requestData: { sourceName: "Camera", canvasUuid: "canvas-main" } },
+      { requestType: "GetSourceActive", requestData: { sourceUuid: "source-missing" } }
     ])
   })
 

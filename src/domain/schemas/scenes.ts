@@ -155,6 +155,37 @@ export const GetSceneItemSourceOutput = Schema.Struct({
 export type GetSceneItemSourceOutput = typeof GetSceneItemSourceOutput.Type
 export const GetSceneItemSourceOutputJsonSchema = JSONSchema.make(GetSceneItemSourceOutput)
 
+export const SourceNameLocator = Schema.Struct({
+  sourceName: Schema.NonEmptyString,
+  sourceUuid: ForbiddenLocatorField,
+  canvasUuid: Schema.optional(Schema.NonEmptyString)
+})
+export type SourceNameLocator = typeof SourceNameLocator.Type
+
+export const SourceUuidLocator = Schema.Struct({
+  sourceName: ForbiddenLocatorField,
+  sourceUuid: Schema.NonEmptyString,
+  canvasUuid: ForbiddenLocatorField
+})
+export type SourceUuidLocator = typeof SourceUuidLocator.Type
+
+export const SourceLocatorInput = Schema.Union(SourceNameLocator, SourceUuidLocator)
+export type SourceLocatorInput = typeof SourceLocatorInput.Type
+export const SourceLocatorInputJsonSchema = JSONSchema.make(SourceLocatorInput)
+
+export const GetSourceActiveInput = SourceLocatorInput
+export type GetSourceActiveInput = typeof GetSourceActiveInput.Type
+export const GetSourceActiveInputJsonSchema = JSONSchema.make(GetSourceActiveInput)
+
+export const GetSourceActiveOutput = Schema.Struct({
+  videoActive: Schema.Boolean,
+  videoShowing: Schema.Boolean,
+  sourceName: Schema.optional(Schema.String),
+  sourceUuid: Schema.optional(Schema.String)
+})
+export type GetSourceActiveOutput = typeof GetSourceActiveOutput.Type
+export const GetSourceActiveOutputJsonSchema = JSONSchema.make(GetSourceActiveOutput)
+
 export const GetSceneItemEnabledInput = SceneItemLocatorInput
 export type GetSceneItemEnabledInput = typeof GetSceneItemEnabledInput.Type
 export const GetSceneItemEnabledInputJsonSchema = JSONSchema.make(GetSceneItemEnabledInput)

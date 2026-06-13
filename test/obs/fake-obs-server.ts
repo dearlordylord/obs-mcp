@@ -326,6 +326,18 @@ export class FakeObsServer {
       send()
       return
     }
+    if (requestType === "GetSourceActive") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) =>
+          item.sourceName === envelope.d.requestData.sourceName
+          || item.sourceUuid === envelope.d.requestData.sourceUuid
+        )
+      send({
+        videoActive: sceneItem?.sceneItemEnabled ?? false,
+        videoShowing: sceneItem !== undefined
+      })
+      return
+    }
     if (requestType === "GetInputList") {
       const inputKind = envelope.d.requestData?.inputKind
       send({

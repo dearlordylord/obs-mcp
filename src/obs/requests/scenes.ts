@@ -13,6 +13,8 @@ import {
   GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
+  GetSourceActiveInput,
+  GetSourceActiveOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
   ListSceneItemsInput,
@@ -127,3 +129,9 @@ export const SetSceneItemBlendMode = {
   requestDataSchema: SetSceneItemBlendModeInput,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSourceActive = {
+  requestType: "GetSourceActive",
+  requestDataSchema: GetSourceActiveInput,
+  responseSchema: GetSourceActiveOutput
+} satisfies ObsRequestDescriptor<GetSourceActiveOutput>

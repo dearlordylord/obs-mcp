@@ -14,6 +14,8 @@ import {
   GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
+  GetSourceActiveInput,
+  GetSourceActiveOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
   ListSceneItemsInput,
@@ -43,6 +45,7 @@ import {
   GetSceneItemLocked,
   GetSceneItemSource,
   GetSceneList,
+  GetSourceActive,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
@@ -191,5 +194,18 @@ export const setSceneItemBlendMode = async (
   return Schema.decodeUnknownSync(SetSceneItemBlendModeOutput)({
     sceneItemBlendMode: decodedInput.sceneItemBlendMode,
     updated: true
+  })
+}
+
+export const getSourceActive = async (
+  client: ObsClient,
+  input: GetSourceActiveInput
+): Promise<GetSourceActiveOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(GetSourceActiveInput)(input)
+  const response = await client.request(GetSourceActive, decodedInput)
+  return Schema.decodeUnknownSync(GetSourceActiveOutput)({
+    ...response,
+    sourceName: response.sourceName ?? decodedInput.sourceName,
+    sourceUuid: response.sourceUuid ?? decodedInput.sourceUuid
   })
 }
