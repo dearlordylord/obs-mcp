@@ -67,18 +67,18 @@ const EVENT_LEDGER = {
   ReplayBufferStateChanged: "typed-safe",
   VirtualcamStateChanged: "deferred",
   ReplayBufferSaved: "typed-safe",
-  SceneItemCreated: "deferred",
-  SceneItemRemoved: "deferred",
-  SceneItemListReindexed: "deferred",
-  SceneItemEnableStateChanged: "deferred",
-  SceneItemLockStateChanged: "deferred",
-  SceneItemSelected: "deferred",
+  SceneItemCreated: "typed-safe",
+  SceneItemRemoved: "typed-safe",
+  SceneItemListReindexed: "typed-safe",
+  SceneItemEnableStateChanged: "typed-safe",
+  SceneItemLockStateChanged: "typed-safe",
+  SceneItemSelected: "typed-safe",
   SceneItemTransformChanged: "high-volume",
-  SceneCreated: "deferred",
-  SceneRemoved: "deferred",
-  SceneNameChanged: "deferred",
+  SceneCreated: "typed-safe",
+  SceneRemoved: "typed-safe",
+  SceneNameChanged: "typed-safe",
   CurrentProgramSceneChanged: "typed-safe",
-  CurrentPreviewSceneChanged: "deferred",
+  CurrentPreviewSceneChanged: "typed-safe",
   SceneListChanged: "typed-safe",
   CurrentSceneTransitionChanged: "deferred",
   CurrentSceneTransitionDurationChanged: "deferred",
@@ -100,8 +100,48 @@ const TYPED_EVENT_FIXTURES = {
   CurrentProfileChanged: { profileName: "Profile B" },
   ProfileListChanged: { profiles: ["Profile A", "Profile B"] },
   ExitStarted: {},
+  SceneCreated: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false },
+  SceneRemoved: { sceneName: "Group", sceneUuid: "scene-group", isGroup: true },
+  SceneNameChanged: { sceneUuid: "scene-program", oldSceneName: "Old Program", sceneName: "Program" },
   CurrentProgramSceneChanged: { sceneName: "Program", sceneUuid: "scene-program" },
+  CurrentPreviewSceneChanged: { sceneName: "Preview", sceneUuid: "scene-preview" },
   SceneListChanged: { scenes: [{ sceneName: "Program", sceneUuid: "scene-program", sceneIndex: 0 }] },
+  SceneItemCreated: {
+    sceneName: "Program",
+    sceneUuid: "scene-program",
+    sourceName: "Camera",
+    sourceUuid: "source-camera",
+    sceneItemId: 12,
+    sceneItemIndex: 1
+  },
+  SceneItemRemoved: {
+    sceneName: "Program",
+    sceneUuid: "scene-program",
+    sourceName: "Camera",
+    sourceUuid: "source-camera",
+    sceneItemId: 12
+  },
+  SceneItemListReindexed: {
+    sceneName: "Program",
+    sceneUuid: "scene-program",
+    sceneItems: [
+      { sceneItemId: 12, sceneItemIndex: 0 },
+      { sceneItemId: 13, sceneItemIndex: 1 }
+    ]
+  },
+  SceneItemEnableStateChanged: {
+    sceneName: "Program",
+    sceneUuid: "scene-program",
+    sceneItemId: 12,
+    sceneItemEnabled: true
+  },
+  SceneItemLockStateChanged: {
+    sceneName: "Program",
+    sceneUuid: "scene-program",
+    sceneItemId: 12,
+    sceneItemLocked: true
+  },
+  SceneItemSelected: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 },
   InputMuteStateChanged: { inputName: "Mic", inputUuid: "input-mic", inputMuted: true },
   InputVolumeChanged: { inputName: "Mic", inputUuid: "input-mic", inputVolumeMul: 0.5, inputVolumeDb: -6 },
   InputAudioBalanceChanged: { inputName: "Mic", inputUuid: "input-mic", inputAudioBalance: 0.25 },
@@ -172,10 +212,10 @@ describe("OBS event protocol foundation", () => {
         { "typed-safe": 0, "high-volume": 0, "raw-only": 0, deferred: 0 }
       )
     ).toEqual({
-      "typed-safe": 22,
+      "typed-safe": 32,
       "high-volume": 4,
       "raw-only": 2,
-      deferred: 32
+      deferred: 22
     })
 
     for (const event of matrix.events) {
@@ -241,8 +281,53 @@ describe("OBS event protocol foundation", () => {
       ["CurrentProfileChanged", { profileName: "Profile B" }],
       ["ProfileListChanged", { profiles: ["Profile A", "Profile B"] }],
       ["ExitStarted", {}],
+      ["SceneCreated", { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }],
+      ["SceneRemoved", { sceneName: "Group", sceneUuid: "scene-group", isGroup: true }],
+      ["SceneNameChanged", { sceneUuid: "scene-program", oldSceneName: "Old Program", sceneName: "Program" }],
       ["CurrentProgramSceneChanged", { sceneName: "Program", sceneUuid: "scene-program" }],
+      ["CurrentPreviewSceneChanged", { sceneName: "Preview", sceneUuid: "scene-preview" }],
       ["SceneListChanged", { scenes: [{ sceneName: "Program", sceneUuid: "scene-program", sceneIndex: 0 }] }],
+      [
+        "SceneItemCreated",
+        {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 12,
+          sceneItemIndex: 1
+        }
+      ],
+      [
+        "SceneItemRemoved",
+        {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 12
+        }
+      ],
+      [
+        "SceneItemListReindexed",
+        {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItems: [
+            { sceneItemId: 12, sceneItemIndex: 0 },
+            { sceneItemId: 13, sceneItemIndex: 1 }
+          ]
+        }
+      ],
+      [
+        "SceneItemEnableStateChanged",
+        { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12, sceneItemEnabled: true }
+      ],
+      [
+        "SceneItemLockStateChanged",
+        { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12, sceneItemLocked: true }
+      ],
+      ["SceneItemSelected", { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 }],
       ["InputMuteStateChanged", { inputName: "Mic", inputUuid: "input-mic", inputMuted: true }],
       [
         "InputVolumeChanged",
@@ -295,6 +380,15 @@ describe("OBS event protocol foundation", () => {
     expect(() => decodeTypedObsEventData("SceneCollectionListChanged", { sceneCollections: [1] })).toThrow()
     expect(() => decodeTypedObsEventData("CurrentProfileChanged", { sceneCollectionName: "Profile" })).toThrow()
     expect(() => decodeTypedObsEventData("ExitStarted", { raw: true })).toThrow()
+    expect(() => decodeTypedObsEventData("SceneCreated", { sceneName: "Program", sceneUuid: "scene-program" }))
+      .toThrow()
+    expect(() =>
+      decodeTypedObsEventData("SceneItemListReindexed", {
+        sceneName: "Program",
+        sceneUuid: "scene-program",
+        sceneItems: [{ sceneItemId: 12, rawIndex: 0 }]
+      })
+    ).toThrow()
     expect(() => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true })).toThrow()
     expect(() =>
       decodeTypedObsEventData("MediaInputActionTriggered", {

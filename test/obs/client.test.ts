@@ -213,9 +213,81 @@ describe("OBS websocket client", () => {
         eventData: {}
       },
       {
+        eventType: "SceneCreated",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+      },
+      {
+        eventType: "SceneNameChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneUuid: "scene-program", oldSceneName: "Old Program", sceneName: "Program" }
+      },
+      {
+        eventType: "CurrentPreviewSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Preview", sceneUuid: "scene-preview" }
+      },
+      {
         eventType: "SceneListChanged",
         eventIntent: EventSubscription.Scenes,
         eventData: { scenes: [{ sceneName: "Intro", sceneUuid: "scene-intro", sceneIndex: 0 }] }
+      },
+      {
+        eventType: "SceneItemCreated",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 12,
+          sceneItemIndex: 1
+        }
+      },
+      {
+        eventType: "SceneItemRemoved",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 12
+        }
+      },
+      {
+        eventType: "SceneItemListReindexed",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItems: [{ sceneItemId: 12, sceneItemIndex: 0 }]
+        }
+      },
+      {
+        eventType: "SceneItemEnableStateChanged",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItemId: 12,
+          sceneItemEnabled: true
+        }
+      },
+      {
+        eventType: "SceneItemLockStateChanged",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItemId: 12,
+          sceneItemLocked: true
+        }
+      },
+      {
+        eventType: "SceneItemSelected",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 }
       },
       {
         eventType: "InputAudioMonitorTypeChanged",

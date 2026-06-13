@@ -73,6 +73,16 @@ const SceneEventData = Schema.Struct({
   sceneUuid: Schema.String
 })
 
+const SceneGroupEventData = Schema.extend(SceneEventData)(
+  Schema.Struct({ isGroup: Schema.Boolean })
+)
+
+const SceneNameChangedEventData = Schema.Struct({
+  sceneUuid: Schema.String,
+  oldSceneName: Schema.String,
+  sceneName: Schema.String
+})
+
 const SceneListItem = Schema.Struct({
   sceneName: Schema.String,
   sceneUuid: Schema.String,
@@ -82,6 +92,44 @@ const SceneListItem = Schema.Struct({
 const SceneListChangedEventData = Schema.Struct({
   scenes: Schema.Array(SceneListItem)
 })
+
+const SceneItemEventData = Schema.Struct({
+  sceneName: Schema.String,
+  sceneUuid: Schema.String,
+  sceneItemId: Schema.Number.pipe(Schema.int())
+})
+
+const SceneItemSourceEventData = Schema.extend(SceneItemEventData)(
+  Schema.Struct({
+    sourceName: Schema.String,
+    sourceUuid: Schema.String
+  })
+)
+
+const SceneItemCreatedEventData = Schema.extend(SceneItemSourceEventData)(
+  Schema.Struct({
+    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  })
+)
+
+const ReindexedSceneItem = Schema.Struct({
+  sceneItemId: Schema.Number.pipe(Schema.int()),
+  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+})
+
+const SceneItemListReindexedEventData = Schema.Struct({
+  sceneName: Schema.String,
+  sceneUuid: Schema.String,
+  sceneItems: Schema.Array(ReindexedSceneItem)
+})
+
+const SceneItemEnableStateChangedEventData = Schema.extend(SceneItemEventData)(
+  Schema.Struct({ sceneItemEnabled: Schema.Boolean })
+)
+
+const SceneItemLockStateChangedEventData = Schema.extend(SceneItemEventData)(
+  Schema.Struct({ sceneItemLocked: Schema.Boolean })
+)
 
 const InputEventData = Schema.Struct({
   inputName: Schema.String,
@@ -149,6 +197,14 @@ export const TypedObsEventData = Schema.Union(
   ProfileEventData,
   ProfileListChangedEventData,
   ExitStartedEventData,
+  SceneGroupEventData,
+  SceneNameChangedEventData,
+  SceneItemCreatedEventData,
+  SceneItemSourceEventData,
+  SceneItemListReindexedEventData,
+  SceneItemEnableStateChangedEventData,
+  SceneItemLockStateChangedEventData,
+  SceneItemEventData,
   SceneEventData,
   SceneListChangedEventData,
   InputMuteStateChangedEventData,
@@ -182,10 +238,28 @@ export const decodeTypedObsEventData = (
       return Schema.decodeUnknownSync(ProfileListChangedEventData)(eventData)
     case "ExitStarted":
       return Schema.decodeUnknownSync(ExitStartedEventData)(eventData ?? {})
+    case "SceneCreated":
+    case "SceneRemoved":
+      return Schema.decodeUnknownSync(SceneGroupEventData)(eventData)
+    case "SceneNameChanged":
+      return Schema.decodeUnknownSync(SceneNameChangedEventData)(eventData)
     case "CurrentProgramSceneChanged":
+    case "CurrentPreviewSceneChanged":
       return Schema.decodeUnknownSync(SceneEventData)(eventData)
     case "SceneListChanged":
       return Schema.decodeUnknownSync(SceneListChangedEventData)(eventData)
+    case "SceneItemCreated":
+      return Schema.decodeUnknownSync(SceneItemCreatedEventData)(eventData)
+    case "SceneItemRemoved":
+      return Schema.decodeUnknownSync(SceneItemSourceEventData)(eventData)
+    case "SceneItemListReindexed":
+      return Schema.decodeUnknownSync(SceneItemListReindexedEventData)(eventData)
+    case "SceneItemEnableStateChanged":
+      return Schema.decodeUnknownSync(SceneItemEnableStateChangedEventData)(eventData)
+    case "SceneItemLockStateChanged":
+      return Schema.decodeUnknownSync(SceneItemLockStateChangedEventData)(eventData)
+    case "SceneItemSelected":
+      return Schema.decodeUnknownSync(SceneItemEventData)(eventData)
     case "InputMuteStateChanged":
       return Schema.decodeUnknownSync(InputMuteStateChangedEventData)(eventData)
     case "InputVolumeChanged":

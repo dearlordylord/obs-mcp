@@ -1170,6 +1170,108 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("returns typed scene and scene-item OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["scenes", "scene_items"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 4,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "SceneCreated",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+          },
+          {
+            sequence: 2,
+            eventType: "CurrentPreviewSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Preview", sceneUuid: "scene-preview" }
+          },
+          {
+            sequence: 3,
+            eventType: "SceneItemCreated",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: {
+              sceneName: "Program",
+              sceneUuid: "scene-program",
+              sourceName: "Camera",
+              sourceUuid: "source-camera",
+              sceneItemId: 12,
+              sceneItemIndex: 1
+            }
+          },
+          {
+            sequence: 4,
+            eventType: "SceneItemListReindexed",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: {
+              sceneName: "Program",
+              sceneUuid: "scene-program",
+              sceneItems: [
+                { sceneItemId: 12, sceneItemIndex: 0 },
+                { sceneItemId: 13, sceneItemIndex: 1 }
+              ]
+            }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 4,
+      droppedEvents: 0,
+      returnedEvents: 4,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "SceneCreated",
+          eventIntent: EventSubscription.Scenes,
+          category: "scenes",
+          eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+        },
+        {
+          sequence: 2,
+          eventType: "CurrentPreviewSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          category: "scenes",
+          eventData: { sceneName: "Preview", sceneUuid: "scene-preview" }
+        },
+        {
+          sequence: 3,
+          eventType: "SceneItemCreated",
+          eventIntent: EventSubscription.SceneItems,
+          category: "scene_items",
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sourceName: "Camera",
+            sourceUuid: "source-camera",
+            sceneItemId: 12,
+            sceneItemIndex: 1
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "SceneItemListReindexed",
+          eventIntent: EventSubscription.SceneItems,
+          category: "scene_items",
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItems: [
+              { sceneItemId: 12, sceneItemIndex: 0 },
+              { sceneItemId: 13, sceneItemIndex: 1 }
+            ]
+          }
+        }
+      ]
+    })
+  })
+
   it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
     await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
       config: { ...config, enabledToolsets: ["events"] },
