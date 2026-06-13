@@ -13,6 +13,8 @@ export interface FakeObsSceneItem {
   readonly sourceType?: string
   readonly inputKind?: string | null
   readonly isGroup?: boolean | null
+  readonly sceneItemEnabled?: boolean
+  readonly sceneItemLocked?: boolean
 }
 
 export interface FakeObsInput {
@@ -58,6 +60,10 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetGroupSceneItemList",
   "GetSceneItemId",
   "GetSceneItemSource",
+  "GetSceneItemEnabled",
+  "SetSceneItemEnabled",
+  "GetSceneItemLocked",
+  "SetSceneItemLocked",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -90,7 +96,9 @@ export const sceneItemsFor = (
       sourceUuid: "source-camera",
       sourceType: "OBS_SOURCE_TYPE_INPUT",
       inputKind: "dshow_input",
-      isGroup: null
+      isGroup: null,
+      sceneItemEnabled: true,
+      sceneItemLocked: false
     },
     {
       sceneItemId: 9,
@@ -99,7 +107,9 @@ export const sceneItemsFor = (
       sourceUuid: "source-lower-third",
       sourceType: "OBS_SOURCE_TYPE_SCENE",
       inputKind: null,
-      isGroup: true
+      isGroup: true,
+      sceneItemEnabled: false,
+      sceneItemLocked: true
     }
   ]
 }

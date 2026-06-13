@@ -8,10 +8,14 @@ import { EventSubscription, SAFE_EVENT_SUBSCRIPTION_MASK } from "../../src/obs/p
 import {
   GetCurrentProgramScene,
   GetGroupSceneItemList,
+  GetSceneItemEnabled,
   GetSceneItemId,
   GetSceneItemList,
+  GetSceneItemLocked,
   GetSceneItemSource,
-  SetCurrentProgramScene
+  SetCurrentProgramScene,
+  SetSceneItemEnabled,
+  SetSceneItemLocked
 } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -274,12 +278,55 @@ describe("OBS websocket client", () => {
       .resolves.toEqual({ sceneItemId: 7 })
     await expect(client.request(GetSceneItemSource, { sceneUuid: "scene-main", sceneItemId: 7 }))
       .resolves.toEqual({ sourceName: "Camera", sourceUuid: "source-camera" })
+    await expect(client.request(GetSceneItemEnabled, { sceneName: "Main", sceneItemId: 7 }))
+      .resolves.toEqual({ sceneItemEnabled: true })
+    await expect(client.request(SetSceneItemEnabled, {
+      sceneName: "Main",
+      sceneItemId: 7,
+      sceneItemEnabled: false
+    })).resolves.toEqual({})
+    await expect(client.request(GetSceneItemLocked, { sceneName: "Main", sceneItemId: 9 }))
+      .resolves.toEqual({ sceneItemLocked: true })
+    await expect(client.request(SetSceneItemLocked, {
+      sceneUuid: "scene-main",
+      sceneItemId: 9,
+      sceneItemLocked: false
+    })).resolves.toEqual({})
 
-    expect(server.requests.slice(-4)).toEqual([
+    expect(server.requests.slice(-8)).toEqual([
       { requestType: "GetSceneItemList", requestData: { sceneName: "Main", canvasUuid: "canvas-main" } },
       { requestType: "GetGroupSceneItemList", requestData: { sceneUuid: "scene-group" } },
       { requestType: "GetSceneItemId", requestData: { sceneName: "Main", sourceName: "Camera", searchOffset: 0 } },
-      { requestType: "GetSceneItemSource", requestData: { sceneUuid: "scene-main", sceneItemId: 7 } }
+      { requestType: "GetSceneItemSource", requestData: { sceneUuid: "scene-main", sceneItemId: 7 } },
+      { requestType: "GetSceneItemEnabled", requestData: { sceneName: "Main", sceneItemId: 7 } },
+      {
+        requestType: "SetSceneItemEnabled",
+        requestData: { sceneName: "Main", sceneItemId: 7, sceneItemEnabled: false }
+      },
+      { requestType: "GetSceneItemLocked", requestData: { sceneName: "Main", sceneItemId: 9 } },
+      {
+        requestType: "SetSceneItemLocked",
+        requestData: { sceneUuid: "scene-main", sceneItemId: 9, sceneItemLocked: false }
+      }
     ])
+  })
+
+  it("maps failed scene-item state requests to OBS request errors", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetSceneItemEnabled: { code: 601, comment: "Scene item not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(SetSceneItemEnabled, {
+      sceneName: "Main",
+      sceneItemId: 404,
+      sceneItemEnabled: true
+    })).rejects.toMatchObject({
+      requestType: "SetSceneItemEnabled",
+      code: 601,
+      comment: "Scene item not found"
+    })
   })
 })

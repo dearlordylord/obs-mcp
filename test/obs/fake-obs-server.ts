@@ -290,6 +290,26 @@ export class FakeObsServer {
       send({ sourceName: sceneItem?.sourceName ?? "Camera", sourceUuid: sceneItem?.sourceUuid ?? "source-camera" })
       return
     }
+    if (requestType === "GetSceneItemEnabled") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemEnabled: sceneItem?.sceneItemEnabled ?? true })
+      return
+    }
+    if (requestType === "SetSceneItemEnabled") {
+      send()
+      return
+    }
+    if (requestType === "GetSceneItemLocked") {
+      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({ sceneItemLocked: sceneItem?.sceneItemLocked ?? false })
+      return
+    }
+    if (requestType === "SetSceneItemLocked") {
+      send()
+      return
+    }
     if (requestType === "GetInputList") {
       const inputKind = envelope.d.requestData?.inputKind
       send({

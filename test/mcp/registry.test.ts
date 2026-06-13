@@ -28,6 +28,10 @@ const allAvailableRequests = [
   "GetGroupSceneItemList",
   "GetSceneItemId",
   "GetSceneItemSource",
+  "GetSceneItemEnabled",
+  "SetSceneItemEnabled",
+  "GetSceneItemLocked",
+  "SetSceneItemLocked",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -84,6 +88,10 @@ describe("MCP tool registry", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -137,7 +145,11 @@ describe("MCP tool registry", () => {
       "list_scene_items",
       "list_group_scene_items",
       "get_scene_item_id",
-      "get_scene_item_source"
+      "get_scene_item_source",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked"
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_inputs",
@@ -417,6 +429,25 @@ describe("MCP tool registry", () => {
         client: client(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("get_scene_item_enabled"), { sceneName: "Scene", sceneItemId: -1 }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("set_scene_item_locked"), {
+        sceneUuid: "scene-uuid",
+        canvasUuid: "canvas-uuid",
+        sceneItemId: 1,
+        sceneItemLocked: true
+      }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
   })
 
   it("lists scene items by scene name and preserves ordered item identity", async () => {
@@ -531,6 +562,62 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ sourceName: "Camera", sourceUuid: "source-camera" })
   })
 
+  it("gets and sets scene item enabled and locked state", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("get_scene_item_enabled"), {
+      sceneName: "Scene",
+      sceneItemId: 42
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sceneItemEnabled: false }
+      })
+    })).resolves.toEqual({ sceneItemEnabled: false })
+
+    await expect(executeTool(toolByName("set_scene_item_enabled"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemEnabled: true
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemEnabled: true, updated: true })
+
+    await expect(executeTool(toolByName("get_scene_item_locked"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return { sceneItemLocked: true }
+      })
+    })).resolves.toEqual({ sceneItemLocked: true })
+
+    await expect(executeTool(toolByName("set_scene_item_locked"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42,
+      sceneItemLocked: false
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemLocked: false, updated: true })
+
+    expect(requests).toEqual([
+      { sceneName: "Scene", sceneItemId: 42 },
+      { sceneName: "Scene", sceneItemId: 42, sceneItemEnabled: true },
+      { sceneUuid: "scene-uuid", sceneItemId: 42 },
+      { sceneUuid: "scene-uuid", sceneItemId: 42, sceneItemLocked: false }
+    ])
+  })
+
   it("maps OBS missing scene item errors to MCP errors", async () => {
     await expect(executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Missing" }, {
       config,
@@ -540,15 +627,46 @@ describe("MCP tool registry", () => {
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
   })
 
+  it("maps scene item state OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("set_scene_item_enabled"), {
+      sceneName: "Scene",
+      sceneItemId: 404,
+      sceneItemEnabled: true
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("SetSceneItemEnabled", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
+  })
+
   it("filters unavailable scene-item requests by negotiated OBS capabilities", () => {
     expect(
       getEnabledTools(["scenes"], [
         "GetVersion",
         "GetSceneList",
         "GetCurrentProgramScene",
-        "SetCurrentProgramScene"
+        "SetCurrentProgramScene",
+        "GetSceneItemEnabled",
+        "SetSceneItemEnabled",
+        "GetSceneItemLocked",
+        "SetSceneItemLocked"
       ]).map((tool) => tool.name)
-    ).toEqual(["list_scenes", "get_current_scene", "set_current_scene"])
+    ).toEqual([
+      "list_scenes",
+      "get_current_scene",
+      "set_current_scene",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked"
+    ])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

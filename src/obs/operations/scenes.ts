@@ -2,8 +2,12 @@ import { Schema } from "effect"
 
 import {
   CurrentSceneOutput,
+  GetSceneItemEnabledInput,
+  GetSceneItemEnabledOutput,
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
+  GetSceneItemLockedInput,
+  GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
   ListGroupSceneItemsInput,
@@ -13,17 +17,25 @@ import {
   ListScenesInput,
   ListScenesOutput,
   SetCurrentSceneInput,
-  SetCurrentSceneOutput
+  SetCurrentSceneOutput,
+  SetSceneItemEnabledInput,
+  SetSceneItemEnabledOutput,
+  SetSceneItemLockedInput,
+  SetSceneItemLockedOutput
 } from "../../domain/schemas/scenes.js"
 import type { ObsClient } from "../client.js"
 import {
   GetCurrentProgramScene,
   GetGroupSceneItemList,
+  GetSceneItemEnabled,
   GetSceneItemId,
   GetSceneItemList,
+  GetSceneItemLocked,
   GetSceneItemSource,
   GetSceneList,
-  SetCurrentProgramScene
+  SetCurrentProgramScene,
+  SetSceneItemEnabled,
+  SetSceneItemLocked
 } from "../requests.js"
 
 export const listScenes = async (client: ObsClient, input: ListScenesInput): Promise<ListScenesOutput> => {
@@ -86,4 +98,44 @@ export const getSceneItemSource = async (
 ): Promise<GetSceneItemSourceOutput> => {
   const decodedInput = Schema.decodeUnknownSync(GetSceneItemSourceInput)(input)
   return Schema.decodeUnknownSync(GetSceneItemSourceOutput)(await client.request(GetSceneItemSource, decodedInput))
+}
+
+export const getSceneItemEnabled = async (
+  client: ObsClient,
+  input: GetSceneItemEnabledInput
+): Promise<GetSceneItemEnabledOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(GetSceneItemEnabledInput)(input)
+  return Schema.decodeUnknownSync(GetSceneItemEnabledOutput)(await client.request(GetSceneItemEnabled, decodedInput))
+}
+
+export const setSceneItemEnabled = async (
+  client: ObsClient,
+  input: SetSceneItemEnabledInput
+): Promise<SetSceneItemEnabledOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSceneItemEnabledInput)(input)
+  await client.request(SetSceneItemEnabled, decodedInput)
+  return Schema.decodeUnknownSync(SetSceneItemEnabledOutput)({
+    sceneItemEnabled: decodedInput.sceneItemEnabled,
+    updated: true
+  })
+}
+
+export const getSceneItemLocked = async (
+  client: ObsClient,
+  input: GetSceneItemLockedInput
+): Promise<GetSceneItemLockedOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(GetSceneItemLockedInput)(input)
+  return Schema.decodeUnknownSync(GetSceneItemLockedOutput)(await client.request(GetSceneItemLocked, decodedInput))
+}
+
+export const setSceneItemLocked = async (
+  client: ObsClient,
+  input: SetSceneItemLockedInput
+): Promise<SetSceneItemLockedOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSceneItemLockedInput)(input)
+  await client.request(SetSceneItemLocked, decodedInput)
+  return Schema.decodeUnknownSync(SetSceneItemLockedOutput)({
+    sceneItemLocked: decodedInput.sceneItemLocked,
+    updated: true
+  })
 }

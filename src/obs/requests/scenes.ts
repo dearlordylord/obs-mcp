@@ -1,15 +1,21 @@
 import { Schema } from "effect"
 
 import {
+  GetSceneItemEnabledInput,
+  GetSceneItemEnabledOutput,
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
+  GetSceneItemLockedInput,
+  GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
   ListGroupSceneItemsInput,
   ListGroupSceneItemsOutput,
   ListSceneItemsInput,
   ListSceneItemsOutput,
-  ListScenesOutput
+  ListScenesOutput,
+  SetSceneItemEnabledInput,
+  SetSceneItemLockedInput
 } from "../../domain/schemas/scenes.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
@@ -67,3 +73,27 @@ export const GetSceneItemSource = {
   requestDataSchema: GetSceneItemSourceInput,
   responseSchema: GetSceneItemSourceOutput
 } satisfies ObsRequestDescriptor<GetSceneItemSourceOutput>
+
+export const GetSceneItemEnabled = {
+  requestType: "GetSceneItemEnabled",
+  requestDataSchema: GetSceneItemEnabledInput,
+  responseSchema: GetSceneItemEnabledOutput
+} satisfies ObsRequestDescriptor<GetSceneItemEnabledOutput>
+
+export const SetSceneItemEnabled = {
+  requestType: "SetSceneItemEnabled",
+  requestDataSchema: SetSceneItemEnabledInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSceneItemLocked = {
+  requestType: "GetSceneItemLocked",
+  requestDataSchema: GetSceneItemLockedInput,
+  responseSchema: GetSceneItemLockedOutput
+} satisfies ObsRequestDescriptor<GetSceneItemLockedOutput>
+
+export const SetSceneItemLocked = {
+  requestType: "SetSceneItemLocked",
+  requestDataSchema: SetSceneItemLockedInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>

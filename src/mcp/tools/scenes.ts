@@ -1,7 +1,11 @@
 import {
   CurrentSceneOutput,
+  GetSceneItemEnabledInput,
+  GetSceneItemEnabledOutput,
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
+  GetSceneItemLockedInput,
+  GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
   ListGroupSceneItemsInput,
@@ -11,26 +15,38 @@ import {
   ListScenesInput,
   ListScenesOutput,
   SetCurrentSceneInput,
-  SetCurrentSceneOutput
+  SetCurrentSceneOutput,
+  SetSceneItemEnabledInput,
+  SetSceneItemEnabledOutput,
+  SetSceneItemLockedInput,
+  SetSceneItemLockedOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getCurrentScene,
+  getSceneItemEnabled,
   getSceneItemId,
+  getSceneItemLocked,
   getSceneItemSource,
   listGroupSceneItems,
   listSceneItems,
   listScenes,
-  setCurrentScene
+  setCurrentScene,
+  setSceneItemEnabled,
+  setSceneItemLocked
 } from "../../obs/operations/scenes.js"
 import {
   GetCurrentProgramScene,
   GetGroupSceneItemList,
+  GetSceneItemEnabled,
   GetSceneItemId,
   GetSceneItemList,
+  GetSceneItemLocked,
   GetSceneItemSource,
   GetSceneList,
-  SetCurrentProgramScene
+  SetCurrentProgramScene,
+  SetSceneItemEnabled,
+  SetSceneItemLocked
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -106,5 +122,45 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: GetSceneItemSourceInput,
     outputSchema: GetSceneItemSourceOutput,
     handler: async (input, context) => getSceneItemSource(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_enabled",
+    title: "Get OBS Scene Item Enabled",
+    description: "Return whether a scene item is enabled.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemEnabled.requestType],
+    inputSchema: GetSceneItemEnabledInput,
+    outputSchema: GetSceneItemEnabledOutput,
+    handler: async (input, context) => getSceneItemEnabled(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_enabled",
+    title: "Set OBS Scene Item Enabled",
+    description: "Set whether a scene item is enabled.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemEnabled.requestType],
+    inputSchema: SetSceneItemEnabledInput,
+    outputSchema: SetSceneItemEnabledOutput,
+    handler: async (input, context) => setSceneItemEnabled(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_locked",
+    title: "Get OBS Scene Item Locked",
+    description: "Return whether a scene item is locked.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemLocked.requestType],
+    inputSchema: GetSceneItemLockedInput,
+    outputSchema: GetSceneItemLockedOutput,
+    handler: async (input, context) => getSceneItemLocked(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_locked",
+    title: "Set OBS Scene Item Locked",
+    description: "Set whether a scene item is locked.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemLocked.requestType],
+    inputSchema: SetSceneItemLockedInput,
+    outputSchema: SetSceneItemLockedOutput,
+    handler: async (input, context) => setSceneItemLocked(context.client, input)
   })
 ]

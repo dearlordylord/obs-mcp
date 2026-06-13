@@ -33,6 +33,10 @@ const allAvailableRequests = [
   "GetGroupSceneItemList",
   "GetSceneItemId",
   "GetSceneItemSource",
+  "GetSceneItemEnabled",
+  "SetSceneItemEnabled",
+  "GetSceneItemLocked",
+  "SetSceneItemLocked",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -93,6 +97,10 @@ describe("MCP server protocol handlers", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_enabled",
+      "set_scene_item_enabled",
+      "get_scene_item_locked",
+      "set_scene_item_locked",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -119,6 +127,7 @@ describe("MCP server protocol handlers", () => {
     expect(sceneItemsTool?.inputSchema.type).toBe("object")
     expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "set_scene_item_enabled")?.inputSchema.type).toBe("object")
   })
 
   it("lists only context and available capability-backed tools", async () => {
@@ -252,6 +261,9 @@ describe("MCP server protocol handlers", () => {
           outputBytes: 67890
         }
       }
+      if (requestType === "GetSceneItemEnabled") {
+        return { sceneItemEnabled: true }
+      }
       return { sceneName: "Intro", sceneUuid: "scene-intro" }
     }))
     await expect(client.callTool({ name: "get_current_scene", arguments: {} }))
@@ -282,6 +294,57 @@ describe("MCP server protocol handlers", () => {
           outputBytes: 67890
         }
       })
+    await expect(client.callTool({
+      name: "get_scene_item_enabled",
+      arguments: { sceneName: "Scene", sceneItemId: 42 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemEnabled: true } })
+    await expect(client.callTool({
+      name: "set_scene_item_enabled",
+      arguments: { sceneName: "Scene", sceneItemId: 42, sceneItemEnabled: false }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemEnabled: false, updated: true } })
+  })
+
+  it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(obsClient(async (requestType) => {
+      requested.push(requestType)
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "get_scene_item_locked",
+      arguments: { sceneName: "Scene", sceneItemId: -1 }
+    })).resolves.toMatchObject({
+      isError: true,
+      content: [{ type: "text" }],
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    expect(requested).toEqual([])
+  })
+
+  it("reports malformed scene item getter responses as internal errors", async () => {
+    const client = await connect(obsClient(async (requestType) => {
+      if (requestType === "GetSceneItemLocked") {
+        return { sceneItemLocked: "not-a-boolean" }
+      }
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "get_scene_item_locked",
+      arguments: { sceneName: "Scene", sceneItemId: 1 }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InternalError
+        }
+      }
+    })
   })
 
   it("rejects extra arguments for no-arg status tools", async () => {
