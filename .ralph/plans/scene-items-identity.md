@@ -4,12 +4,12 @@ Branch: `ralph/scene-items-identity`
 
 ## Tasks
 
-- [ ] `task-1` Add scene-item discovery
+- [x] `task-1` Add scene-item discovery
 - [ ] `task-2` Add scene-item enabled and locked toggles
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

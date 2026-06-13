@@ -4,12 +4,12 @@ Branch: `ralph/record-advanced`
 
 ## Tasks
 
-- [ ] `task-1` Add record pause controls
+- [x] `task-1` Add record pause controls
 - [ ] `task-2` Add record split and chapter controls
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

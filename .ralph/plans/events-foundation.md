@@ -4,12 +4,12 @@ Branch: `ralph/events-foundation`
 
 ## Tasks
 
-- [ ] `task-1` Design typed event subscription foundation
+- [x] `task-1` Design typed event subscription foundation
 - [ ] `task-2` Implement bounded low-volume event capture
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

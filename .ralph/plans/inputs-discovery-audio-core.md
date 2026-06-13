@@ -4,12 +4,12 @@ Branch: `ralph/inputs-discovery-audio-core`
 
 ## Tasks
 
-- [ ] `task-1` Add input discovery and locator schema
+- [x] `task-1` Add input discovery and locator schema
 - [ ] `task-2` Add input mute and volume controls
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

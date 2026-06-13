@@ -4,12 +4,12 @@ Branch: `ralph/status-record-core`
 
 ## Tasks
 
-- [ ] `task-1` Add OBS stats and record status
+- [x] `task-1` Add OBS stats and record status
 - [ ] `task-2` Add core record lifecycle controls
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

@@ -4,12 +4,12 @@ Branch: `ralph/stream-control`
 
 ## Tasks
 
-- [ ] `task-1` Add core stream lifecycle controls
+- [x] `task-1` Add core stream lifecycle controls
 - [ ] `task-2` Add stream captions
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

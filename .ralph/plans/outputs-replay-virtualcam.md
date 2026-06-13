@@ -4,12 +4,12 @@ Branch: `ralph/outputs-replay-virtualcam`
 
 ## Tasks
 
-- [ ] `task-1` Add virtual camera controls
+- [x] `task-1` Add virtual camera controls
 - [ ] `task-2` Add replay buffer controls
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
