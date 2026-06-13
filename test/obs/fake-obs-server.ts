@@ -3,6 +3,7 @@ import { type WebSocket, WebSocketServer } from "ws"
 
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
+const OP_EVENT = 5
 const OP_REQUEST_RESPONSE = 7
 const REQUEST_STATUS_SUCCESS = 100
 const AUTH_FAILURE_CLOSE_CODE = 4009
@@ -59,6 +60,10 @@ interface FakeObsServerOptions {
   readonly scenes?: ReadonlyArray<FakeObsScene>
   readonly inputs?: ReadonlyArray<FakeObsInput>
   readonly rpcVersion?: number
+  readonly eventBeforeResponse?: Record<string, unknown>
+  readonly eventBeforeResponseFor?: string
+  readonly envelopeBeforeResponse?: Record<string, unknown>
+  readonly envelopeBeforeResponseFor?: string
 }
 
 const sha256Base64 = (input: string): string => createHash("sha256").update(input).digest("base64")
@@ -75,11 +80,13 @@ export class FakeObsServer {
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private streamActive = false
   private virtualCamActive = false
+  public lastIdentifyEventSubscriptions: unknown
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
     this.server = server
     this.url = url
     this.currentSceneName = currentSceneName
+    this.lastIdentifyEventSubscriptions = undefined
   }
 
   public static async start(options: FakeObsServerOptions = {}): Promise<FakeObsServer> {
@@ -164,6 +171,7 @@ export class FakeObsServer {
           return
         }
         const identify = JSON.parse(data.toString("utf8"))
+        this.lastIdentifyEventSubscriptions = identify.d.eventSubscriptions
         if (
           options.password !== undefined
           && identify.d.authentication !== authString(options.password, salt, challenge)
@@ -230,6 +238,18 @@ export class FakeObsServer {
       }
       if (options.sendMalformedBeforeResponse === true && shouldSendBadFrame) {
         socket.send("{")
+      }
+      if (
+        options.eventBeforeResponse !== undefined
+        && (options.eventBeforeResponseFor === undefined || options.eventBeforeResponseFor === requestType)
+      ) {
+        socket.send(JSON.stringify({ op: OP_EVENT, d: options.eventBeforeResponse }))
+      }
+      if (
+        options.envelopeBeforeResponse !== undefined
+        && (options.envelopeBeforeResponseFor === undefined || options.envelopeBeforeResponseFor === requestType)
+      ) {
+        socket.send(JSON.stringify(options.envelopeBeforeResponse))
       }
       const write = (): void => {
         socket.send(JSON.stringify(frame))
