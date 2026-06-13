@@ -1,7 +1,30 @@
-import { VirtualCamStatusOutput, VirtualCamSwitchOutput } from "../../domain/schemas/index.js"
+import {
+  ReplayBufferStatusOutput,
+  ReplayBufferSwitchOutput,
+  VirtualCamStatusOutput,
+  VirtualCamSwitchOutput
+} from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
-import { getVirtualCamStatus, startVirtualCam, stopVirtualCam, toggleVirtualCam } from "../../obs/operations/outputs.js"
-import { GetVirtualCamStatus, StartVirtualCam, StopVirtualCam, ToggleVirtualCam } from "../../obs/requests.js"
+import {
+  getReplayBufferStatus,
+  getVirtualCamStatus,
+  startReplayBuffer,
+  startVirtualCam,
+  stopReplayBuffer,
+  stopVirtualCam,
+  toggleReplayBuffer,
+  toggleVirtualCam
+} from "../../obs/operations/outputs.js"
+import {
+  GetReplayBufferStatus,
+  GetVirtualCamStatus,
+  StartReplayBuffer,
+  StartVirtualCam,
+  StopReplayBuffer,
+  StopVirtualCam,
+  ToggleReplayBuffer,
+  ToggleVirtualCam
+} from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
 const CATEGORY = "outputs" as const
@@ -46,5 +69,45 @@ export const outputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: VirtualCamSwitchOutput,
     handler: async (_input, context) => toggleVirtualCam(context.client)
+  }),
+  defineTool({
+    name: "get_replay_buffer_status",
+    title: "Get OBS Replay Buffer Status",
+    description: "Return whether the OBS replay buffer output is active.",
+    category: CATEGORY,
+    requiredObsRequests: [GetReplayBufferStatus.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: ReplayBufferStatusOutput,
+    handler: async (_input, context) => getReplayBufferStatus(context.client)
+  }),
+  defineTool({
+    name: "start_replay_buffer",
+    title: "Start OBS Replay Buffer",
+    description: "Start the OBS replay buffer output.",
+    category: CATEGORY,
+    requiredObsRequests: [StartReplayBuffer.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: ReplayBufferSwitchOutput,
+    handler: async (_input, context) => startReplayBuffer(context.client)
+  }),
+  defineTool({
+    name: "stop_replay_buffer",
+    title: "Stop OBS Replay Buffer",
+    description: "Stop the OBS replay buffer output.",
+    category: CATEGORY,
+    requiredObsRequests: [StopReplayBuffer.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: ReplayBufferSwitchOutput,
+    handler: async (_input, context) => stopReplayBuffer(context.client)
+  }),
+  defineTool({
+    name: "toggle_replay_buffer",
+    title: "Toggle OBS Replay Buffer",
+    description: "Toggle the OBS replay buffer output and return the resulting activity state.",
+    category: CATEGORY,
+    requiredObsRequests: [ToggleReplayBuffer.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: ReplayBufferSwitchOutput,
+    handler: async (_input, context) => toggleReplayBuffer(context.client)
   })
 ]

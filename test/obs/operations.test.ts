@@ -8,9 +8,13 @@ import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import { getSpecialInputs, listInputKinds, listInputs } from "../../src/obs/operations/inputs.js"
 import {
+  getReplayBufferStatus,
   getVirtualCamStatus,
+  startReplayBuffer,
   startVirtualCam,
+  stopReplayBuffer,
   stopVirtualCam,
+  toggleReplayBuffer,
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
 import {
@@ -162,6 +166,18 @@ describe("OBS operations", () => {
     await expect(getVirtualCamStatus(client)).resolves.toEqual({ outputActive: true })
     await expect(toggleVirtualCam(client)).resolves.toEqual({ outputActive: false, switched: true })
     await expect(stopVirtualCam(client)).resolves.toEqual({ outputActive: false, switched: true })
+  })
+
+  it("controls the replay buffer over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["outputs"] })
+    clients.push(client)
+    await expect(getReplayBufferStatus(client)).resolves.toEqual({ outputActive: false })
+    await expect(startReplayBuffer(client)).resolves.toEqual({ outputActive: true })
+    await expect(getReplayBufferStatus(client)).resolves.toEqual({ outputActive: true })
+    await expect(toggleReplayBuffer(client)).resolves.toEqual({ outputActive: false })
+    await expect(stopReplayBuffer(client)).resolves.toEqual({ outputActive: false })
   })
 
   it("rejects current scene responses without a scene name", async () => {
@@ -317,6 +333,35 @@ describe("OBS operations", () => {
     clients.push(client)
     expect(getEnabledTools(["record"], client.availableRequests).map((tool) => tool.name)).toEqual([
       "split_record_file"
+    ])
+  })
+
+  it("surfaces OBS replay buffer request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { StartReplayBuffer: { code: 207, comment: "Output already active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["outputs"] })
+    clients.push(client)
+    await expect(startReplayBuffer(client)).rejects.toMatchObject(
+      {
+        requestType: "StartReplayBuffer",
+        code: 207,
+        comment: "Output already active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("filters replay buffer tools when OBS does not advertise replay buffer capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "GetReplayBufferStatus", "ToggleReplayBuffer"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["outputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["outputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "get_replay_buffer_status",
+      "toggle_replay_buffer"
     ])
   })
 

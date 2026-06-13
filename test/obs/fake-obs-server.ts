@@ -60,6 +60,7 @@ export class FakeObsServer {
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private recordActive = false
+  private replayBufferActive = false
   private streamActive = false
   private virtualCamActive = false
   public lastIdentifyEventSubscriptions: unknown
@@ -326,6 +327,25 @@ export class FakeObsServer {
     if (requestType === "ToggleVirtualCam") {
       this.virtualCamActive = !this.virtualCamActive
       send({ outputActive: this.virtualCamActive })
+      return
+    }
+    if (requestType === "GetReplayBufferStatus") {
+      send({ outputActive: this.replayBufferActive })
+      return
+    }
+    if (requestType === "StartReplayBuffer") {
+      this.replayBufferActive = true
+      send()
+      return
+    }
+    if (requestType === "StopReplayBuffer") {
+      this.replayBufferActive = false
+      send()
+      return
+    }
+    if (requestType === "ToggleReplayBuffer") {
+      this.replayBufferActive = !this.replayBufferActive
+      send({ outputActive: this.replayBufferActive })
       return
     }
     if (requestType === "GetRecordStatus") {

@@ -43,6 +43,10 @@ const allAvailableRequests = [
   "StartVirtualCam",
   "StopVirtualCam",
   "ToggleVirtualCam",
+  "GetReplayBufferStatus",
+  "StartReplayBuffer",
+  "StopReplayBuffer",
+  "ToggleReplayBuffer",
   "GetRecordStatus",
   "StartRecord",
   "StopRecord",
@@ -120,12 +124,16 @@ describe("MCP tool registry", () => {
     ])
   })
 
-  it("exposes virtual camera tools when the outputs toolset is enabled", () => {
+  it("exposes output tools when the outputs toolset is enabled", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
-      "toggle_virtual_cam"
+      "toggle_virtual_cam",
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer"
     ])
   })
 
@@ -167,6 +175,16 @@ describe("MCP tool registry", () => {
       "list_input_kinds",
       "get_special_inputs"
     ])
+    expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_virtual_cam_status",
+      "start_virtual_cam",
+      "stop_virtual_cam",
+      "toggle_virtual_cam",
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer"
+    ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
   })
 
@@ -203,6 +221,8 @@ describe("MCP tool registry", () => {
       .toEqual(["get_stream_status", "start_stream", "stop_stream"])
     expect(getEnabledTools(["outputs"], ["GetVirtualCamStatus", "ToggleVirtualCam"]).map((tool) => tool.name))
       .toEqual(["get_virtual_cam_status", "toggle_virtual_cam"])
+    expect(getEnabledTools(["outputs"], ["GetReplayBufferStatus", "StopReplayBuffer"]).map((tool) => tool.name))
+      .toEqual(["get_replay_buffer_status", "stop_replay_buffer"])
   })
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
@@ -506,6 +526,34 @@ describe("MCP tool registry", () => {
     await expect(executeTool(toolByName("toggle_virtual_cam"), {}, { config, client: fakeClient }))
       .resolves.toEqual({ outputActive: true, switched: true })
     expect(seen).toEqual(["GetVirtualCamStatus", "StartVirtualCam", "StopVirtualCam", "ToggleVirtualCam"])
+  })
+
+  it("executes replay buffer lifecycle handlers", async () => {
+    const seen: Array<ObsRequestType> = []
+    const fakeClient = client(async (requestType) => {
+      seen.push(requestType)
+      if (requestType === "GetReplayBufferStatus") {
+        return { outputActive: false }
+      }
+      if (requestType === "ToggleReplayBuffer") {
+        return { outputActive: true }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("get_replay_buffer_status"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: false })
+    await expect(executeTool(toolByName("start_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
+    await expect(executeTool(toolByName("stop_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: false })
+    await expect(executeTool(toolByName("toggle_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
+    expect(seen).toEqual([
+      "GetReplayBufferStatus",
+      "StartReplayBuffer",
+      "StopReplayBuffer",
+      "ToggleReplayBuffer"
+    ])
   })
 
   it("rejects invalid scene params through schema validation", async () => {

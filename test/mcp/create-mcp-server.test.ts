@@ -40,6 +40,10 @@ const allAvailableRequests = [
   "StartVirtualCam",
   "StopVirtualCam",
   "ToggleVirtualCam",
+  "GetReplayBufferStatus",
+  "StartReplayBuffer",
+  "StopReplayBuffer",
+  "ToggleReplayBuffer",
   "GetRecordStatus",
   "StartRecord",
   "StopRecord",
@@ -216,6 +220,25 @@ describe("MCP server protocol handlers", () => {
     ])
   })
 
+  it("lists replay buffer tools only when the outputs toolset and OBS capabilities are available", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), [
+        "GetReplayBufferStatus",
+        "StartReplayBuffer",
+        "StopReplayBuffer",
+        "ToggleReplayBuffer"
+      ]),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer"
+    ])
+  })
+
   it("lists and calls input discovery tools through in-memory MCP handlers", async () => {
     const client = await connect(
       obsClient(async (requestType) => {
@@ -261,6 +284,7 @@ describe("MCP server protocol handlers", () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("get_virtual_cam_status")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("get_replay_buffer_status")
   })
 
   it("returns structured success content", async () => {
@@ -530,6 +554,29 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { outputActive: true } })
     await expect(client.callTool({ name: "toggle_virtual_cam", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { outputActive: true, switched: true } })
+  })
+
+  it("returns structured replay buffer lifecycle results", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetReplayBufferStatus") {
+          return { outputActive: false }
+        }
+        if (requestType === "ToggleReplayBuffer") {
+          return { outputActive: true }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+    await expect(client.callTool({ name: "get_replay_buffer_status", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "start_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "stop_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "toggle_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {

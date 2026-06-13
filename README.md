@@ -46,6 +46,10 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `start_virtual_cam`
 - `stop_virtual_cam`
 - `toggle_virtual_cam`
+- `get_replay_buffer_status`
+- `start_replay_buffer`
+- `stop_replay_buffer`
+- `toggle_replay_buffer`
 - `get_record_status`
 - `start_record`
 - `stop_record`
