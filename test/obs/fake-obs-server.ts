@@ -347,7 +347,14 @@ export class FakeObsServer {
       send({ sceneItems: sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
       return
     }
-    if (handleFakeObsSceneItemReadRequest(requestType, envelope.d.requestData, send, this.sceneItemTransforms)) {
+    const sceneItemRequestHandled = handleFakeObsSceneItemReadRequest(
+      requestType,
+      envelope.d.requestData,
+      send,
+      this.sceneItemTransforms,
+      sendError
+    )
+    if (sceneItemRequestHandled) {
       return
     }
     if (requestType === "GetSceneItemEnabled") {

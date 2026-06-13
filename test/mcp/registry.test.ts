@@ -1154,6 +1154,20 @@ describe("MCP tool registry", () => {
         sceneItemTransform: { positionX: 0, scaleX: "1", cropLeft: 0 }
       })
     ).toThrow("scaleX")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSceneItemTransformInput)({
+        sceneName: "Scene",
+        sceneItemId: 42,
+        sceneItemTransform: {}
+      })
+    ).toThrow("At least one settable scene item transform field is required")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSceneItemTransformInput)({
+        sceneName: "Scene",
+        sceneItemId: 42,
+        sceneItemTransform: { width: 1280 }
+      })
+    ).toThrow("At least one settable scene item transform field is required")
   })
 
   it("rejects invalid recent event limits through schema validation", async () => {

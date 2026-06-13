@@ -1,7 +1,27 @@
 import { sceneItemsFor, sceneItemTransformFor } from "./fake-obs-fixtures.js"
 
 type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
+type SendFakeObsError = (code: number, comment: string) => void
 export type FakeObsSceneItemTransforms = Map<string, Record<string, unknown>>
+const INVALID_REQUEST_STATUS_CODE = 402
+
+const SettableSceneItemTransformFields = new Set([
+  "alignment",
+  "boundsAlignment",
+  "boundsHeight",
+  "boundsType",
+  "boundsWidth",
+  "cropBottom",
+  "cropLeft",
+  "cropRight",
+  "cropTop",
+  "cropToBounds",
+  "positionX",
+  "positionY",
+  "rotation",
+  "scaleX",
+  "scaleY"
+])
 
 const sceneItemTransformKey = (requestData: {
   readonly sceneItemId?: number
@@ -19,7 +39,8 @@ export const handleFakeObsSceneItemReadRequest = (
     readonly sceneItemTransform?: Record<string, unknown>
   },
   send: SendFakeObsResponse,
-  transforms: FakeObsSceneItemTransforms = new Map()
+  transforms: FakeObsSceneItemTransforms = new Map(),
+  sendError: SendFakeObsError = () => undefined
 ): boolean => {
   if (requestType === "GetSceneItemId") {
     const sceneItem = sceneItemsFor(requestData, false)
@@ -41,10 +62,18 @@ export const handleFakeObsSceneItemReadRequest = (
     return true
   }
   if (requestType === "SetSceneItemTransform") {
+    const requestedTransform = requestData.sceneItemTransform ?? {}
+    const nextTransform = Object.fromEntries(
+      Object.entries(requestedTransform).filter(([field]) => SettableSceneItemTransformFields.has(field))
+    )
+    if (Object.keys(nextTransform).length === 0) {
+      sendError(INVALID_REQUEST_STATUS_CODE, "No valid scene item transform fields")
+      return true
+    }
     const key = sceneItemTransformKey(requestData)
     transforms.set(key, {
       ...(transforms.get(key) ?? sceneItemTransformFor(requestData)),
-      ...(requestData.sceneItemTransform ?? {})
+      ...nextTransform
     })
     send()
     return true

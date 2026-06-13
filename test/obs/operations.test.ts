@@ -71,6 +71,7 @@ import {
   toggleStream
 } from "../../src/obs/operations/stream.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
 const servers: Array<FakeObsServer> = []
@@ -326,6 +327,23 @@ describe("OBS operations", () => {
           scaleX: 0.75
         }
       })
+  })
+
+  it("rejects unsupported-only scene item transform updates in fake OBS", () => {
+    const errors: Array<unknown> = []
+    const handled = handleFakeObsSceneItemReadRequest(
+      "SetSceneItemTransform",
+      {
+        sceneName: "Intro",
+        sceneItemId: 9,
+        sceneItemTransform: { width: 1280 }
+      },
+      () => undefined,
+      new Map(),
+      (code, comment) => errors.push({ code, comment })
+    )
+    expect(handled).toBe(true)
+    expect(errors).toEqual([{ code: 402, comment: "No valid scene item transform fields" }])
   })
 
   it("surfaces scene item transform OBS errors", async () => {
