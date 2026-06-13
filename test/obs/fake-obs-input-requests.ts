@@ -12,6 +12,8 @@ type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
 interface FakeObsInputRequestContext {
   readonly inputName?: string
   readonly inputUuid?: string
+  readonly inputKind?: string
+  readonly propertyName?: string
   readonly inputMuted?: boolean
   readonly inputVolumeMul?: number
   readonly inputVolumeDb?: number
@@ -83,6 +85,41 @@ export const handleFakeObsInputRequest = (
   if (requestType === "SetInputDeinterlaceMode" || requestType === "SetInputDeinterlaceFieldOrder") {
     inputState.setDeinterlaceFromRequest(requestType, inputLocator(requestData), requestData)
     send()
+    return true
+  }
+  if (requestType === "GetInputDefaultSettings") {
+    send({
+      defaultInputSettings: {
+        active: true,
+        choices: ["primary", "secondary"],
+        device_id: `${requestData.inputKind ?? "input"}-default-device`,
+        empty_value: null,
+        reconnect_delay_sec: 5,
+        nested_policy: { omitted: true }
+      }
+    })
+    return true
+  }
+  if (requestType === "GetInputSettings") {
+    send({
+      inputKind: "wasapi_input_capture",
+      inputSettings: {
+        device_id: "mic-aux-device",
+        muted_by_default: false,
+        reconnect_delay_sec: 10,
+        nested_policy: { omitted: true }
+      }
+    })
+    return true
+  }
+  if (requestType === "GetInputPropertiesListPropertyItems") {
+    send({
+      propertyItems: [
+        { itemName: "Primary", itemValue: "primary-device", itemEnabled: true, metadata: { omitted: true } },
+        { itemName: "Secondary", itemValue: 2, itemEnabled: false },
+        { metadata: { omitted: true } }
+      ]
+    })
     return true
   }
   if (requestType === "GetMediaInputStatus") {

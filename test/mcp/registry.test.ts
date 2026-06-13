@@ -5,9 +5,14 @@ import { describe, expect, it } from "vitest"
 import type { ObsConfig } from "../../src/config/config.js"
 import {
   InputAudioTracksOutput,
+  InputDefaultSettingsOutput,
   InputDeinterlaceFieldOrderOutput,
   InputDeinterlaceModeOutput,
+  InputKindInput,
   InputLocatorInput,
+  InputPropertiesListPropertyItemsInput,
+  InputPropertiesListPropertyItemsOutput,
+  InputSettingsOutput,
   ListInputKindsInput,
   MediaInputStatusOutput,
   OffsetMediaInputCursorInput,
@@ -68,6 +73,9 @@ const inputToolNames = [
   "set_input_deinterlace_mode",
   "get_input_deinterlace_field_order",
   "set_input_deinterlace_field_order",
+  "get_input_default_settings",
+  "get_input_settings",
+  "get_input_properties_list_property_items",
   "get_media_input_status",
   "set_media_input_cursor",
   "offset_media_input_cursor",
@@ -75,7 +83,6 @@ const inputToolNames = [
 ]
 
 const deferredInputMediaToolNames = [
-  "get_input_settings",
   "set_input_settings"
 ]
 
@@ -100,6 +107,9 @@ const inputAvailableRequests = [
   "SetInputDeinterlaceMode",
   "GetInputDeinterlaceFieldOrder",
   "SetInputDeinterlaceFieldOrder",
+  "GetInputDefaultSettings",
+  "GetInputSettings",
+  "GetInputPropertiesListPropertyItems",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
@@ -384,6 +394,9 @@ describe("MCP tool registry", () => {
           "GetInputAudioTracks",
           "GetInputDeinterlaceMode",
           "GetInputDeinterlaceFieldOrder",
+          "GetInputDefaultSettings",
+          "GetInputSettings",
+          "GetInputPropertiesListPropertyItems",
           "GetMediaInputStatus",
           "SetMediaInputCursor",
           "TriggerMediaInputAction"
@@ -401,6 +414,9 @@ describe("MCP tool registry", () => {
           "get_input_audio_tracks",
           "get_input_deinterlace_mode",
           "get_input_deinterlace_field_order",
+          "get_input_default_settings",
+          "get_input_settings",
+          "get_input_properties_list_property_items",
           "get_media_input_status",
           "set_media_input_cursor",
           "trigger_media_input_action"
@@ -697,6 +713,48 @@ describe("MCP tool registry", () => {
         input: { inputUuid: "input-mic-aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
       },
       {
+        decode: Schema.decodeUnknownSync(InputKindInput),
+        input: { inputKind: "wasapi_input_capture" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputDefaultSettingsOutput),
+        input: {
+          inputKind: "wasapi_input_capture",
+          defaultInputSettings: [
+            { settingName: "device_id", valueType: "string", valuePreview: "mic" },
+            { settingName: "nested_policy", valueType: "object" }
+          ],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputSettingsOutput),
+        input: {
+          inputKind: "wasapi_input_capture",
+          inputSettings: [{ settingName: "active", valueType: "boolean", valuePreview: "true" }],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput),
+        input: { inputName: "Mic/Aux", propertyName: "device_id" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsOutput),
+        input: {
+          propertyName: "device_id",
+          propertyItems: [{
+            itemIndex: 0,
+            itemName: "Primary",
+            itemValueType: "string",
+            itemValuePreview: "primary-device",
+            itemEnabled: true,
+            fields: [{ settingName: "itemValue", valueType: "string", valuePreview: "primary-device" }]
+          }],
+          rawPropertyItemsDeferred: true
+        }
+      },
+      {
         decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
         input: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
       },
@@ -754,6 +812,7 @@ describe("MCP tool registry", () => {
         decode: Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput),
         extra: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
       },
+      { decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput), extra: { propertyName: "device_id" } },
       { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
       { decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput), extra: { mediaCursorOffset: 1 } },
       {
@@ -843,6 +902,25 @@ describe("MCP tool registry", () => {
         message: "Expected"
       },
       {
+        decode: Schema.decodeUnknownSync(InputKindInput),
+        input: { inputKind: "" },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput),
+        input: { inputName: "Mic/Aux", propertyName: "" },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputDefaultSettingsOutput),
+        input: {
+          inputKind: "wasapi_input_capture",
+          defaultInputSettings: [{ settingName: "device_id", valueType: "raw", valuePreview: "mic" }],
+          rawSettingsDeferred: true
+        },
+        message: "Expected"
+      },
+      {
         decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
         input: { inputName: "Media Source", mediaCursor: -1 },
         message: "Expected a non-negative number"
@@ -890,6 +968,26 @@ describe("MCP tool registry", () => {
       },
       GetInputDeinterlaceMode: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE" },
       GetInputDeinterlaceFieldOrder: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" },
+      GetInputDefaultSettings: {
+        defaultInputSettings: {
+          active: true,
+          device_id: "default-device",
+          nested_policy: { omitted: true }
+        }
+      },
+      GetInputSettings: {
+        inputKind: "wasapi_input_capture",
+        inputSettings: {
+          device_id: "mic-device",
+          nested_policy: { omitted: true },
+          unsupported: undefined
+        }
+      },
+      GetInputPropertiesListPropertyItems: {
+        propertyItems: [
+          { itemName: "Primary", itemValue: "primary-device", itemEnabled: true, metadata: { omitted: true } }
+        ]
+      },
       GetMediaInputStatus: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
     }
     const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
@@ -1007,6 +1105,53 @@ describe("MCP tool registry", () => {
         toolName: "set_input_deinterlace_field_order",
         input: { inputName: "Mic/Aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM" },
         expected: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM", acknowledged: true }
+      },
+      {
+        toolName: "get_input_default_settings",
+        input: { inputKind: "wasapi_input_capture" },
+        expected: {
+          inputKind: "wasapi_input_capture",
+          defaultInputSettings: [
+            { settingName: "active", valueType: "boolean" },
+            { settingName: "device_id", valueType: "string" },
+            { settingName: "nested_policy", valueType: "object" }
+          ],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        toolName: "get_input_settings",
+        input: { inputName: "Mic/Aux" },
+        expected: {
+          inputKind: "wasapi_input_capture",
+          inputSettings: [
+            { settingName: "device_id", valueType: "string" },
+            { settingName: "nested_policy", valueType: "object" },
+            { settingName: "unsupported", valueType: "unknown" }
+          ],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        toolName: "get_input_properties_list_property_items",
+        input: { inputName: "Mic/Aux", propertyName: "device_id" },
+        expected: {
+          propertyName: "device_id",
+          propertyItems: [{
+            itemIndex: 0,
+            itemName: "Primary",
+            itemValueType: "string",
+            itemValuePreview: "primary-device",
+            itemEnabled: true,
+            fields: [
+              { settingName: "itemEnabled", valueType: "boolean" },
+              { settingName: "itemName", valueType: "string" },
+              { settingName: "itemValue", valueType: "string" },
+              { settingName: "metadata", valueType: "object" }
+            ]
+          }],
+          rawPropertyItemsDeferred: true
+        }
       },
       {
         toolName: "get_media_input_status",

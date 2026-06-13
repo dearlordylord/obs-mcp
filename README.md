@@ -69,6 +69,9 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `set_input_deinterlace_mode`
 - `get_input_deinterlace_field_order`
 - `set_input_deinterlace_field_order`
+- `get_input_default_settings`
+- `get_input_settings`
+- `get_input_properties_list_property_items`
 - `get_media_input_status`
 - `set_media_input_cursor`
 - `offset_media_input_cursor`

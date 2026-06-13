@@ -11,9 +11,12 @@ import {
   getInputAudioMonitorType,
   getInputAudioSyncOffset,
   getInputAudioTracks,
+  getInputDefaultSettings,
   getInputDeinterlaceFieldOrder,
   getInputDeinterlaceMode,
   getInputMute,
+  getInputPropertiesListPropertyItems,
+  getInputSettings,
   getInputVolume,
   getMediaInputStatus,
   getSpecialInputs,
@@ -554,6 +557,108 @@ describe("OBS operations", () => {
         requestType: "SetInputDeinterlaceFieldOrder",
         code: 606,
         comment: "Deinterlace field order unavailable for input"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("reads sanitized input settings summaries over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputDefaultSettings(client, { inputKind: "wasapi_input_capture" })).resolves.toEqual({
+      inputKind: "wasapi_input_capture",
+      defaultInputSettings: [
+        { settingName: "active", valueType: "boolean" },
+        { settingName: "choices", valueType: "array" },
+        { settingName: "device_id", valueType: "string" },
+        { settingName: "empty_value", valueType: "null" },
+        { settingName: "nested_policy", valueType: "object" },
+        { settingName: "reconnect_delay_sec", valueType: "number" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(getInputSettings(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputKind: "wasapi_input_capture",
+      inputSettings: [
+        { settingName: "device_id", valueType: "string" },
+        { settingName: "muted_by_default", valueType: "boolean" },
+        { settingName: "nested_policy", valueType: "object" },
+        { settingName: "reconnect_delay_sec", valueType: "number" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(getInputPropertiesListPropertyItems(client, {
+      inputUuid: "input-mic-aux",
+      propertyName: "device_id"
+    })).resolves.toEqual({
+      propertyName: "device_id",
+      propertyItems: [
+        {
+          itemIndex: 0,
+          itemName: "Primary",
+          itemValueType: "string",
+          itemValuePreview: "primary-device",
+          itemEnabled: true,
+          fields: [
+            { settingName: "itemEnabled", valueType: "boolean" },
+            { settingName: "itemName", valueType: "string" },
+            { settingName: "itemValue", valueType: "string" },
+            { settingName: "metadata", valueType: "object" }
+          ]
+        },
+        {
+          itemIndex: 1,
+          itemName: "Secondary",
+          itemValueType: "number",
+          itemValuePreview: "2",
+          itemEnabled: false,
+          fields: [
+            { settingName: "itemEnabled", valueType: "boolean" },
+            { settingName: "itemName", valueType: "string" },
+            { settingName: "itemValue", valueType: "number" }
+          ]
+        },
+        {
+          itemIndex: 2,
+          fields: [
+            { settingName: "metadata", valueType: "object" }
+          ]
+        }
+      ],
+      rawPropertyItemsDeferred: true
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "GetInputDefaultSettings"
+      || request.requestType === "GetInputSettings"
+      || request.requestType === "GetInputPropertiesListPropertyItems"
+    )).toEqual([
+      { requestType: "GetInputDefaultSettings", requestData: { inputKind: "wasapi_input_capture" } },
+      { requestType: "GetInputSettings", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "GetInputPropertiesListPropertyItems",
+        requestData: { inputUuid: "input-mic-aux", propertyName: "device_id" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for input settings reads", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetInputSettings: { code: 607, comment: "Input settings unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputDefaultSettings(client, { inputKind: "" })).rejects.toThrow("Expected a non empty string")
+    await expect(getInputPropertiesListPropertyItems(client, {
+      inputName: "Mic/Aux",
+      propertyName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(getInputSettings(client, { inputName: "Mic/Aux" })).rejects.toMatchObject(
+      {
+        requestType: "GetInputSettings",
+        code: 607,
+        comment: "Input settings unavailable"
       } satisfies Partial<ObsRequestError>
     )
   })

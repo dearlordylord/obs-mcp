@@ -6,8 +6,10 @@ import {
   InputAudioSyncOffsetOutput,
   InputDeinterlaceFieldOrderOutput,
   InputDeinterlaceModeOutput,
+  InputKindInput,
   InputLocatorInput,
   InputMuteOutput,
+  InputPropertiesListPropertyItemsInput,
   InputVolumeOutput,
   ListInputKindsInput,
   ListInputKindsOutput,
@@ -15,6 +17,9 @@ import {
   ListInputsOutput,
   MediaInputStatusOutput,
   ObsInputAudioTracksOutput,
+  ObsInputDefaultSettingsOutput,
+  ObsInputPropertiesListPropertyItemsOutput,
+  ObsInputSettingsOutput,
   OffsetMediaInputCursorInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
@@ -151,6 +156,24 @@ export const SetInputDeinterlaceFieldOrder = {
   requestDataSchema: SetInputDeinterlaceFieldOrderInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputDefaultSettings = {
+  requestType: "GetInputDefaultSettings",
+  requestDataSchema: InputKindInput,
+  responseSchema: ObsInputDefaultSettingsOutput
+} satisfies ObsRequestDescriptor<ObsInputDefaultSettingsOutput>
+
+export const GetInputSettings = {
+  requestType: "GetInputSettings",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: ObsInputSettingsOutput
+} satisfies ObsRequestDescriptor<ObsInputSettingsOutput>
+
+export const GetInputPropertiesListPropertyItems = {
+  requestType: "GetInputPropertiesListPropertyItems",
+  requestDataSchema: InputPropertiesListPropertyItemsInput,
+  responseSchema: ObsInputPropertiesListPropertyItemsOutput
+} satisfies ObsRequestDescriptor<ObsInputPropertiesListPropertyItemsOutput>
 
 export const GetMediaInputStatus = {
   requestType: "GetMediaInputStatus",

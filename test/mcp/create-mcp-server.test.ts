@@ -92,6 +92,9 @@ describe("MCP server protocol handlers", () => {
       "set_input_deinterlace_mode",
       "get_input_deinterlace_field_order",
       "set_input_deinterlace_field_order",
+      "get_input_default_settings",
+      "get_input_settings",
+      "get_input_properties_list_property_items",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -258,6 +261,8 @@ describe("MCP server protocol handlers", () => {
   })
 
   it("lists and calls input discovery tools through in-memory MCP handlers", async () => {
+    const longDeviceName = "x".repeat(170)
+    const truncatedLongDeviceName = `${"x".repeat(160)}...`
     const client = await connect(
       obsClient(async (requestType) => {
         if (requestType === "GetInputList") {
@@ -272,6 +277,31 @@ describe("MCP server protocol handlers", () => {
         }
         if (requestType === "GetInputKindList") {
           return { inputKinds: ["wasapi_input_capture"] }
+        }
+        if (requestType === "GetInputDefaultSettings") {
+          return {
+            defaultInputSettings: {
+              active: true,
+              device_id: longDeviceName,
+              nested_policy: { omitted: true }
+            }
+          }
+        }
+        if (requestType === "GetInputSettings") {
+          return {
+            inputKind: "wasapi_input_capture",
+            inputSettings: {
+              device_id: "mic-device",
+              gain: 1
+            }
+          }
+        }
+        if (requestType === "GetInputPropertiesListPropertyItems") {
+          return {
+            propertyItems: [
+              { itemName: "Primary", itemValue: longDeviceName, itemEnabled: true }
+            ]
+          }
         }
         return {
           desktop1: "Desktop Audio",
@@ -306,6 +336,9 @@ describe("MCP server protocol handlers", () => {
       "set_input_deinterlace_mode",
       "get_input_deinterlace_field_order",
       "set_input_deinterlace_field_order",
+      "get_input_default_settings",
+      "get_input_settings",
+      "get_input_properties_list_property_items",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -317,6 +350,47 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { inputKinds: ["wasapi_input_capture"] } })
     await expect(client.callTool({ name: "get_special_inputs", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
+    await expect(client.callTool({
+      name: "get_input_default_settings",
+      arguments: { inputKind: "wasapi_input_capture" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        inputKind: "wasapi_input_capture",
+        defaultInputSettings: [
+          { settingName: "active", valueType: "boolean" },
+          { settingName: "device_id", valueType: "string" },
+          { settingName: "nested_policy", valueType: "object" }
+        ],
+        rawSettingsDeferred: true
+      }
+    })
+    await expect(client.callTool({ name: "get_input_settings", arguments: { inputName: "Mic/Aux" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          inputKind: "wasapi_input_capture",
+          inputSettings: [
+            { settingName: "device_id", valueType: "string" },
+            { settingName: "gain", valueType: "number" }
+          ],
+          rawSettingsDeferred: true
+        }
+      })
+    await expect(client.callTool({
+      name: "get_input_properties_list_property_items",
+      arguments: { inputName: "Mic/Aux", propertyName: "device_id" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        propertyName: "device_id",
+        propertyItems: [{
+          itemIndex: 0,
+          itemName: "Primary",
+          itemValueType: "string",
+          itemValuePreview: truncatedLongDeviceName,
+          itemEnabled: true
+        }],
+        rawPropertyItemsDeferred: true
+      }
+    })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

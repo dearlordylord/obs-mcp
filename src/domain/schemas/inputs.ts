@@ -1,5 +1,7 @@
 import { JSONSchema, Schema } from "effect"
 
+import { UnknownRecord } from "./shared.js"
+
 export const InputLocatorInput = Schema.Struct({
   inputName: Schema.optional(Schema.NonEmptyString),
   inputUuid: Schema.optional(Schema.NonEmptyString)
@@ -261,6 +263,89 @@ export const SetInputDeinterlaceFieldOrderOutput = Schema.Struct({
 })
 export type SetInputDeinterlaceFieldOrderOutput = typeof SetInputDeinterlaceFieldOrderOutput.Type
 export const SetInputDeinterlaceFieldOrderOutputJsonSchema = JSONSchema.make(SetInputDeinterlaceFieldOrderOutput)
+
+export const InputKindInput = Schema.Struct({
+  inputKind: Schema.NonEmptyString
+})
+export type InputKindInput = typeof InputKindInput.Type
+export const InputKindInputJsonSchema = JSONSchema.make(InputKindInput)
+
+export const SanitizedInputValueType = Schema.Literal(
+  "string",
+  "number",
+  "boolean",
+  "null",
+  "array",
+  "object",
+  "unknown"
+)
+export type SanitizedInputValueType = typeof SanitizedInputValueType.Type
+
+export const SanitizedInputSetting = Schema.Struct({
+  settingName: Schema.String,
+  valueType: SanitizedInputValueType,
+  valuePreview: Schema.optional(Schema.String)
+})
+export type SanitizedInputSetting = typeof SanitizedInputSetting.Type
+
+export const InputDefaultSettingsOutput = Schema.Struct({
+  inputKind: Schema.String,
+  defaultInputSettings: Schema.Array(SanitizedInputSetting),
+  rawSettingsDeferred: Schema.Literal(true)
+})
+export type InputDefaultSettingsOutput = typeof InputDefaultSettingsOutput.Type
+export const InputDefaultSettingsOutputJsonSchema = JSONSchema.make(InputDefaultSettingsOutput)
+
+export const InputSettingsOutput = Schema.Struct({
+  inputKind: Schema.String,
+  inputSettings: Schema.Array(SanitizedInputSetting),
+  rawSettingsDeferred: Schema.Literal(true)
+})
+export type InputSettingsOutput = typeof InputSettingsOutput.Type
+export const InputSettingsOutputJsonSchema = JSONSchema.make(InputSettingsOutput)
+
+export const InputPropertiesListPropertyItemsInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    propertyName: Schema.NonEmptyString
+  })
+)
+export type InputPropertiesListPropertyItemsInput = typeof InputPropertiesListPropertyItemsInput.Type
+export const InputPropertiesListPropertyItemsInputJsonSchema = JSONSchema.make(InputPropertiesListPropertyItemsInput)
+
+export const SanitizedInputPropertyItem = Schema.Struct({
+  itemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  itemName: Schema.optional(Schema.String),
+  itemValueType: Schema.optional(SanitizedInputValueType),
+  itemValuePreview: Schema.optional(Schema.String),
+  itemEnabled: Schema.optional(Schema.Boolean),
+  fields: Schema.Array(SanitizedInputSetting)
+})
+export type SanitizedInputPropertyItem = typeof SanitizedInputPropertyItem.Type
+
+export const InputPropertiesListPropertyItemsOutput = Schema.Struct({
+  propertyName: Schema.String,
+  propertyItems: Schema.Array(SanitizedInputPropertyItem),
+  rawPropertyItemsDeferred: Schema.Literal(true)
+})
+export type InputPropertiesListPropertyItemsOutput = typeof InputPropertiesListPropertyItemsOutput.Type
+export const InputPropertiesListPropertyItemsOutputJsonSchema = JSONSchema.make(InputPropertiesListPropertyItemsOutput)
+
+export const ObsInputDefaultSettingsOutput = Schema.Struct({
+  defaultInputSettings: UnknownRecord
+})
+export type ObsInputDefaultSettingsOutput = typeof ObsInputDefaultSettingsOutput.Type
+
+export const ObsInputSettingsOutput = Schema.Struct({
+  inputSettings: UnknownRecord,
+  inputKind: Schema.String
+})
+export type ObsInputSettingsOutput = typeof ObsInputSettingsOutput.Type
+
+export const ObsInputPropertiesListPropertyItemsOutput = Schema.Struct({
+  propertyItems: Schema.Array(UnknownRecord)
+})
+export type ObsInputPropertiesListPropertyItemsOutput = typeof ObsInputPropertiesListPropertyItemsOutput.Type
 
 export const MediaInputState = Schema.Literal(
   "OBS_MEDIA_STATE_NONE",
