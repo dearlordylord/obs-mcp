@@ -290,6 +290,16 @@ describe("OBS websocket client", () => {
         eventData: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 }
       },
       {
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Camera", inputUuid: "input-camera" }
+      },
+      {
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+      },
+      {
         eventType: "InputAudioMonitorTypeChanged",
         eventIntent: EventSubscription.Inputs,
         eventData: {
@@ -306,6 +316,16 @@ describe("OBS websocket client", () => {
           outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
           outputPath: "/tmp/recording.mkv"
         }
+      },
+      {
+        eventType: "MediaInputPlaybackStarted",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media", inputUuid: "input-media" }
+      },
+      {
+        eventType: "MediaInputPlaybackEnded",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media", inputUuid: "input-media" }
       },
       {
         eventType: "MediaInputActionTriggered",
@@ -481,9 +501,9 @@ describe("OBS websocket client", () => {
   it("drops malformed typed event payloads without surfacing raw data", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {
-        eventType: "SceneCollectionListChanged",
-        eventIntent: EventSubscription.Config,
-        eventData: { sceneCollections: [1] }
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputUuid: "input-camera", inputName: "Camera" }
       },
       eventBeforeResponseFor: "GetCurrentProgramScene"
     })

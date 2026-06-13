@@ -1272,6 +1272,109 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("returns typed input and media-input OBS event summaries", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      categories: ["inputs", "media_inputs"]
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 5,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+          },
+          {
+            sequence: 2,
+            eventType: "InputAudioSyncOffsetChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputAudioSyncOffset: 120 }
+          },
+          {
+            sequence: 3,
+            eventType: "InputAudioMonitorTypeChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: {
+              inputName: "Mic/Aux",
+              inputUuid: "input-mic",
+              monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+            }
+          },
+          {
+            sequence: 4,
+            eventType: "MediaInputPlaybackStarted",
+            eventIntent: EventSubscription.MediaInputs,
+            eventData: { inputName: "Media", inputUuid: "input-media" }
+          },
+          {
+            sequence: 5,
+            eventType: "MediaInputActionTriggered",
+            eventIntent: EventSubscription.MediaInputs,
+            eventData: {
+              inputName: "Media",
+              inputUuid: "input-media",
+              mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+            }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 5,
+      droppedEvents: 0,
+      returnedEvents: 5,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 1,
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+        },
+        {
+          sequence: 2,
+          eventType: "InputAudioSyncOffsetChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputAudioSyncOffset: 120 }
+        },
+        {
+          sequence: 3,
+          eventType: "InputAudioMonitorTypeChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: {
+            inputName: "Mic/Aux",
+            inputUuid: "input-mic",
+            monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "MediaInputPlaybackStarted",
+          eventIntent: EventSubscription.MediaInputs,
+          category: "media_inputs",
+          eventData: { inputName: "Media", inputUuid: "input-media" }
+        },
+        {
+          sequence: 5,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          category: "media_inputs",
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+          }
+        }
+      ]
+    })
+  })
+
   it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
     await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
       config: { ...config, enabledToolsets: ["events"] },

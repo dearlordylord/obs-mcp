@@ -136,6 +136,12 @@ const InputEventData = Schema.Struct({
   inputUuid: Schema.String
 })
 
+const InputNameChangedEventData = Schema.Struct({
+  inputUuid: Schema.String,
+  oldInputName: Schema.String,
+  inputName: Schema.String
+})
+
 const InputMuteStateChangedEventData = Schema.extend(InputEventData)(
   Schema.Struct({ inputMuted: Schema.Boolean })
 )
@@ -207,6 +213,7 @@ export const TypedObsEventData = Schema.Union(
   SceneItemEventData,
   SceneEventData,
   SceneListChangedEventData,
+  InputNameChangedEventData,
   InputMuteStateChangedEventData,
   InputVolumeChangedEventData,
   InputAudioBalanceChangedEventData,
@@ -260,6 +267,10 @@ export const decodeTypedObsEventData = (
       return Schema.decodeUnknownSync(SceneItemLockStateChangedEventData)(eventData)
     case "SceneItemSelected":
       return Schema.decodeUnknownSync(SceneItemEventData)(eventData)
+    case "InputRemoved":
+      return Schema.decodeUnknownSync(InputEventData)(eventData)
+    case "InputNameChanged":
+      return Schema.decodeUnknownSync(InputNameChangedEventData)(eventData)
     case "InputMuteStateChanged":
       return Schema.decodeUnknownSync(InputMuteStateChangedEventData)(eventData)
     case "InputVolumeChanged":

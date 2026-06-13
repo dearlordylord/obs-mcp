@@ -46,8 +46,8 @@ const EVENT_LEDGER = {
   SourceFilterEnableStateChanged: "deferred",
   ExitStarted: "typed-safe",
   InputCreated: "deferred",
-  InputRemoved: "deferred",
-  InputNameChanged: "deferred",
+  InputRemoved: "typed-safe",
+  InputNameChanged: "typed-safe",
   InputSettingsChanged: "deferred",
   InputActiveStateChanged: "high-volume",
   InputShowStateChanged: "high-volume",
@@ -142,6 +142,8 @@ const TYPED_EVENT_FIXTURES = {
     sceneItemLocked: true
   },
   SceneItemSelected: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 },
+  InputRemoved: { inputName: "Camera", inputUuid: "input-camera" },
+  InputNameChanged: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" },
   InputMuteStateChanged: { inputName: "Mic", inputUuid: "input-mic", inputMuted: true },
   InputVolumeChanged: { inputName: "Mic", inputUuid: "input-mic", inputVolumeMul: 0.5, inputVolumeDb: -6 },
   InputAudioBalanceChanged: { inputName: "Mic", inputUuid: "input-mic", inputAudioBalance: 0.25 },
@@ -212,10 +214,10 @@ describe("OBS event protocol foundation", () => {
         { "typed-safe": 0, "high-volume": 0, "raw-only": 0, deferred: 0 }
       )
     ).toEqual({
-      "typed-safe": 32,
+      "typed-safe": 34,
       "high-volume": 4,
       "raw-only": 2,
-      deferred: 22
+      deferred: 20
     })
 
     for (const event of matrix.events) {
@@ -328,6 +330,8 @@ describe("OBS event protocol foundation", () => {
         { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12, sceneItemLocked: true }
       ],
       ["SceneItemSelected", { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 }],
+      ["InputRemoved", { inputName: "Camera", inputUuid: "input-camera" }],
+      ["InputNameChanged", { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }],
       ["InputMuteStateChanged", { inputName: "Mic", inputUuid: "input-mic", inputMuted: true }],
       [
         "InputVolumeChanged",
@@ -389,6 +393,8 @@ describe("OBS event protocol foundation", () => {
         sceneItems: [{ sceneItemId: 12, rawIndex: 0 }]
       })
     ).toThrow()
+    expect(() => decodeTypedObsEventData("InputNameChanged", { inputUuid: "input-camera", inputName: "Camera" }))
+      .toThrow()
     expect(() => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true })).toThrow()
     expect(() =>
       decodeTypedObsEventData("MediaInputActionTriggered", {
@@ -401,6 +407,20 @@ describe("OBS event protocol foundation", () => {
 
   it("omits payloads for safe event types without task-owned schemas", () => {
     expect(decodeTypedObsEventData("TransitionStarted", { transitionName: "Fade" })).toBeUndefined()
+    expect(decodeTypedObsEventData("InputCreated", {
+      inputName: "Camera",
+      inputUuid: "input-camera",
+      inputKind: "dshow_input",
+      unversionedInputKind: "dshow_input",
+      inputKindCaps: 1,
+      inputSettings: { secret: true },
+      defaultInputSettings: { secret: false }
+    })).toBeUndefined()
+    expect(decodeTypedObsEventData("InputSettingsChanged", {
+      inputName: "Camera",
+      inputUuid: "input-camera",
+      inputSettings: { secret: true }
+    })).toBeUndefined()
   })
 
   it("decodes valid event envelopes", () => {
