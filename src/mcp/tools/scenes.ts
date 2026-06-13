@@ -2,6 +2,8 @@ import * as SceneSchemas from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   createScene,
+  createSceneItem,
+  duplicateSceneItem,
   getCurrentPreviewScene,
   getCurrentScene,
   getSceneItemBlendMode,
@@ -18,6 +20,7 @@ import {
   listSceneItems,
   listScenes,
   removeScene,
+  removeSceneItem,
   setCurrentPreviewScene,
   setCurrentScene,
   setSceneItemBlendMode,
@@ -30,6 +33,8 @@ import {
 } from "../../obs/operations/scenes.js"
 import {
   CreateScene,
+  CreateSceneItem,
+  DuplicateSceneItem,
   GetCurrentPreviewScene,
   GetCurrentProgramScene,
   GetGroupList,
@@ -46,6 +51,7 @@ import {
   GetSceneSceneTransitionOverride,
   GetSourceActive,
   RemoveScene,
+  RemoveSceneItem,
   SetCurrentPreviewScene,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
@@ -191,6 +197,36 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.ListGroupSceneItemsInput,
     outputSchema: SceneSchemas.ListGroupSceneItemsOutput,
     handler: async (input, context) => listGroupSceneItems(context.client, input)
+  }),
+  defineTool({
+    name: "create_scene_item",
+    title: "Create OBS Scene Item",
+    description: "Add an existing source to a scene and return the new scene item ID when OBS provides one.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateSceneItem.requestType],
+    inputSchema: SceneSchemas.CreateSceneItemInput,
+    outputSchema: SceneSchemas.CreateSceneItemOutput,
+    handler: async (input, context) => createSceneItem(context.client, input)
+  }),
+  defineTool({
+    name: "remove_scene_item",
+    title: "Remove OBS Scene Item",
+    description: "Remove a scene item from a scene by scene item ID.",
+    category: CATEGORY,
+    requiredObsRequests: [RemoveSceneItem.requestType],
+    inputSchema: SceneSchemas.RemoveSceneItemInput,
+    outputSchema: SceneSchemas.RemoveSceneItemOutput,
+    handler: async (input, context) => removeSceneItem(context.client, input)
+  }),
+  defineTool({
+    name: "duplicate_scene_item",
+    title: "Duplicate OBS Scene Item",
+    description: "Duplicate a scene item into the same scene or a destination scene.",
+    category: CATEGORY,
+    requiredObsRequests: [DuplicateSceneItem.requestType],
+    inputSchema: SceneSchemas.DuplicateSceneItemInput,
+    outputSchema: SceneSchemas.DuplicateSceneItemOutput,
+    handler: async (input, context) => duplicateSceneItem(context.client, input)
   }),
   defineTool({
     name: "get_scene_item_id",

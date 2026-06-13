@@ -50,13 +50,18 @@ import {
 } from "../../src/obs/operations/record.js"
 import {
   createScene,
+  createSceneItem,
+  duplicateSceneItem,
   getCurrentPreviewScene,
   getCurrentScene,
   getSceneItemTransform,
   getSceneTransitionOverride,
   listGroups,
+  listGroupSceneItems,
+  listSceneItems,
   listScenes,
   removeScene,
+  removeSceneItem,
   setCurrentPreviewScene,
   setCurrentScene,
   setSceneItemTransform,
@@ -294,6 +299,53 @@ describe("OBS operations", () => {
           sourceWidth: 1280,
           width: 640
         }
+      })
+  })
+
+  it("updates fake OBS scene item lists for lifecycle operations without changing group items", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createSceneItem(client, {
+      sceneName: "Intro",
+      sourceName: "Title",
+      sceneItemEnabled: false
+    })).resolves.toEqual({
+      sceneName: "Intro",
+      sourceName: "Title",
+      sceneItemId: 10,
+      created: true
+    })
+    await expect(duplicateSceneItem(client, { sceneName: "Intro", sceneItemId: 7 }))
+      .resolves.toEqual({ sceneName: "Intro", sceneItemId: 11, duplicated: true })
+    await expect(listSceneItems(client, { sceneName: "Intro" }))
+      .resolves.toMatchObject({
+        sceneItems: [
+          { sceneItemId: 7, sceneItemIndex: 0, sourceName: "Camera" },
+          { sceneItemId: 9, sceneItemIndex: 1, sourceName: "Lower Third" },
+          { sceneItemId: 10, sceneItemIndex: 2, sourceName: "Title" },
+          { sceneItemId: 11, sceneItemIndex: 3, sourceName: "Camera" }
+        ]
+      })
+    await expect(removeSceneItem(client, { sceneName: "Intro", sceneItemId: 9 }))
+      .resolves.toEqual({ sceneName: "Intro", sceneItemId: 9, removed: true })
+    await expect(listSceneItems(client, { sceneName: "Intro" }))
+      .resolves.toMatchObject({
+        sceneItems: [
+          { sceneItemId: 7, sceneItemIndex: 0, sourceName: "Camera" },
+          { sceneItemId: 10, sceneItemIndex: 1, sourceName: "Title" },
+          { sceneItemId: 11, sceneItemIndex: 2, sourceName: "Camera" }
+        ]
+      })
+    await expect(listGroupSceneItems(client, { sceneName: "Group" }))
+      .resolves.toEqual({
+        sceneItems: [{
+          sceneItemId: 3,
+          sceneItemIndex: 0,
+          sourceName: "Nested",
+          sourceUuid: "source-nested"
+        }]
       })
   })
 

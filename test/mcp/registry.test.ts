@@ -196,6 +196,9 @@ describe("MCP tool registry", () => {
       "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
+      "create_scene_item",
+      "remove_scene_item",
+      "duplicate_scene_item",
       "get_scene_item_id",
       "get_scene_item_source",
       "get_scene_item_transform",
@@ -291,6 +294,9 @@ describe("MCP tool registry", () => {
       "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
+      "create_scene_item",
+      "remove_scene_item",
+      "duplicate_scene_item",
       "get_scene_item_id",
       "get_scene_item_source",
       "get_scene_item_transform",
@@ -1567,6 +1573,60 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ sourceName: "Camera", sourceUuid: "source-camera" })
   })
 
+  it("creates, removes, and duplicates scene items", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("create_scene_item"), {
+      sceneName: "Scene",
+      sourceName: "Camera",
+      sceneItemEnabled: false
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("CreateSceneItem")
+        requests.push(requestData)
+        return { sceneItemId: 12 }
+      })
+    })).resolves.toEqual({
+      sceneName: "Scene",
+      sourceName: "Camera",
+      sceneItemId: 12,
+      created: true
+    })
+    await expect(executeTool(toolByName("remove_scene_item"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 12
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("RemoveSceneItem")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneUuid: "scene-uuid", sceneItemId: 12, removed: true })
+    await expect(executeTool(toolByName("duplicate_scene_item"), {
+      sceneName: "Scene",
+      sceneItemId: 7,
+      destinationSceneName: "Program"
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("DuplicateSceneItem")
+        requests.push(requestData)
+        return { sceneItemId: 13 }
+      })
+    })).resolves.toEqual({
+      sceneName: "Scene",
+      destinationSceneName: "Program",
+      sceneItemId: 13,
+      duplicated: true
+    })
+    expect(requests).toEqual([
+      { sceneName: "Scene", sourceName: "Camera", sceneItemEnabled: false },
+      { sceneUuid: "scene-uuid", sceneItemId: 12 },
+      { sceneName: "Scene", sceneItemId: 7, destinationSceneName: "Program" }
+    ])
+  })
+
   it("gets a scene item's transform", async () => {
     await expect(executeTool(toolByName("get_scene_item_transform"), {
       sceneName: "Scene",
@@ -1837,6 +1897,19 @@ describe("MCP tool registry", () => {
         comment: "Scene item not found"
       }
     })
+    await expect(executeTool(toolByName("remove_scene_item"), { sceneName: "Scene", sceneItemId: 404 }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("RemoveSceneItem", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "RemoveSceneItem",
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
   })
 
   it("maps scene item state OBS errors to MCP errors with OBS status metadata", async () => {
@@ -1994,6 +2067,15 @@ describe("MCP tool registry", () => {
       .toEqual(["get_scene_item_transform"])
     expect(getEnabledTools(["scenes"], ["SetSceneItemTransform"]).map((tool) => tool.name))
       .toEqual(["set_scene_item_transform"])
+  })
+
+  it("filters scene item lifecycle tools by partial OBS capabilities", () => {
+    expect(getEnabledTools(["scenes"], ["CreateSceneItem"]).map((tool) => tool.name))
+      .toEqual(["create_scene_item"])
+    expect(getEnabledTools(["scenes"], ["RemoveSceneItem"]).map((tool) => tool.name))
+      .toEqual(["remove_scene_item"])
+    expect(getEnabledTools(["scenes"], ["DuplicateSceneItem"]).map((tool) => tool.name))
+      .toEqual(["duplicate_scene_item"])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

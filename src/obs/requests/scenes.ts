@@ -1,6 +1,11 @@
 import { Schema } from "effect"
 
 import {
+  CreateSceneItemInput,
+  DuplicateSceneItemInput,
+  RemoveSceneItemInput
+} from "../../domain/schemas/scene-item-lifecycle.js"
+import {
   GetSceneItemTransformInput,
   GetSceneItemTransformOutput,
   SetSceneItemTransformInput
@@ -153,6 +158,29 @@ export const GetGroupSceneItemList = {
   requestDataSchema: ListGroupSceneItemsInput,
   responseSchema: ListGroupSceneItemsOutput
 } satisfies ObsRequestDescriptor<ListGroupSceneItemsOutput>
+
+const SceneItemIdResponse = Schema.Struct({
+  sceneItemId: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)))
+})
+type SceneItemIdResponse = typeof SceneItemIdResponse.Type
+
+export const CreateSceneItem = {
+  requestType: "CreateSceneItem",
+  requestDataSchema: CreateSceneItemInput,
+  responseSchema: SceneItemIdResponse
+} satisfies ObsRequestDescriptor<SceneItemIdResponse>
+
+export const RemoveSceneItem = {
+  requestType: "RemoveSceneItem",
+  requestDataSchema: RemoveSceneItemInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const DuplicateSceneItem = {
+  requestType: "DuplicateSceneItem",
+  requestDataSchema: DuplicateSceneItemInput,
+  responseSchema: SceneItemIdResponse
+} satisfies ObsRequestDescriptor<SceneItemIdResponse>
 
 export const GetSceneItemId = {
   requestType: "GetSceneItemId",

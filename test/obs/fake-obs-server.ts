@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { createHash } from "node:crypto"
 import { type WebSocket, WebSocketServer } from "ws"
 
@@ -13,7 +14,11 @@ import {
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
-import { type FakeObsSceneItemTransforms, handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
+import {
+  type FakeObsSceneItems,
+  type FakeObsSceneItemTransforms,
+  handleFakeObsSceneItemReadRequest
+} from "./fake-obs-scene-item-requests.js"
 import { type FakeObsSceneTransitionOverrides, handleFakeObsSceneRequest } from "./fake-obs-scene-requests.js"
 
 const OP_HELLO = 0
@@ -69,6 +74,7 @@ export class FakeObsServer {
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private inputState: FakeObsInputState = new FakeObsInputState([])
   private readonly outputState = new FakeObsOutputState()
+  private readonly sceneItems: FakeObsSceneItems = new Map()
   private readonly sceneItemTransforms: FakeObsSceneItemTransforms = new Map()
   public lastIdentifyEventSubscriptions: unknown
 
@@ -343,18 +349,16 @@ export class FakeObsServer {
       }
       return
     }
-    if (requestType === "GetSceneItemList" || requestType === "GetGroupSceneItemList") {
-      send({ sceneItems: sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
-      return
-    }
-    const sceneItemRequestHandled = handleFakeObsSceneItemReadRequest(
-      requestType,
-      envelope.d.requestData,
-      send,
-      this.sceneItemTransforms,
-      sendError
-    )
-    if (sceneItemRequestHandled) {
+    if (
+      handleFakeObsSceneItemReadRequest(
+        requestType,
+        envelope.d.requestData,
+        send,
+        this.sceneItemTransforms,
+        sendError,
+        this.sceneItems
+      )
+    ) {
       return
     }
     if (requestType === "GetSceneItemEnabled") {

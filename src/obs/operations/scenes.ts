@@ -1,6 +1,14 @@
 import { Schema } from "effect"
 
 import {
+  CreateSceneItemInput,
+  CreateSceneItemOutput,
+  DuplicateSceneItemInput,
+  DuplicateSceneItemOutput,
+  RemoveSceneItemInput,
+  RemoveSceneItemOutput
+} from "../../domain/schemas/scene-item-lifecycle.js"
+import {
   GetSceneItemTransformInput,
   GetSceneItemTransformOutput,
   SetSceneItemTransformInput,
@@ -55,6 +63,8 @@ import {
 import type { ObsClient } from "../client.js"
 import {
   CreateScene as CreateSceneRequest,
+  CreateSceneItem,
+  DuplicateSceneItem,
   GetCurrentPreviewScene as GetCurrentPreviewSceneRequest,
   GetCurrentProgramScene as GetCurrentProgramSceneRequest,
   GetGroupList as GetGroupListRequest,
@@ -71,6 +81,7 @@ import {
   GetSceneSceneTransitionOverride as GetSceneTransitionOverrideRequest,
   GetSourceActive as GetSourceActiveRequest,
   RemoveScene as RemoveSceneRequest,
+  RemoveSceneItem,
   SetCurrentPreviewScene as SetCurrentPreviewSceneRequest,
   SetCurrentProgramScene as SetCurrentProgramSceneRequest,
   SetSceneItemBlendMode,
@@ -221,6 +232,41 @@ export const listGroupSceneItems = async (
 ): Promise<ListGroupSceneItemsOutput> => {
   const decodedInput = Schema.decodeUnknownSync(ListGroupSceneItemsInput)(input)
   return Schema.decodeUnknownSync(ListGroupSceneItemsOutput)(await client.request(GetGroupSceneItemList, decodedInput))
+}
+
+export const createSceneItem = async (
+  client: ObsClient,
+  input: CreateSceneItemInput
+): Promise<CreateSceneItemOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(CreateSceneItemInput)(input)
+  const response = await client.request(CreateSceneItem, decodedInput)
+  return Schema.decodeUnknownSync(CreateSceneItemOutput)({
+    ...decodedInput,
+    sceneItemId: response.sceneItemId,
+    created: true
+  })
+}
+
+export const removeSceneItem = async (
+  client: ObsClient,
+  input: RemoveSceneItemInput
+): Promise<RemoveSceneItemOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(RemoveSceneItemInput)(input)
+  await client.request(RemoveSceneItem, decodedInput)
+  return Schema.decodeUnknownSync(RemoveSceneItemOutput)({ ...decodedInput, removed: true })
+}
+
+export const duplicateSceneItem = async (
+  client: ObsClient,
+  input: DuplicateSceneItemInput
+): Promise<DuplicateSceneItemOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(DuplicateSceneItemInput)(input)
+  const response = await client.request(DuplicateSceneItem, decodedInput)
+  return Schema.decodeUnknownSync(DuplicateSceneItemOutput)({
+    ...decodedInput,
+    sceneItemId: response.sceneItemId,
+    duplicated: true
+  })
 }
 
 export const getSceneItemId = async (
