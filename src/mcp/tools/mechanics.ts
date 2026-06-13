@@ -12,16 +12,18 @@ export interface ToolContext {
 
 export type RuntimeSchema = Schema.Schema.AnyNoContext
 export type ToolCategory =
-  | "canvases"
-  | "config"
   | "admin_raw"
   | "batch"
+  | "canvases"
+  | "config"
   | "events"
+  | "filters"
   | "general"
   | "inputs"
   | "outputs"
   | "record"
   | "scenes"
+  | "screenshots"
   | "stream"
   | "transitions"
   | "ui"

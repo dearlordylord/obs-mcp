@@ -2,6 +2,9 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js"
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js"
 import { Option } from "effect"
+import { mkdtemp, rm } from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
@@ -26,7 +29,7 @@ const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 const fakeObsServers: Array<FakeObsServer> = []
 
 const obsClient = (
-  handler: (requestType: ObsRequestType) => Promise<unknown>,
+  handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>,
   availableRequests: ReadonlyArray<string> = allAvailableRequests,
   bufferedEvents: ReturnType<ObsClient["getBufferedEvents"]> = { capacity: 0, droppedEvents: 0, events: [] }
 ): ObsClient => fakeObsClient(handler, availableRequests, bufferedEvents)
@@ -89,6 +92,20 @@ describe("MCP server protocol handlers", () => {
       "set_input_audio_monitor_type",
       "get_input_audio_sync_offset",
       "set_input_audio_sync_offset",
+      "get_input_audio_tracks",
+      "set_input_audio_tracks",
+      "get_input_deinterlace_mode",
+      "set_input_deinterlace_mode",
+      "get_input_deinterlace_field_order",
+      "set_input_deinterlace_field_order",
+      "get_input_default_settings",
+      "get_input_settings",
+      "get_input_properties_list_property_items",
+      "set_input_settings",
+      "press_input_properties_button",
+      "create_input",
+      "remove_input",
+      "set_input_name",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -347,6 +364,8 @@ describe("MCP server protocol handlers", () => {
   })
 
   it("lists and calls input discovery tools through in-memory MCP handlers", async () => {
+    const longDeviceName = "x".repeat(170)
+    const truncatedLongDeviceName = `${"x".repeat(160)}...`
     const client = await connect(
       obsClient(async (requestType) => {
         if (requestType === "GetInputList") {
@@ -361,6 +380,34 @@ describe("MCP server protocol handlers", () => {
         }
         if (requestType === "GetInputKindList") {
           return { inputKinds: ["wasapi_input_capture"] }
+        }
+        if (requestType === "GetInputDefaultSettings") {
+          return {
+            defaultInputSettings: {
+              active: true,
+              device_id: longDeviceName,
+              nested_policy: { omitted: true }
+            }
+          }
+        }
+        if (requestType === "GetInputSettings") {
+          return {
+            inputKind: "wasapi_input_capture",
+            inputSettings: {
+              device_id: "mic-device",
+              gain: 1
+            }
+          }
+        }
+        if (requestType === "GetInputPropertiesListPropertyItems") {
+          return {
+            propertyItems: [
+              { itemName: "Primary", itemValue: longDeviceName, itemEnabled: true }
+            ]
+          }
+        }
+        if (requestType === "CreateInput") {
+          return { inputUuid: "input-media-source", sceneItemId: 3 }
         }
         return {
           desktop1: "Desktop Audio",
@@ -389,6 +436,20 @@ describe("MCP server protocol handlers", () => {
       "set_input_audio_monitor_type",
       "get_input_audio_sync_offset",
       "set_input_audio_sync_offset",
+      "get_input_audio_tracks",
+      "set_input_audio_tracks",
+      "get_input_deinterlace_mode",
+      "set_input_deinterlace_mode",
+      "get_input_deinterlace_field_order",
+      "set_input_deinterlace_field_order",
+      "get_input_default_settings",
+      "get_input_settings",
+      "get_input_properties_list_property_items",
+      "set_input_settings",
+      "press_input_properties_button",
+      "create_input",
+      "remove_input",
+      "set_input_name",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -400,6 +461,312 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { inputKinds: ["wasapi_input_capture"] } })
     await expect(client.callTool({ name: "get_special_inputs", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
+    await expect(client.callTool({
+      name: "get_input_default_settings",
+      arguments: { inputKind: "wasapi_input_capture" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        inputKind: "wasapi_input_capture",
+        defaultInputSettings: [
+          { settingName: "active", valueType: "boolean" },
+          { settingName: "device_id", valueType: "string" },
+          { settingName: "nested_policy", valueType: "object" }
+        ],
+        rawSettingsDeferred: true
+      }
+    })
+    await expect(client.callTool({ name: "get_input_settings", arguments: { inputName: "Mic/Aux" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          inputKind: "wasapi_input_capture",
+          inputSettings: [
+            { settingName: "device_id", valueType: "string" },
+            { settingName: "gain", valueType: "number" }
+          ],
+          rawSettingsDeferred: true
+        }
+      })
+    await expect(client.callTool({
+      name: "get_input_properties_list_property_items",
+      arguments: { inputName: "Mic/Aux", propertyName: "device_id" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        propertyName: "device_id",
+        propertyItems: [{
+          itemIndex: 0,
+          itemName: "Primary",
+          itemValueType: "string",
+          itemValuePreview: truncatedLongDeviceName,
+          itemEnabled: true
+        }],
+        rawPropertyItemsDeferred: true
+      }
+    })
+    await expect(client.callTool({
+      name: "set_input_settings",
+      arguments: {
+        inputName: "Media Source",
+        inputSettings: { looping: true, speedPercent: 125 },
+        overlay: false
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        inputSettings: { looping: true, speedPercent: 125 },
+        overlay: false,
+        acknowledged: true
+      }
+    })
+    await expect(client.callTool({
+      name: "press_input_properties_button",
+      arguments: { inputName: "Browser", propertyName: "refreshnocache" }
+    })).resolves.toMatchObject({
+      structuredContent: { propertyName: "refreshnocache", acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "create_input",
+      arguments: {
+        sceneName: "Main",
+        inputName: "Media Source",
+        inputKind: "ffmpeg_source",
+        inputSettings: { looping: true }
+      }
+    })).resolves.toMatchObject({
+      structuredContent: { inputUuid: "input-media-source", sceneItemId: 3 }
+    })
+    await expect(client.callTool({
+      name: "remove_input",
+      arguments: { inputUuid: "input-media-source" }
+    })).resolves.toMatchObject({
+      structuredContent: { acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_input_name",
+      arguments: { inputUuid: "input-media-source", newInputName: "Renamed Media" }
+    })).resolves.toMatchObject({
+      structuredContent: { inputName: "Renamed Media", acknowledged: true }
+    })
+  })
+
+  it("lists source filter tools and calls source filter read handlers over MCP", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetSourceFilterKindList") {
+          return { sourceFilterKinds: ["color_filter_v2", "gain_filter"] }
+        }
+        if (requestType === "GetSourceFilterList") {
+          return {
+            filters: [{
+              filterName: "Color Correction",
+              filterEnabled: true,
+              filterIndex: 0,
+              filterKind: "color_filter_v2",
+              filterSettings: {
+                brightness: 0.1,
+                nested_policy: { omitted: true },
+                secret_path: "/tmp/private"
+              }
+            }]
+          }
+        }
+        if (requestType === "GetSourceFilterDefaultSettings") {
+          return {
+            defaultFilterSettings: {
+              brightness: 0,
+              enabled_by_default: true,
+              nested_policy: { omitted: true }
+            }
+          }
+        }
+        return {
+          filterEnabled: true,
+          filterIndex: 0,
+          filterKind: "color_filter_v2",
+          filterSettings: {
+            brightness: 0.1,
+            nested_policy: { omitted: true },
+            secret_path: "/tmp/private"
+          }
+        }
+      }),
+      { ...config, enabledToolsets: ["filters"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_source_filter_kinds",
+      "list_source_filters",
+      "get_source_filter_default_settings",
+      "get_source_filter",
+      "create_source_filter",
+      "remove_source_filter",
+      "set_source_filter_settings",
+      "set_source_filter_enabled",
+      "set_source_filter_index",
+      "set_source_filter_name"
+    ])
+    await expect(client.callTool({ name: "list_source_filter_kinds", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { sourceFilterKinds: ["color_filter_v2", "gain_filter"] } })
+    await expect(client.callTool({
+      name: "list_source_filters",
+      arguments: { sourceName: "Camera", canvasUuid: "canvas-main" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filters: [{
+          filterName: "Color Correction",
+          filterSettings: [
+            { settingName: "brightness", valueType: "number" },
+            { settingName: "nested_policy", valueType: "object" },
+            { settingName: "secret_path", valueType: "string" }
+          ],
+          rawSettingsDeferred: true
+        }]
+      }
+    })
+    await expect(client.callTool({
+      name: "get_source_filter_default_settings",
+      arguments: { filterKind: "color_filter_v2" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filterKind: "color_filter_v2",
+        defaultFilterSettings: [
+          { settingName: "brightness", valueType: "number" },
+          { settingName: "enabled_by_default", valueType: "boolean" },
+          { settingName: "nested_policy", valueType: "object" }
+        ],
+        rawSettingsDeferred: true
+      }
+    })
+    await expect(client.callTool({
+      name: "get_source_filter",
+      arguments: { sourceUuid: "source-camera", filterName: "Color Correction" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filterName: "Color Correction",
+        filterKind: "color_filter_v2",
+        filterSettings: [
+          { settingName: "brightness", valueType: "number" },
+          { settingName: "nested_policy", valueType: "object" },
+          { settingName: "secret_path", valueType: "string" }
+        ],
+        rawSettingsDeferred: true
+      }
+    })
+    await expect(client.callTool({
+      name: "create_source_filter",
+      arguments: { sourceName: "Camera", filterName: "Boost", filterKind: "gain_filter", filterSettings: { db: 6 } }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Boost", filterKind: "gain_filter", acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "remove_source_filter",
+      arguments: { sourceName: "Camera", filterName: "Boost" }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Boost", acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_settings",
+      arguments: {
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2 },
+        overlay: false
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2 },
+        overlay: false,
+        acknowledged: true
+      }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_enabled",
+      arguments: { sourceName: "Camera", filterName: "Color Correction", filterEnabled: false }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Color Correction", filterEnabled: false, acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_index",
+      arguments: { sourceName: "Camera", filterName: "Color Correction", filterIndex: 1 }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Color Correction", filterIndex: 1, acknowledged: true }
+    })
+    await expect(client.callTool({
+      name: "set_source_filter_name",
+      arguments: { sourceUuid: "source-camera", filterName: "Color Correction", newFilterName: "Primary Color" }
+    })).resolves.toMatchObject({
+      structuredContent: { filterName: "Primary Color", acknowledged: true }
+    })
+  })
+
+  it("executes source screenshot tools when the screenshots toolset and save policy are enabled", async () => {
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-server-screenshots-"))
+    const requests: Array<{ requestType: ObsRequestType; requestData: unknown }> = []
+    const client = await connect(
+      obsClient(async (requestType, requestData) => {
+        requests.push({ requestType, requestData })
+        if (requestType === "GetSourceScreenshot") {
+          return { imageData: "data:image/png;base64,aW1hZ2U=" }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["screenshots"], screenshotOutputDirectory: outputDirectory }
+    )
+
+    try {
+      const tools = await client.listTools()
+      expect(tools.tools.map((tool) => tool.name)).toEqual([
+        "get_source_screenshot",
+        "save_source_screenshot"
+      ])
+      await expect(client.callTool({
+        name: "get_source_screenshot",
+        arguments: {
+          sourceName: "Camera",
+          imageFormat: "png",
+          imageWidth: 320,
+          imageHeight: 180,
+          imageCompressionQuality: 80
+        }
+      })).resolves.toMatchObject({
+        structuredContent: {
+          imageFormat: "png",
+          mimeType: "image/png",
+          imageBytes: 5,
+          maxImageBytes: 1_500_000,
+          base64Data: "aW1hZ2U="
+        }
+      })
+      await expect(client.callTool({
+        name: "save_source_screenshot",
+        arguments: { sourceUuid: "source-camera", imageFormat: "png", fileName: "camera.png" }
+      })).resolves.toMatchObject({
+        structuredContent: {
+          imageFilePath: path.join(outputDirectory, "camera.png"),
+          imageFormat: "png",
+          saved: true
+        }
+      })
+    } finally {
+      await rm(outputDirectory, { force: true, recursive: true })
+    }
+
+    expect(requests).toEqual([{
+      requestType: "GetSourceScreenshot",
+      requestData: {
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      }
+    }, {
+      requestType: "SaveSourceScreenshot",
+      requestData: {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        imageFilePath: path.join(outputDirectory, "camera.png")
+      }
+    }])
   })
 
   it("lists and calls canvas and studio-mode read tools through in-memory MCP handlers", async () => {

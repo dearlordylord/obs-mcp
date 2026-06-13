@@ -1,10 +1,13 @@
 import {
   DEFAULT_INPUT_AUDIO_STATE,
+  DEFAULT_INPUT_AUDIO_TRACKS,
+  DEFAULT_INPUT_DEINTERLACE_STATE,
   DEFAULT_INPUT_VOLUME,
   DEFAULT_MEDIA_INPUT_STATUS,
   fakeInputVolumeFromRequest,
   type FakeObsInput,
   type FakeObsInputAudioState,
+  type FakeObsInputDeinterlaceState,
   type FakeObsInputVolume,
   type FakeObsMediaInputAction,
   type FakeObsMediaInputStatus
@@ -14,6 +17,12 @@ interface FakeObsInputAudioRequestData {
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioState["monitorType"]
   readonly inputAudioSyncOffset?: number
+  readonly inputAudioTracks?: FakeObsInputAudioState["inputAudioTracks"]
+}
+
+interface FakeObsInputDeinterlaceRequestData {
+  readonly inputDeinterlaceMode?: FakeObsInputDeinterlaceState["inputDeinterlaceMode"]
+  readonly inputDeinterlaceFieldOrder?: FakeObsInputDeinterlaceState["inputDeinterlaceFieldOrder"]
 }
 
 interface FakeObsMediaCursorRequestData {
@@ -21,13 +30,19 @@ interface FakeObsMediaCursorRequestData {
   readonly mediaCursorOffset?: number
 }
 
+interface FakeObsCreateInputRequestData {
+  readonly inputName: string
+  readonly inputKind: string
+}
+
 export class FakeObsInputState {
   private readonly inputMuteByKey: Map<string, boolean>
   private readonly inputVolumeByKey: Map<string, FakeObsInputVolume> = new Map()
   private readonly inputAudioStateByKey: Map<string, FakeObsInputAudioState> = new Map()
+  private readonly inputDeinterlaceStateByKey: Map<string, FakeObsInputDeinterlaceState> = new Map()
   private readonly mediaStatusByKey: Map<string, FakeObsMediaInputStatus> = new Map()
 
-  public constructor(private readonly inputs: ReadonlyArray<FakeObsInput>) {
+  public constructor(private readonly inputs: Array<FakeObsInput>) {
     this.inputMuteByKey = new Map(inputs.flatMap((input) => {
       const muted = input.inputMuted ?? false
       return [
@@ -39,6 +54,63 @@ export class FakeObsInputState {
 
   public getMute(locator: string): boolean {
     return this.inputMuteByKey.get(locator) ?? false
+  }
+
+  public listInputs(inputKind?: string): ReadonlyArray<FakeObsInput> {
+    return inputKind === undefined
+      ? this.inputs
+      : this.inputs.filter((input) => input.inputKind === inputKind || input.unversionedInputKind === inputKind)
+  }
+
+  public createInput(
+    requestData: FakeObsCreateInputRequestData
+  ): { readonly inputUuid: string; readonly sceneItemId: number } {
+    const inputUuid = `input-${
+      requestData.inputName.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
+    }`
+    const sceneItemId = 1_000 + this.inputs.length
+    this.inputs.push({
+      inputName: requestData.inputName,
+      inputUuid,
+      inputKind: requestData.inputKind,
+      unversionedInputKind: requestData.inputKind
+    })
+    this.inputMuteByKey.set(requestData.inputName, false)
+    this.inputMuteByKey.set(inputUuid, false)
+    return { inputUuid, sceneItemId }
+  }
+
+  public removeInput(locator: string): void {
+    const index = this.inputs.findIndex((input) => input.inputName === locator || input.inputUuid === locator)
+    if (index < 0) {
+      return
+    }
+    const [input] = this.inputs.splice(index, 1)
+    if (input === undefined) {
+      return
+    }
+    this.deleteInputState(input.inputName)
+    if (input.inputUuid !== undefined) {
+      this.deleteInputState(input.inputUuid)
+    }
+  }
+
+  public renameInput(locator: string, newInputName: string): void {
+    const index = this.inputs.findIndex((input) => input.inputName === locator || input.inputUuid === locator)
+    if (index < 0) {
+      return
+    }
+    const input = this.inputs[index]
+    if (input === undefined) {
+      return
+    }
+    const muted = this.getMute(locator)
+    this.inputs[index] = { ...input, inputName: newInputName }
+    this.deleteInputState(input.inputName)
+    this.inputMuteByKey.set(newInputName, muted)
+    if (input.inputUuid !== undefined) {
+      this.inputMuteByKey.set(input.inputUuid, muted)
+    }
   }
 
   public setMute(locator: string, inputMuted: boolean): void {
@@ -73,7 +145,8 @@ export class FakeObsInputState {
       ...DEFAULT_INPUT_AUDIO_STATE,
       inputAudioBalance: input?.inputAudioBalance ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioBalance,
       monitorType: input?.monitorType ?? DEFAULT_INPUT_AUDIO_STATE.monitorType,
-      inputAudioSyncOffset: input?.inputAudioSyncOffset ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioSyncOffset
+      inputAudioSyncOffset: input?.inputAudioSyncOffset ?? DEFAULT_INPUT_AUDIO_STATE.inputAudioSyncOffset,
+      inputAudioTracks: input?.inputAudioTracks ?? DEFAULT_INPUT_AUDIO_TRACKS
     }
   }
 
@@ -89,6 +162,8 @@ export class FakeObsInputState {
       ? { inputAudioBalance: state.inputAudioBalance }
       : requestType === "GetInputAudioMonitorType"
       ? { monitorType: state.monitorType }
+      : requestType === "GetInputAudioTracks"
+      ? { inputAudioTracks: state.inputAudioTracks }
       : { inputAudioSyncOffset: state.inputAudioSyncOffset }
   }
 
@@ -100,7 +175,49 @@ export class FakeObsInputState {
         ? { ...state, inputAudioBalance: requestData.inputAudioBalance ?? state.inputAudioBalance }
         : requestType === "SetInputAudioMonitorType"
         ? { ...state, monitorType: requestData.monitorType ?? state.monitorType }
+        : requestType === "SetInputAudioTracks"
+        ? { ...state, inputAudioTracks: requestData.inputAudioTracks ?? state.inputAudioTracks }
         : { ...state, inputAudioSyncOffset: requestData.inputAudioSyncOffset ?? state.inputAudioSyncOffset }
+    )
+  }
+
+  public getDeinterlaceState(locator: string): FakeObsInputDeinterlaceState {
+    const input = this.inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
+    return this.inputDeinterlaceStateByKey.get(locator) ?? {
+      inputDeinterlaceMode: input?.inputDeinterlaceMode ?? DEFAULT_INPUT_DEINTERLACE_STATE.inputDeinterlaceMode,
+      inputDeinterlaceFieldOrder: input?.inputDeinterlaceFieldOrder
+        ?? DEFAULT_INPUT_DEINTERLACE_STATE.inputDeinterlaceFieldOrder
+    }
+  }
+
+  public setDeinterlaceState(locator: string, state: FakeObsInputDeinterlaceState): void {
+    for (const key of this.keysFor(locator)) {
+      this.inputDeinterlaceStateByKey.set(key, state)
+    }
+  }
+
+  public deinterlaceResponseFor(requestType: string, locator: string): Record<string, unknown> {
+    const state = this.getDeinterlaceState(locator)
+    return requestType === "GetInputDeinterlaceMode"
+      ? { inputDeinterlaceMode: state.inputDeinterlaceMode }
+      : { inputDeinterlaceFieldOrder: state.inputDeinterlaceFieldOrder }
+  }
+
+  public setDeinterlaceFromRequest(
+    requestType: string,
+    locator: string,
+    requestData: FakeObsInputDeinterlaceRequestData
+  ): void {
+    const state = this.getDeinterlaceState(locator)
+    this.setDeinterlaceState(
+      locator,
+      requestType === "SetInputDeinterlaceMode"
+        ? { ...state, inputDeinterlaceMode: requestData.inputDeinterlaceMode ?? state.inputDeinterlaceMode }
+        : {
+          ...state,
+          inputDeinterlaceFieldOrder: requestData.inputDeinterlaceFieldOrder
+            ?? state.inputDeinterlaceFieldOrder
+        }
     )
   }
 
@@ -158,6 +275,14 @@ export class FakeObsInputState {
     return input === undefined
       ? [locator]
       : [input.inputName, ...(input.inputUuid === undefined ? [] : [input.inputUuid])]
+  }
+
+  private deleteInputState(locator: string): void {
+    this.inputMuteByKey.delete(locator)
+    this.inputVolumeByKey.delete(locator)
+    this.inputAudioStateByKey.delete(locator)
+    this.inputDeinterlaceStateByKey.delete(locator)
+    this.mediaStatusByKey.delete(locator)
   }
 
   private setMediaStatus(locator: string, status: FakeObsMediaInputStatus): void {

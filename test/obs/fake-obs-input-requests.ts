@@ -1,4 +1,10 @@
-import type { FakeObsInputAudioMonitorType, FakeObsMediaInputAction } from "./fake-obs-fixtures.js"
+import type {
+  FakeObsInputAudioMonitorType,
+  FakeObsInputAudioTracks,
+  FakeObsInputDeinterlaceFieldOrder,
+  FakeObsInputDeinterlaceMode,
+  FakeObsMediaInputAction
+} from "./fake-obs-fixtures.js"
 import type { FakeObsInputState } from "./fake-obs-input-state.js"
 
 type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
@@ -6,12 +12,24 @@ type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
 interface FakeObsInputRequestContext {
   readonly inputName?: string
   readonly inputUuid?: string
+  readonly inputKind?: string
+  readonly newInputName?: string
+  readonly sceneName?: string
+  readonly sceneUuid?: string
+  readonly canvasUuid?: string
+  readonly sceneItemEnabled?: boolean
+  readonly propertyName?: string
+  readonly inputSettings?: Record<string, unknown>
+  readonly overlay?: boolean
   readonly inputMuted?: boolean
   readonly inputVolumeMul?: number
   readonly inputVolumeDb?: number
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset?: number
+  readonly inputAudioTracks?: FakeObsInputAudioTracks
+  readonly inputDeinterlaceMode?: FakeObsInputDeinterlaceMode
+  readonly inputDeinterlaceFieldOrder?: FakeObsInputDeinterlaceFieldOrder
   readonly mediaCursor?: number
   readonly mediaCursorOffset?: number
   readonly mediaAction?: FakeObsMediaInputAction
@@ -52,6 +70,7 @@ export const handleFakeObsInputRequest = (
     requestType === "GetInputAudioBalance"
     || requestType === "GetInputAudioMonitorType"
     || requestType === "GetInputAudioSyncOffset"
+    || requestType === "GetInputAudioTracks"
   ) {
     send(inputState.audioResponseFor(requestType, inputLocator(requestData)))
     return true
@@ -60,8 +79,74 @@ export const handleFakeObsInputRequest = (
     requestType === "SetInputAudioBalance"
     || requestType === "SetInputAudioMonitorType"
     || requestType === "SetInputAudioSyncOffset"
+    || requestType === "SetInputAudioTracks"
   ) {
     inputState.setAudioFromRequest(requestType, inputLocator(requestData), requestData)
+    send()
+    return true
+  }
+  if (requestType === "GetInputDeinterlaceMode" || requestType === "GetInputDeinterlaceFieldOrder") {
+    send(inputState.deinterlaceResponseFor(requestType, inputLocator(requestData)))
+    return true
+  }
+  if (requestType === "SetInputDeinterlaceMode" || requestType === "SetInputDeinterlaceFieldOrder") {
+    inputState.setDeinterlaceFromRequest(requestType, inputLocator(requestData), requestData)
+    send()
+    return true
+  }
+  if (requestType === "GetInputDefaultSettings") {
+    send({
+      defaultInputSettings: {
+        active: true,
+        choices: ["primary", "secondary"],
+        device_id: `${requestData.inputKind ?? "input"}-default-device`,
+        empty_value: null,
+        reconnect_delay_sec: 5,
+        nested_policy: { omitted: true }
+      }
+    })
+    return true
+  }
+  if (requestType === "GetInputSettings") {
+    send({
+      inputKind: "wasapi_input_capture",
+      inputSettings: {
+        device_id: "mic-aux-device",
+        muted_by_default: false,
+        reconnect_delay_sec: 10,
+        nested_policy: { omitted: true }
+      }
+    })
+    return true
+  }
+  if (requestType === "GetInputPropertiesListPropertyItems") {
+    send({
+      propertyItems: [
+        { itemName: "Primary", itemValue: "primary-device", itemEnabled: true, metadata: { omitted: true } },
+        { itemName: "Secondary", itemValue: 2, itemEnabled: false },
+        { metadata: { omitted: true } }
+      ]
+    })
+    return true
+  }
+  if (requestType === "SetInputSettings" || requestType === "PressInputPropertiesButton") {
+    send()
+    return true
+  }
+  if (requestType === "CreateInput") {
+    send(inputState.createInput({
+      inputName: requestData.inputName ?? "Created Input",
+      inputKind: requestData.inputKind ?? "unknown_input"
+    }))
+    return true
+  }
+  if (requestType === "RemoveInput") {
+    inputState.removeInput(inputLocator(requestData))
+    send()
+    return true
+  }
+  if (requestType === "SetInputName") {
+    inputState.renameInput(inputLocator(requestData), requestData.newInputName ?? "Renamed Input")
     send()
     return true
   }

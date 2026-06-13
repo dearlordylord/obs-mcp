@@ -19,17 +19,22 @@ describe("OBS config properties", () => {
       const config = await Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: entries.join(",") }))
       const enabledToolsets: ReadonlyArray<string> = config.enabledToolsets
       const knownToolsets = new Set([
+        "admin_raw",
+        "batch",
         "canvases",
         "config",
         "events",
+        "filters",
         "general",
         "inputs",
         "outputs",
         "record",
         "scenes",
+        "screenshots",
         "stream",
         "transitions",
-        "ui"
+        "ui",
+        "vendor"
       ])
       expect(enabledToolsets).toEqual(enabledToolsets.filter((toolset) => knownToolsets.has(toolset)))
     }))

@@ -8,11 +8,13 @@ const Toolset = Schema.Literal(
   "canvases",
   "config",
   "events",
+  "filters",
   "general",
   "inputs",
   "outputs",
   "record",
   "scenes",
+  "screenshots",
   "stream",
   "transitions",
   "ui",
@@ -31,7 +33,8 @@ export const ObsConfig = Schema.Struct({
   password: Schema.OptionFromNullOr(Schema.String),
   connectionTimeoutMs: Schema.Number.pipe(Schema.int(), Schema.positive()),
   enabledToolsets: Schema.Array(Toolset),
-  eventBufferCapacity: Schema.optional(EventBufferCapacity)
+  eventBufferCapacity: Schema.optional(EventBufferCapacity),
+  screenshotOutputDirectory: Schema.optional(Schema.NonEmptyString)
 })
 export type ObsConfig = typeof ObsConfig.Type
 
@@ -51,11 +54,13 @@ const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
     "canvases",
     "config",
     "events",
+    "filters",
     "general",
     "inputs",
     "outputs",
     "record",
     "scenes",
+    "screenshots",
     "stream",
     "transitions",
     "ui",
@@ -99,7 +104,10 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
         enabledToolsets: parseToolsets(env["TOOLSETS"]),
         ...(eventBufferCapacityRaw === undefined
           ? {}
-          : { eventBufferCapacity: Number.parseInt(eventBufferCapacityRaw, 10) })
+          : { eventBufferCapacity: Number.parseInt(eventBufferCapacityRaw, 10) }),
+        ...(env["OBS_MCP_SCREENSHOT_OUTPUT_DIR"] === undefined
+          ? {}
+          : { screenshotOutputDirectory: env["OBS_MCP_SCREENSHOT_OUTPUT_DIR"] })
       })
     },
     catch: (error) => {

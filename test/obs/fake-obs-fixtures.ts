@@ -29,6 +29,9 @@ export interface FakeObsInput {
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset?: number
+  readonly inputAudioTracks?: FakeObsInputAudioTracks
+  readonly inputDeinterlaceMode?: FakeObsInputDeinterlaceMode
+  readonly inputDeinterlaceFieldOrder?: FakeObsInputDeinterlaceFieldOrder
   readonly mediaState?: FakeObsMediaState
   readonly mediaDuration?: number | null
   readonly mediaCursor?: number | null
@@ -85,12 +88,57 @@ export interface FakeObsInputAudioState {
   readonly inputAudioBalance: number
   readonly monitorType: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset: number
+  readonly inputAudioTracks: FakeObsInputAudioTracks
+}
+
+export interface FakeObsInputAudioTracks {
+  readonly "1": boolean
+  readonly "2": boolean
+  readonly "3": boolean
+  readonly "4": boolean
+  readonly "5": boolean
+  readonly "6": boolean
+}
+
+export const DEFAULT_INPUT_AUDIO_TRACKS: FakeObsInputAudioTracks = {
+  "1": true,
+  "2": true,
+  "3": true,
+  "4": true,
+  "5": true,
+  "6": true
 }
 
 export const DEFAULT_INPUT_AUDIO_STATE: FakeObsInputAudioState = {
   inputAudioBalance: 0.5,
   monitorType: "OBS_MONITORING_TYPE_NONE",
-  inputAudioSyncOffset: 0
+  inputAudioSyncOffset: 0,
+  inputAudioTracks: DEFAULT_INPUT_AUDIO_TRACKS
+}
+
+export type FakeObsInputDeinterlaceMode =
+  | "OBS_DEINTERLACE_MODE_DISABLE"
+  | "OBS_DEINTERLACE_MODE_DISCARD"
+  | "OBS_DEINTERLACE_MODE_RETRO"
+  | "OBS_DEINTERLACE_MODE_BLEND"
+  | "OBS_DEINTERLACE_MODE_BLEND_2X"
+  | "OBS_DEINTERLACE_MODE_LINEAR"
+  | "OBS_DEINTERLACE_MODE_LINEAR_2X"
+  | "OBS_DEINTERLACE_MODE_YADIF"
+  | "OBS_DEINTERLACE_MODE_YADIF_2X"
+
+export type FakeObsInputDeinterlaceFieldOrder =
+  | "OBS_DEINTERLACE_FIELD_ORDER_TOP"
+  | "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+
+export interface FakeObsInputDeinterlaceState {
+  readonly inputDeinterlaceMode: FakeObsInputDeinterlaceMode
+  readonly inputDeinterlaceFieldOrder: FakeObsInputDeinterlaceFieldOrder
+}
+
+export const DEFAULT_INPUT_DEINTERLACE_STATE: FakeObsInputDeinterlaceState = {
+  inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE",
+  inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP"
 }
 
 export type FakeObsMediaState =
@@ -259,6 +307,18 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
   "GetSourceActive",
+  "GetSourceScreenshot",
+  "SaveSourceScreenshot",
+  "GetSourceFilterKindList",
+  "GetSourceFilterList",
+  "GetSourceFilterDefaultSettings",
+  "GetSourceFilter",
+  "CreateSourceFilter",
+  "RemoveSourceFilter",
+  "SetSourceFilterSettings",
+  "SetSourceFilterEnabled",
+  "SetSourceFilterIndex",
+  "SetSourceFilterName",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -273,6 +333,20 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetInputAudioTracks",
+  "SetInputAudioTracks",
+  "GetInputDeinterlaceMode",
+  "SetInputDeinterlaceMode",
+  "GetInputDeinterlaceFieldOrder",
+  "SetInputDeinterlaceFieldOrder",
+  "GetInputDefaultSettings",
+  "GetInputSettings",
+  "GetInputPropertiesListPropertyItems",
+  "SetInputSettings",
+  "PressInputPropertiesButton",
+  "CreateInput",
+  "RemoveInput",
+  "SetInputName",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",

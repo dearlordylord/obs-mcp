@@ -23,6 +23,8 @@ Environment variables:
 - `TOOLSETS`: optional comma-separated category filter. Available categories are `canvases`, `config`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, `stream`, `transitions`, and `ui`; the default enables `general`, `record`, `scenes`, and `inputs`.
 - `OBS_EVENT_BUFFER_CAPACITY`: optional maximum number of recent safe OBS events retained for `get_recent_obs_events`. Defaults to the built-in bounded buffer size.
 - `TOOLSETS`: optional comma-separated category filter. Available categories are `admin_raw`, `batch`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, `stream`, and `vendor`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `TOOLSETS`: optional comma-separated category filter. Available categories are `events`, `filters`, `general`, `inputs`, `outputs`, `record`, `scenes`, `screenshots`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `OBS_MCP_SCREENSHOT_OUTPUT_DIR`: optional existing directory allowlist for `save_source_screenshot`. Screenshot save tools are disabled unless the `screenshots` toolset is enabled, and saves require a simple filename, not a path. Directories are never created implicitly.
 - `OBS_INTEGRATION_TESTS`: set to `1` to run real OBS websocket integration tests.
 - `OBS_INTEGRATION_MUTATION_TESTS`: set to `1` to enable integration tests that send state-changing OBS requests.
 
@@ -37,6 +39,9 @@ Set `TOOLSETS=vendor` to expose OBS websocket vendor/custom event tools. This is
 Set `TOOLSETS=batch` to expose `run_obs_request_batch`, a schema-limited OBS request batch tool. `Sleep` is supported only as a batch item with official serial execution semantics; there is no standalone sleep tool or arbitrary raw batch tool.
 
 By default, raw/vendor/custom, persistent-data, high-volume event, and batch surfaces are not exposed. Diagnostics are written to stderr; stdout is reserved for MCP JSON-RPC.
+## Payload and Settings Policy
+
+Input settings, filter settings, and screenshots use explicit MCP boundary schemas instead of raw OBS Object passthroughs. Read-only settings tools return stable setting metadata and mark raw settings as deferred. Mutation tools accept only allowlisted setting fields that have a narrow schema. Screenshot reads return bounded base64 data with MIME and byte metadata, while screenshot saves require the `screenshots` toolset plus an existing `OBS_MCP_SCREENSHOT_OUTPUT_DIR` allowlist.
 
 ## Tools
 
@@ -85,6 +90,18 @@ Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side 
 - `set_scene_item_index`
 - `set_scene_item_blend_mode`
 - `get_source_active`
+- `get_source_screenshot`
+- `save_source_screenshot`
+- `list_source_filter_kinds`
+- `list_source_filters`
+- `get_source_filter_default_settings`
+- `get_source_filter`
+- `create_source_filter`
+- `remove_source_filter`
+- `set_source_filter_settings`
+- `set_source_filter_enabled`
+- `set_source_filter_index`
+- `set_source_filter_name`
 - `list_inputs`
 - `list_input_kinds`
 - `get_special_inputs`
@@ -99,6 +116,20 @@ Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side 
 - `set_input_audio_monitor_type`
 - `get_input_audio_sync_offset`
 - `set_input_audio_sync_offset`
+- `get_input_audio_tracks`
+- `set_input_audio_tracks`
+- `get_input_deinterlace_mode`
+- `set_input_deinterlace_mode`
+- `get_input_deinterlace_field_order`
+- `set_input_deinterlace_field_order`
+- `get_input_default_settings`
+- `get_input_settings`
+- `get_input_properties_list_property_items`
+- `set_input_settings`
+- `press_input_properties_button`
+- `create_input`
+- `remove_input`
+- `set_input_name`
 - `get_media_input_status`
 - `set_media_input_cursor`
 - `offset_media_input_cursor`

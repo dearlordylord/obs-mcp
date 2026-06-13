@@ -1,24 +1,40 @@
 import { Schema } from "effect"
 
 import {
+  CreateInputOutput,
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
+  InputDeinterlaceFieldOrderOutput,
+  InputDeinterlaceModeOutput,
+  InputKindInput,
   InputLocatorInput,
   InputMuteOutput,
+  InputPropertiesListPropertyItemsInput,
   InputVolumeOutput,
   ListInputKindsInput,
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
   MediaInputStatusOutput,
+  ObsCreateInputInput,
+  ObsInputAudioTracksOutput,
+  ObsInputDefaultSettingsOutput,
+  ObsInputPropertiesListPropertyItemsOutput,
+  ObsInputSettingsOutput,
+  ObsSetInputSettingsInput,
   OffsetMediaInputCursorInput,
+  PressInputPropertiesButtonInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
+  SetInputDeinterlaceFieldOrderInput,
+  SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputNameInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
+  SetObsInputAudioTracksInput,
   SpecialInputsOutput,
   TriggerMediaInputActionInput
 } from "../../domain/schemas/inputs.js"
@@ -107,6 +123,90 @@ export const GetInputAudioSyncOffset = {
 export const SetInputAudioSyncOffset = {
   requestType: "SetInputAudioSyncOffset",
   requestDataSchema: SetInputAudioSyncOffsetInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputAudioTracks = {
+  requestType: "GetInputAudioTracks",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: ObsInputAudioTracksOutput
+} satisfies ObsRequestDescriptor<ObsInputAudioTracksOutput>
+
+export const SetInputAudioTracks = {
+  requestType: "SetInputAudioTracks",
+  requestDataSchema: SetObsInputAudioTracksInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputDeinterlaceMode = {
+  requestType: "GetInputDeinterlaceMode",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputDeinterlaceModeOutput
+} satisfies ObsRequestDescriptor<InputDeinterlaceModeOutput>
+
+export const SetInputDeinterlaceMode = {
+  requestType: "SetInputDeinterlaceMode",
+  requestDataSchema: SetInputDeinterlaceModeInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputDeinterlaceFieldOrder = {
+  requestType: "GetInputDeinterlaceFieldOrder",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputDeinterlaceFieldOrderOutput
+} satisfies ObsRequestDescriptor<InputDeinterlaceFieldOrderOutput>
+
+export const SetInputDeinterlaceFieldOrder = {
+  requestType: "SetInputDeinterlaceFieldOrder",
+  requestDataSchema: SetInputDeinterlaceFieldOrderInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputDefaultSettings = {
+  requestType: "GetInputDefaultSettings",
+  requestDataSchema: InputKindInput,
+  responseSchema: ObsInputDefaultSettingsOutput
+} satisfies ObsRequestDescriptor<ObsInputDefaultSettingsOutput>
+
+export const GetInputSettings = {
+  requestType: "GetInputSettings",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: ObsInputSettingsOutput
+} satisfies ObsRequestDescriptor<ObsInputSettingsOutput>
+
+export const GetInputPropertiesListPropertyItems = {
+  requestType: "GetInputPropertiesListPropertyItems",
+  requestDataSchema: InputPropertiesListPropertyItemsInput,
+  responseSchema: ObsInputPropertiesListPropertyItemsOutput
+} satisfies ObsRequestDescriptor<ObsInputPropertiesListPropertyItemsOutput>
+
+export const SetInputSettings = {
+  requestType: "SetInputSettings",
+  requestDataSchema: ObsSetInputSettingsInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const PressInputPropertiesButton = {
+  requestType: "PressInputPropertiesButton",
+  requestDataSchema: PressInputPropertiesButtonInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const CreateInput = {
+  requestType: "CreateInput",
+  requestDataSchema: ObsCreateInputInput,
+  responseSchema: CreateInputOutput
+} satisfies ObsRequestDescriptor<CreateInputOutput>
+
+export const RemoveInput = {
+  requestType: "RemoveInput",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const SetInputName = {
+  requestType: "SetInputName",
+  requestDataSchema: SetInputNameInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 

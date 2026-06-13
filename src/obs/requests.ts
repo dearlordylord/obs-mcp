@@ -47,6 +47,18 @@ export const ObsRequestType = Schema.Literal(
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
   "GetSourceActive",
+  "GetSourceScreenshot",
+  "SaveSourceScreenshot",
+  "GetSourceFilterKindList",
+  "GetSourceFilterList",
+  "GetSourceFilterDefaultSettings",
+  "GetSourceFilter",
+  "CreateSourceFilter",
+  "RemoveSourceFilter",
+  "SetSourceFilterSettings",
+  "SetSourceFilterEnabled",
+  "SetSourceFilterIndex",
+  "SetSourceFilterName",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -61,6 +73,20 @@ export const ObsRequestType = Schema.Literal(
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetInputAudioTracks",
+  "SetInputAudioTracks",
+  "GetInputDeinterlaceMode",
+  "SetInputDeinterlaceMode",
+  "GetInputDeinterlaceFieldOrder",
+  "SetInputDeinterlaceFieldOrder",
+  "GetInputDefaultSettings",
+  "GetInputSettings",
+  "GetInputPropertiesListPropertyItems",
+  "SetInputSettings",
+  "PressInputPropertiesButton",
+  "CreateInput",
+  "RemoveInput",
+  "SetInputName",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
@@ -106,12 +132,14 @@ export type ObsRequestType = typeof ObsRequestType.Type
 
 export * from "./requests/canvases.js"
 export * from "./requests/config.js"
+export * from "./requests/filters.js"
 export * from "./requests/general.js"
 export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"
 export * from "./requests/persistent-data.js"
 export * from "./requests/record.js"
 export * from "./requests/scenes.js"
+export * from "./requests/screenshots.js"
 export type { ObsRequestDescriptor } from "./requests/shared.js"
 export * from "./requests/stream.js"
 export * from "./requests/transitions.js"

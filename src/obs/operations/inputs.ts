@@ -1,19 +1,42 @@
+/* eslint-disable max-lines */
+
 import { Schema } from "effect"
 
 import type {
+  InputMutationAcknowledgedOutput,
+  ObsInputAudioTracks,
   OffsetMediaInputCursorOutput,
+  PressInputPropertiesButtonOutput,
+  SanitizedInputPropertyItem,
+  SanitizedInputSetting,
+  SanitizedInputValueType,
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeOutput,
   SetInputAudioSyncOffsetOutput,
+  SetInputAudioTracksOutput,
+  SetInputDeinterlaceFieldOrderOutput,
+  SetInputDeinterlaceModeOutput,
+  SetInputNameOutput,
+  SetInputSettingsOutput,
   SetMediaInputCursorOutput,
   TriggerMediaInputActionOutput
 } from "../../domain/schemas/inputs.js"
 import {
+  CreateInputInput,
+  CreateInputOutput,
   InputAudioBalanceOutput,
   InputAudioMonitorTypeOutput,
   InputAudioSyncOffsetOutput,
+  InputAudioTracksOutput,
+  InputDefaultSettingsOutput,
+  InputDeinterlaceFieldOrderOutput,
+  InputDeinterlaceModeOutput,
+  InputKindInput,
   InputLocatorInput,
   InputMuteOutput,
+  InputPropertiesListPropertyItemsInput,
+  InputPropertiesListPropertyItemsOutput,
+  InputSettingsOutput,
   InputVolumeOutput,
   ListInputKindsInput,
   ListInputKindsOutput,
@@ -21,10 +44,16 @@ import {
   ListInputsOutput,
   MediaInputStatusOutput,
   OffsetMediaInputCursorInput,
+  PressInputPropertiesButtonInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
+  SetInputAudioTracksInput,
+  SetInputDeinterlaceFieldOrderInput,
+  SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputNameInput,
+  SetInputSettingsInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
   SetMediaInputCursorInput,
@@ -33,20 +62,34 @@ import {
 } from "../../domain/schemas/inputs.js"
 import type { ObsClient } from "../client.js"
 import {
+  CreateInput,
   GetInputAudioBalance,
   GetInputAudioMonitorType,
   GetInputAudioSyncOffset,
+  GetInputAudioTracks,
+  GetInputDefaultSettings,
+  GetInputDeinterlaceFieldOrder,
+  GetInputDeinterlaceMode,
   GetInputKindList,
   GetInputList,
   GetInputMute,
+  GetInputPropertiesListPropertyItems,
+  GetInputSettings,
   GetInputVolume,
   GetMediaInputStatus,
   GetSpecialInputs,
   OffsetMediaInputCursor,
+  PressInputPropertiesButton,
+  RemoveInput,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
+  SetInputAudioTracks,
+  SetInputDeinterlaceFieldOrder,
+  SetInputDeinterlaceMode,
   SetInputMute,
+  SetInputName,
+  SetInputSettings,
   SetInputVolume,
   SetMediaInputCursor,
   ToggleInputMute,
@@ -162,6 +205,260 @@ export const setInputAudioSyncOffset = async (
   const decodedInput = Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)(input)
   await client.request(SetInputAudioSyncOffset, decodedInput)
   return { inputAudioSyncOffset: decodedInput.inputAudioSyncOffset, acknowledged: true }
+}
+
+const toObsInputAudioTracks = (tracks: InputAudioTracksOutput["inputAudioTracks"]): ObsInputAudioTracks => ({
+  "1": tracks.track1,
+  "2": tracks.track2,
+  "3": tracks.track3,
+  "4": tracks.track4,
+  "5": tracks.track5,
+  "6": tracks.track6
+})
+
+const fromObsInputAudioTracks = (tracks: ObsInputAudioTracks): InputAudioTracksOutput["inputAudioTracks"] => ({
+  track1: tracks["1"],
+  track2: tracks["2"],
+  track3: tracks["3"],
+  track4: tracks["4"],
+  track5: tracks["5"],
+  track6: tracks["6"]
+})
+
+export const getInputAudioTracks = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputAudioTracksOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputAudioTracks, decodedInput)
+  return Schema.decodeUnknownSync(InputAudioTracksOutput)({
+    inputAudioTracks: fromObsInputAudioTracks(response.inputAudioTracks)
+  })
+}
+
+export const setInputAudioTracks = async (
+  client: ObsClient,
+  input: SetInputAudioTracksInput
+): Promise<SetInputAudioTracksOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputAudioTracksInput)(input)
+  await client.request(SetInputAudioTracks, {
+    ...decodedInput,
+    inputAudioTracks: toObsInputAudioTracks(decodedInput.inputAudioTracks)
+  })
+  return { inputAudioTracks: decodedInput.inputAudioTracks, acknowledged: true }
+}
+
+export const getInputDeinterlaceMode = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputDeinterlaceModeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputDeinterlaceMode, decodedInput)
+  return Schema.decodeUnknownSync(InputDeinterlaceModeOutput)(response)
+}
+
+export const setInputDeinterlaceMode = async (
+  client: ObsClient,
+  input: SetInputDeinterlaceModeInput
+): Promise<SetInputDeinterlaceModeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputDeinterlaceModeInput)(input)
+  await client.request(SetInputDeinterlaceMode, decodedInput)
+  return { inputDeinterlaceMode: decodedInput.inputDeinterlaceMode, acknowledged: true }
+}
+
+export const getInputDeinterlaceFieldOrder = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputDeinterlaceFieldOrderOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputDeinterlaceFieldOrder, decodedInput)
+  return Schema.decodeUnknownSync(InputDeinterlaceFieldOrderOutput)(response)
+}
+
+export const setInputDeinterlaceFieldOrder = async (
+  client: ObsClient,
+  input: SetInputDeinterlaceFieldOrderInput
+): Promise<SetInputDeinterlaceFieldOrderOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput)(input)
+  await client.request(SetInputDeinterlaceFieldOrder, decodedInput)
+  return { inputDeinterlaceFieldOrder: decodedInput.inputDeinterlaceFieldOrder, acknowledged: true }
+}
+
+const VALUE_PREVIEW_MAX_LENGTH = 160
+
+const sanitizedValueType = (value: unknown): SanitizedInputValueType =>
+  value === null
+    ? "null"
+    : Array.isArray(value)
+    ? "array"
+    : typeof value === "string"
+    ? "string"
+    : typeof value === "number"
+    ? "number"
+    : typeof value === "boolean"
+    ? "boolean"
+    : typeof value === "object"
+    ? "object"
+    : "unknown"
+
+const sanitizedValuePreview = (value: unknown): string | undefined => {
+  if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean" && value !== null) {
+    return undefined
+  }
+  const preview = String(value)
+  return preview.length > VALUE_PREVIEW_MAX_LENGTH ? `${preview.slice(0, VALUE_PREVIEW_MAX_LENGTH)}...` : preview
+}
+
+const sanitizeSettingsRecord = (settings: Readonly<Record<string, unknown>>): ReadonlyArray<SanitizedInputSetting> =>
+  Object.entries(settings)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([settingName, value]) => ({
+      settingName,
+      valueType: sanitizedValueType(value)
+    }))
+
+const optionalStringField = (
+  record: Readonly<Record<string, unknown>>,
+  keys: ReadonlyArray<string>
+): string | undefined => {
+  const value = keys.map((key) => record[key]).find((entry) => typeof entry === "string")
+  return typeof value === "string" ? value : undefined
+}
+
+const optionalBooleanField = (
+  record: Readonly<Record<string, unknown>>,
+  keys: ReadonlyArray<string>
+): boolean | undefined => {
+  const value = keys.map((key) => record[key]).find((entry) => typeof entry === "boolean")
+  return typeof value === "boolean" ? value : undefined
+}
+
+const sanitizePropertyItem = (
+  propertyItem: Readonly<Record<string, unknown>>,
+  itemIndex: number
+): SanitizedInputPropertyItem => {
+  const itemValue = propertyItem.itemValue
+  const itemName = optionalStringField(propertyItem, ["itemName", "name"])
+  const itemEnabled = optionalBooleanField(propertyItem, ["itemEnabled", "enabled"])
+  const itemValuePreview = sanitizedValuePreview(itemValue)
+  return {
+    itemIndex,
+    ...(itemName === undefined ? {} : { itemName }),
+    ...(itemValue === undefined ? {} : { itemValueType: sanitizedValueType(itemValue) }),
+    ...(itemValuePreview === undefined ? {} : { itemValuePreview }),
+    ...(itemEnabled === undefined ? {} : { itemEnabled }),
+    fields: sanitizeSettingsRecord(propertyItem)
+  }
+}
+
+export const getInputDefaultSettings = async (
+  client: ObsClient,
+  input: InputKindInput
+): Promise<InputDefaultSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputKindInput)(input)
+  const response = await client.request(GetInputDefaultSettings, decodedInput)
+  return Schema.decodeUnknownSync(InputDefaultSettingsOutput)({
+    inputKind: decodedInput.inputKind,
+    defaultInputSettings: sanitizeSettingsRecord(response.defaultInputSettings),
+    rawSettingsDeferred: true
+  })
+}
+
+export const getInputSettings = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputSettings, decodedInput)
+  return Schema.decodeUnknownSync(InputSettingsOutput)({
+    inputKind: response.inputKind,
+    inputSettings: sanitizeSettingsRecord(response.inputSettings),
+    rawSettingsDeferred: true
+  })
+}
+
+export const getInputPropertiesListPropertyItems = async (
+  client: ObsClient,
+  input: InputPropertiesListPropertyItemsInput
+): Promise<InputPropertiesListPropertyItemsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput)(input)
+  const response = await client.request(GetInputPropertiesListPropertyItems, decodedInput)
+  return Schema.decodeUnknownSync(InputPropertiesListPropertyItemsOutput)({
+    propertyName: decodedInput.propertyName,
+    propertyItems: response.propertyItems.map(sanitizePropertyItem),
+    rawPropertyItemsDeferred: true
+  })
+}
+
+const inputSettingsPatchToObsSettings = (
+  settings: SetInputSettingsInput["inputSettings"]
+): Readonly<Record<string, unknown>> =>
+  Object.fromEntries(
+    [
+      ["is_local_file", settings.isLocalFile],
+      ["looping", settings.looping],
+      ["restart_on_activate", settings.restartOnActivate],
+      ["close_when_inactive", settings.closeWhenInactive],
+      ["clear_on_media_end", settings.clearOnMediaEnd],
+      ["hw_decode", settings.hwDecode],
+      ["speed_percent", settings.speedPercent],
+      ["reconnect_delay_sec", settings.reconnectDelaySec]
+    ].filter(([, value]) => value !== undefined)
+  )
+
+export const setInputSettings = async (
+  client: ObsClient,
+  input: SetInputSettingsInput
+): Promise<SetInputSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputSettingsInput)(input)
+  const overlay = decodedInput.overlay ?? true
+  await client.request(SetInputSettings, {
+    ...(decodedInput.inputName === undefined ? {} : { inputName: decodedInput.inputName }),
+    ...(decodedInput.inputUuid === undefined ? {} : { inputUuid: decodedInput.inputUuid }),
+    inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings),
+    overlay
+  })
+  return { inputSettings: decodedInput.inputSettings, overlay, acknowledged: true }
+}
+
+export const pressInputPropertiesButton = async (
+  client: ObsClient,
+  input: PressInputPropertiesButtonInput
+): Promise<PressInputPropertiesButtonOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(PressInputPropertiesButtonInput)(input)
+  await client.request(PressInputPropertiesButton, decodedInput)
+  return { propertyName: decodedInput.propertyName, acknowledged: true }
+}
+
+export const createInput = async (client: ObsClient, input: CreateInputInput): Promise<CreateInputOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(CreateInputInput)(input)
+  const response = await client.request(CreateInput, {
+    ...(decodedInput.sceneName === undefined ? {} : { sceneName: decodedInput.sceneName }),
+    ...(decodedInput.sceneUuid === undefined ? {} : { sceneUuid: decodedInput.sceneUuid }),
+    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    inputName: decodedInput.inputName,
+    inputKind: decodedInput.inputKind,
+    ...(decodedInput.inputSettings === undefined
+      ? {}
+      : { inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings) }),
+    sceneItemEnabled: decodedInput.sceneItemEnabled ?? true
+  })
+  return Schema.decodeUnknownSync(CreateInputOutput)(response)
+}
+
+export const removeInput = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputMutationAcknowledgedOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  await client.request(RemoveInput, decodedInput)
+  return { acknowledged: true }
+}
+
+export const setInputName = async (client: ObsClient, input: SetInputNameInput): Promise<SetInputNameOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputNameInput)(input)
+  await client.request(SetInputName, decodedInput)
+  return { inputName: decodedInput.newInputName, acknowledged: true }
 }
 
 export const getMediaInputStatus = async (

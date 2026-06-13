@@ -1,18 +1,62 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js"
 import { JSONSchema, Option, Schema } from "effect"
+import { mkdtemp, rm } from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
 import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import {
+  CreateSourceFilterInput,
+  CreateSourceFilterOutput,
+  ListSourceFilterKindsOutput,
+  ListSourceFiltersOutput,
+  ObsSetSourceFilterSettingsInput,
+  SetSourceFilterEnabledInput,
+  SetSourceFilterEnabledOutput,
+  SetSourceFilterIndexInput,
+  SetSourceFilterIndexOutput,
+  SetSourceFilterNameInput,
+  SetSourceFilterNameOutput,
+  SetSourceFilterSettingsInput,
+  SetSourceFilterSettingsOutput,
+  SourceFilterAcknowledgedOutput,
+  SourceFilterDefaultSettingsOutput,
+  SourceFilterKindInput,
+  SourceFilterLocatorInput,
+  SourceFilterOutput
+} from "../../src/domain/schemas/filters.js"
+import {
+  CreateInputInput,
+  CreateInputOutput,
+  InputAudioTracksOutput,
+  InputDefaultSettingsOutput,
+  InputDeinterlaceFieldOrderOutput,
+  InputDeinterlaceModeOutput,
+  InputKindInput,
   InputLocatorInput,
+  InputMutationAcknowledgedOutput,
+  InputPropertiesListPropertyItemsInput,
+  InputPropertiesListPropertyItemsOutput,
+  InputSettingsOutput,
   ListInputKindsInput,
   MediaInputStatusOutput,
+  ObsCreateInputInput,
+  ObsSetInputSettingsInput,
   OffsetMediaInputCursorInput,
+  PressInputPropertiesButtonInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
+  SetInputAudioTracksInput,
+  SetInputDeinterlaceFieldOrderInput,
+  SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputNameInput,
+  SetInputNameOutput,
+  SetInputSettingsInput,
   SetInputVolumeInput,
+  SetInputVolumeOutput,
   SetMediaInputCursorInput,
   TriggerMediaInputActionInput
 } from "../../src/domain/schemas/inputs.js"
@@ -24,6 +68,12 @@ import {
   StopRecordOutput,
   ToggleRecordOutput
 } from "../../src/domain/schemas/record.js"
+import {
+  GetSourceScreenshotInput,
+  GetSourceScreenshotOutput,
+  SaveSourceScreenshotInput,
+  SaveSourceScreenshotOutput
+} from "../../src/domain/schemas/screenshots.js"
 import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -56,6 +106,20 @@ const inputToolNames = [
   "set_input_audio_monitor_type",
   "get_input_audio_sync_offset",
   "set_input_audio_sync_offset",
+  "get_input_audio_tracks",
+  "set_input_audio_tracks",
+  "get_input_deinterlace_mode",
+  "set_input_deinterlace_mode",
+  "get_input_deinterlace_field_order",
+  "set_input_deinterlace_field_order",
+  "get_input_default_settings",
+  "get_input_settings",
+  "get_input_properties_list_property_items",
+  "set_input_settings",
+  "press_input_properties_button",
+  "create_input",
+  "remove_input",
+  "set_input_name",
   "get_media_input_status",
   "set_media_input_cursor",
   "offset_media_input_cursor",
@@ -78,6 +142,99 @@ const deferredInputMediaToolNames = [
   "set_input_settings"
 ]
 
+const filterToolNames = [
+  "list_source_filter_kinds",
+  "list_source_filters",
+  "get_source_filter_default_settings",
+  "get_source_filter",
+  "create_source_filter",
+  "remove_source_filter",
+  "set_source_filter_settings",
+  "set_source_filter_enabled",
+  "set_source_filter_index",
+  "set_source_filter_name"
+]
+
+const filterAvailableRequests = [
+  "GetSourceFilterKindList",
+  "GetSourceFilterList",
+  "GetSourceFilterDefaultSettings",
+  "GetSourceFilter",
+  "CreateSourceFilter",
+  "RemoveSourceFilter",
+  "SetSourceFilterSettings",
+  "SetSourceFilterEnabled",
+  "SetSourceFilterIndex",
+  "SetSourceFilterName"
+] satisfies ReadonlyArray<ObsRequestType>
+
+const screenshotToolNames = [
+  "get_source_screenshot",
+  "save_source_screenshot"
+]
+
+const screenshotAvailableRequests = [
+  "GetSourceScreenshot",
+  "SaveSourceScreenshot"
+] satisfies ReadonlyArray<ObsRequestType>
+
+const laneOwnedRequestPolicies = [
+  { requestType: "GetInputAudioTracks", toolNames: ["get_input_audio_tracks"], policy: "implemented" },
+  { requestType: "SetInputAudioTracks", toolNames: ["set_input_audio_tracks"], policy: "implemented" },
+  { requestType: "GetInputDeinterlaceMode", toolNames: ["get_input_deinterlace_mode"], policy: "implemented" },
+  { requestType: "SetInputDeinterlaceMode", toolNames: ["set_input_deinterlace_mode"], policy: "implemented" },
+  {
+    requestType: "GetInputDeinterlaceFieldOrder",
+    toolNames: ["get_input_deinterlace_field_order"],
+    policy: "implemented"
+  },
+  {
+    requestType: "SetInputDeinterlaceFieldOrder",
+    toolNames: ["set_input_deinterlace_field_order"],
+    policy: "implemented"
+  },
+  { requestType: "GetInputDefaultSettings", toolNames: ["get_input_default_settings"], policy: "implemented" },
+  { requestType: "GetInputSettings", toolNames: ["get_input_settings"], policy: "implemented" },
+  {
+    requestType: "GetInputPropertiesListPropertyItems",
+    toolNames: ["get_input_properties_list_property_items"],
+    policy: "implemented"
+  },
+  { requestType: "SetInputSettings", toolNames: ["set_input_settings"], policy: "implemented" },
+  {
+    requestType: "PressInputPropertiesButton",
+    toolNames: ["press_input_properties_button"],
+    policy: "implemented"
+  },
+  { requestType: "CreateInput", toolNames: ["create_input"], policy: "implemented" },
+  { requestType: "RemoveInput", toolNames: ["remove_input"], policy: "implemented" },
+  { requestType: "SetInputName", toolNames: ["set_input_name"], policy: "implemented" },
+  { requestType: "GetSourceFilterKindList", toolNames: ["list_source_filter_kinds"], policy: "implemented" },
+  { requestType: "GetSourceFilterList", toolNames: ["list_source_filters"], policy: "implemented" },
+  {
+    requestType: "GetSourceFilterDefaultSettings",
+    toolNames: ["get_source_filter_default_settings"],
+    policy: "implemented"
+  },
+  { requestType: "GetSourceFilter", toolNames: ["get_source_filter"], policy: "implemented" },
+  { requestType: "CreateSourceFilter", toolNames: ["create_source_filter"], policy: "implemented" },
+  { requestType: "RemoveSourceFilter", toolNames: ["remove_source_filter"], policy: "implemented" },
+  { requestType: "SetSourceFilterSettings", toolNames: ["set_source_filter_settings"], policy: "implemented" },
+  { requestType: "SetSourceFilterEnabled", toolNames: ["set_source_filter_enabled"], policy: "implemented" },
+  { requestType: "SetSourceFilterIndex", toolNames: ["set_source_filter_index"], policy: "implemented" },
+  { requestType: "SetSourceFilterName", toolNames: ["set_source_filter_name"], policy: "implemented" },
+  { requestType: "GetSourceScreenshot", toolNames: ["get_source_screenshot"], policy: "implemented" },
+  { requestType: "SaveSourceScreenshot", toolNames: ["save_source_screenshot"], policy: "implemented" }
+] satisfies ReadonlyArray<{
+  readonly requestType: ObsRequestType
+  readonly toolNames: ReadonlyArray<string>
+  readonly policy: "implemented" | "deferred"
+}>
+
+const laneOwnedToolNames = Array.from(
+  new Set(laneOwnedRequestPolicies.flatMap((entry) => entry.toolNames))
+)
+
 const inputAvailableRequests = [
   "GetInputList",
   "GetInputKindList",
@@ -93,6 +250,20 @@ const inputAvailableRequests = [
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetInputAudioTracks",
+  "SetInputAudioTracks",
+  "GetInputDeinterlaceMode",
+  "SetInputDeinterlaceMode",
+  "GetInputDeinterlaceFieldOrder",
+  "SetInputDeinterlaceFieldOrder",
+  "GetInputDefaultSettings",
+  "GetInputSettings",
+  "GetInputPropertiesListPropertyItems",
+  "SetInputSettings",
+  "PressInputPropertiesButton",
+  "CreateInput",
+  "RemoveInput",
+  "SetInputName",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
@@ -356,6 +527,14 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual(inputToolNames)
   })
 
+  it("exposes source filter read tools when the filter toolset is enabled", () => {
+    expect(getEnabledTools(["filters"]).map((tool) => tool.name)).toEqual(filterToolNames)
+  })
+
+  it("exposes source screenshot tools when the screenshots toolset is enabled", () => {
+    expect(getEnabledTools(["screenshots"]).map((tool) => tool.name)).toEqual(screenshotToolNames)
+  })
+
   it("exposes output tools when the outputs toolset is enabled", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
@@ -442,6 +621,7 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_recent_obs_events"
     ])
+    expect(getEnabledTools(["filters"], allAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
       "start_record",
@@ -472,6 +652,9 @@ describe("MCP tool registry", () => {
       "get_source_active"
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual(inputToolNames)
+    expect(getEnabledTools(["filters"], allAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
+    expect(getEnabledTools(["screenshots"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(screenshotToolNames)
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
       "start_virtual_cam",
@@ -489,6 +672,12 @@ describe("MCP tool registry", () => {
     for (const name of inputToolNames) {
       expect(sceneToolNames).not.toContain(name)
     }
+    for (const name of filterToolNames) {
+      expect(sceneToolNames).not.toContain(name)
+    }
+    for (const name of screenshotToolNames) {
+      expect(sceneToolNames).not.toContain(name)
+    }
     for (const name of deferredInputMediaToolNames) {
       expect(allTools.map((tool) => tool.name)).not.toContain(name)
     }
@@ -503,6 +692,15 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_obs_stats"
     ])
+    expect(getEnabledTools(["filters"], filterAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
+    expect(getEnabledTools(["filters"], ["GetSourceFilterList", "GetSourceFilter"]).map((tool) => tool.name)).toEqual([
+      "list_source_filters",
+      "get_source_filter"
+    ])
+    expect(getEnabledTools(["screenshots"], screenshotAvailableRequests).map((tool) => tool.name))
+      .toEqual(screenshotToolNames)
+    expect(getEnabledTools(["screenshots"], ["GetSourceScreenshot"]).map((tool) => tool.name))
+      .toEqual(["get_source_screenshot"])
     expect(
       getEnabledTools(["general"], [
         "GetHotkeyList",
@@ -542,6 +740,64 @@ describe("MCP tool registry", () => {
       .toEqual(["save_replay_buffer", "get_last_replay_buffer_replay"])
   })
 
+  it("keeps every lane-owned OBS request implemented or explicitly deferred by policy", () => {
+    expect(laneOwnedRequestPolicies).not.toContainEqual(expect.objectContaining({ policy: "deferred" }))
+    for (const entry of laneOwnedRequestPolicies) {
+      for (const toolName of entry.toolNames) {
+        const tool = toolByName(toolName)
+        expect(tool.requiredObsRequests).toContain(entry.requestType)
+      }
+    }
+  })
+
+  it.each(laneOwnedToolNames)("capability-gates lane-owned tool %s", (toolName) => {
+    const tool = toolByName(toolName)
+    expect(tool.requiredObsRequests.length).toBeGreaterThan(0)
+    expect(getEnabledTools([tool.category], []).map((entry) => entry.name)).not.toContain(toolName)
+    expect(getEnabledTools([tool.category], tool.requiredObsRequests).map((entry) => entry.name))
+      .toContain(toolName)
+  })
+
+  it.each([
+    {
+      toolName: "set_input_settings",
+      input: { inputName: "Camera", inputSettings: { privatePath: "/tmp/secret" } }
+    },
+    {
+      toolName: "create_input",
+      input: {
+        sceneName: "Scene",
+        inputName: "Camera",
+        inputKind: "ffmpeg_source",
+        inputSettings: { privatePath: "/tmp/secret" }
+      }
+    },
+    {
+      toolName: "set_source_filter_settings",
+      input: { sourceName: "Camera", filterName: "Color Correction", filterSettings: { privatePath: "/tmp/secret" } }
+    },
+    {
+      toolName: "create_source_filter",
+      input: {
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterKind: "color_filter_v2",
+        filterSettings: { privatePath: "/tmp/secret" }
+      }
+    },
+    {
+      toolName: "get_source_screenshot",
+      input: { sourceName: "Camera", imageFormat: "gif" }
+    },
+    {
+      toolName: "save_source_screenshot",
+      input: { sourceName: "Camera", imageFormat: "png", fileName: "../camera.png" }
+    }
+  ])("rejects broad raw passthrough for $toolName", ({ input, toolName }) => {
+    expect(() => Schema.decodeUnknownSync(toolByName(toolName).inputSchema, { onExcessProperty: "error" })(input))
+      .toThrow()
+  })
+
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
     const cases = [
       {
@@ -563,6 +819,17 @@ describe("MCP tool registry", () => {
           "GetInputVolume",
           "GetInputAudioBalance",
           "GetInputAudioSyncOffset",
+          "GetInputAudioTracks",
+          "GetInputDeinterlaceMode",
+          "GetInputDeinterlaceFieldOrder",
+          "GetInputDefaultSettings",
+          "GetInputSettings",
+          "GetInputPropertiesListPropertyItems",
+          "SetInputSettings",
+          "PressInputPropertiesButton",
+          "CreateInput",
+          "RemoveInput",
+          "SetInputName",
           "GetMediaInputStatus",
           "SetMediaInputCursor",
           "TriggerMediaInputAction"
@@ -577,6 +844,17 @@ describe("MCP tool registry", () => {
           "get_input_volume",
           "get_input_audio_balance",
           "get_input_audio_sync_offset",
+          "get_input_audio_tracks",
+          "get_input_deinterlace_mode",
+          "get_input_deinterlace_field_order",
+          "get_input_default_settings",
+          "get_input_settings",
+          "get_input_properties_list_property_items",
+          "set_input_settings",
+          "press_input_properties_button",
+          "create_input",
+          "remove_input",
+          "set_input_name",
           "get_media_input_status",
           "set_media_input_cursor",
           "trigger_media_input_action"
@@ -858,6 +1136,243 @@ describe("MCP tool registry", () => {
       ["TriggerHotkeyByName", { hotkeyName: "OBSBasic.StartRecording" }],
       ["TriggerHotkeyByKeySequence", { keyId: "OBS_KEY_F10", keyModifiers: { alt: true, command: false } }]
     ])
+  })
+
+  it("executes source filter read handlers with sanitized structured output", async () => {
+    const filterConfig: ObsConfig = { ...config, enabledToolsets: ["filters"] }
+    const responses: Partial<Record<ObsRequestType, unknown>> = {
+      GetSourceFilterKindList: { sourceFilterKinds: ["color_filter_v2", "gain_filter"] },
+      GetSourceFilterList: {
+        filters: [{
+          filterName: "Color Correction",
+          filterEnabled: true,
+          filterIndex: 0,
+          filterKind: "color_filter_v2",
+          filterSettings: {
+            brightness: 0.1,
+            empty_value: null,
+            nested_policy: { omitted: true },
+            secret_path: "/tmp/private",
+            unknown_value: undefined
+          }
+        }, {
+          filterName: 10,
+          filterEnabled: "yes",
+          filterIndex: -1,
+          filterKind: null,
+          filterSettings: []
+        }]
+      },
+      GetSourceFilterDefaultSettings: {
+        defaultFilterSettings: {
+          brightness: 0,
+          enabled_by_default: true,
+          nested_policy: { omitted: true }
+        }
+      },
+      GetSourceFilter: {
+        filterEnabled: true,
+        filterIndex: 0,
+        filterKind: "color_filter_v2",
+        filterSettings: {
+          brightness: 0.1,
+          empty_value: null,
+          nested_policy: { omitted: true },
+          secret_path: "/tmp/private",
+          unknown_value: undefined
+        }
+      }
+    }
+    const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
+    const settings = [
+      { settingName: "brightness", valueType: "number" },
+      { settingName: "empty_value", valueType: "null" },
+      { settingName: "nested_policy", valueType: "object" },
+      { settingName: "secret_path", valueType: "string" },
+      { settingName: "unknown_value", valueType: "unknown" }
+    ]
+    await expect(executeTool(toolByName("list_source_filter_kinds"), {}, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ sourceFilterKinds: ["color_filter_v2", "gain_filter"] })
+    await expect(executeTool(toolByName("list_source_filters"), { sourceName: "Camera", canvasUuid: "canvas-main" }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filters: [{
+        filterName: "Color Correction",
+        filterEnabled: true,
+        filterIndex: 0,
+        filterKind: "color_filter_v2",
+        filterSettings: settings,
+        rawSettingsDeferred: true
+      }, {
+        filterName: "filter-1",
+        filterEnabled: false,
+        filterIndex: 1,
+        filterKind: "unknown_filter",
+        filterSettings: [],
+        rawSettingsDeferred: true
+      }]
+    })
+    await expect(executeTool(toolByName("get_source_filter_default_settings"), {
+      filterKind: "color_filter_v2"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filterKind: "color_filter_v2",
+      defaultFilterSettings: [
+        { settingName: "brightness", valueType: "number" },
+        { settingName: "enabled_by_default", valueType: "boolean" },
+        { settingName: "nested_policy", valueType: "object" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(executeTool(toolByName("get_source_filter"), {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filterName: "Color Correction",
+      filterEnabled: true,
+      filterIndex: 0,
+      filterKind: "color_filter_v2",
+      filterSettings: settings,
+      rawSettingsDeferred: true
+    })
+    await expect(executeTool(toolByName("create_source_filter"), {
+      sourceName: "Camera",
+      filterName: "Boost",
+      filterKind: "gain_filter",
+      filterSettings: { db: 6 }
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Boost", filterKind: "gain_filter", acknowledged: true })
+    await expect(executeTool(toolByName("remove_source_filter"), {
+      sourceName: "Camera",
+      filterName: "Boost"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Boost", acknowledged: true })
+    await expect(executeTool(toolByName("set_source_filter_settings"), {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, colorMultiply: 4_294_967_295 },
+      overlay: false
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, colorMultiply: 4_294_967_295 },
+      overlay: false,
+      acknowledged: true
+    })
+    await expect(executeTool(toolByName("set_source_filter_enabled"), {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterEnabled: false
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Color Correction", filterEnabled: false, acknowledged: true })
+    await expect(executeTool(toolByName("set_source_filter_index"), {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: 1
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Color Correction", filterIndex: 1, acknowledged: true })
+    await expect(executeTool(toolByName("set_source_filter_name"), {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction",
+      newFilterName: "Primary Color"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ filterName: "Primary Color", acknowledged: true })
+  })
+
+  it("executes source screenshot handlers with bounded payload and save policy", async () => {
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-registry-screenshots-"))
+    const screenshotConfig: ObsConfig = {
+      ...config,
+      enabledToolsets: ["screenshots"],
+      screenshotOutputDirectory: outputDirectory
+    }
+    const requests: Array<{ requestType: ObsRequestType; requestData: unknown }> = []
+    const fakeClient = fakeObsClient(async (requestType, requestData) => {
+      requests.push({ requestType, requestData })
+      if (requestType === "GetSourceScreenshot") {
+        return { imageData: "data:image/png;base64,aW1hZ2U=" }
+      }
+      return {}
+    })
+
+    try {
+      await expect(executeTool(toolByName("get_source_screenshot"), {
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      }, {
+        config: screenshotConfig,
+        client: fakeClient
+      })).resolves.toEqual({
+        imageFormat: "png",
+        mimeType: "image/png",
+        imageBytes: 5,
+        maxImageBytes: 1_500_000,
+        base64Data: "aW1hZ2U="
+      })
+      await expect(executeTool(toolByName("save_source_screenshot"), {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "camera.png"
+      }, {
+        config: screenshotConfig,
+        client: fakeClient
+      })).resolves.toEqual({
+        imageFilePath: path.join(outputDirectory, "camera.png"),
+        imageFormat: "png",
+        saved: true
+      })
+      await expect(executeTool(toolByName("save_source_screenshot"), {
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "../camera.png"
+      }, {
+        config: screenshotConfig,
+        client: fakeClient
+      })).rejects.toThrow()
+    } finally {
+      await rm(outputDirectory, { force: true, recursive: true })
+    }
+
+    expect(requests).toEqual([{
+      requestType: "GetSourceScreenshot",
+      requestData: {
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      }
+    }, {
+      requestType: "SaveSourceScreenshot",
+      requestData: {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        imageFilePath: path.join(outputDirectory, "camera.png")
+      }
+    }])
   })
 
   it("executes input discovery handlers with structured output", async () => {
@@ -1450,6 +1965,284 @@ describe("MCP tool registry", () => {
     expect(output).toEqual({ inputKinds: ["wasapi_input_capture"] })
   })
 
+  it("enforces source filter schemas and locator boundaries", () => {
+    expect(Schema.decodeUnknownSync(SourceFilterKindInput)({ filterKind: "color_filter_v2" }))
+      .toEqual({ filterKind: "color_filter_v2" })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceName: "Camera",
+        canvasUuid: "canvas-main",
+        filterName: "Color Correction"
+      })
+    ).toEqual({
+      sourceName: "Camera",
+      canvasUuid: "canvas-main",
+      filterName: "Color Correction"
+    })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceUuid: "source-camera",
+        filterName: "Color Correction"
+      })
+    ).toEqual({
+      sourceUuid: "source-camera",
+      filterName: "Color Correction"
+    })
+    expect(
+      Schema.decodeUnknownSync(ListSourceFilterKindsOutput)({
+        sourceFilterKinds: ["color_filter_v2"]
+      })
+    ).toEqual({ sourceFilterKinds: ["color_filter_v2"] })
+    const filterOutput = {
+      filterName: "Color Correction",
+      filterEnabled: true,
+      filterIndex: 0,
+      filterKind: "color_filter_v2",
+      filterSettings: [{ settingName: "brightness", valueType: "number" }],
+      rawSettingsDeferred: true
+    }
+    expect(Schema.decodeUnknownSync(ListSourceFiltersOutput)({ filters: [filterOutput] }))
+      .toEqual({ filters: [filterOutput] })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterDefaultSettingsOutput)({
+        filterKind: "color_filter_v2",
+        defaultFilterSettings: [{ settingName: "brightness", valueType: "number" }],
+        rawSettingsDeferred: true
+      })
+    ).toEqual({
+      filterKind: "color_filter_v2",
+      defaultFilterSettings: [{ settingName: "brightness", valueType: "number" }],
+      rawSettingsDeferred: true
+    })
+    expect(Schema.decodeUnknownSync(SourceFilterOutput)(filterOutput)).toEqual(filterOutput)
+    expect(
+      Schema.decodeUnknownSync(CreateSourceFilterInput)({
+        sourceName: "Camera",
+        filterName: "Boost",
+        filterKind: "gain_filter",
+        filterSettings: { db: 6 }
+      })
+    ).toEqual({ sourceName: "Camera", filterName: "Boost", filterKind: "gain_filter", filterSettings: { db: 6 } })
+    expect(
+      Schema.decodeUnknownSync(CreateSourceFilterOutput)({
+        filterName: "Boost",
+        filterKind: "gain_filter",
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Boost", filterKind: "gain_filter", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterAcknowledgedOutput)({
+        filterName: "Boost",
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Boost", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2, hueShift: 45 },
+        overlay: false
+      })
+    ).toEqual({
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, hueShift: 45 },
+      overlay: false
+    })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterSettingsOutput)({
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2, hueShift: 45 },
+        overlay: false,
+        acknowledged: true
+      })
+    ).toEqual({
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2, hueShift: 45 },
+      overlay: false,
+      acknowledged: true
+    })
+    expect(
+      Schema.decodeUnknownSync(ObsSetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { brightness: 0.2 }
+      })
+    ).toEqual({
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { brightness: 0.2 },
+      overlay: true
+    })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterEnabledInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterEnabled: false
+      })
+    ).toEqual({ sourceName: "Camera", filterName: "Color Correction", filterEnabled: false })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterEnabledOutput)({
+        filterName: "Color Correction",
+        filterEnabled: false,
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Color Correction", filterEnabled: false, acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterIndexInput)({
+        sourceUuid: "source-camera",
+        filterName: "Color Correction",
+        filterIndex: 1
+      })
+    ).toEqual({ sourceUuid: "source-camera", filterName: "Color Correction", filterIndex: 1 })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterIndexOutput)({
+        filterName: "Color Correction",
+        filterIndex: 1,
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Color Correction", filterIndex: 1, acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterNameInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        newFilterName: "Primary Color"
+      })
+    ).toEqual({ sourceName: "Camera", filterName: "Color Correction", newFilterName: "Primary Color" })
+    expect(
+      Schema.decodeUnknownSync(SetSourceFilterNameOutput)({
+        filterName: "Primary Color",
+        acknowledged: true
+      })
+    ).toEqual({ filterName: "Primary Color", acknowledged: true })
+    expect(() => Schema.decodeUnknownSync(SourceFilterKindInput)({ filterKind: "" })).toThrow(
+      "Expected a non empty string"
+    )
+    expect(() =>
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceName: "Camera",
+        sourceUuid: "source-camera",
+        filterName: "Color Correction"
+      })
+    ).toThrow("sourceName")
+    expect(() =>
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceName: "Camera",
+        filterName: ""
+      })
+    ).toThrow("Expected a non empty string")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterIndexInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterIndex: -1
+      })
+    ).toThrow("Expected a non-negative number")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterNameInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        newFilterName: ""
+      })
+    ).toThrow("Expected a non empty string")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { path: "/tmp/private" }
+      })
+    ).toThrow("At least one allowlisted filter setting is required")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSourceFilterSettingsInput)({
+        sourceName: "Camera",
+        filterName: "Color Correction",
+        filterSettings: { opacity: 2 }
+      })
+    ).toThrow("Expected a number less than or equal to 1")
+  })
+
+  it("enforces source screenshot schemas and bounded file policy", () => {
+    const getInput = {
+      sourceName: "Camera",
+      imageFormat: "png",
+      imageWidth: 320,
+      imageHeight: 180,
+      imageCompressionQuality: 80
+    }
+    expect(Schema.decodeUnknownSync(GetSourceScreenshotInput)(getInput)).toEqual(getInput)
+    expect(
+      Schema.decodeUnknownSync(GetSourceScreenshotOutput)({
+        imageFormat: "png",
+        mimeType: "image/png",
+        imageBytes: 5,
+        maxImageBytes: 1_500_000,
+        base64Data: "aW1hZ2U="
+      })
+    ).toEqual({
+      imageFormat: "png",
+      mimeType: "image/png",
+      imageBytes: 5,
+      maxImageBytes: 1_500_000,
+      base64Data: "aW1hZ2U="
+    })
+    expect(
+      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+        sourceUuid: "source-camera",
+        imageFormat: "jpg",
+        fileName: "camera.jpg"
+      })
+    ).toEqual({
+      sourceUuid: "source-camera",
+      imageFormat: "jpg",
+      fileName: "camera.jpg"
+    })
+    expect(
+      Schema.decodeUnknownSync(SaveSourceScreenshotOutput)({
+        imageFilePath: "/tmp/obs-mcp-screenshots/camera.jpg",
+        imageFormat: "jpg",
+        saved: true
+      })
+    ).toEqual({
+      imageFilePath: "/tmp/obs-mcp-screenshots/camera.jpg",
+      imageFormat: "jpg",
+      saved: true
+    })
+    expect(() =>
+      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "gif"
+      })
+    ).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 7
+      })
+    ).toThrow("Expected a number greater than or equal to 8")
+    expect(() =>
+      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageCompressionQuality: 101
+      })
+    ).toThrow("Expected a number less than or equal to 100")
+    expect(() =>
+      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "../camera.png"
+      })
+    ).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "."
+      })
+    ).toThrow()
+  })
+
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {
     const validCases = [
       { decode: Schema.decodeUnknownSync(InputLocatorInput), input: { inputName: "Mic/Aux" } },
@@ -1487,6 +2280,136 @@ describe("MCP tool registry", () => {
         input: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 20000 }
       },
       {
+        decode: Schema.decodeUnknownSync(InputAudioTracksOutput),
+        input: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputDeinterlaceModeOutput),
+        input: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceModeInput),
+        input: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_BLEND" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputDeinterlaceFieldOrderOutput),
+        input: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput),
+        input: { inputUuid: "input-mic-aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputKindInput),
+        input: { inputKind: "wasapi_input_capture" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputDefaultSettingsOutput),
+        input: {
+          inputKind: "wasapi_input_capture",
+          defaultInputSettings: [
+            { settingName: "device_id", valueType: "string", valuePreview: "mic" },
+            { settingName: "nested_policy", valueType: "object" }
+          ],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputSettingsOutput),
+        input: {
+          inputKind: "wasapi_input_capture",
+          inputSettings: [{ settingName: "active", valueType: "boolean", valuePreview: "true" }],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput),
+        input: { inputName: "Mic/Aux", propertyName: "device_id" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsOutput),
+        input: {
+          propertyName: "device_id",
+          propertyItems: [{
+            itemIndex: 0,
+            itemName: "Primary",
+            itemValueType: "string",
+            itemValuePreview: "primary-device",
+            itemEnabled: true,
+            fields: [{ settingName: "itemValue", valueType: "string", valuePreview: "primary-device" }]
+          }],
+          rawPropertyItemsDeferred: true
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: {
+          inputName: "Media Source",
+          inputSettings: {
+            isLocalFile: true,
+            looping: false,
+            restartOnActivate: true,
+            closeWhenInactive: false,
+            clearOnMediaEnd: true,
+            hwDecode: false,
+            speedPercent: 100,
+            reconnectDelaySec: 5
+          }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput),
+        input: { inputUuid: "input-browser", propertyName: "refreshnocache" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: {
+          sceneName: "Main",
+          inputName: "Media Source",
+          inputKind: "ffmpeg_source",
+          inputSettings: { looping: true }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputOutput),
+        input: { inputUuid: "input-media-source", sceneItemId: 3 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputMutationAcknowledgedOutput),
+        input: { acknowledged: true }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputNameInput),
+        input: { inputUuid: "input-media-source", newInputName: "Renamed Media" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputNameOutput),
+        input: { inputName: "Renamed Media", acknowledged: true }
+      },
+      {
         decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
         input: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
       },
@@ -1511,6 +2434,30 @@ describe("MCP tool registry", () => {
     for (const { decode, input } of validCases) {
       expect(decode(input)).toEqual(input)
     }
+    expect(
+      Schema.decodeUnknownSync(ObsSetInputSettingsInput)({
+        inputName: "Media Source",
+        inputSettings: { looping: true }
+      })
+    ).toEqual({
+      inputName: "Media Source",
+      inputSettings: { looping: true },
+      overlay: true
+    })
+    expect(
+      Schema.decodeUnknownSync(ObsCreateInputInput)({
+        sceneName: "Main",
+        inputName: "Media Source",
+        inputKind: "ffmpeg_source",
+        inputSettings: { looping: true }
+      })
+    ).toEqual({
+      sceneName: "Main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source",
+      inputSettings: { looping: true },
+      sceneItemEnabled: true
+    })
     expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
     const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
     const locatorCases = [
@@ -1523,6 +2470,31 @@ describe("MCP tool registry", () => {
         extra: { monitorType: "OBS_MONITORING_TYPE_NONE" }
       },
       { decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput), extra: { inputAudioSyncOffset: 0 } },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        extra: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceModeInput),
+        extra: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput),
+        extra: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
+      },
+      { decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput), extra: { propertyName: "device_id" } },
+      { decode: Schema.decodeUnknownSync(SetInputSettingsInput), extra: { inputSettings: { looping: true } } },
+      { decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput), extra: { propertyName: "refreshnocache" } },
+      { decode: Schema.decodeUnknownSync(SetInputNameInput), extra: { newInputName: "Renamed Media" } },
       { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
       { decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput), extra: { mediaCursorOffset: 1 } },
       {
@@ -1573,6 +2545,104 @@ describe("MCP tool registry", () => {
         message: "Expected an integer"
       },
       {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true
+          }
+        },
+        message: "is missing"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioTracksInput),
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: 1
+          }
+        },
+        message: "Expected boolean"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceModeInput),
+        input: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_UNKNOWN" },
+        message: "Expected"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputDeinterlaceFieldOrderInput),
+        input: { inputName: "Mic/Aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_UNKNOWN" },
+        message: "Expected"
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputKindInput),
+        input: { inputKind: "" },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput),
+        input: { inputName: "Mic/Aux", propertyName: "" },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(InputDefaultSettingsOutput),
+        input: {
+          inputKind: "wasapi_input_capture",
+          defaultInputSettings: [{ settingName: "device_id", valueType: "raw", valuePreview: "mic" }],
+          rawSettingsDeferred: true
+        },
+        message: "Expected"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: { inputName: "Media Source", inputSettings: {} },
+        message: "At least one allowlisted input setting is required"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: { inputName: "Media Source", inputSettings: { speedPercent: 0 } },
+        message: "Expected a number greater than or equal to 1"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: { inputName: "Media Source", inputSettings: { reconnectDelaySec: 301 } },
+        message: "Expected a number less than or equal to 300"
+      },
+      {
+        decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput),
+        input: { inputName: "Browser", propertyName: "" },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputVolumeOutput),
+        input: { inputVolumeMul: 1, inputVolumeDb: 0, acknowledged: true },
+        message: "Exactly one of inputVolumeMul or inputVolumeDb is required"
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: { sceneName: "Main", inputName: "", inputKind: "ffmpeg_source" },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: { sceneName: "Main", inputName: "Media Source", inputKind: "ffmpeg_source", inputSettings: {} },
+        message: "At least one allowlisted input setting is required"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputNameInput),
+        input: { inputName: "Media Source", newInputName: "" },
+        message: "Expected a non empty string"
+      },
+      {
         decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
         input: { inputName: "Media Source", mediaCursor: -1 },
         message: "Expected a non-negative number"
@@ -1608,6 +2678,39 @@ describe("MCP tool registry", () => {
       GetInputAudioBalance: { inputAudioBalance: 0.5 },
       GetInputAudioMonitorType: { monitorType: "OBS_MONITORING_TYPE_NONE" },
       GetInputAudioSyncOffset: { inputAudioSyncOffset: 0 },
+      GetInputAudioTracks: {
+        inputAudioTracks: {
+          "1": true,
+          "2": false,
+          "3": true,
+          "4": false,
+          "5": true,
+          "6": false
+        }
+      },
+      GetInputDeinterlaceMode: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE" },
+      GetInputDeinterlaceFieldOrder: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" },
+      GetInputDefaultSettings: {
+        defaultInputSettings: {
+          active: true,
+          device_id: "default-device",
+          nested_policy: { omitted: true }
+        }
+      },
+      GetInputSettings: {
+        inputKind: "wasapi_input_capture",
+        inputSettings: {
+          device_id: "mic-device",
+          nested_policy: { omitted: true },
+          unsupported: undefined
+        }
+      },
+      GetInputPropertiesListPropertyItems: {
+        propertyItems: [
+          { itemName: "Primary", itemValue: "primary-device", itemEnabled: true, metadata: { omitted: true } }
+        ]
+      },
+      CreateInput: { inputUuid: "input-media-source", sceneItemId: 3 },
       GetMediaInputStatus: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
     }
     const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
@@ -1666,6 +2769,158 @@ describe("MCP tool registry", () => {
         toolName: "set_input_audio_sync_offset",
         input: { inputName: "Mic/Aux", inputAudioSyncOffset: -250 },
         expected: { inputAudioSyncOffset: -250, acknowledged: true }
+      },
+      {
+        toolName: "get_input_audio_tracks",
+        input: { inputName: "Mic/Aux" },
+        expected: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        }
+      },
+      {
+        toolName: "set_input_audio_tracks",
+        input: {
+          inputName: "Mic/Aux",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          }
+        },
+        expected: {
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: true,
+            track6: false
+          },
+          acknowledged: true
+        }
+      },
+      {
+        toolName: "get_input_deinterlace_mode",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE" }
+      },
+      {
+        toolName: "set_input_deinterlace_mode",
+        input: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_LINEAR_2X" },
+        expected: { inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_LINEAR_2X", acknowledged: true }
+      },
+      {
+        toolName: "get_input_deinterlace_field_order",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
+      },
+      {
+        toolName: "set_input_deinterlace_field_order",
+        input: { inputName: "Mic/Aux", inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM" },
+        expected: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM", acknowledged: true }
+      },
+      {
+        toolName: "get_input_default_settings",
+        input: { inputKind: "wasapi_input_capture" },
+        expected: {
+          inputKind: "wasapi_input_capture",
+          defaultInputSettings: [
+            { settingName: "active", valueType: "boolean" },
+            { settingName: "device_id", valueType: "string" },
+            { settingName: "nested_policy", valueType: "object" }
+          ],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        toolName: "get_input_settings",
+        input: { inputName: "Mic/Aux" },
+        expected: {
+          inputKind: "wasapi_input_capture",
+          inputSettings: [
+            { settingName: "device_id", valueType: "string" },
+            { settingName: "nested_policy", valueType: "object" },
+            { settingName: "unsupported", valueType: "unknown" }
+          ],
+          rawSettingsDeferred: true
+        }
+      },
+      {
+        toolName: "get_input_properties_list_property_items",
+        input: { inputName: "Mic/Aux", propertyName: "device_id" },
+        expected: {
+          propertyName: "device_id",
+          propertyItems: [{
+            itemIndex: 0,
+            itemName: "Primary",
+            itemValueType: "string",
+            itemValuePreview: "primary-device",
+            itemEnabled: true,
+            fields: [
+              { settingName: "itemEnabled", valueType: "boolean" },
+              { settingName: "itemName", valueType: "string" },
+              { settingName: "itemValue", valueType: "string" },
+              { settingName: "metadata", valueType: "object" }
+            ]
+          }],
+          rawPropertyItemsDeferred: true
+        }
+      },
+      {
+        toolName: "set_input_settings",
+        input: {
+          inputName: "Media Source",
+          inputSettings: {
+            looping: true,
+            restartOnActivate: false,
+            speedPercent: 125
+          },
+          overlay: false
+        },
+        expected: {
+          inputSettings: {
+            looping: true,
+            restartOnActivate: false,
+            speedPercent: 125
+          },
+          overlay: false,
+          acknowledged: true
+        }
+      },
+      {
+        toolName: "press_input_properties_button",
+        input: { inputName: "Browser", propertyName: "refreshnocache" },
+        expected: { propertyName: "refreshnocache", acknowledged: true }
+      },
+      {
+        toolName: "create_input",
+        input: {
+          sceneName: "Main",
+          inputName: "Media Source",
+          inputKind: "ffmpeg_source",
+          inputSettings: { looping: true }
+        },
+        expected: { inputUuid: "input-media-source", sceneItemId: 3 }
+      },
+      {
+        toolName: "remove_input",
+        input: { inputUuid: "input-media-source" },
+        expected: { acknowledged: true }
+      },
+      {
+        toolName: "set_input_name",
+        input: { inputUuid: "input-media-source", newInputName: "Renamed Media" },
+        expected: { inputName: "Renamed Media", acknowledged: true }
       },
       {
         toolName: "get_media_input_status",

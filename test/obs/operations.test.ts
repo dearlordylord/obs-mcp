@@ -1,3 +1,7 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
+
 import { Option, Schema } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
@@ -40,20 +44,46 @@ import {
   triggerHotkeyByName
 } from "../../src/obs/operations/general.js"
 import {
+  createSourceFilter,
+  getSourceFilter,
+  getSourceFilterDefaultSettings,
+  listSourceFilterKinds,
+  listSourceFilters,
+  removeSourceFilter,
+  setSourceFilterEnabled,
+  setSourceFilterIndex,
+  setSourceFilterName,
+  setSourceFilterSettings
+} from "../../src/obs/operations/filters.js"
+import {
+  createInput,
   getInputAudioBalance,
   getInputAudioMonitorType,
   getInputAudioSyncOffset,
+  getInputAudioTracks,
+  getInputDefaultSettings,
+  getInputDeinterlaceFieldOrder,
+  getInputDeinterlaceMode,
   getInputMute,
+  getInputPropertiesListPropertyItems,
+  getInputSettings,
   getInputVolume,
   getMediaInputStatus,
   getSpecialInputs,
   listInputKinds,
   listInputs,
   offsetMediaInputCursor,
+  pressInputPropertiesButton,
+  removeInput,
   setInputAudioBalance,
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
+  setInputAudioTracks,
+  setInputDeinterlaceFieldOrder,
+  setInputDeinterlaceMode,
   setInputMute,
+  setInputName,
+  setInputSettings,
   setInputVolume,
   setMediaInputCursor,
   toggleInputMute,
@@ -83,6 +113,7 @@ import {
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
+import { getSourceScreenshot, saveSourceScreenshot } from "../../src/obs/operations/screenshots.js"
 import {
   getStreamStatus,
   sendStreamCaption,
@@ -124,12 +155,12 @@ const configFor = (url: string): ObsConfig => ({
   enabledToolsets: ["scenes"]
 })
 
-const fakeClient = (handler: (requestType: ObsRequestType) => Promise<unknown>): ObsClient => ({
+const fakeClient = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient => ({
   negotiatedRpcVersion: 1,
   availableRequests: [],
-  request: async (descriptor) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType)),
   requestBatch: async () => [],
+  request: async (descriptor, requestData) =>
+    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
   getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
   close: async () => undefined
 })
@@ -1421,6 +1452,533 @@ describe("OBS operations", () => {
     ])
   })
 
+  it("controls input audio tracks over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const inputAudioTracks = {
+      track1: true,
+      track2: false,
+      track3: true,
+      track4: false,
+      track5: true,
+      track6: false
+    }
+    const obsInputAudioTracks = {
+      "1": true,
+      "2": false,
+      "3": true,
+      "4": false,
+      "5": true,
+      "6": false
+    }
+    await expect(getInputAudioTracks(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputAudioTracks: {
+        track1: true,
+        track2: true,
+        track3: true,
+        track4: true,
+        track5: true,
+        track6: true
+      }
+    })
+    await expect(setInputAudioTracks(client, { inputName: "Mic/Aux", inputAudioTracks })).resolves.toEqual({
+      inputAudioTracks,
+      acknowledged: true
+    })
+    await expect(getInputAudioTracks(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputAudioTracks
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputAudioTracks"))).toEqual([
+      { requestType: "GetInputAudioTracks", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputAudioTracks",
+        requestData: { inputName: "Mic/Aux", inputAudioTracks: obsInputAudioTracks }
+      },
+      { requestType: "GetInputAudioTracks", requestData: { inputUuid: "input-mic-aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input audio track controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputAudioTracks: { code: 604, comment: "Audio tracks rejected" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const invalidInputAudioTracksInput = {
+      inputName: "Mic/Aux",
+      inputAudioTracks: {
+        track1: true,
+        track2: true,
+        track3: true,
+        track4: true,
+        track5: true,
+        track6: "yes"
+      }
+    }
+    const setInputAudioTracksUnchecked = setInputAudioTracks as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputAudioTracks>
+    await expect(setInputAudioTracksUnchecked(
+      client,
+      invalidInputAudioTracksInput
+    )).rejects.toThrow("Expected boolean")
+    await expect(setInputAudioTracks(client, {
+      inputName: "Mic/Aux",
+      inputAudioTracks: {
+        track1: true,
+        track2: false,
+        track3: true,
+        track4: false,
+        track5: true,
+        track6: false
+      }
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputAudioTracks",
+        code: 604,
+        comment: "Audio tracks rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("controls input deinterlace mode and field order over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputDeinterlaceMode(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_DISABLE"
+    })
+    await expect(setInputDeinterlaceMode(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X"
+    })).resolves.toEqual({
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X",
+      acknowledged: true
+    })
+    await expect(getInputDeinterlaceMode(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X"
+    })
+    await expect(getInputDeinterlaceFieldOrder(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP"
+    })
+    await expect(setInputDeinterlaceFieldOrder(client, {
+      inputUuid: "input-mic-aux",
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+    })).resolves.toEqual({
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM",
+      acknowledged: true
+    })
+    await expect(getInputDeinterlaceFieldOrder(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputDeinterlace"))).toEqual([
+      { requestType: "GetInputDeinterlaceMode", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputDeinterlaceMode",
+        requestData: { inputName: "Mic/Aux", inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_YADIF_2X" }
+      },
+      { requestType: "GetInputDeinterlaceMode", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "GetInputDeinterlaceFieldOrder", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputDeinterlaceFieldOrder",
+        requestData: {
+          inputUuid: "input-mic-aux",
+          inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_BOTTOM"
+        }
+      },
+      { requestType: "GetInputDeinterlaceFieldOrder", requestData: { inputName: "Mic/Aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input deinterlace controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        SetInputDeinterlaceMode: { code: 605, comment: "Deinterlace mode unavailable for input" },
+        SetInputDeinterlaceFieldOrder: { code: 606, comment: "Deinterlace field order unavailable for input" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const setInputDeinterlaceModeUnchecked = setInputDeinterlaceMode as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputDeinterlaceMode>
+    const setInputDeinterlaceFieldOrderUnchecked = setInputDeinterlaceFieldOrder as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputDeinterlaceFieldOrder>
+    await expect(setInputDeinterlaceModeUnchecked(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_UNKNOWN"
+    })).rejects.toThrow("Expected")
+    await expect(setInputDeinterlaceFieldOrderUnchecked(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_UNKNOWN"
+    })).rejects.toThrow("Expected")
+    await expect(setInputDeinterlaceMode(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceMode: "OBS_DEINTERLACE_MODE_LINEAR"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputDeinterlaceMode",
+        code: 605,
+        comment: "Deinterlace mode unavailable for input"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setInputDeinterlaceFieldOrder(client, {
+      inputName: "Mic/Aux",
+      inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputDeinterlaceFieldOrder",
+        code: 606,
+        comment: "Deinterlace field order unavailable for input"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("reads sanitized input settings summaries over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputDefaultSettings(client, { inputKind: "wasapi_input_capture" })).resolves.toEqual({
+      inputKind: "wasapi_input_capture",
+      defaultInputSettings: [
+        { settingName: "active", valueType: "boolean" },
+        { settingName: "choices", valueType: "array" },
+        { settingName: "device_id", valueType: "string" },
+        { settingName: "empty_value", valueType: "null" },
+        { settingName: "nested_policy", valueType: "object" },
+        { settingName: "reconnect_delay_sec", valueType: "number" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(getInputSettings(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputKind: "wasapi_input_capture",
+      inputSettings: [
+        { settingName: "device_id", valueType: "string" },
+        { settingName: "muted_by_default", valueType: "boolean" },
+        { settingName: "nested_policy", valueType: "object" },
+        { settingName: "reconnect_delay_sec", valueType: "number" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(getInputPropertiesListPropertyItems(client, {
+      inputUuid: "input-mic-aux",
+      propertyName: "device_id"
+    })).resolves.toEqual({
+      propertyName: "device_id",
+      propertyItems: [
+        {
+          itemIndex: 0,
+          itemName: "Primary",
+          itemValueType: "string",
+          itemValuePreview: "primary-device",
+          itemEnabled: true,
+          fields: [
+            { settingName: "itemEnabled", valueType: "boolean" },
+            { settingName: "itemName", valueType: "string" },
+            { settingName: "itemValue", valueType: "string" },
+            { settingName: "metadata", valueType: "object" }
+          ]
+        },
+        {
+          itemIndex: 1,
+          itemName: "Secondary",
+          itemValueType: "number",
+          itemValuePreview: "2",
+          itemEnabled: false,
+          fields: [
+            { settingName: "itemEnabled", valueType: "boolean" },
+            { settingName: "itemName", valueType: "string" },
+            { settingName: "itemValue", valueType: "number" }
+          ]
+        },
+        {
+          itemIndex: 2,
+          fields: [
+            { settingName: "metadata", valueType: "object" }
+          ]
+        }
+      ],
+      rawPropertyItemsDeferred: true
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "GetInputDefaultSettings"
+      || request.requestType === "GetInputSettings"
+      || request.requestType === "GetInputPropertiesListPropertyItems"
+    )).toEqual([
+      { requestType: "GetInputDefaultSettings", requestData: { inputKind: "wasapi_input_capture" } },
+      { requestType: "GetInputSettings", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "GetInputPropertiesListPropertyItems",
+        requestData: { inputUuid: "input-mic-aux", propertyName: "device_id" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for input settings reads", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetInputSettings: { code: 607, comment: "Input settings unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputDefaultSettings(client, { inputKind: "" })).rejects.toThrow("Expected a non empty string")
+    await expect(getInputPropertiesListPropertyItems(client, {
+      inputName: "Mic/Aux",
+      propertyName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(getInputSettings(client, { inputName: "Mic/Aux" })).rejects.toMatchObject(
+      {
+        requestType: "GetInputSettings",
+        code: 607,
+        comment: "Input settings unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("applies guarded input settings and presses property buttons over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputSettings(client, {
+      inputName: "Media Source",
+      inputSettings: {
+        looping: true,
+        restartOnActivate: false,
+        speedPercent: 125,
+        reconnectDelaySec: 10
+      },
+      overlay: false
+    })).resolves.toEqual({
+      inputSettings: {
+        looping: true,
+        restartOnActivate: false,
+        speedPercent: 125,
+        reconnectDelaySec: 10
+      },
+      overlay: false,
+      acknowledged: true
+    })
+    await expect(pressInputPropertiesButton(client, {
+      inputUuid: "input-mic-aux",
+      propertyName: "refreshnocache"
+    })).resolves.toEqual({
+      propertyName: "refreshnocache",
+      acknowledged: true
+    })
+    await expect(setInputSettings(client, {
+      inputUuid: "input-mic-aux",
+      inputSettings: { looping: false }
+    })).resolves.toEqual({
+      inputSettings: { looping: false },
+      overlay: true,
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "SetInputSettings"
+      || request.requestType === "PressInputPropertiesButton"
+    )).toEqual([
+      {
+        requestType: "SetInputSettings",
+        requestData: {
+          inputName: "Media Source",
+          inputSettings: {
+            looping: true,
+            reconnect_delay_sec: 10,
+            restart_on_activate: false,
+            speed_percent: 125
+          },
+          overlay: false
+        }
+      },
+      {
+        requestType: "PressInputPropertiesButton",
+        requestData: { inputUuid: "input-mic-aux", propertyName: "refreshnocache" }
+      },
+      {
+        requestType: "SetInputSettings",
+        requestData: {
+          inputUuid: "input-mic-aux",
+          inputSettings: { looping: false },
+          overlay: true
+        }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for guarded input settings mutations", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        SetInputSettings: { code: 608, comment: "Settings rejected" },
+        PressInputPropertiesButton: { code: 609, comment: "Button unavailable" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const setInputSettingsUnchecked = setInputSettings as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputSettings>
+    await expect(setInputSettingsUnchecked(client, {
+      inputName: "Media Source",
+      inputSettings: {}
+    })).rejects.toThrow("At least one allowlisted input setting is required")
+    await expect(setInputSettingsUnchecked(client, {
+      inputName: "Media Source",
+      inputSettings: { url: "https://example.invalid" }
+    })).rejects.toThrow("At least one allowlisted input setting is required")
+    await expect(pressInputPropertiesButton(client, {
+      inputName: "Browser",
+      propertyName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(setInputSettings(client, {
+      inputName: "Media Source",
+      inputSettings: { looping: true }
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputSettings",
+        code: 608,
+        comment: "Settings rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(pressInputPropertiesButton(client, {
+      inputName: "Browser",
+      propertyName: "refreshnocache"
+    })).rejects.toMatchObject(
+      {
+        requestType: "PressInputPropertiesButton",
+        code: 609,
+        comment: "Button unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("creates, renames, and removes inputs through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createInput(client, {
+      sceneName: "Main",
+      canvasUuid: "canvas-main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source",
+      inputSettings: { looping: true, reconnectDelaySec: 10 },
+      sceneItemEnabled: false
+    })).resolves.toEqual({ inputUuid: "input-media-source", sceneItemId: 1002 })
+    await expect(listInputs(client, { inputKind: "ffmpeg_source" })).resolves.toEqual({
+      inputs: [{
+        inputName: "Media Source",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source"
+      }]
+    })
+    await expect(setInputName(client, {
+      inputUuid: "input-media-source",
+      newInputName: "Renamed Media"
+    })).resolves.toEqual({ inputName: "Renamed Media", acknowledged: true })
+    await expect(listInputs(client, { inputKind: "ffmpeg_source" })).resolves.toEqual({
+      inputs: [{
+        inputName: "Renamed Media",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source"
+      }]
+    })
+    await expect(removeInput(client, { inputName: "Renamed Media" })).resolves.toEqual({ acknowledged: true })
+    await expect(listInputs(client, { inputKind: "ffmpeg_source" })).resolves.toEqual({ inputs: [] })
+    expect(server.requests.filter((request) =>
+      request.requestType === "CreateInput"
+      || request.requestType === "SetInputName"
+      || request.requestType === "RemoveInput"
+    )).toEqual([
+      {
+        requestType: "CreateInput",
+        requestData: {
+          sceneName: "Main",
+          canvasUuid: "canvas-main",
+          inputName: "Media Source",
+          inputKind: "ffmpeg_source",
+          inputSettings: { looping: true, reconnect_delay_sec: 10 },
+          sceneItemEnabled: false
+        }
+      },
+      {
+        requestType: "SetInputName",
+        requestData: { inputUuid: "input-media-source", newInputName: "Renamed Media" }
+      },
+      {
+        requestType: "RemoveInput",
+        requestData: { inputName: "Renamed Media" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for input lifecycle controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        CreateInput: { code: 610, comment: "Input create rejected" },
+        RemoveInput: { code: 611, comment: "Input remove rejected" },
+        SetInputName: { code: 612, comment: "Input rename rejected" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const createInputUnchecked = createInput as (client: ObsClient, input: unknown) => ReturnType<typeof createInput>
+    const setInputNameUnchecked = setInputName as (client: ObsClient, input: unknown) => ReturnType<typeof setInputName>
+    await expect(createInputUnchecked(client, {
+      sceneName: "Main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source",
+      inputSettings: {}
+    })).rejects.toThrow("At least one allowlisted input setting is required")
+    await expect(setInputNameUnchecked(client, {
+      inputName: "Media Source",
+      newInputName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(createInput(client, {
+      sceneUuid: "scene-main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    })).rejects.toMatchObject(
+      {
+        requestType: "CreateInput",
+        code: 610,
+        comment: "Input create rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(removeInput(client, { inputName: "Media Source" })).rejects.toMatchObject(
+      {
+        requestType: "RemoveInput",
+        code: 611,
+        comment: "Input remove rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setInputName(client, {
+      inputName: "Media Source",
+      newInputName: "Renamed Media"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputName",
+        code: 612,
+        comment: "Input rename rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("surfaces OBS failures for input audio sync offset controls", async () => {
     const server = await FakeObsServer.start({
       failRequests: { SetInputAudioSyncOffset: { code: 603, comment: "Sync offset rejected" } }
@@ -1612,6 +2170,628 @@ describe("OBS operations", () => {
         comment: "Media action unavailable"
       } satisfies Partial<ObsRequestError>
     )
+  })
+
+  it("reads source filter discovery and settings through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    await expect(listSourceFilterKinds(client)).resolves.toEqual({
+      sourceFilterKinds: ["color_filter_v2", "gain_filter", "mask_filter_v2"]
+    })
+    await expect(listSourceFilters(client, { sourceName: "Camera", canvasUuid: "canvas-main" })).resolves.toEqual({
+      filters: [
+        {
+          filterName: "Color Correction",
+          filterEnabled: true,
+          filterIndex: 0,
+          filterKind: "color_filter_v2",
+          filterSettings: [
+            { settingName: "brightness", valueType: "number" },
+            { settingName: "color_multiply", valueType: "number" },
+            { settingName: "nested_policy", valueType: "object" },
+            { settingName: "secret_path", valueType: "string" }
+          ],
+          rawSettingsDeferred: true
+        },
+        {
+          filterName: "Gain",
+          filterEnabled: false,
+          filterIndex: 1,
+          filterKind: "gain_filter",
+          filterSettings: [
+            { settingName: "db", valueType: "number" },
+            { settingName: "enabled_by_default", valueType: "boolean" },
+            { settingName: "labels", valueType: "array" }
+          ],
+          rawSettingsDeferred: true
+        }
+      ]
+    })
+    await expect(getSourceFilterDefaultSettings(client, { filterKind: "color_filter_v2" })).resolves.toEqual({
+      filterKind: "color_filter_v2",
+      defaultFilterSettings: [
+        { settingName: "brightness", valueType: "number" },
+        { settingName: "color_multiply", valueType: "number" },
+        { settingName: "nested_policy", valueType: "object" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(getSourceFilter(client, {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction"
+    })).resolves.toEqual({
+      filterName: "Color Correction",
+      filterEnabled: true,
+      filterIndex: 0,
+      filterKind: "color_filter_v2",
+      filterSettings: [
+        { settingName: "brightness", valueType: "number" },
+        { settingName: "color_multiply", valueType: "number" },
+        { settingName: "nested_policy", valueType: "object" },
+        { settingName: "secret_path", valueType: "string" }
+      ],
+      rawSettingsDeferred: true
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("SourceFilter"))).toEqual([
+      { requestType: "GetSourceFilterKindList" },
+      { requestType: "GetSourceFilterList", requestData: { sourceName: "Camera", canvasUuid: "canvas-main" } },
+      { requestType: "GetSourceFilterDefaultSettings", requestData: { filterKind: "color_filter_v2" } },
+      {
+        requestType: "GetSourceFilter",
+        requestData: { sourceUuid: "source-camera", filterName: "Color Correction" }
+      }
+    ])
+  })
+
+  it("mutates source filter enabled state, index, and name through fake OBS state", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    await expect(setSourceFilterEnabled(client, {
+      sourceName: "Camera",
+      canvasUuid: "canvas-main",
+      filterName: "Color Correction",
+      filterEnabled: false
+    })).resolves.toEqual({ filterName: "Color Correction", filterEnabled: false, acknowledged: true })
+    await expect(setSourceFilterIndex(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: 1
+    })).resolves.toEqual({ filterName: "Color Correction", filterIndex: 1, acknowledged: true })
+    await expect(setSourceFilterName(client, {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction",
+      newFilterName: "Primary Color"
+    })).resolves.toEqual({ filterName: "Primary Color", acknowledged: true })
+    await expect(listSourceFilters(client, { sourceUuid: "source-camera" })).resolves.toMatchObject({
+      filters: [
+        { filterName: "Gain", filterIndex: 0 },
+        { filterName: "Primary Color", filterEnabled: false, filterIndex: 1 }
+      ]
+    })
+    await expect(getSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Primary Color"
+    })).resolves.toMatchObject({
+      filterName: "Primary Color",
+      filterEnabled: false,
+      filterIndex: 1,
+      filterKind: "color_filter_v2"
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "SetSourceFilterEnabled"
+      || request.requestType === "SetSourceFilterIndex"
+      || request.requestType === "SetSourceFilterName"
+    )).toEqual([
+      {
+        requestType: "SetSourceFilterEnabled",
+        requestData: {
+          sourceName: "Camera",
+          canvasUuid: "canvas-main",
+          filterName: "Color Correction",
+          filterEnabled: false
+        }
+      },
+      {
+        requestType: "SetSourceFilterIndex",
+        requestData: { sourceName: "Camera", filterName: "Color Correction", filterIndex: 1 }
+      },
+      {
+        requestType: "SetSourceFilterName",
+        requestData: { sourceUuid: "source-camera", filterName: "Color Correction", newFilterName: "Primary Color" }
+      }
+    ])
+  })
+
+  it("creates, updates settings, and removes source filters through fake OBS state", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    await expect(createSourceFilter(client, {
+      sourceName: "Camera",
+      canvasUuid: "canvas-main",
+      filterName: "Boost",
+      filterKind: "gain_filter",
+      filterSettings: { db: 6 }
+    })).resolves.toEqual({ filterName: "Boost", filterKind: "gain_filter", acknowledged: true })
+    await expect(createSourceFilter(client, {
+      sourceUuid: "source-camera",
+      filterName: "Limiter",
+      filterKind: "gain_filter"
+    })).resolves.toEqual({ filterName: "Limiter", filterKind: "gain_filter", acknowledged: true })
+    await expect(listSourceFilters(client, { sourceName: "Camera" })).resolves.toMatchObject({
+      filters: [
+        { filterName: "Color Correction", filterIndex: 0 },
+        { filterName: "Gain", filterIndex: 1 },
+        {
+          filterName: "Boost",
+          filterIndex: 2,
+          filterKind: "gain_filter",
+          filterSettings: [{ settingName: "db", valueType: "number" }]
+        },
+        {
+          filterName: "Limiter",
+          filterIndex: 3,
+          filterKind: "gain_filter",
+          filterSettings: []
+        }
+      ]
+    })
+    await expect(setSourceFilterSettings(client, {
+      sourceName: "Camera",
+      filterName: "Boost",
+      filterSettings: { db: 3 },
+      overlay: true
+    })).resolves.toEqual({
+      filterName: "Boost",
+      filterSettings: { db: 3 },
+      overlay: true,
+      acknowledged: true
+    })
+    await expect(setSourceFilterSettings(client, {
+      sourceUuid: "source-camera",
+      filterName: "Limiter",
+      filterSettings: { db: 2 }
+    })).resolves.toEqual({
+      filterName: "Limiter",
+      filterSettings: { db: 2 },
+      overlay: true,
+      acknowledged: true
+    })
+    await expect(setSourceFilterSettings(client, {
+      sourceName: "Camera",
+      filterName: "Boost",
+      filterSettings: { brightness: 0.2, hueShift: 45 },
+      overlay: false
+    })).resolves.toEqual({
+      filterName: "Boost",
+      filterSettings: { brightness: 0.2, hueShift: 45 },
+      overlay: false,
+      acknowledged: true
+    })
+    await expect(getSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Boost"
+    })).resolves.toMatchObject({
+      filterName: "Boost",
+      filterSettings: [
+        { settingName: "brightness", valueType: "number" },
+        { settingName: "hue_shift", valueType: "number" }
+      ]
+    })
+    await expect(getSourceFilter(client, {
+      sourceUuid: "source-camera",
+      filterName: "Limiter"
+    })).resolves.toMatchObject({
+      filterName: "Limiter",
+      filterSettings: [{ settingName: "db", valueType: "number" }]
+    })
+    await expect(removeSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Boost"
+    })).resolves.toEqual({ filterName: "Boost", acknowledged: true })
+    await expect(removeSourceFilter(client, {
+      sourceUuid: "source-camera",
+      filterName: "Limiter"
+    })).resolves.toEqual({ filterName: "Limiter", acknowledged: true })
+    await expect(listSourceFilters(client, { sourceName: "Camera" })).resolves.toMatchObject({
+      filters: [
+        { filterName: "Color Correction", filterIndex: 0 },
+        { filterName: "Gain", filterIndex: 1 }
+      ]
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "CreateSourceFilter"
+      || request.requestType === "SetSourceFilterSettings"
+      || request.requestType === "RemoveSourceFilter"
+    )).toEqual([
+      {
+        requestType: "CreateSourceFilter",
+        requestData: {
+          sourceName: "Camera",
+          canvasUuid: "canvas-main",
+          filterName: "Boost",
+          filterKind: "gain_filter",
+          filterSettings: { db: 6 }
+        }
+      },
+      {
+        requestType: "CreateSourceFilter",
+        requestData: {
+          sourceUuid: "source-camera",
+          filterName: "Limiter",
+          filterKind: "gain_filter"
+        }
+      },
+      {
+        requestType: "SetSourceFilterSettings",
+        requestData: { sourceName: "Camera", filterName: "Boost", filterSettings: { db: 3 }, overlay: true }
+      },
+      {
+        requestType: "SetSourceFilterSettings",
+        requestData: { sourceUuid: "source-camera", filterName: "Limiter", filterSettings: { db: 2 }, overlay: true }
+      },
+      {
+        requestType: "SetSourceFilterSettings",
+        requestData: {
+          sourceName: "Camera",
+          filterName: "Boost",
+          filterSettings: { brightness: 0.2, hue_shift: 45 },
+          overlay: false
+        }
+      },
+      {
+        requestType: "RemoveSourceFilter",
+        requestData: { sourceName: "Camera", filterName: "Boost" }
+      },
+      {
+        requestType: "RemoveSourceFilter",
+        requestData: { sourceUuid: "source-camera", filterName: "Limiter" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for source filter reads", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetSourceFilter: { code: 602, comment: "Filter not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    const getSourceFilterUnchecked = getSourceFilter as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof getSourceFilter>
+    await expect(getSourceFilterUnchecked(client, {
+      sourceName: "Camera",
+      filterName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(getSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Missing"
+    })).rejects.toMatchObject(
+      {
+        requestType: "GetSourceFilter",
+        code: 602,
+        comment: "Filter not found"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("surfaces validation and OBS failures for source filter mutations", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        CreateSourceFilter: { code: 603, comment: "Filter create rejected" },
+        RemoveSourceFilter: { code: 604, comment: "Filter remove rejected" },
+        SetSourceFilterSettings: { code: 605, comment: "Filter settings rejected" },
+        SetSourceFilterEnabled: { code: 606, comment: "Filter enable rejected" },
+        SetSourceFilterIndex: { code: 607, comment: "Filter index rejected" },
+        SetSourceFilterName: { code: 608, comment: "Filter rename rejected" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    const setSourceFilterIndexUnchecked = setSourceFilterIndex as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setSourceFilterIndex>
+    const setSourceFilterSettingsUnchecked = setSourceFilterSettings as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setSourceFilterSettings>
+    const setSourceFilterNameUnchecked = setSourceFilterName as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setSourceFilterName>
+    await expect(setSourceFilterIndexUnchecked(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: -1
+    })).rejects.toThrow("Expected a non-negative number")
+    await expect(setSourceFilterNameUnchecked(client, {
+      sourceName: "Camera",
+      filterName: "",
+      newFilterName: "Primary Color"
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(setSourceFilterSettingsUnchecked(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: {}
+    })).rejects.toThrow("At least one allowlisted filter setting is required")
+    await expect(setSourceFilterSettingsUnchecked(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { path: "/tmp/private" }
+    })).rejects.toThrow("At least one allowlisted filter setting is required")
+    await expect(createSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Boost",
+      filterKind: "gain_filter",
+      filterSettings: { db: 3 }
+    })).rejects.toMatchObject(
+      {
+        requestType: "CreateSourceFilter",
+        code: 603,
+        comment: "Filter create rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(removeSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Boost"
+    })).rejects.toMatchObject(
+      {
+        requestType: "RemoveSourceFilter",
+        code: 604,
+        comment: "Filter remove rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setSourceFilterSettings(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterSettings: { db: 3 }
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetSourceFilterSettings",
+        code: 605,
+        comment: "Filter settings rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setSourceFilterEnabled(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterEnabled: false
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetSourceFilterEnabled",
+        code: 606,
+        comment: "Filter enable rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setSourceFilterIndex(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      filterIndex: 1
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetSourceFilterIndex",
+        code: 607,
+        comment: "Filter index rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setSourceFilterName(client, {
+      sourceName: "Camera",
+      filterName: "Color Correction",
+      newFilterName: "Primary Color"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetSourceFilterName",
+        code: 608,
+        comment: "Filter rename rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("gets and saves source screenshots with bounded payload and path policy", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["screenshots"] })
+    clients.push(client)
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-screenshots-"))
+    try {
+      await expect(getSourceScreenshot(client, {
+        sourceName: "Camera",
+        canvasUuid: "canvas-main",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      })).resolves.toEqual({
+        imageFormat: "png",
+        mimeType: "image/png",
+        imageBytes: 5,
+        maxImageBytes: 1_500_000,
+        base64Data: "aW1hZ2U="
+      })
+      await expect(saveSourceScreenshot(client, {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "camera.png",
+        imageWidth: 320,
+        imageHeight: 180
+      }, outputDirectory)).resolves.toEqual({
+        imageFilePath: path.join(outputDirectory, "camera.png"),
+        imageFormat: "png",
+        saved: true
+      })
+      await expect(saveSourceScreenshot(client, {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "camera.png"
+      }, undefined)).rejects.toThrow("OBS_MCP_SCREENSHOT_OUTPUT_DIR")
+      await expect(saveSourceScreenshot(client, {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "../camera.png"
+      }, outputDirectory)).rejects.toThrow()
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true })
+    }
+    expect(server.requests.filter((request) =>
+      request.requestType === "GetSourceScreenshot"
+      || request.requestType === "SaveSourceScreenshot"
+    )).toEqual([
+      {
+        requestType: "GetSourceScreenshot",
+        requestData: {
+          sourceName: "Camera",
+          canvasUuid: "canvas-main",
+          imageFormat: "png",
+          imageWidth: 320,
+          imageHeight: 180,
+          imageCompressionQuality: 80
+        }
+      },
+      {
+        requestType: "SaveSourceScreenshot",
+        requestData: {
+          sourceUuid: "source-camera",
+          imageFormat: "png",
+          imageWidth: 320,
+          imageHeight: 180,
+          imageFilePath: path.join(outputDirectory, "camera.png")
+        }
+      }
+    ])
+  })
+
+  it("validates screenshot image options and OBS screenshot MIME metadata", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetSourceScreenshot: { code: 613, comment: "Screenshot rejected" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["screenshots"] })
+    clients.push(client)
+    const getSourceScreenshotUnchecked = getSourceScreenshot as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof getSourceScreenshot>
+    await expect(getSourceScreenshotUnchecked(client, {
+      sourceName: "Camera",
+      imageFormat: "gif"
+    })).rejects.toThrow()
+    await expect(getSourceScreenshotUnchecked(client, {
+      sourceName: "Camera",
+      imageFormat: "png",
+      imageWidth: 7
+    })).rejects.toThrow()
+    await expect(getSourceScreenshot(client, {
+      sourceName: "Camera",
+      imageFormat: "png"
+    })).rejects.toMatchObject(
+      {
+        requestType: "GetSourceScreenshot",
+        code: 613,
+        comment: "Screenshot rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("enforces screenshot payload and output directory policies", async () => {
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "jpg"
+      }
+    )).resolves.toEqual({
+      imageFormat: "jpg",
+      mimeType: "image/jpeg",
+      imageBytes: 5,
+      maxImageBytes: 1_500_000,
+      base64Data: "aW1hZ2U="
+    })
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "webp"
+      }
+    )).resolves.toMatchObject({ mimeType: "image/webp" })
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "bmp"
+      }
+    )).resolves.toMatchObject({ mimeType: "image/bmp" })
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: "data:image/jpeg;base64,aW1hZ2U="
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "png"
+      }
+    )).rejects.toThrow("OBS screenshot MIME image/jpeg does not match requested image/png")
+    await expect(getSourceScreenshot(
+      fakeClient(async () => ({
+        imageData: Buffer.alloc(1_500_001).toString("base64")
+      })),
+      {
+        sourceName: "Camera",
+        imageFormat: "png"
+      }
+    )).rejects.toThrow("OBS screenshot exceeds 1500000 byte limit")
+
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-screenshot-policy-"))
+    const outputFile = path.join(outputDirectory, "not-a-directory")
+    const saveRequests: Array<unknown> = []
+    try {
+      await expect(saveSourceScreenshot(
+        fakeClient(async (_requestType, requestData) => {
+          saveRequests.push(requestData)
+          return {}
+        }),
+        {
+          sourceName: "Camera",
+          canvasUuid: "canvas-main",
+          imageFormat: "png",
+          imageCompressionQuality: 90,
+          fileName: "camera.png"
+        },
+        outputDirectory
+      )).resolves.toEqual({
+        imageFilePath: path.join(outputDirectory, "camera.png"),
+        imageFormat: "png",
+        saved: true
+      })
+      await writeFile(outputFile, "")
+      await expect(saveSourceScreenshot(fakeClient(async () => ({})), {
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "camera.png"
+      }, outputFile)).rejects.toThrow("OBS_MCP_SCREENSHOT_OUTPUT_DIR must point to an existing directory")
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true })
+    }
+    expect(saveRequests).toEqual([{
+      sourceName: "Camera",
+      canvasUuid: "canvas-main",
+      imageFormat: "png",
+      imageCompressionQuality: 90,
+      imageFilePath: path.join(outputDirectory, "camera.png")
+    }])
   })
 
   it("controls the virtual camera over the OBS protocol", async () => {
