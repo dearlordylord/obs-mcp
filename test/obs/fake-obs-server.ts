@@ -41,6 +41,7 @@ interface FakeObsServerOptions {
   readonly scenes?: ReadonlyArray<FakeObsScene>
   readonly inputs?: ReadonlyArray<FakeObsInput>
   readonly rpcVersion?: number
+  readonly eventAfterIdentify?: Record<string, unknown>
   readonly eventBeforeResponse?: Record<string, unknown>
   readonly eventBeforeResponseFor?: string
   readonly envelopeBeforeResponse?: Record<string, unknown>
@@ -144,6 +145,9 @@ export class FakeObsServer {
           return
         }
         socket.send(JSON.stringify({ op: options.identifiedOp ?? OP_IDENTIFIED, d: { negotiatedRpcVersion: 1 } }))
+        if (options.eventAfterIdentify !== undefined) {
+          socket.send(JSON.stringify({ op: OP_EVENT, d: options.eventAfterIdentify }))
+        }
         if (options.sendBinaryAfterIdentify === true) {
           socket.send(BINARY_FRAME)
         }

@@ -6,18 +6,17 @@ import { type ObsConfig, redactedObsWebSocketUrl } from "../config/config.js"
 import { UnknownRecord } from "../domain/schemas/shared.js"
 import { calculateObsAuthentication } from "./auth.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "./errors.js"
+import { createObsEventBuffer, type ObsEventBufferSnapshot } from "./events.js"
 import {
   decodeEventEnvelope,
   decodeJsonTextEnvelope,
-  type EventEnvelope,
   OP_EVENT,
   OP_IDENTIFIED,
   OP_IDENTIFY,
   OP_REQUEST,
   OP_REQUEST_RESPONSE,
   type RequestResponseEnvelope,
-  SAFE_EVENT_SUBSCRIPTION_MASK,
-  shouldSurfaceSafeEvent
+  SAFE_EVENT_SUBSCRIPTION_MASK
 } from "./protocol.js"
 import { GetVersion, type ObsRequestDescriptor } from "./requests.js"
 
@@ -45,12 +44,20 @@ interface ObsClientCommands {
     descriptor: ObsRequestDescriptor<Output>,
     requestData?: Record<string, unknown>
   ): Promise<Output>
+  getBufferedEvents(): ObsEventBufferSnapshot
   close(): Promise<void>
 }
 
 export type ObsClient = ObsClientState & ObsClientCommands
 
-export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => {
+interface ObsClientOptions {
+  readonly eventBufferCapacity?: number
+}
+
+export const createObsClient = async (config: ObsConfig, options: ObsClientOptions = {}): Promise<ObsClient> => {
+  const eventBuffer = createObsEventBuffer(
+    options.eventBufferCapacity === undefined ? {} : { capacity: options.eventBufferCapacity }
+  )
   const ws = new WebSocket(config.url, "obswebsocket.json")
   const pending = new Map<string, PendingRequest>()
   const queuedMessages: Array<{ readonly data: WebSocket.RawData; readonly isBinary: boolean }> = []
@@ -76,6 +83,46 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
       request.reject(error)
     }
     pending.clear()
+  }
+
+  const handleResponse = (response: RequestResponseEnvelope): void => {
+    const pendingRequest = pending.get(response.d.requestId)
+    if (pendingRequest === undefined) {
+      return
+    }
+    pending.delete(response.d.requestId)
+    clearTimeout(pendingRequest.timer)
+    if (response.d.requestStatus.result === false) {
+      pendingRequest.reject(
+        new ObsRequestError(response.d.requestType, response.d.requestStatus.code, response.d.requestStatus.comment)
+      )
+      return
+    }
+    pendingRequest.resolve(response.d.responseData ?? {})
+  }
+
+  const handlePostHandshakeMessage = (data: WebSocket.RawData, isBinary: boolean): void => {
+    if (isBinary) {
+      rejectAll(new ObsProtocolError("OBS sent a binary frame; JSON text frames are required"))
+      ws.close()
+      return
+    }
+    try {
+      const text = data.toString("utf8")
+      const envelope = decodeJsonTextEnvelope(text)
+      if (envelope.op === OP_REQUEST_RESPONSE) {
+        handleResponse(envelope)
+        return
+      }
+      if (envelope.op === OP_EVENT) {
+        eventBuffer.record(decodeEventEnvelope(text))
+      }
+    } catch (error) {
+      /* v8 ignore next */
+      const protocolError = error instanceof Error ? error : new ObsProtocolError(String(error))
+      rejectAll(protocolError)
+      ws.close()
+    }
   }
 
   const waitForOpen = async (): Promise<void> =>
@@ -165,6 +212,10 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
     }
     negotiatedRpcVersion = identified.d.negotiatedRpcVersion
     ws.off("message", onBufferedMessage)
+    ws.on("message", handlePostHandshakeMessage)
+    for (const queued of queuedMessages.splice(0)) {
+      handlePostHandshakeMessage(queued.data, queued.isBinary)
+    }
   } catch (error) {
     ws.off("message", onBufferedMessage)
     if (ws.readyState !== WebSocket.CLOSED && ws.readyState !== WebSocket.CLOSING) {
@@ -173,51 +224,6 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
     throw error
   }
 
-  const handleResponse = (response: RequestResponseEnvelope): void => {
-    const pendingRequest = pending.get(response.d.requestId)
-    if (pendingRequest === undefined) {
-      return
-    }
-    pending.delete(response.d.requestId)
-    clearTimeout(pendingRequest.timer)
-    if (response.d.requestStatus.result === false) {
-      pendingRequest.reject(
-        new ObsRequestError(response.d.requestType, response.d.requestStatus.code, response.d.requestStatus.comment)
-      )
-      return
-    }
-    pendingRequest.resolve(response.d.responseData ?? {})
-  }
-
-  const handleEvent = (event: EventEnvelope): void => {
-    if (!shouldSurfaceSafeEvent(event)) {
-      return
-    }
-  }
-
-  ws.on("message", (data, isBinary) => {
-    if (isBinary) {
-      rejectAll(new ObsProtocolError("OBS sent a binary frame; JSON text frames are required"))
-      ws.close()
-      return
-    }
-    try {
-      const text = data.toString("utf8")
-      const envelope = decodeJsonTextEnvelope(text)
-      if (envelope.op === OP_REQUEST_RESPONSE) {
-        handleResponse(envelope)
-        return
-      }
-      if (envelope.op === OP_EVENT) {
-        handleEvent(decodeEventEnvelope(text))
-      }
-    } catch (error) {
-      /* v8 ignore next */
-      const protocolError = error instanceof Error ? error : new ObsProtocolError(String(error))
-      rejectAll(protocolError)
-      ws.close()
-    }
-  })
   ws.on("close", () => {
     closed = true
     rejectAll(new ObsProtocolError("OBS websocket closed"))
@@ -269,6 +275,7 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
     negotiatedRpcVersion,
     availableRequests,
     request,
+    getBufferedEvents: () => eventBuffer.snapshot(),
     close: async () => {
       rejectAll(new ObsProtocolError("OBS client closed"))
       if (ws.readyState === WebSocket.CLOSED) {

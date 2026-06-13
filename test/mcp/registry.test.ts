@@ -59,6 +59,7 @@ const client = (handler: (requestType: ObsRequestType, requestData: unknown) => 
   availableRequests: allAvailableRequests,
   request: async (descriptor, requestData) =>
     Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
+  getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
   close: async () => undefined
 })
 
@@ -69,6 +70,7 @@ const clientWithData = (
   availableRequests: allAvailableRequests,
   request: async (descriptor, requestData) =>
     Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
+  getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
   close: async () => undefined
 })
 

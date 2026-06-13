@@ -140,11 +140,36 @@ describe("OBS websocket client", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents()).toMatchObject({ droppedEvents: 0, events: [] })
   })
 
-  it("accepts safe low-volume event frames without surfacing a stream", async () => {
+  it("buffers safe low-volume event frames without surfacing a stream", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      },
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents()).toMatchObject({
+      droppedEvents: 0,
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    })
+  })
+
+  it("buffers events queued immediately after Identified", async () => {
+    const server = await FakeObsServer.start({
+      eventAfterIdentify: {
         eventType: "CurrentProgramSceneChanged",
         eventIntent: EventSubscription.Scenes,
         eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
@@ -153,7 +178,82 @@ describe("OBS websocket client", () => {
     servers.push(server)
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
+
+    expect(client.getBufferedEvents()).toMatchObject({
+      droppedEvents: 0,
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    })
+  })
+
+  it("rejects malformed events queued immediately after Identified", async () => {
+    const server = await FakeObsServer.start({ sendMalformedAfterIdentify: true })
+    servers.push(server)
+    await expect(createObsClient(configFor(server.url))).rejects.toThrow()
+  })
+
+  it("drops oldest buffered events when capacity is exceeded", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      },
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url), { eventBufferCapacity: 2 })
+    clients.push(client)
+
     await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+
+    expect(client.getBufferedEvents()).toMatchObject({
+      capacity: 2,
+      droppedEvents: 1,
+      events: [
+        { sequence: 2, eventType: "CurrentProgramSceneChanged" },
+        { sequence: 3, eventType: "CurrentProgramSceneChanged" }
+      ]
+    })
+  })
+
+  it("rejects invalid event buffer capacity before connecting", async () => {
+    await expect(createObsClient(configFor("ws://127.0.0.1:1"), { eventBufferCapacity: 0 }))
+      .rejects.toThrow("capacity")
+  })
+
+  it("filters vendor and custom events even when OBS sends them", async () => {
+    const vendor = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "VendorEvent",
+        eventIntent: EventSubscription.Vendors,
+        eventData: { vendorName: "plugin" }
+      }
+    })
+    servers.push(vendor)
+    const vendorClient = await createObsClient(configFor(vendor.url))
+    clients.push(vendorClient)
+    await expect(vendorClient.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(vendorClient.getBufferedEvents().events).toEqual([])
+
+    const custom = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "CustomEvent",
+        eventIntent: EventSubscription.General,
+        eventData: { name: "custom" }
+      }
+    })
+    servers.push(custom)
+    const customClient = await createObsClient(configFor(custom.url))
+    clients.push(customClient)
+    await expect(customClient.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(customClient.getBufferedEvents().events).toEqual([])
   })
 
   it("ignores non-event protocol envelopes after the handshake", async () => {
@@ -180,6 +280,24 @@ describe("OBS websocket client", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     await expect(client.request(GetCurrentProgramScene)).rejects.toThrow()
+    expect(client.getBufferedEvents().events).toEqual([])
+  })
+
+  it("keeps buffered event snapshots readable after close", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro" }
+      },
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    await client.close()
+    expect(client.getBufferedEvents().events).toHaveLength(1)
   })
 
   it("rejects malformed GetVersion availableRequests", async () => {
