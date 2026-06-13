@@ -74,19 +74,15 @@ Batch-one acceptance bar: no action multiplexing, no raw Object passthrough unle
 | 7 | Raw/vendor | Opt-in expert/debug lane, never default. |
 | 8 | Config/admin | Global mutable OBS state, staged behind clear risk labels. |
 
-Current Ralph implementation files split the aggregate lanes above into smaller
-fresh-context work units:
+Current Ralph implementation files use deeper aggregate lanes. The earlier
+small first-task lanes have already landed as foundation and are no longer the
+active scheduling shape:
 
 | Ralph plan file | Aggregate lane | Scope |
 | --- | --- | --- |
-| `.ralph/plans/status-record-core.md` | Safe status/control | `GetStats`, record status, `StartRecord`, `StopRecord`, `ToggleRecord`; `outputPath` is opaque OBS metadata only. |
-| `.ralph/plans/record-advanced.md` | Safe status/control | Record pause/resume/toggle-pause, split-file, and chapter-marker controls with filesystem/path caveats. |
-| `.ralph/plans/stream-control.md` | Safe status/control | Stream status, start/stop/toggle, and stream captions. |
-| `.ralph/plans/inputs-discovery-audio-core.md` | Inputs/media | Input discovery, reusable exactly-one input locator, mute, and volume with exactly-one volume unit. |
-| `.ralph/plans/inputs-audio-advanced-media.md` | Inputs/media | Input balance/monitor controls and media input controls, including nullable media status fields. |
-| `.ralph/plans/scene-items-identity.md` | Scene identity | Scene-item discovery and enabled/locked toggles with exactly-one scene locator and `canvasUuid` only with `sceneName`. |
-| `.ralph/plans/outputs-replay-virtualcam.md` | Safe status/control | Virtual camera and replay buffer controls; replay paths are opaque OBS metadata only. |
-| `.ralph/plans/events-foundation.md` | Events/resources | Event decoding/policy and bounded low-volume capture; excludes high-volume, vendor, and custom events by default. |
+| `.ralph/plans/outputs-lifecycle.md` | Safe status/control | Remaining record lifecycle/file/chapter controls, replay buffer controls, and stream captions; output paths remain opaque OBS metadata only. |
+| `.ralph/plans/inputs-media.md` | Inputs/media | Remaining input mute/volume, advanced primitive audio controls, and media input controls; reuses exactly-one input locator semantics. |
+| `.ralph/plans/scenes-events.md` | Scene identity + Events/resources | Scene-item enabled/locked controls plus bounded low-volume event capture; excludes high-volume, vendor, and custom events by default. |
 
 ## Category Matrix
 

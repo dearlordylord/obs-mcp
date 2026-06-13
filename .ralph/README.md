@@ -29,7 +29,7 @@ pnpm run run
 Run a subset:
 
 ```bash
-RALPH_LANES=status-record-core,inputs-discovery-audio-core pnpm run run
+RALPH_LANES=outputs-lifecycle,inputs-media pnpm run run
 ```
 
 ## Live Concurrency
@@ -58,17 +58,13 @@ Lane specs live in `run.ts`. Tracked task plans live in `plans/` so future
 Ralph runs resume from explicit product intent instead of replanning from
 scratch.
 
-- `status-record-core`: stats, record status, and core record lifecycle.
-- `record-advanced`: record pause, split-file, and chapter-marker controls.
-- `stream-control`: stream status, lifecycle, and captions.
-- `inputs-discovery-audio-core`: input discovery, locator schema, mute, and
-  volume.
-- `inputs-audio-advanced-media`: input balance/monitor controls and media input
-  controls.
-- `scene-items-identity`: scene-item discovery and bounded toggles.
-- `outputs-replay-virtualcam`: replay buffer and virtual camera controls.
-- `events-foundation`: typed event infrastructure and policy, not broad event
-  streaming.
+- `outputs-lifecycle`: record lifecycle/file controls, replay buffer, and stream
+  captions on top of the merged status/record/stream/virtualcam foundation.
+- `inputs-media`: input mute/volume, advanced primitive audio controls, and media
+  input controls on top of the merged input discovery foundation.
+- `scenes-events`: scene-item enabled/locked controls and bounded low-volume
+  event capture on top of the merged scene-item identity/event protocol
+  foundation.
 
 ## Source Of Truth
 

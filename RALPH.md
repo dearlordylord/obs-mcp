@@ -10,16 +10,12 @@ high-volume events, or HTTP transport before a human-readable plan exists.
 
 ## Current Lane Map
 
-- `status-record-core`: `GetStats`, record status, and core record lifecycle.
-- `record-advanced`: record pause, split-file, and chapter-marker controls.
-- `stream-control`: stream status, lifecycle, and captions.
-- `inputs-discovery-audio-core`: input discovery, input locator schema, mute,
-  and volume.
-- `inputs-audio-advanced-media`: input balance/monitor controls and media input
-  controls.
-- `scene-items-identity`: scene-item discovery plus enabled/locked toggles.
-- `outputs-replay-virtualcam`: virtual camera and replay buffer controls.
-- `events-foundation`: typed event infrastructure and bounded event policy.
+- `outputs-lifecycle`: remaining record lifecycle/file/chapter controls, replay
+  buffer controls, and stream captions.
+- `inputs-media`: input mute/volume, advanced primitive audio controls, and media
+  input controls.
+- `scenes-events`: scene-item enabled/locked controls and bounded low-volume
+  event capture.
 
 The tracked lane plans are under `.ralph/plans/`.
 
@@ -39,7 +35,7 @@ Run only one lane:
 
 ```bash
 cd .ralph
-RALPH_LANES=status-record-core RALPH_AGENT_MODE=codex pnpm run run
+RALPH_LANES=outputs-lifecycle RALPH_AGENT_MODE=codex pnpm run run
 ```
 
 ## Guardrails
