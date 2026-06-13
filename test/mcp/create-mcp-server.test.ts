@@ -39,6 +39,8 @@ const allAvailableRequests = [
   "SetSceneItemLocked",
   "GetSceneItemIndex",
   "GetSceneItemBlendMode",
+  "SetSceneItemIndex",
+  "SetSceneItemBlendMode",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -105,6 +107,8 @@ describe("MCP server protocol handlers", () => {
       "set_scene_item_locked",
       "get_scene_item_index",
       "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -132,6 +136,7 @@ describe("MCP server protocol handlers", () => {
     expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_enabled")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "set_scene_item_index")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_blend_mode")?.outputSchema?.properties)
       .toHaveProperty("sceneItemBlendMode")
   })
@@ -322,6 +327,14 @@ describe("MCP server protocol handlers", () => {
       name: "get_scene_item_blend_mode",
       arguments: { sceneUuid: "scene-uuid", sceneItemId: 42 }
     })).resolves.toMatchObject({ structuredContent: { sceneItemBlendMode: "OBS_BLEND_LIGHTEN" } })
+    await expect(client.callTool({
+      name: "set_scene_item_index",
+      arguments: { sceneName: "Scene", sceneItemId: 42, sceneItemIndex: 3 }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemIndex: 3, updated: true } })
+    await expect(client.callTool({
+      name: "set_scene_item_blend_mode",
+      arguments: { sceneUuid: "scene-uuid", sceneItemId: 42, sceneItemBlendMode: "OBS_BLEND_MULTIPLY" }
+    })).resolves.toMatchObject({ structuredContent: { sceneItemBlendMode: "OBS_BLEND_MULTIPLY", updated: true } })
   })
 
   it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {
@@ -337,6 +350,38 @@ describe("MCP server protocol handlers", () => {
     })).resolves.toMatchObject({
       isError: true,
       content: [{ type: "text" }],
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    expect(requested).toEqual([])
+  })
+
+  it("rejects invalid scene item mutation values before OBS requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(obsClient(async (requestType) => {
+      requested.push(requestType)
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "set_scene_item_index",
+      arguments: { sceneName: "Scene", sceneItemId: 1, sceneItemIndex: -1 }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    await expect(client.callTool({
+      name: "set_scene_item_blend_mode",
+      arguments: { sceneName: "Scene", sceneItemId: 1, sceneItemBlendMode: "invalid" }
+    })).resolves.toMatchObject({
+      isError: true,
       _meta: {
         error: {
           code: ErrorCode.InvalidParams

@@ -18,7 +18,9 @@ import {
   ListSceneItemsInput,
   ListSceneItemsOutput,
   ListScenesOutput,
+  SetSceneItemBlendModeInput,
   SetSceneItemEnabledInput,
+  SetSceneItemIndexInput,
   SetSceneItemLockedInput
 } from "../../domain/schemas/scenes.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
@@ -113,3 +115,15 @@ export const GetSceneItemBlendMode = {
   requestDataSchema: GetSceneItemBlendModeInput,
   responseSchema: GetSceneItemBlendModeOutput
 } satisfies ObsRequestDescriptor<GetSceneItemBlendModeOutput>
+
+export const SetSceneItemIndex = {
+  requestType: "SetSceneItemIndex",
+  requestDataSchema: SetSceneItemIndexInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const SetSceneItemBlendMode = {
+  requestType: "SetSceneItemBlendMode",
+  requestDataSchema: SetSceneItemBlendModeInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>

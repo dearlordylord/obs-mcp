@@ -67,6 +67,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetSceneItemLocked",
   "GetSceneItemIndex",
   "GetSceneItemBlendMode",
+  "SetSceneItemIndex",
+  "SetSceneItemBlendMode",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",

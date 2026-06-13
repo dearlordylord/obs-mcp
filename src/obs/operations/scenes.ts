@@ -22,8 +22,12 @@ import {
   ListScenesOutput,
   SetCurrentSceneInput,
   SetCurrentSceneOutput,
+  SetSceneItemBlendModeInput,
+  SetSceneItemBlendModeOutput,
   SetSceneItemEnabledInput,
   SetSceneItemEnabledOutput,
+  SetSceneItemIndexInput,
+  SetSceneItemIndexOutput,
   SetSceneItemLockedInput,
   SetSceneItemLockedOutput
 } from "../../domain/schemas/scenes.js"
@@ -40,7 +44,9 @@ import {
   GetSceneItemSource,
   GetSceneList,
   SetCurrentProgramScene,
+  SetSceneItemBlendMode,
   SetSceneItemEnabled,
+  SetSceneItemIndex,
   SetSceneItemLocked
 } from "../requests.js"
 
@@ -162,4 +168,28 @@ export const getSceneItemBlendMode = async (
   return Schema.decodeUnknownSync(GetSceneItemBlendModeOutput)(
     await client.request(GetSceneItemBlendMode, decodedInput)
   )
+}
+
+export const setSceneItemIndex = async (
+  client: ObsClient,
+  input: SetSceneItemIndexInput
+): Promise<SetSceneItemIndexOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSceneItemIndexInput)(input)
+  await client.request(SetSceneItemIndex, decodedInput)
+  return Schema.decodeUnknownSync(SetSceneItemIndexOutput)({
+    sceneItemIndex: decodedInput.sceneItemIndex,
+    updated: true
+  })
+}
+
+export const setSceneItemBlendMode = async (
+  client: ObsClient,
+  input: SetSceneItemBlendModeInput
+): Promise<SetSceneItemBlendModeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSceneItemBlendModeInput)(input)
+  await client.request(SetSceneItemBlendMode, decodedInput)
+  return Schema.decodeUnknownSync(SetSceneItemBlendModeOutput)({
+    sceneItemBlendMode: decodedInput.sceneItemBlendMode,
+    updated: true
+  })
 }

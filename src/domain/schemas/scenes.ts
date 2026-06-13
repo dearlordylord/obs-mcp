@@ -257,3 +257,55 @@ export const GetSceneItemBlendModeOutput = Schema.Struct({
 })
 export type GetSceneItemBlendModeOutput = typeof GetSceneItemBlendModeOutput.Type
 export const GetSceneItemBlendModeOutputJsonSchema = JSONSchema.make(GetSceneItemBlendModeOutput)
+
+export const SetSceneItemIndexInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SceneItemLocatorFields,
+    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SceneItemLocatorFields,
+    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  })
+)
+export type SetSceneItemIndexInput = typeof SetSceneItemIndexInput.Type
+export const SetSceneItemIndexInputJsonSchema = JSONSchema.make(SetSceneItemIndexInput)
+
+export const SetSceneItemIndexOutput = Schema.Struct({
+  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  updated: Schema.Literal(true)
+})
+export type SetSceneItemIndexOutput = typeof SetSceneItemIndexOutput.Type
+export const SetSceneItemIndexOutputJsonSchema = JSONSchema.make(SetSceneItemIndexOutput)
+
+export const SetSceneItemBlendModeInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SceneItemLocatorFields,
+    sceneItemBlendMode: SceneItemBlendMode
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SceneItemLocatorFields,
+    sceneItemBlendMode: SceneItemBlendMode
+  })
+)
+export type SetSceneItemBlendModeInput = typeof SetSceneItemBlendModeInput.Type
+export const SetSceneItemBlendModeInputJsonSchema = JSONSchema.make(SetSceneItemBlendModeInput)
+
+export const SetSceneItemBlendModeOutput = Schema.Struct({
+  sceneItemBlendMode: SceneItemBlendMode,
+  updated: Schema.Literal(true)
+})
+export type SetSceneItemBlendModeOutput = typeof SetSceneItemBlendModeOutput.Type
+export const SetSceneItemBlendModeOutputJsonSchema = JSONSchema.make(SetSceneItemBlendModeOutput)

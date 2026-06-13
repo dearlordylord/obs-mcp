@@ -16,7 +16,9 @@ import {
   GetSceneItemLocked,
   GetSceneItemSource,
   SetCurrentProgramScene,
+  SetSceneItemBlendMode,
   SetSceneItemEnabled,
+  SetSceneItemIndex,
   SetSceneItemLocked
 } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
@@ -298,8 +300,18 @@ describe("OBS websocket client", () => {
       .resolves.toEqual({ sceneItemIndex: 1 })
     await expect(client.request(GetSceneItemBlendMode, { sceneUuid: "scene-main", sceneItemId: 9 }))
       .resolves.toEqual({ sceneItemBlendMode: "OBS_BLEND_MULTIPLY" })
+    await expect(client.request(SetSceneItemIndex, {
+      sceneName: "Main",
+      sceneItemId: 9,
+      sceneItemIndex: 0
+    })).resolves.toEqual({})
+    await expect(client.request(SetSceneItemBlendMode, {
+      sceneUuid: "scene-main",
+      sceneItemId: 9,
+      sceneItemBlendMode: "OBS_BLEND_SCREEN"
+    })).resolves.toEqual({})
 
-    expect(server.requests.slice(-10)).toEqual([
+    expect(server.requests.slice(-12)).toEqual([
       { requestType: "GetSceneItemList", requestData: { sceneName: "Main", canvasUuid: "canvas-main" } },
       { requestType: "GetGroupSceneItemList", requestData: { sceneUuid: "scene-group" } },
       { requestType: "GetSceneItemId", requestData: { sceneName: "Main", sourceName: "Camera", searchOffset: 0 } },
@@ -315,7 +327,12 @@ describe("OBS websocket client", () => {
         requestData: { sceneUuid: "scene-main", sceneItemId: 9, sceneItemLocked: false }
       },
       { requestType: "GetSceneItemIndex", requestData: { sceneName: "Main", sceneItemId: 9 } },
-      { requestType: "GetSceneItemBlendMode", requestData: { sceneUuid: "scene-main", sceneItemId: 9 } }
+      { requestType: "GetSceneItemBlendMode", requestData: { sceneUuid: "scene-main", sceneItemId: 9 } },
+      { requestType: "SetSceneItemIndex", requestData: { sceneName: "Main", sceneItemId: 9, sceneItemIndex: 0 } },
+      {
+        requestType: "SetSceneItemBlendMode",
+        requestData: { sceneUuid: "scene-main", sceneItemId: 9, sceneItemBlendMode: "OBS_BLEND_SCREEN" }
+      }
     ])
   })
 
@@ -333,6 +350,25 @@ describe("OBS websocket client", () => {
       sceneItemEnabled: true
     })).rejects.toMatchObject({
       requestType: "SetSceneItemEnabled",
+      code: 601,
+      comment: "Scene item not found"
+    })
+  })
+
+  it("maps failed scene-item index requests to OBS request errors", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetSceneItemIndex: { code: 601, comment: "Scene item not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(SetSceneItemIndex, {
+      sceneName: "Main",
+      sceneItemId: 404,
+      sceneItemIndex: 2
+    })).rejects.toMatchObject({
+      requestType: "SetSceneItemIndex",
       code: 601,
       comment: "Scene item not found"
     })

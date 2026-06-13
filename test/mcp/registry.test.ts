@@ -34,6 +34,8 @@ const allAvailableRequests = [
   "SetSceneItemLocked",
   "GetSceneItemIndex",
   "GetSceneItemBlendMode",
+  "SetSceneItemIndex",
+  "SetSceneItemBlendMode",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -96,6 +98,8 @@ describe("MCP tool registry", () => {
       "set_scene_item_locked",
       "get_scene_item_index",
       "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -155,7 +159,9 @@ describe("MCP tool registry", () => {
       "get_scene_item_locked",
       "set_scene_item_locked",
       "get_scene_item_index",
-      "get_scene_item_blend_mode"
+      "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode"
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_inputs",
@@ -454,6 +460,28 @@ describe("MCP tool registry", () => {
         client: client(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("set_scene_item_index"), {
+        sceneName: "Scene",
+        sceneItemId: 1,
+        sceneItemIndex: -1
+      }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
+
+    await expect(
+      executeTool(toolByName("set_scene_item_blend_mode"), {
+        sceneName: "Scene",
+        sceneItemId: 1,
+        sceneItemBlendMode: "invalid"
+      }, {
+        config,
+        client: client(async () => ({}))
+      })
+    ).rejects.toBeInstanceOf(McpError)
   })
 
   it("lists scene items by scene name and preserves ordered item identity", async () => {
@@ -654,6 +682,38 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("sets scene item index and blend mode", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("set_scene_item_index"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemIndex: 3
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemIndex: 3, updated: true })
+
+    await expect(executeTool(toolByName("set_scene_item_blend_mode"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42,
+      sceneItemBlendMode: "OBS_BLEND_DARKEN"
+    }, {
+      config,
+      client: clientWithData(async (_requestType, requestData) => {
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneItemBlendMode: "OBS_BLEND_DARKEN", updated: true })
+
+    expect(requests).toEqual([
+      { sceneName: "Scene", sceneItemId: 42, sceneItemIndex: 3 },
+      { sceneUuid: "scene-uuid", sceneItemId: 42, sceneItemBlendMode: "OBS_BLEND_DARKEN" }
+    ])
+  })
+
   it("maps OBS missing scene item errors to MCP errors", async () => {
     await expect(executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Missing" }, {
       config,
@@ -701,6 +761,44 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("maps scene item mutation OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("set_scene_item_index"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemIndex: 99
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("SetSceneItemIndex", 601, "Index out of range")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetSceneItemIndex",
+        obsStatusCode: 601,
+        comment: "Index out of range"
+      }
+    })
+
+    await expect(executeTool(toolByName("set_scene_item_blend_mode"), {
+      sceneName: "Scene",
+      sceneItemId: 42,
+      sceneItemBlendMode: "OBS_BLEND_LIGHTEN"
+    }, {
+      config,
+      client: client(async () => {
+        throw new ObsRequestError("SetSceneItemBlendMode", 402, "Invalid blend mode")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetSceneItemBlendMode",
+        obsStatusCode: 402,
+        comment: "Invalid blend mode"
+      }
+    })
+  })
+
   it("filters unavailable scene-item requests by negotiated OBS capabilities", () => {
     expect(
       getEnabledTools(["scenes"], [
@@ -713,7 +811,9 @@ describe("MCP tool registry", () => {
         "GetSceneItemLocked",
         "SetSceneItemLocked",
         "GetSceneItemIndex",
-        "GetSceneItemBlendMode"
+        "GetSceneItemBlendMode",
+        "SetSceneItemIndex",
+        "SetSceneItemBlendMode"
       ]).map((tool) => tool.name)
     ).toEqual([
       "list_scenes",
@@ -724,7 +824,9 @@ describe("MCP tool registry", () => {
       "get_scene_item_locked",
       "set_scene_item_locked",
       "get_scene_item_index",
-      "get_scene_item_blend_mode"
+      "get_scene_item_blend_mode",
+      "set_scene_item_index",
+      "set_scene_item_blend_mode"
     ])
   })
 

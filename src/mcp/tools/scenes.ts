@@ -20,8 +20,12 @@ import {
   ListScenesOutput,
   SetCurrentSceneInput,
   SetCurrentSceneOutput,
+  SetSceneItemBlendModeInput,
+  SetSceneItemBlendModeOutput,
   SetSceneItemEnabledInput,
   SetSceneItemEnabledOutput,
+  SetSceneItemIndexInput,
+  SetSceneItemIndexOutput,
   SetSceneItemLockedInput,
   SetSceneItemLockedOutput
 } from "../../domain/schemas/index.js"
@@ -38,7 +42,9 @@ import {
   listSceneItems,
   listScenes,
   setCurrentScene,
+  setSceneItemBlendMode,
   setSceneItemEnabled,
+  setSceneItemIndex,
   setSceneItemLocked
 } from "../../obs/operations/scenes.js"
 import {
@@ -53,7 +59,9 @@ import {
   GetSceneItemSource,
   GetSceneList,
   SetCurrentProgramScene,
+  SetSceneItemBlendMode,
   SetSceneItemEnabled,
+  SetSceneItemIndex,
   SetSceneItemLocked
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
@@ -190,5 +198,25 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: GetSceneItemBlendModeInput,
     outputSchema: GetSceneItemBlendModeOutput,
     handler: async (input, context) => getSceneItemBlendMode(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_index",
+    title: "Set OBS Scene Item Index",
+    description: "Set a scene item's index position in its scene.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemIndex.requestType],
+    inputSchema: SetSceneItemIndexInput,
+    outputSchema: SetSceneItemIndexOutput,
+    handler: async (input, context) => setSceneItemIndex(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_blend_mode",
+    title: "Set OBS Scene Item Blend Mode",
+    description: "Set a scene item's OBS blend mode.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemBlendMode.requestType],
+    inputSchema: SetSceneItemBlendModeInput,
+    outputSchema: SetSceneItemBlendModeOutput,
+    handler: async (input, context) => setSceneItemBlendMode(context.client, input)
   })
 ]

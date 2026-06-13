@@ -322,6 +322,10 @@ export class FakeObsServer {
       send({ sceneItemBlendMode: sceneItem?.sceneItemBlendMode ?? "OBS_BLEND_NORMAL" })
       return
     }
+    if (requestType === "SetSceneItemIndex" || requestType === "SetSceneItemBlendMode") {
+      send()
+      return
+    }
     if (requestType === "GetInputList") {
       const inputKind = envelope.d.requestData?.inputKind
       send({
