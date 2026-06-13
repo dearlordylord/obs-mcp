@@ -6,7 +6,14 @@ import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { listCanvases } from "../../src/obs/operations/canvases.js"
-import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
+import {
+  getObsStats,
+  getRecordStatus,
+  getVersion,
+  listHotkeys,
+  triggerHotkeyByKeySequence,
+  triggerHotkeyByName
+} from "../../src/obs/operations/general.js"
 import {
   getInputAudioBalance,
   getInputAudioMonitorType,
@@ -122,6 +129,76 @@ describe("OBS operations", () => {
       outputDuration: 0,
       outputBytes: 0
     })
+  })
+
+  it("lists and triggers hotkeys through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      hotkeys: ["OBSBasic.StartStreaming", "OBSBasic.StopStreaming"]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listHotkeys(client)).resolves.toEqual({
+      hotkeys: ["OBSBasic.StartStreaming", "OBSBasic.StopStreaming"]
+    })
+    await expect(triggerHotkeyByName(client, {
+      hotkeyName: "OBSBasic.StartStreaming",
+      contextName: "OBSBasic"
+    })).resolves.toEqual({
+      hotkeyName: "OBSBasic.StartStreaming",
+      contextName: "OBSBasic",
+      triggered: true
+    })
+    await expect(triggerHotkeyByKeySequence(client, {
+      keyId: "OBS_KEY_F9",
+      keyModifiers: { control: true, shift: true }
+    })).resolves.toEqual({
+      keyId: "OBS_KEY_F9",
+      keyModifiers: { control: true, shift: true },
+      triggered: true
+    })
+    await expect(triggerHotkeyByKeySequence(client, { keyId: "OBS_KEY_F10" })).resolves.toEqual({
+      keyId: "OBS_KEY_F10",
+      triggered: true
+    })
+    await expect(triggerHotkeyByKeySequence(client, { keyModifiers: { alt: true } })).resolves.toEqual({
+      keyModifiers: { alt: true },
+      triggered: true
+    })
+    expect(server.requests.filter((request) => request.requestType.startsWith("TriggerHotkey"))).toEqual([
+      {
+        requestType: "TriggerHotkeyByName",
+        requestData: { hotkeyName: "OBSBasic.StartStreaming", contextName: "OBSBasic" }
+      },
+      {
+        requestType: "TriggerHotkeyByKeySequence",
+        requestData: { keyId: "OBS_KEY_F9", keyModifiers: { control: true, shift: true } }
+      },
+      {
+        requestType: "TriggerHotkeyByKeySequence",
+        requestData: { keyId: "OBS_KEY_F10" }
+      },
+      {
+        requestType: "TriggerHotkeyByKeySequence",
+        requestData: { keyModifiers: { alt: true } }
+      }
+    ])
+  })
+
+  it("surfaces OBS hotkey trigger request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { TriggerHotkeyByName: { code: 404, comment: "Hotkey not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["general"] })
+    clients.push(client)
+    await expect(triggerHotkeyByName(client, { hotkeyName: "Missing" })).rejects.toMatchObject(
+      {
+        requestType: "TriggerHotkeyByName",
+        code: 404,
+        comment: "Hotkey not found"
+      } satisfies Partial<ObsRequestError>
+    )
   })
 
   it("lists canvases with stable summaries and reads studio mode state", async () => {

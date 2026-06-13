@@ -62,6 +62,15 @@ const inputToolNames = [
   "trigger_media_input_action"
 ]
 
+const generalToolNames = [
+  "get_obs_context",
+  "get_version",
+  "get_obs_stats",
+  "list_hotkeys",
+  "trigger_hotkey_by_name",
+  "trigger_hotkey_by_key_sequence"
+]
+
 const deferredInputMediaToolNames = [
   "get_input_audio_tracks",
   "set_input_audio_tracks",
@@ -190,9 +199,7 @@ const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsCli
 describe("MCP tool registry", () => {
   it("exposes exactly the enabled tools by default", () => {
     expect(getEnabledTools(config.enabledToolsets).map((tool) => tool.name)).toEqual([
-      "get_obs_context",
-      "get_version",
-      "get_obs_stats",
+      ...generalToolNames,
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
@@ -272,11 +279,7 @@ describe("MCP tool registry", () => {
   })
 
   it("filters tools by toolset category", () => {
-    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name)).toEqual([
-      "get_obs_context",
-      "get_version",
-      "get_obs_stats"
-    ])
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name)).toEqual(generalToolNames)
     expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_recent_obs_events"
     ])
@@ -341,6 +344,13 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_obs_stats"
     ])
+    expect(
+      getEnabledTools(["general"], [
+        "GetHotkeyList",
+        "TriggerHotkeyByName",
+        "TriggerHotkeyByKeySequence"
+      ]).map((tool) => tool.name)
+    ).toEqual(["get_obs_context", "list_hotkeys", "trigger_hotkey_by_name", "trigger_hotkey_by_key_sequence"])
     expect(
       getEnabledTools(["record"], [
         "StartRecord",
@@ -602,6 +612,46 @@ describe("MCP tool registry", () => {
         outputDuration: 0,
         outputBytes: 0
       })
+  })
+
+  it("executes hotkey handlers with structured output and validates bounded key sequences", async () => {
+    const seenRequests: Array<readonly [string, unknown]> = []
+    const fakeClient = clientWithData(async (requestType, requestData) => {
+      seenRequests.push([requestType, requestData])
+      return requestType === "GetHotkeyList"
+        ? { hotkeys: ["OBSBasic.StartRecording"] }
+        : {}
+    })
+    await expect(executeTool(toolByName("list_hotkeys"), {}, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).resolves.toEqual({ hotkeys: ["OBSBasic.StartRecording"] })
+    await expect(executeTool(toolByName("trigger_hotkey_by_name"), {
+      hotkeyName: "OBSBasic.StartRecording"
+    }, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).resolves.toEqual({ hotkeyName: "OBSBasic.StartRecording", triggered: true })
+    await expect(executeTool(toolByName("trigger_hotkey_by_key_sequence"), {
+      keyId: "OBS_KEY_F10",
+      keyModifiers: { alt: true, command: false }
+    }, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      keyId: "OBS_KEY_F10",
+      keyModifiers: { alt: true, command: false },
+      triggered: true
+    })
+    await expect(executeTool(toolByName("trigger_hotkey_by_key_sequence"), {}, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    expect(seenRequests).toEqual([
+      ["GetHotkeyList", undefined],
+      ["TriggerHotkeyByName", { hotkeyName: "OBSBasic.StartRecording" }],
+      ["TriggerHotkeyByKeySequence", { keyId: "OBS_KEY_F10", keyModifiers: { alt: true, command: false } }]
+    ])
   })
 
   it("executes input discovery handlers with structured output", async () => {

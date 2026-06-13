@@ -1,8 +1,24 @@
 import { Schema } from "effect"
 
-import { ObsStatsOutput, RecordStatusOutput, VersionOutput } from "../../domain/schemas/general.js"
+import {
+  HotkeyListOutput,
+  ObsStatsOutput,
+  RecordStatusOutput,
+  TriggerHotkeyByKeySequenceInput,
+  TriggerHotkeyByKeySequenceOutput,
+  TriggerHotkeyByNameInput,
+  TriggerHotkeyByNameOutput,
+  VersionOutput
+} from "../../domain/schemas/general.js"
 import type { ObsClient } from "../client.js"
-import { GetRecordStatus, GetStats, GetVersion } from "../requests.js"
+import {
+  GetHotkeyList,
+  GetRecordStatus,
+  GetStats,
+  GetVersion,
+  TriggerHotkeyByKeySequence,
+  TriggerHotkeyByName
+} from "../requests.js"
 
 export const getVersion = async (client: ObsClient): Promise<VersionOutput> => {
   const response = await client.request(GetVersion)
@@ -20,4 +36,33 @@ export const getObsStats = async (client: ObsClient): Promise<ObsStatsOutput> =>
 export const getRecordStatus = async (client: ObsClient): Promise<RecordStatusOutput> => {
   const response = await client.request(GetRecordStatus)
   return Schema.decodeUnknownSync(RecordStatusOutput)(response)
+}
+
+export const listHotkeys = async (client: ObsClient): Promise<HotkeyListOutput> =>
+  Schema.decodeUnknownSync(HotkeyListOutput)(await client.request(GetHotkeyList))
+
+export const triggerHotkeyByName = async (
+  client: ObsClient,
+  input: TriggerHotkeyByNameInput
+): Promise<TriggerHotkeyByNameOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(TriggerHotkeyByNameInput)(input)
+  await client.request(TriggerHotkeyByName, decodedInput)
+  return Schema.decodeUnknownSync(TriggerHotkeyByNameOutput)({
+    hotkeyName: decodedInput.hotkeyName,
+    ...(decodedInput.contextName === undefined ? {} : { contextName: decodedInput.contextName }),
+    triggered: true
+  })
+}
+
+export const triggerHotkeyByKeySequence = async (
+  client: ObsClient,
+  input: TriggerHotkeyByKeySequenceInput
+): Promise<TriggerHotkeyByKeySequenceOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(TriggerHotkeyByKeySequenceInput)(input)
+  await client.request(TriggerHotkeyByKeySequence, decodedInput)
+  return Schema.decodeUnknownSync(TriggerHotkeyByKeySequenceOutput)({
+    ...(decodedInput.keyId === undefined ? {} : { keyId: decodedInput.keyId }),
+    ...(decodedInput.keyModifiers === undefined ? {} : { keyModifiers: decodedInput.keyModifiers }),
+    triggered: true
+  })
 }

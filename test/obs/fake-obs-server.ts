@@ -4,6 +4,7 @@ import { type WebSocket, WebSocketServer } from "ws"
 import {
   DEFAULT_AVAILABLE_REQUESTS,
   DEFAULT_CANVASES,
+  DEFAULT_HOTKEYS,
   DEFAULT_INPUTS,
   DEFAULT_SCENES,
   DEFAULT_TRANSITIONS,
@@ -14,6 +15,7 @@ import {
   type FakeObsTransition,
   sceneItemsFor
 } from "./fake-obs-fixtures.js"
+import { handleFakeObsHotkeyRequest } from "./fake-obs-hotkey-requests.js"
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
@@ -49,6 +51,7 @@ interface FakeObsServerOptions {
   readonly scenes?: ReadonlyArray<FakeObsScene>
   readonly inputs?: ReadonlyArray<FakeObsInput>
   readonly canvases?: ReadonlyArray<FakeObsCanvas>
+  readonly hotkeys?: ReadonlyArray<string>
   readonly transitions?: ReadonlyArray<FakeObsTransition>
   readonly transitionCursor?: number
   readonly studioModeEnabled?: boolean
@@ -98,11 +101,12 @@ export class FakeObsServer {
     const scenes = options.scenes ?? DEFAULT_SCENES
     const inputs = options.inputs ?? DEFAULT_INPUTS
     const canvases = options.canvases ?? DEFAULT_CANVASES
+    const hotkeys = options.hotkeys ?? DEFAULT_HOTKEYS
     const transitions = options.transitions ?? DEFAULT_TRANSITIONS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
     fake.inputState = new FakeObsInputState(inputs)
     fake.transitionState = new FakeObsTransitionState(transitions, options.transitionCursor ?? 1)
-    fake.installHandlers(options, scenes, inputs, canvases)
+    fake.installHandlers(options, scenes, inputs, canvases, hotkeys)
     return fake
   }
 
@@ -127,7 +131,8 @@ export class FakeObsServer {
     options: FakeObsServerOptions,
     scenes: ReadonlyArray<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>,
-    canvases: ReadonlyArray<FakeObsCanvas>
+    canvases: ReadonlyArray<FakeObsCanvas>,
+    hotkeys: ReadonlyArray<string>
   ): void {
     this.server.on("connection", (socket) => {
       const salt = "salt"
@@ -175,7 +180,7 @@ export class FakeObsServer {
         }
         socket.on(
           "message",
-          (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs, canvases)
+          (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs, canvases, hotkeys)
         )
       })
     })
@@ -187,7 +192,8 @@ export class FakeObsServer {
     options: FakeObsServerOptions,
     scenes: ReadonlyArray<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>,
-    canvases: ReadonlyArray<FakeObsCanvas>
+    canvases: ReadonlyArray<FakeObsCanvas>,
+    hotkeys: ReadonlyArray<string>
   ): void {
     const envelope = JSON.parse(text)
     const requestType = envelope.d.requestType
@@ -284,6 +290,9 @@ export class FakeObsServer {
         webSocketSessionIncomingMessages: 10,
         webSocketSessionOutgoingMessages: 11
       })
+      return
+    }
+    if (handleFakeObsHotkeyRequest(hotkeys, requestType, send)) {
       return
     }
     if (requestType === "GetCanvasList") {

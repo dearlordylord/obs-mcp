@@ -181,9 +181,18 @@ export const DEFAULT_TRANSITIONS: ReadonlyArray<FakeObsTransition> = [
   }
 ]
 
+export const DEFAULT_HOTKEYS: ReadonlyArray<string> = [
+  "OBSBasic.StartRecording",
+  "OBSBasic.StopRecording",
+  "OBSBasic.Transition"
+]
+
 export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetVersion",
   "GetStats",
+  "GetHotkeyList",
+  "TriggerHotkeyByName",
+  "TriggerHotkeyByKeySequence",
   "GetCanvasList",
   "GetTransitionKindList",
   "GetSceneTransitionList",

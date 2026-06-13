@@ -56,6 +56,9 @@ describe("MCP server protocol handlers", () => {
       "get_obs_context",
       "get_version",
       "get_obs_stats",
+      "list_hotkeys",
+      "trigger_hotkey_by_name",
+      "trigger_hotkey_by_key_sequence",
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
@@ -144,8 +147,35 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_version",
-      "get_obs_stats"
+      "get_obs_stats",
+      "list_hotkeys",
+      "trigger_hotkey_by_name",
+      "trigger_hotkey_by_key_sequence"
     ])
+  })
+
+  it("lists and calls hotkey tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => requestType === "GetHotkeyList" ? { hotkeys: ["OBSBasic.StartRecording"] } : {}),
+      {
+        ...config,
+        enabledToolsets: ["general"]
+      }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toContain("list_hotkeys")
+    await expect(client.callTool({ name: "list_hotkeys", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { hotkeys: ["OBSBasic.StartRecording"] } })
+    await expect(client.callTool({
+      name: "trigger_hotkey_by_name",
+      arguments: { hotkeyName: "OBSBasic.StartRecording" }
+    })).resolves.toMatchObject({ structuredContent: { hotkeyName: "OBSBasic.StartRecording", triggered: true } })
+    await expect(client.callTool({
+      name: "trigger_hotkey_by_key_sequence",
+      arguments: { keyId: "OBS_KEY_F10", keyModifiers: { control: true } }
+    })).resolves.toMatchObject({
+      structuredContent: { keyId: "OBS_KEY_F10", keyModifiers: { control: true }, triggered: true }
+    })
   })
 
   it("lists recent event tools only for the events toolset", async () => {

@@ -3,6 +3,9 @@ import { Schema } from "effect"
 export const ObsRequestType = Schema.Literal(
   "GetVersion",
   "GetStats",
+  "GetHotkeyList",
+  "TriggerHotkeyByName",
+  "TriggerHotkeyByKeySequence",
   "GetCanvasList",
   "GetTransitionKindList",
   "GetSceneTransitionList",
