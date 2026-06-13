@@ -62,6 +62,59 @@ export const SetInputVolumeOutput = Schema.Struct({
 export type SetInputVolumeOutput = typeof SetInputVolumeOutput.Type
 export const SetInputVolumeOutputJsonSchema = JSONSchema.make(SetInputVolumeOutput)
 
+export const InputAudioBalance = Schema.Number.pipe(Schema.greaterThanOrEqualTo(0), Schema.lessThanOrEqualTo(1))
+
+export const SetInputAudioBalanceInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputAudioBalance: InputAudioBalance
+  })
+)
+export type SetInputAudioBalanceInput = typeof SetInputAudioBalanceInput.Type
+export const SetInputAudioBalanceInputJsonSchema = JSONSchema.make(SetInputAudioBalanceInput)
+
+export const InputAudioBalanceOutput = Schema.Struct({
+  inputAudioBalance: InputAudioBalance
+})
+export type InputAudioBalanceOutput = typeof InputAudioBalanceOutput.Type
+export const InputAudioBalanceOutputJsonSchema = JSONSchema.make(InputAudioBalanceOutput)
+
+export const SetInputAudioBalanceOutput = Schema.Struct({
+  inputAudioBalance: InputAudioBalance,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputAudioBalanceOutput = typeof SetInputAudioBalanceOutput.Type
+export const SetInputAudioBalanceOutputJsonSchema = JSONSchema.make(SetInputAudioBalanceOutput)
+
+export const InputAudioMonitorType = Schema.Literal(
+  "OBS_MONITORING_TYPE_NONE",
+  "OBS_MONITORING_TYPE_MONITOR_ONLY",
+  "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+)
+export type InputAudioMonitorType = typeof InputAudioMonitorType.Type
+
+export const SetInputAudioMonitorTypeInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    monitorType: InputAudioMonitorType
+  })
+)
+export type SetInputAudioMonitorTypeInput = typeof SetInputAudioMonitorTypeInput.Type
+export const SetInputAudioMonitorTypeInputJsonSchema = JSONSchema.make(SetInputAudioMonitorTypeInput)
+
+export const InputAudioMonitorTypeOutput = Schema.Struct({
+  monitorType: InputAudioMonitorType
+})
+export type InputAudioMonitorTypeOutput = typeof InputAudioMonitorTypeOutput.Type
+export const InputAudioMonitorTypeOutputJsonSchema = JSONSchema.make(InputAudioMonitorTypeOutput)
+
+export const SetInputAudioMonitorTypeOutput = Schema.Struct({
+  monitorType: InputAudioMonitorType,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputAudioMonitorTypeOutput = typeof SetInputAudioMonitorTypeOutput.Type
+export const SetInputAudioMonitorTypeOutputJsonSchema = JSONSchema.make(SetInputAudioMonitorTypeOutput)
+
 export const ListInputsInput = Schema.Struct({
   inputKind: Schema.optional(Schema.NonEmptyString)
 })

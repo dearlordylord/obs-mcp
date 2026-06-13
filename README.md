@@ -47,6 +47,10 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `toggle_input_mute`
 - `get_input_volume`
 - `set_input_volume`
+- `get_input_audio_balance`
+- `set_input_audio_balance`
+- `get_input_audio_monitor_type`
+- `set_input_audio_monitor_type`
 - `get_virtual_cam_status`
 - `start_virtual_cam`
 - `stop_virtual_cam`

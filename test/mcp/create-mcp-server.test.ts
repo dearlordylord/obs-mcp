@@ -41,6 +41,10 @@ const allAvailableRequests = [
   "ToggleInputMute",
   "GetInputVolume",
   "SetInputVolume",
+  "GetInputAudioBalance",
+  "SetInputAudioBalance",
+  "GetInputAudioMonitorType",
+  "SetInputAudioMonitorType",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -106,6 +110,10 @@ describe("MCP server protocol handlers", () => {
       "toggle_input_mute",
       "get_input_volume",
       "set_input_volume",
+      "get_input_audio_balance",
+      "set_input_audio_balance",
+      "get_input_audio_monitor_type",
+      "set_input_audio_monitor_type",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -220,6 +228,15 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "SetInputVolume") {
           return {}
         }
+        if (requestType === "GetInputAudioBalance") {
+          return { inputAudioBalance: 0.5 }
+        }
+        if (requestType === "GetInputAudioMonitorType") {
+          return { monitorType: "OBS_MONITORING_TYPE_NONE" }
+        }
+        if (requestType === "SetInputAudioBalance" || requestType === "SetInputAudioMonitorType") {
+          return {}
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -240,7 +257,11 @@ describe("MCP server protocol handlers", () => {
       "set_input_mute",
       "toggle_input_mute",
       "get_input_volume",
-      "set_input_volume"
+      "set_input_volume",
+      "get_input_audio_balance",
+      "set_input_audio_balance",
+      "get_input_audio_monitor_type",
+      "set_input_audio_monitor_type"
     ])
     await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
       .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
@@ -262,6 +283,23 @@ describe("MCP server protocol handlers", () => {
       name: "set_input_volume",
       arguments: { inputUuid: "input-mic-aux", inputVolumeDb: -6 }
     })).resolves.toMatchObject({ structuredContent: { inputVolumeDb: -6, acknowledged: true } })
+    await expect(client.callTool({ name: "get_input_audio_balance", arguments: { inputName: "Mic/Aux" } }))
+      .resolves.toMatchObject({ structuredContent: { inputAudioBalance: 0.5 } })
+    await expect(client.callTool({
+      name: "set_input_audio_balance",
+      arguments: { inputUuid: "input-mic-aux", inputAudioBalance: 0.25 }
+    })).resolves.toMatchObject({ structuredContent: { inputAudioBalance: 0.25, acknowledged: true } })
+    await expect(client.callTool({ name: "get_input_audio_monitor_type", arguments: { inputName: "Mic/Aux" } }))
+      .resolves.toMatchObject({ structuredContent: { monitorType: "OBS_MONITORING_TYPE_NONE" } })
+    await expect(client.callTool({
+      name: "set_input_audio_monitor_type",
+      arguments: {
+        inputUuid: "input-mic-aux",
+        monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+      }
+    })).resolves.toMatchObject({
+      structuredContent: { monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT", acknowledged: true }
+    })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

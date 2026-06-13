@@ -1,6 +1,8 @@
 import { Schema } from "effect"
 
 import {
+  InputAudioBalanceOutput,
+  InputAudioMonitorTypeOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -8,6 +10,8 @@ import {
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
+  SetInputAudioBalanceInput,
+  SetInputAudioMonitorTypeInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SpecialInputsOutput
@@ -61,5 +65,29 @@ export const GetInputVolume = {
 export const SetInputVolume = {
   requestType: "SetInputVolume",
   requestDataSchema: SetInputVolumeInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputAudioBalance = {
+  requestType: "GetInputAudioBalance",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputAudioBalanceOutput
+} satisfies ObsRequestDescriptor<InputAudioBalanceOutput>
+
+export const SetInputAudioBalance = {
+  requestType: "SetInputAudioBalance",
+  requestDataSchema: SetInputAudioBalanceInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetInputAudioMonitorType = {
+  requestType: "GetInputAudioMonitorType",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: InputAudioMonitorTypeOutput
+} satisfies ObsRequestDescriptor<InputAudioMonitorTypeOutput>
+
+export const SetInputAudioMonitorType = {
+  requestType: "SetInputAudioMonitorType",
+  requestDataSchema: SetInputAudioMonitorTypeInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>

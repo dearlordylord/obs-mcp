@@ -3,16 +3,14 @@ import { type WebSocket, WebSocketServer } from "ws"
 
 import {
   DEFAULT_AVAILABLE_REQUESTS,
-  DEFAULT_INPUT_VOLUME,
   DEFAULT_INPUTS,
   DEFAULT_SCENES,
-  fakeInputVolumeFromRequest,
   type FakeObsInput,
-  type FakeObsInputVolume,
   type FakeObsReceivedRequest,
   type FakeObsScene,
   sceneItemsFor
 } from "./fake-obs-fixtures.js"
+import { FakeObsInputState } from "./fake-obs-input-state.js"
 
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
@@ -62,8 +60,7 @@ export class FakeObsServer {
   private readonly server: WebSocketServer
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
-  private inputMuteByKey: Map<string, boolean> = new Map()
-  private inputVolumeByKey: Map<string, FakeObsInputVolume> = new Map()
+  private inputState: FakeObsInputState = new FakeObsInputState([])
   private streamActive = false
   private virtualCamActive = false
   public lastIdentifyEventSubscriptions: unknown
@@ -88,13 +85,7 @@ export class FakeObsServer {
     const scenes = options.scenes ?? DEFAULT_SCENES
     const inputs = options.inputs ?? DEFAULT_INPUTS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
-    fake.inputMuteByKey = new Map(inputs.flatMap((input) => {
-      const muted = input.inputMuted ?? false
-      return [
-        [input.inputName, muted],
-        ...(input.inputUuid === undefined ? [] : [[input.inputUuid, muted] as const])
-      ] as const
-    }))
+    fake.inputState = new FakeObsInputState(inputs)
     fake.installHandlers(options, scenes, inputs)
     return fake
   }
@@ -112,12 +103,6 @@ export class FakeObsServer {
   }
   public get requests(): ReadonlyArray<FakeObsReceivedRequest> {
     return this.receivedRequests
-  }
-  private inputKeysFor(inputs: ReadonlyArray<FakeObsInput>, locator: string): ReadonlyArray<string> {
-    const input = inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
-    return input === undefined
-      ? [locator]
-      : [input.inputName, ...(input.inputUuid === undefined ? [] : [input.inputUuid])]
   }
   private installHandlers(
     options: FakeObsServerOptions,
@@ -325,38 +310,55 @@ export class FakeObsServer {
     }
     if (requestType === "GetInputMute") {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      send({ inputMuted: this.inputMuteByKey.get(locator) ?? false })
+      send({ inputMuted: this.inputState.getMute(locator) })
       return
     }
     if (requestType === "SetInputMute") {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      for (const key of this.inputKeysFor(inputs, locator)) {
-        this.inputMuteByKey.set(key, envelope.d.requestData.inputMuted)
-      }
+      this.inputState.setMute(locator, envelope.d.requestData.inputMuted)
       send()
       return
     }
     if (requestType === "ToggleInputMute") {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      const inputMuted = !(this.inputMuteByKey.get(locator) ?? false)
-      for (const key of this.inputKeysFor(inputs, locator)) {
-        this.inputMuteByKey.set(key, inputMuted)
-      }
-      send({ inputMuted })
+      send({ inputMuted: this.inputState.toggleMute(locator) })
       return
     }
     if (requestType === "GetInputVolume") {
-      send({
-        ...(this.inputVolumeByKey.get(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid)
-          ?? DEFAULT_INPUT_VOLUME)
-      })
+      send({ ...this.inputState.getVolume(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid) })
       return
     }
     if (requestType === "SetInputVolume") {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      for (const key of this.inputKeysFor(inputs, locator)) {
-        this.inputVolumeByKey.set(key, fakeInputVolumeFromRequest(envelope.d.requestData))
-      }
+      this.inputState.setVolume(locator, envelope.d.requestData)
+      send()
+      return
+    }
+    if (requestType === "GetInputAudioBalance") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      send({ inputAudioBalance: this.inputState.getAudioState(locator).inputAudioBalance })
+      return
+    }
+    if (requestType === "SetInputAudioBalance") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      this.inputState.setAudioState(locator, {
+        ...this.inputState.getAudioState(locator),
+        inputAudioBalance: envelope.d.requestData.inputAudioBalance
+      })
+      send()
+      return
+    }
+    if (requestType === "GetInputAudioMonitorType") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      send({ monitorType: this.inputState.getAudioState(locator).monitorType })
+      return
+    }
+    if (requestType === "SetInputAudioMonitorType") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      this.inputState.setAudioState(locator, {
+        ...this.inputState.getAudioState(locator),
+        monitorType: envelope.d.requestData.monitorType
+      })
       send()
       return
     }

@@ -1,4 +1,6 @@
 import {
+  InputAudioBalanceOutput,
+  InputAudioMonitorTypeOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -6,6 +8,10 @@ import {
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
+  SetInputAudioBalanceInput,
+  SetInputAudioBalanceOutput,
+  SetInputAudioMonitorTypeInput,
+  SetInputAudioMonitorTypeOutput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
@@ -13,21 +19,29 @@ import {
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  getInputAudioBalance,
+  getInputAudioMonitorType,
   getInputMute,
   getInputVolume,
   getSpecialInputs,
   listInputKinds,
   listInputs,
+  setInputAudioBalance,
+  setInputAudioMonitorType,
   setInputMute,
   setInputVolume,
   toggleInputMute
 } from "../../obs/operations/inputs.js"
 import {
+  GetInputAudioBalance,
+  GetInputAudioMonitorType,
   GetInputKindList,
   GetInputList,
   GetInputMute,
   GetInputVolume,
   GetSpecialInputs,
+  SetInputAudioBalance,
+  SetInputAudioMonitorType,
   SetInputMute,
   SetInputVolume,
   ToggleInputMute
@@ -116,5 +130,45 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SetInputVolumeInput,
     outputSchema: SetInputVolumeOutput,
     handler: async (input, context) => setInputVolume(context.client, input)
+  }),
+  defineTool({
+    name: "get_input_audio_balance",
+    title: "Get OBS Input Audio Balance",
+    description: "Return an OBS input audio balance.",
+    category: CATEGORY,
+    requiredObsRequests: [GetInputAudioBalance.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: InputAudioBalanceOutput,
+    handler: async (input, context) => getInputAudioBalance(context.client, input)
+  }),
+  defineTool({
+    name: "set_input_audio_balance",
+    title: "Set OBS Input Audio Balance",
+    description: "Set an OBS input audio balance.",
+    category: CATEGORY,
+    requiredObsRequests: [SetInputAudioBalance.requestType],
+    inputSchema: SetInputAudioBalanceInput,
+    outputSchema: SetInputAudioBalanceOutput,
+    handler: async (input, context) => setInputAudioBalance(context.client, input)
+  }),
+  defineTool({
+    name: "get_input_audio_monitor_type",
+    title: "Get OBS Input Audio Monitor Type",
+    description: "Return an OBS input audio monitor type.",
+    category: CATEGORY,
+    requiredObsRequests: [GetInputAudioMonitorType.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: InputAudioMonitorTypeOutput,
+    handler: async (input, context) => getInputAudioMonitorType(context.client, input)
+  }),
+  defineTool({
+    name: "set_input_audio_monitor_type",
+    title: "Set OBS Input Audio Monitor Type",
+    description: "Set an OBS input audio monitor type.",
+    category: CATEGORY,
+    requiredObsRequests: [SetInputAudioMonitorType.requestType],
+    inputSchema: SetInputAudioMonitorTypeInput,
+    outputSchema: SetInputAudioMonitorTypeOutput,
+    handler: async (input, context) => setInputAudioMonitorType(context.client, input)
   })
 ]

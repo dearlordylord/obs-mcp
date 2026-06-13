@@ -7,11 +7,15 @@ import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import {
+  getInputAudioBalance,
+  getInputAudioMonitorType,
   getInputMute,
   getInputVolume,
   getSpecialInputs,
   listInputKinds,
   listInputs,
+  setInputAudioBalance,
+  setInputAudioMonitorType,
   setInputMute,
   setInputVolume,
   toggleInputMute
@@ -234,6 +238,72 @@ describe("OBS operations", () => {
     )
   })
 
+  it("controls input audio balance and monitor type over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputAudioBalance(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputAudioBalance: 0.5
+    })
+    await expect(setInputAudioBalance(client, { inputName: "Mic/Aux", inputAudioBalance: 0.75 })).resolves.toEqual({
+      inputAudioBalance: 0.75,
+      acknowledged: true
+    })
+    await expect(getInputAudioBalance(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputAudioBalance: 0.75
+    })
+    await expect(getInputAudioMonitorType(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      monitorType: "OBS_MONITORING_TYPE_NONE"
+    })
+    await expect(setInputAudioMonitorType(client, {
+      inputUuid: "input-mic-aux",
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+    })).resolves.toEqual({
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
+      acknowledged: true
+    })
+    await expect(getInputAudioMonitorType(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputAudio"))).toEqual([
+      { requestType: "GetInputAudioBalance", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputAudioBalance", requestData: { inputName: "Mic/Aux", inputAudioBalance: 0.75 } },
+      { requestType: "GetInputAudioBalance", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "GetInputAudioMonitorType", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputAudioMonitorType",
+        requestData: {
+          inputUuid: "input-mic-aux",
+          monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+        }
+      },
+      { requestType: "GetInputAudioMonitorType", requestData: { inputName: "Mic/Aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input audio controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputAudioMonitorType: { code: 602, comment: "Monitor unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputAudioBalance(client, { inputName: "Mic/Aux", inputAudioBalance: 2 })).rejects.toThrow(
+      "Expected a number less than or equal to 1"
+    )
+    await expect(setInputAudioMonitorType(client, {
+      inputName: "Mic/Aux",
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputAudioMonitorType",
+        code: 602,
+        comment: "Monitor unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -363,6 +433,35 @@ describe("OBS operations", () => {
       "get_input_mute",
       "set_input_mute",
       "toggle_input_mute"
+    ])
+  })
+
+  it("filters advanced input audio tools when OBS does not advertise advanced input audio capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute",
+        "GetInputVolume",
+        "SetInputVolume"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume"
     ])
   })
 })

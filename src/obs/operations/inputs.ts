@@ -1,6 +1,9 @@
 import { Schema } from "effect"
 
+import type { SetInputAudioBalanceOutput, SetInputAudioMonitorTypeOutput } from "../../domain/schemas/inputs.js"
 import {
+  InputAudioBalanceOutput,
+  InputAudioMonitorTypeOutput,
   InputLocatorInput,
   InputMuteOutput,
   InputVolumeOutput,
@@ -8,6 +11,8 @@ import {
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
+  SetInputAudioBalanceInput,
+  SetInputAudioMonitorTypeInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
@@ -15,11 +20,15 @@ import {
 } from "../../domain/schemas/inputs.js"
 import type { ObsClient } from "../client.js"
 import {
+  GetInputAudioBalance,
+  GetInputAudioMonitorType,
   GetInputKindList,
   GetInputList,
   GetInputMute,
   GetInputVolume,
   GetSpecialInputs,
+  SetInputAudioBalance,
+  SetInputAudioMonitorType,
   SetInputMute,
   SetInputVolume,
   ToggleInputMute
@@ -80,4 +89,40 @@ export const setInputVolume = async (
     ...(decodedInput.inputVolumeDb === undefined ? {} : { inputVolumeDb: decodedInput.inputVolumeDb }),
     acknowledged: true
   })
+}
+
+export const getInputAudioBalance = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputAudioBalanceOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputAudioBalance, decodedInput)
+  return Schema.decodeUnknownSync(InputAudioBalanceOutput)(response)
+}
+
+export const setInputAudioBalance = async (
+  client: ObsClient,
+  input: SetInputAudioBalanceInput
+): Promise<SetInputAudioBalanceOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputAudioBalanceInput)(input)
+  await client.request(SetInputAudioBalance, decodedInput)
+  return { inputAudioBalance: decodedInput.inputAudioBalance, acknowledged: true }
+}
+
+export const getInputAudioMonitorType = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<InputAudioMonitorTypeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetInputAudioMonitorType, decodedInput)
+  return Schema.decodeUnknownSync(InputAudioMonitorTypeOutput)(response)
+}
+
+export const setInputAudioMonitorType = async (
+  client: ObsClient,
+  input: SetInputAudioMonitorTypeInput
+): Promise<SetInputAudioMonitorTypeOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput)(input)
+  await client.request(SetInputAudioMonitorType, decodedInput)
+  return { monitorType: decodedInput.monitorType, acknowledged: true }
 }
