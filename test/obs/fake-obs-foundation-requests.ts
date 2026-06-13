@@ -49,5 +49,29 @@ export const handleFakeObsFoundationRequest = (
     send({ studioModeEnabled: options.studioModeEnabled ?? false })
     return true
   }
+  if (requestType === "GetMonitorList") {
+    send({
+      monitors: [{
+        monitorIndex: 0,
+        monitorName: "Primary",
+        monitorWidth: 1920,
+        monitorHeight: 1080,
+        monitorPositionX: 0,
+        monitorPositionY: 0,
+        ignoredOpaqueField: { nested: true }
+      }]
+    })
+    return true
+  }
+  if (
+    requestType === "OpenInputPropertiesDialog"
+    || requestType === "OpenInputFiltersDialog"
+    || requestType === "OpenInputInteractDialog"
+    || requestType === "OpenVideoMixProjector"
+    || requestType === "OpenSourceProjector"
+  ) {
+    send({})
+    return true
+  }
   return false
 }

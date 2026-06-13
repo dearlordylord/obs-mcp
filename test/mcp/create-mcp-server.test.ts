@@ -351,12 +351,38 @@ describe("MCP server protocol handlers", () => {
             }]
           }
         }
-        return { studioModeEnabled: true }
-      }, ["GetCanvasList", "GetStudioModeEnabled"]),
+        if (requestType === "GetMonitorList") {
+          return {
+            monitors: [{ monitorIndex: 0, monitorName: "Primary", monitorWidth: 1920, monitorHeight: 1080 }]
+          }
+        }
+        if (requestType === "GetStudioModeEnabled") {
+          return { studioModeEnabled: true }
+        }
+        return {}
+      }, [
+        "GetCanvasList",
+        "GetStudioModeEnabled",
+        "OpenInputPropertiesDialog",
+        "OpenInputFiltersDialog",
+        "OpenInputInteractDialog",
+        "GetMonitorList",
+        "OpenVideoMixProjector",
+        "OpenSourceProjector"
+      ]),
       { ...config, enabledToolsets: ["canvases", "ui"] }
     )
     const tools = await client.listTools()
-    expect(tools.tools.map((tool) => tool.name)).toEqual(["list_canvases", "get_studio_mode_enabled"])
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_canvases",
+      "get_studio_mode_enabled",
+      "open_input_properties_dialog",
+      "open_input_filters_dialog",
+      "open_input_interact_dialog",
+      "list_monitors",
+      "open_video_mix_projector",
+      "open_source_projector"
+    ])
     expect(tools.tools.find((tool) => tool.name === "list_canvases")?.outputSchema?.properties)
       .toHaveProperty("canvases")
     await expect(client.callTool({ name: "list_canvases", arguments: {} }))
@@ -367,6 +393,18 @@ describe("MCP server protocol handlers", () => {
       })
     await expect(client.callTool({ name: "get_studio_mode_enabled", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { studioModeEnabled: true } })
+    await expect(client.callTool({ name: "list_monitors", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { monitors: [{ monitorIndex: 0, monitorName: "Primary" }] } })
+    await expect(client.callTool({ name: "open_input_properties_dialog", arguments: { inputName: "Camera" } }))
+      .resolves.toMatchObject({ structuredContent: { requestType: "OpenInputPropertiesDialog" } })
+    await expect(client.callTool({
+      name: "open_video_mix_projector",
+      arguments: { videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW", monitorIndex: -1 }
+    })).resolves.toMatchObject({ structuredContent: { requestType: "OpenVideoMixProjector" } })
+    await expect(client.callTool({
+      name: "open_source_projector",
+      arguments: { sourceName: "Camera", projectorGeometry: "AdnQyw==" }
+    })).resolves.toMatchObject({ structuredContent: { requestType: "OpenSourceProjector" } })
   })
 
   it("lists and calls config inventory and mutation tools through in-memory MCP handlers", async () => {

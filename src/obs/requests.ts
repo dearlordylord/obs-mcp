@@ -89,7 +89,13 @@ export const ObsRequestType = Schema.Literal(
   "StopStream",
   "ToggleStream",
   "SendStreamCaption",
-  "GetStudioModeEnabled"
+  "GetStudioModeEnabled",
+  "OpenInputPropertiesDialog",
+  "OpenInputFiltersDialog",
+  "OpenInputInteractDialog",
+  "GetMonitorList",
+  "OpenVideoMixProjector",
+  "OpenSourceProjector"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 

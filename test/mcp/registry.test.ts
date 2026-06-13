@@ -117,7 +117,15 @@ const configToolNames = [
   "create_scene_collection",
   "set_profile_parameter"
 ]
-const uiToolNames = ["get_studio_mode_enabled"]
+const uiToolNames = [
+  "get_studio_mode_enabled",
+  "open_input_properties_dialog",
+  "open_input_filters_dialog",
+  "open_input_interact_dialog",
+  "list_monitors",
+  "open_video_mix_projector",
+  "open_source_projector"
+]
 const transitionToolNames = [
   "list_transition_kinds",
   "list_scene_transitions",
@@ -457,10 +465,22 @@ describe("MCP tool registry", () => {
     }
   })
 
-  it("filters canvas and studio-mode tools by negotiated OBS capabilities", () => {
+  it("filters canvas and UI tools by negotiated OBS capabilities", () => {
     expect(getEnabledTools(["canvases"], ["GetCanvasList"]).map((tool) => tool.name)).toEqual(canvasToolNames)
     expect(getEnabledTools(["canvases"], []).map((tool) => tool.name)).toEqual([])
-    expect(getEnabledTools(["ui"], ["GetStudioModeEnabled"]).map((tool) => tool.name)).toEqual(uiToolNames)
+    expect(
+      getEnabledTools(["ui"], [
+        "GetStudioModeEnabled",
+        "OpenInputPropertiesDialog",
+        "GetMonitorList",
+        "OpenSourceProjector"
+      ]).map((tool) => tool.name)
+    ).toEqual([
+      "get_studio_mode_enabled",
+      "open_input_properties_dialog",
+      "list_monitors",
+      "open_source_projector"
+    ])
     expect(getEnabledTools(["ui"], []).map((tool) => tool.name)).toEqual([])
   })
 
@@ -766,6 +786,94 @@ describe("MCP tool registry", () => {
         return { studioModeEnabled: true }
       })
     })).resolves.toEqual({ studioModeEnabled: true })
+    await expect(executeTool(toolByName("list_monitors"), {}, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType) => {
+        expect(requestType).toBe("GetMonitorList")
+        return {
+          monitors: [{
+            monitorIndex: 0,
+            monitorName: "Primary",
+            monitorWidth: 1920,
+            monitorHeight: 1080,
+            ignoredOpaqueField: { nested: true }
+          }, {
+            monitorIndex: 1
+          }, {
+            monitorName: "Malformed"
+          }]
+        }
+      })
+    })).resolves.toEqual({
+      monitors: [
+        { monitorIndex: 0, monitorName: "Primary", monitorWidth: 1920, monitorHeight: 1080 },
+        { monitorIndex: 1 }
+      ]
+    })
+    await expect(executeTool(toolByName("open_input_properties_dialog"), { inputName: "Camera" }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenInputPropertiesDialog")
+        expect(requestData).toEqual({ inputName: "Camera" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenInputPropertiesDialog", acknowledged: true })
+    await expect(executeTool(toolByName("open_input_filters_dialog"), { inputUuid: "input-camera" }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenInputFiltersDialog")
+        expect(requestData).toEqual({ inputUuid: "input-camera" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenInputFiltersDialog", acknowledged: true })
+    await expect(executeTool(toolByName("open_input_interact_dialog"), { inputName: "Browser" }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenInputInteractDialog")
+        expect(requestData).toEqual({ inputName: "Browser" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenInputInteractDialog", acknowledged: true })
+    await expect(executeTool(toolByName("open_video_mix_projector"), {
+      videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW",
+      monitorIndex: -1
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenVideoMixProjector")
+        expect(requestData).toEqual({
+          videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW",
+          monitorIndex: -1
+        })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenVideoMixProjector", acknowledged: true })
+    await expect(executeTool(toolByName("open_source_projector"), {
+      sourceUuid: "source-camera",
+      projectorGeometry: "AdnQyw=="
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenSourceProjector")
+        expect(requestData).toEqual({ sourceUuid: "source-camera", projectorGeometry: "AdnQyw==" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenSourceProjector", acknowledged: true })
+    await expect(executeTool(toolByName("open_source_projector"), {
+      sourceName: "Camera",
+      sourceUuid: "source-camera"
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("open_video_mix_projector"), {
+      videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
+      monitorIndex: 0,
+      projectorGeometry: "AdnQyw=="
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
   })
 
   it("executes config inventory and mutation handlers with structured output", async () => {
@@ -976,6 +1084,24 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+  })
+
+  it("maps UI side-effect OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("open_input_properties_dialog"), {
+      inputName: "Missing Camera"
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: client(async () => {
+        throw new ObsRequestError("OpenInputPropertiesDialog", 600, "Input not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "OpenInputPropertiesDialog",
+        obsStatusCode: 600,
+        comment: "Input not found"
+      }
+    })
   })
 
   it("executes transition inventory handlers with structured output", async () => {

@@ -99,7 +99,15 @@ import {
   setTBarPosition,
   triggerStudioModeTransition
 } from "../../src/obs/operations/transitions.js"
-import { getStudioModeEnabled } from "../../src/obs/operations/ui.js"
+import {
+  getStudioModeEnabled,
+  listMonitors,
+  openInputFiltersDialog,
+  openInputInteractDialog,
+  openInputPropertiesDialog,
+  openSourceProjector,
+  openVideoMixProjector
+} from "../../src/obs/operations/ui.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -550,6 +558,54 @@ describe("OBS operations", () => {
       ]
     })
     await expect(getStudioModeEnabled(client)).resolves.toEqual({ studioModeEnabled: true })
+    await expect(openInputPropertiesDialog(client, { inputName: "Camera" })).resolves.toEqual({
+      requestType: "OpenInputPropertiesDialog",
+      acknowledged: true
+    })
+    await expect(openInputFiltersDialog(client, { inputUuid: "input-camera" })).resolves.toEqual({
+      requestType: "OpenInputFiltersDialog",
+      acknowledged: true
+    })
+    await expect(openInputInteractDialog(client, { inputName: "Browser" })).resolves.toEqual({
+      requestType: "OpenInputInteractDialog",
+      acknowledged: true
+    })
+    await expect(listMonitors(client)).resolves.toEqual({
+      monitors: [{
+        monitorIndex: 0,
+        monitorName: "Primary",
+        monitorWidth: 1920,
+        monitorHeight: 1080,
+        monitorPositionX: 0,
+        monitorPositionY: 0
+      }]
+    })
+    await expect(openVideoMixProjector(client, {
+      videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
+      monitorIndex: 0
+    })).resolves.toEqual({ requestType: "OpenVideoMixProjector", acknowledged: true })
+    await expect(openSourceProjector(client, {
+      sourceName: "Camera",
+      monitorIndex: -1
+    })).resolves.toEqual({ requestType: "OpenSourceProjector", acknowledged: true })
+    await expect(openSourceProjector(client, {
+      sourceUuid: "source-camera",
+      projectorGeometry: "AdnQyw=="
+    })).resolves.toEqual({ requestType: "OpenSourceProjector", acknowledged: true })
+    expect(server.requests.filter((request) => request.requestType.startsWith("Open"))).toEqual([
+      { requestType: "OpenInputPropertiesDialog", requestData: { inputName: "Camera" } },
+      { requestType: "OpenInputFiltersDialog", requestData: { inputUuid: "input-camera" } },
+      { requestType: "OpenInputInteractDialog", requestData: { inputName: "Browser" } },
+      {
+        requestType: "OpenVideoMixProjector",
+        requestData: { videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM", monitorIndex: 0 }
+      },
+      { requestType: "OpenSourceProjector", requestData: { sourceName: "Camera", monitorIndex: -1 } },
+      {
+        requestType: "OpenSourceProjector",
+        requestData: { sourceUuid: "source-camera", projectorGeometry: "AdnQyw==" }
+      }
+    ])
   })
 
   it("reads transition inventory without exposing settings objects", async () => {

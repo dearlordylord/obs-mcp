@@ -120,6 +120,12 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `trigger_studio_mode_transition`
 - `set_tbar_position`
 - `get_studio_mode_enabled`
+- `open_input_properties_dialog`
+- `open_input_filters_dialog`
+- `open_input_interact_dialog`
+- `list_monitors`
+- `open_video_mix_projector`
+- `open_source_projector`
 <!-- tools:end -->
 
 Tool results use MCP structured content rather than textified JSON.

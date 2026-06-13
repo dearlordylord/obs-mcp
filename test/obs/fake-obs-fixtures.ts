@@ -301,7 +301,13 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "StopStream",
   "ToggleStream",
   "SendStreamCaption",
-  "GetStudioModeEnabled"
+  "GetStudioModeEnabled",
+  "OpenInputPropertiesDialog",
+  "OpenInputFiltersDialog",
+  "OpenInputInteractDialog",
+  "GetMonitorList",
+  "OpenVideoMixProjector",
+  "OpenSourceProjector"
 ]
 
 export const sceneItemsFor = (
