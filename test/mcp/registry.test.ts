@@ -3,6 +3,7 @@ import { JSONSchema, Option, Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
+import { InputLocatorInput, ListInputKindsInput } from "../../src/domain/schemas/inputs.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
@@ -14,7 +15,7 @@ const config: ObsConfig = {
   url: "ws://localhost:4455/",
   password: Option.none(),
   connectionTimeoutMs: 300,
-  enabledToolsets: ["general", "record", "scenes"]
+  enabledToolsets: ["general", "record", "scenes", "inputs"]
 }
 
 const allAvailableRequests = [
@@ -23,6 +24,9 @@ const allAvailableRequests = [
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
+  "GetInputList",
+  "GetInputKindList",
+  "GetSpecialInputs",
   "GetRecordStatus",
   "PauseRecord",
   "ResumeRecord",
@@ -51,17 +55,28 @@ const toolByName = (name: string): ToolDefinition => {
 
 describe("MCP tool registry", () => {
   it("exposes exactly the enabled tools by default", () => {
-    expect(getEnabledTools(["general", "record", "scenes"]).map((tool) => tool.name)).toEqual([
+    expect(getEnabledTools(config.enabledToolsets).map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_version",
       "get_obs_stats",
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
       "get_record_status",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
+    ])
+  })
+
+  it("exposes input discovery tools when the input toolset is enabled", () => {
+    expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs"
     ])
   })
 
@@ -89,6 +104,11 @@ describe("MCP tool registry", () => {
       "get_current_scene",
       "set_current_scene"
     ])
+    expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs"
+    ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
   })
 
@@ -107,6 +127,10 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["stream"], ["GetStreamStatus", "StartStream", "StopStream"]).map((tool) => tool.name))
       .toEqual(["get_stream_status", "start_stream", "stop_stream"])
+  })
+
+  it("filters unavailable input requests by negotiated OBS capabilities", () => {
+    expect(getEnabledTools(["inputs"], ["GetInputList"]).map((tool) => tool.name)).toEqual(["list_inputs"])
   })
 
   it("keeps protocol schemas owned by each registered tool definition", () => {
@@ -193,6 +217,76 @@ describe("MCP tool registry", () => {
         outputDuration: 0,
         outputBytes: 0
       })
+  })
+
+  it("executes input discovery handlers with structured output", async () => {
+    const output = await executeTool(toolByName("list_inputs"), { inputKind: "wasapi_input_capture" }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: {
+        ...client(async () => ({ inputs: [] })),
+        request: async (descriptor, requestData) => {
+          expect(descriptor.requestType).toBe("GetInputList")
+          expect(requestData).toEqual({ inputKind: "wasapi_input_capture" })
+          return Schema.decodeUnknownSync(descriptor.responseSchema)({
+            inputs: [{
+              inputName: "Mic/Aux",
+              inputUuid: "input-mic-aux",
+              inputKind: "wasapi_input_capture",
+              unversionedInputKind: "wasapi_input_capture"
+            }]
+          })
+        }
+      }
+    })
+    expect(output).toEqual({
+      inputs: [{
+        inputName: "Mic/Aux",
+        inputUuid: "input-mic-aux",
+        inputKind: "wasapi_input_capture",
+        unversionedInputKind: "wasapi_input_capture"
+      }]
+    })
+  })
+
+  it("passes optional unversioned input-kind behavior through to OBS", async () => {
+    const output = await executeTool(toolByName("list_input_kinds"), { unversioned: true }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: {
+        ...client(async () => ({ inputKinds: ["wasapi_input_capture"] })),
+        request: async (descriptor, requestData) => {
+          expect(descriptor.requestType).toBe("GetInputKindList")
+          expect(requestData).toEqual({ unversioned: true })
+          return Schema.decodeUnknownSync(descriptor.responseSchema)({ inputKinds: ["wasapi_input_capture"] })
+        }
+      }
+    })
+    expect(output).toEqual({ inputKinds: ["wasapi_input_capture"] })
+  })
+
+  it("enforces input locator exactly-one boundary and input-kind defaults", () => {
+    expect(Schema.decodeUnknownSync(InputLocatorInput)({ inputName: "Mic/Aux" })).toEqual({ inputName: "Mic/Aux" })
+    expect(Schema.decodeUnknownSync(InputLocatorInput)({ inputUuid: "input-mic-aux" })).toEqual({
+      inputUuid: "input-mic-aux"
+    })
+    expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
+    expect(() => Schema.decodeUnknownSync(InputLocatorInput)({})).toThrow("Exactly one")
+    const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
+    expect(() => Schema.decodeUnknownSync(InputLocatorInput)(duplicateLocator)).toThrow("Exactly one")
+  })
+
+  it("executes get_special_inputs handler", async () => {
+    const output = await executeTool(toolByName("get_special_inputs"), {}, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: client(async () => ({
+        desktop1: "Desktop Audio",
+        desktop2: null,
+        mic1: "Mic/Aux",
+        mic2: null,
+        mic3: null,
+        mic4: null
+      }))
+    })
+    expect(output).toMatchObject({ desktop1: "Desktop Audio", mic1: "Mic/Aux" })
   })
 
   it("executes record pause handlers with structured action outputs", async () => {

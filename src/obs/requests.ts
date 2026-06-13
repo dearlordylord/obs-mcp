@@ -1,6 +1,13 @@
 import { Schema } from "effect"
 
 import { ObsStatsOutput, RecordStatusOutput } from "../domain/schemas/general.js"
+import {
+  ListInputKindsInput,
+  ListInputKindsOutput,
+  ListInputsInput,
+  ListInputsOutput,
+  SpecialInputsOutput
+} from "../domain/schemas/inputs.js"
 import { ListScenesOutput } from "../domain/schemas/scenes.js"
 import { StringArray, UnknownRecord } from "../domain/schemas/shared.js"
 import { StreamStatusOutput, ToggleStreamOutput } from "../domain/schemas/stream.js"
@@ -11,6 +18,9 @@ export const ObsRequestType = Schema.Literal(
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
+  "GetInputList",
+  "GetInputKindList",
+  "GetSpecialInputs",
   "GetRecordStatus",
   "PauseRecord",
   "ResumeRecord",
@@ -82,6 +92,24 @@ export const SetCurrentProgramScene = {
   requestDataSchema: SetCurrentProgramSceneRequest,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetInputList = {
+  requestType: "GetInputList",
+  requestDataSchema: ListInputsInput,
+  responseSchema: ListInputsOutput
+} satisfies ObsRequestDescriptor<ListInputsOutput>
+
+export const GetInputKindList = {
+  requestType: "GetInputKindList",
+  requestDataSchema: ListInputKindsInput,
+  responseSchema: ListInputKindsOutput
+} satisfies ObsRequestDescriptor<ListInputKindsOutput>
+
+export const GetSpecialInputs = {
+  requestType: "GetSpecialInputs",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: SpecialInputsOutput
+} satisfies ObsRequestDescriptor<SpecialInputsOutput>
 
 export const GetRecordStatus = {
   requestType: "GetRecordStatus",

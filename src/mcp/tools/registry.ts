@@ -4,6 +4,10 @@ import type { ObsConfig } from "../../config/config.js"
 import { getSanitizedObsContext } from "../../config/obs-runtime-context.js"
 import {
   CurrentSceneOutput,
+  ListInputKindsInput,
+  ListInputKindsOutput,
+  ListInputsInput,
+  ListInputsOutput,
   ListScenesInput,
   ListScenesOutput,
   ObsContextOutput,
@@ -12,6 +16,7 @@ import {
   RecordStatusOutput,
   SetCurrentSceneInput,
   SetCurrentSceneOutput,
+  SpecialInputsOutput,
   StartStreamOutput,
   StopStreamOutput,
   StreamStatusOutput,
@@ -21,23 +26,27 @@ import {
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import type { ObsClient } from "../../obs/client.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../obs/operations/general.js"
+import { getSpecialInputs, listInputKinds, listInputs } from "../../obs/operations/inputs.js"
 import { pauseRecord, resumeRecord, toggleRecordPause } from "../../obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../obs/operations/scenes.js"
 import { getStreamStatus, startStream, stopStream, toggleStream } from "../../obs/operations/stream.js"
 import {
   GetCurrentProgramScene,
+  GetInputKindList,
+  GetInputList,
   GetRecordStatus,
   GetSceneList,
-  GetStreamStatus,
+  GetSpecialInputs,
   GetStats,
+  GetStreamStatus,
   GetVersion,
   PauseRecord,
   ResumeRecord,
   SetCurrentProgramScene,
   StartStream,
   StopStream,
-  ToggleStream,
-  ToggleRecordPause
+  ToggleRecordPause,
+  ToggleStream
 } from "../../obs/requests.js"
 import { toMcpError } from "../error-mapping.js"
 
@@ -47,6 +56,7 @@ interface ToolContext {
 }
 
 type RuntimeSchema = Schema.Schema.AnyNoContext
+type ToolCategory = "general" | "inputs" | "record" | "scenes" | "stream"
 
 export interface ToolDefinition {
   readonly name: string
@@ -60,8 +70,6 @@ export interface ToolDefinition {
   readonly outputJsonSchema: unknown
   readonly handler: (input: unknown, context: ToolContext) => Promise<unknown>
 }
-
-type ToolCategory = "general" | "record" | "scenes" | "stream"
 
 const defineTool = (definition: {
   readonly name: string
@@ -142,6 +150,37 @@ export const allTools = [
     outputSchema: SetCurrentSceneOutput,
     handler: async (input, context) =>
       setCurrentScene(context.client, Schema.decodeUnknownSync(SetCurrentSceneInput)(input))
+  }),
+  defineTool({
+    name: "list_inputs",
+    title: "List OBS Inputs",
+    description: "Return OBS inputs, optionally restricted to one input kind.",
+    category: "inputs",
+    requiredObsRequests: [GetInputList.requestType],
+    inputSchema: ListInputsInput,
+    outputSchema: ListInputsOutput,
+    handler: async (input, context) => listInputs(context.client, Schema.decodeUnknownSync(ListInputsInput)(input))
+  }),
+  defineTool({
+    name: "list_input_kinds",
+    title: "List OBS Input Kinds",
+    description: "Return OBS input kinds, with optional unversioned kind names.",
+    category: "inputs",
+    requiredObsRequests: [GetInputKindList.requestType],
+    inputSchema: ListInputKindsInput,
+    outputSchema: ListInputKindsOutput,
+    handler: async (input, context) =>
+      listInputKinds(context.client, Schema.decodeUnknownSync(ListInputKindsInput)(input))
+  }),
+  defineTool({
+    name: "get_special_inputs",
+    title: "Get OBS Special Inputs",
+    description: "Return OBS desktop and microphone special input names.",
+    category: "inputs",
+    requiredObsRequests: [GetSpecialInputs.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: SpecialInputsOutput,
+    handler: async (_input, context) => getSpecialInputs(context.client)
   }),
   defineTool({
     name: "get_record_status",
