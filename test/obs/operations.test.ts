@@ -1,3 +1,7 @@
+import { mkdtemp, rm } from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
+
 import { Option, Schema } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
@@ -75,6 +79,7 @@ import {
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
+import { getSourceScreenshot, saveSourceScreenshot } from "../../src/obs/operations/screenshots.js"
 import {
   getStreamStatus,
   sendStreamCaption,
@@ -1527,6 +1532,111 @@ describe("OBS operations", () => {
         requestType: "SetSourceFilterName",
         code: 608,
         comment: "Filter rename rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("gets and saves source screenshots with bounded payload and path policy", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["screenshots"] })
+    clients.push(client)
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-screenshots-"))
+    try {
+      await expect(getSourceScreenshot(client, {
+        sourceName: "Camera",
+        canvasUuid: "canvas-main",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      })).resolves.toEqual({
+        imageFormat: "png",
+        mimeType: "image/png",
+        imageBytes: 5,
+        maxImageBytes: 1_500_000,
+        base64Data: "aW1hZ2U="
+      })
+      await expect(saveSourceScreenshot(client, {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "camera.png",
+        imageWidth: 320,
+        imageHeight: 180
+      }, outputDirectory)).resolves.toEqual({
+        imageFilePath: path.join(outputDirectory, "camera.png"),
+        imageFormat: "png",
+        saved: true
+      })
+      await expect(saveSourceScreenshot(client, {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "camera.png"
+      }, undefined)).rejects.toThrow("OBS_MCP_SCREENSHOT_OUTPUT_DIR")
+      await expect(saveSourceScreenshot(client, {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "../camera.png"
+      }, outputDirectory)).rejects.toThrow()
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true })
+    }
+    expect(server.requests.filter((request) =>
+      request.requestType === "GetSourceScreenshot"
+      || request.requestType === "SaveSourceScreenshot"
+    )).toEqual([
+      {
+        requestType: "GetSourceScreenshot",
+        requestData: {
+          sourceName: "Camera",
+          canvasUuid: "canvas-main",
+          imageFormat: "png",
+          imageWidth: 320,
+          imageHeight: 180,
+          imageCompressionQuality: 80
+        }
+      },
+      {
+        requestType: "SaveSourceScreenshot",
+        requestData: {
+          sourceUuid: "source-camera",
+          imageFormat: "png",
+          imageWidth: 320,
+          imageHeight: 180,
+          imageFilePath: path.join(outputDirectory, "camera.png")
+        }
+      }
+    ])
+  })
+
+  it("validates screenshot image options and OBS screenshot MIME metadata", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetSourceScreenshot: { code: 613, comment: "Screenshot rejected" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["screenshots"] })
+    clients.push(client)
+    const getSourceScreenshotUnchecked = getSourceScreenshot as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof getSourceScreenshot>
+    await expect(getSourceScreenshotUnchecked(client, {
+      sourceName: "Camera",
+      imageFormat: "gif"
+    })).rejects.toThrow()
+    await expect(getSourceScreenshotUnchecked(client, {
+      sourceName: "Camera",
+      imageFormat: "png",
+      imageWidth: 7
+    })).rejects.toThrow()
+    await expect(getSourceScreenshot(client, {
+      sourceName: "Camera",
+      imageFormat: "png"
+    })).rejects.toMatchObject(
+      {
+        requestType: "GetSourceScreenshot",
+        code: 613,
+        comment: "Screenshot rejected"
       } satisfies Partial<ObsRequestError>
     )
   })

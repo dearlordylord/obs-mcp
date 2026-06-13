@@ -20,7 +20,8 @@ Environment variables:
 - `OBS_WEBSOCKET_URL`: OBS websocket URL. Defaults to `ws://localhost:4455`. Bare `host:port` values are normalized to `ws://host:port`.
 - `OBS_WEBSOCKET_PASSWORD`: optional OBS websocket password.
 - `OBS_WEBSOCKET_CONNECTION_TIMEOUT`: connection and request timeout in milliseconds. Defaults to `30000`.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `events`, `filters`, `general`, `inputs`, `outputs`, `record`, `scenes`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `TOOLSETS`: optional comma-separated category filter. Available categories are `events`, `filters`, `general`, `inputs`, `outputs`, `record`, `scenes`, `screenshots`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `OBS_MCP_SCREENSHOT_OUTPUT_DIR`: optional existing directory allowlist for `save_source_screenshot`. Screenshot save tools are disabled unless the `screenshots` toolset is enabled, and saves require a simple filename, not a path. Directories are never created implicitly.
 - `OBS_INTEGRATION_TESTS`: set to `1` to run real OBS websocket integration tests.
 - `OBS_INTEGRATION_MUTATION_TESTS`: set to `1` to enable integration tests that send state-changing OBS requests.
 
@@ -51,6 +52,8 @@ Filter settings mutation tools accept only documented allowlisted setting fields
 - `set_scene_item_index`
 - `set_scene_item_blend_mode`
 - `get_source_active`
+- `get_source_screenshot`
+- `save_source_screenshot`
 - `list_source_filter_kinds`
 - `list_source_filters`
 - `get_source_filter_default_settings`

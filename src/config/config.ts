@@ -2,7 +2,17 @@ import { Effect, Schema } from "effect"
 
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
 
-const Toolset = Schema.Literal("events", "filters", "general", "inputs", "outputs", "record", "scenes", "stream")
+const Toolset = Schema.Literal(
+  "events",
+  "filters",
+  "general",
+  "inputs",
+  "outputs",
+  "record",
+  "scenes",
+  "screenshots",
+  "stream"
+)
 type Toolset = typeof Toolset.Type
 const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes", "inputs"]
 
@@ -13,7 +23,8 @@ export const ObsConfig = Schema.Struct({
   url: Schema.String,
   password: Schema.OptionFromNullOr(Schema.String),
   connectionTimeoutMs: Schema.Number.pipe(Schema.int(), Schema.positive()),
-  enabledToolsets: Schema.Array(Toolset)
+  enabledToolsets: Schema.Array(Toolset),
+  screenshotOutputDirectory: Schema.optional(Schema.NonEmptyString)
 })
 export type ObsConfig = typeof ObsConfig.Type
 
@@ -27,7 +38,17 @@ const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
     return DEFAULT_TOOLSETS
   }
 
-  const allowed = new Set<string>(["events", "filters", "general", "inputs", "outputs", "record", "scenes", "stream"])
+  const allowed = new Set<string>([
+    "events",
+    "filters",
+    "general",
+    "inputs",
+    "outputs",
+    "record",
+    "scenes",
+    "screenshots",
+    "stream"
+  ])
   return values.filter((entry): entry is Toolset => allowed.has(entry))
 }
 
@@ -62,7 +83,10 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
         url: normalizeObsWebSocketUrl(env["OBS_WEBSOCKET_URL"] ?? DEFAULT_OBS_WEBSOCKET_URL),
         password: env["OBS_WEBSOCKET_PASSWORD"] ?? null,
         connectionTimeoutMs: timeout,
-        enabledToolsets: parseToolsets(env["TOOLSETS"])
+        enabledToolsets: parseToolsets(env["TOOLSETS"]),
+        ...(env["OBS_MCP_SCREENSHOT_OUTPUT_DIR"] === undefined
+          ? {}
+          : { screenshotOutputDirectory: env["OBS_MCP_SCREENSHOT_OUTPUT_DIR"] })
       })
     },
     catch: (error) => {

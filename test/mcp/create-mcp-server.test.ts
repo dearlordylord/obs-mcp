@@ -2,6 +2,9 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js"
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js"
 import { Option } from "effect"
+import { mkdtemp, rm } from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
@@ -26,7 +29,7 @@ const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 const fakeObsServers: Array<FakeObsServer> = []
 
 const obsClient = (
-  handler: (requestType: ObsRequestType) => Promise<unknown>,
+  handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>,
   availableRequests: ReadonlyArray<string> = allAvailableRequests,
   bufferedEvents: ReturnType<ObsClient["getBufferedEvents"]> = { capacity: 0, droppedEvents: 0, events: [] }
 ): ObsClient => fakeObsClient(handler, availableRequests, bufferedEvents)
@@ -598,6 +601,77 @@ describe("MCP server protocol handlers", () => {
     })).resolves.toMatchObject({
       structuredContent: { filterName: "Primary Color", acknowledged: true }
     })
+  })
+
+  it("executes source screenshot tools when the screenshots toolset and save policy are enabled", async () => {
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-server-screenshots-"))
+    const requests: Array<{ requestType: ObsRequestType; requestData: unknown }> = []
+    const client = await connect(
+      obsClient(async (requestType, requestData) => {
+        requests.push({ requestType, requestData })
+        if (requestType === "GetSourceScreenshot") {
+          return { imageData: "data:image/png;base64,aW1hZ2U=" }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["screenshots"], screenshotOutputDirectory: outputDirectory }
+    )
+
+    try {
+      const tools = await client.listTools()
+      expect(tools.tools.map((tool) => tool.name)).toEqual([
+        "get_source_screenshot",
+        "save_source_screenshot"
+      ])
+      await expect(client.callTool({
+        name: "get_source_screenshot",
+        arguments: {
+          sourceName: "Camera",
+          imageFormat: "png",
+          imageWidth: 320,
+          imageHeight: 180,
+          imageCompressionQuality: 80
+        }
+      })).resolves.toMatchObject({
+        structuredContent: {
+          imageFormat: "png",
+          mimeType: "image/png",
+          imageBytes: 5,
+          maxImageBytes: 1_500_000,
+          base64Data: "aW1hZ2U="
+        }
+      })
+      await expect(client.callTool({
+        name: "save_source_screenshot",
+        arguments: { sourceUuid: "source-camera", imageFormat: "png", fileName: "camera.png" }
+      })).resolves.toMatchObject({
+        structuredContent: {
+          imageFilePath: path.join(outputDirectory, "camera.png"),
+          imageFormat: "png",
+          saved: true
+        }
+      })
+    } finally {
+      await rm(outputDirectory, { force: true, recursive: true })
+    }
+
+    expect(requests).toEqual([{
+      requestType: "GetSourceScreenshot",
+      requestData: {
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      }
+    }, {
+      requestType: "SaveSourceScreenshot",
+      requestData: {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        imageFilePath: path.join(outputDirectory, "camera.png")
+      }
+    }])
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

@@ -6,12 +6,14 @@ import { filterEnabledTools, type ToolDefinition } from "./mechanics.js"
 import { outputTools } from "./outputs.js"
 import { recordTools } from "./record.js"
 import { sceneTools } from "./scenes.js"
+import { screenshotTools } from "./screenshots.js"
 import { streamTools } from "./stream.js"
 
 export const allTools: ReadonlyArray<ToolDefinition> = [
   ...generalTools,
   ...eventTools,
   ...sceneTools,
+  ...screenshotTools,
   ...filterTools,
   ...inputTools,
   ...outputTools,

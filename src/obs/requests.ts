@@ -19,6 +19,8 @@ export const ObsRequestType = Schema.Literal(
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
   "GetSourceActive",
+  "GetSourceScreenshot",
+  "SaveSourceScreenshot",
   "GetSourceFilterKindList",
   "GetSourceFilterList",
   "GetSourceFilterDefaultSettings",
@@ -94,5 +96,6 @@ export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"
 export * from "./requests/record.js"
 export * from "./requests/scenes.js"
+export * from "./requests/screenshots.js"
 export type { ObsRequestDescriptor } from "./requests/shared.js"
 export * from "./requests/stream.js"

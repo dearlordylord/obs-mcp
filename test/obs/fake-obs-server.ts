@@ -391,6 +391,21 @@ export class FakeObsServer {
       })
       return
     }
+    if (requestType === "GetSourceScreenshot") {
+      const mimeType = envelope.d.requestData.imageFormat === "jpg" || envelope.d.requestData.imageFormat === "jpeg"
+        ? "image/jpeg"
+        : envelope.d.requestData.imageFormat === "webp"
+        ? "image/webp"
+        : envelope.d.requestData.imageFormat === "bmp"
+        ? "image/bmp"
+        : "image/png"
+      send({ imageData: `data:${mimeType};base64,aW1hZ2U=` })
+      return
+    }
+    if (requestType === "SaveSourceScreenshot") {
+      send()
+      return
+    }
     if (requestType === "GetSourceFilterKindList") {
       send({ sourceFilterKinds: ["color_filter_v2", "gain_filter", "mask_filter_v2"] })
       return

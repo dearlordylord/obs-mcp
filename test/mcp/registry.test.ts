@@ -1,5 +1,8 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js"
 import { JSONSchema, Option, Schema } from "effect"
+import { mkdtemp, rm } from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
 import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
@@ -65,6 +68,12 @@ import {
   StopRecordOutput,
   ToggleRecordOutput
 } from "../../src/domain/schemas/record.js"
+import {
+  GetSourceScreenshotInput,
+  GetSourceScreenshotOutput,
+  SaveSourceScreenshotInput,
+  SaveSourceScreenshotOutput
+} from "../../src/domain/schemas/screenshots.js"
 import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -143,6 +152,16 @@ const filterAvailableRequests = [
   "SetSourceFilterEnabled",
   "SetSourceFilterIndex",
   "SetSourceFilterName"
+] satisfies ReadonlyArray<ObsRequestType>
+
+const screenshotToolNames = [
+  "get_source_screenshot",
+  "save_source_screenshot"
+]
+
+const screenshotAvailableRequests = [
+  "GetSourceScreenshot",
+  "SaveSourceScreenshot"
 ] satisfies ReadonlyArray<ObsRequestType>
 
 const inputAvailableRequests = [
@@ -306,6 +325,10 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["filters"]).map((tool) => tool.name)).toEqual(filterToolNames)
   })
 
+  it("exposes source screenshot tools when the screenshots toolset is enabled", () => {
+    expect(getEnabledTools(["screenshots"]).map((tool) => tool.name)).toEqual(screenshotToolNames)
+  })
+
   it("exposes output tools when the outputs toolset is enabled", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
@@ -377,6 +400,8 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual(inputToolNames)
     expect(getEnabledTools(["filters"], allAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
+    expect(getEnabledTools(["screenshots"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(screenshotToolNames)
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
       "start_virtual_cam",
@@ -395,6 +420,9 @@ describe("MCP tool registry", () => {
       expect(sceneToolNames).not.toContain(name)
     }
     for (const name of filterToolNames) {
+      expect(sceneToolNames).not.toContain(name)
+    }
+    for (const name of screenshotToolNames) {
       expect(sceneToolNames).not.toContain(name)
     }
     for (const name of deferredInputMediaToolNames) {
@@ -416,6 +444,10 @@ describe("MCP tool registry", () => {
       "list_source_filters",
       "get_source_filter"
     ])
+    expect(getEnabledTools(["screenshots"], screenshotAvailableRequests).map((tool) => tool.name))
+      .toEqual(screenshotToolNames)
+    expect(getEnabledTools(["screenshots"], ["GetSourceScreenshot"]).map((tool) => tool.name))
+      .toEqual(["get_source_screenshot"])
     expect(
       getEnabledTools(["record"], [
         "StartRecord",
@@ -838,6 +870,82 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ filterName: "Primary Color", acknowledged: true })
   })
 
+  it("executes source screenshot handlers with bounded payload and save policy", async () => {
+    const outputDirectory = await mkdtemp(path.join(os.tmpdir(), "obs-mcp-registry-screenshots-"))
+    const screenshotConfig: ObsConfig = {
+      ...config,
+      enabledToolsets: ["screenshots"],
+      screenshotOutputDirectory: outputDirectory
+    }
+    const requests: Array<{ requestType: ObsRequestType; requestData: unknown }> = []
+    const fakeClient = fakeObsClient(async (requestType, requestData) => {
+      requests.push({ requestType, requestData })
+      if (requestType === "GetSourceScreenshot") {
+        return { imageData: "data:image/png;base64,aW1hZ2U=" }
+      }
+      return {}
+    })
+
+    try {
+      await expect(executeTool(toolByName("get_source_screenshot"), {
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      }, {
+        config: screenshotConfig,
+        client: fakeClient
+      })).resolves.toEqual({
+        imageFormat: "png",
+        mimeType: "image/png",
+        imageBytes: 5,
+        maxImageBytes: 1_500_000,
+        base64Data: "aW1hZ2U="
+      })
+      await expect(executeTool(toolByName("save_source_screenshot"), {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        fileName: "camera.png"
+      }, {
+        config: screenshotConfig,
+        client: fakeClient
+      })).resolves.toEqual({
+        imageFilePath: path.join(outputDirectory, "camera.png"),
+        imageFormat: "png",
+        saved: true
+      })
+      await expect(executeTool(toolByName("save_source_screenshot"), {
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "../camera.png"
+      }, {
+        config: screenshotConfig,
+        client: fakeClient
+      })).rejects.toThrow()
+    } finally {
+      await rm(outputDirectory, { force: true, recursive: true })
+    }
+
+    expect(requests).toEqual([{
+      requestType: "GetSourceScreenshot",
+      requestData: {
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 320,
+        imageHeight: 180,
+        imageCompressionQuality: 80
+      }
+    }, {
+      requestType: "SaveSourceScreenshot",
+      requestData: {
+        sourceUuid: "source-camera",
+        imageFormat: "png",
+        imageFilePath: path.join(outputDirectory, "camera.png")
+      }
+    }])
+  })
+
   it("executes input discovery handlers with structured output", async () => {
     const output = await executeTool(toolByName("list_inputs"), { inputKind: "wasapi_input_capture" }, {
       config: { ...config, enabledToolsets: ["inputs"] },
@@ -1076,6 +1184,88 @@ describe("MCP tool registry", () => {
         filterSettings: { opacity: 2 }
       })
     ).toThrow("Expected a number less than or equal to 1")
+  })
+
+  it("enforces source screenshot schemas and bounded file policy", () => {
+    const getInput = {
+      sourceName: "Camera",
+      imageFormat: "png",
+      imageWidth: 320,
+      imageHeight: 180,
+      imageCompressionQuality: 80
+    }
+    expect(Schema.decodeUnknownSync(GetSourceScreenshotInput)(getInput)).toEqual(getInput)
+    expect(
+      Schema.decodeUnknownSync(GetSourceScreenshotOutput)({
+        imageFormat: "png",
+        mimeType: "image/png",
+        imageBytes: 5,
+        maxImageBytes: 1_500_000,
+        base64Data: "aW1hZ2U="
+      })
+    ).toEqual({
+      imageFormat: "png",
+      mimeType: "image/png",
+      imageBytes: 5,
+      maxImageBytes: 1_500_000,
+      base64Data: "aW1hZ2U="
+    })
+    expect(
+      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+        sourceUuid: "source-camera",
+        imageFormat: "jpg",
+        fileName: "camera.jpg"
+      })
+    ).toEqual({
+      sourceUuid: "source-camera",
+      imageFormat: "jpg",
+      fileName: "camera.jpg"
+    })
+    expect(
+      Schema.decodeUnknownSync(SaveSourceScreenshotOutput)({
+        imageFilePath: "/tmp/obs-mcp-screenshots/camera.jpg",
+        imageFormat: "jpg",
+        saved: true
+      })
+    ).toEqual({
+      imageFilePath: "/tmp/obs-mcp-screenshots/camera.jpg",
+      imageFormat: "jpg",
+      saved: true
+    })
+    expect(() =>
+      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "gif"
+      })
+    ).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageWidth: 7
+      })
+    ).toThrow("Expected a number greater than or equal to 8")
+    expect(() =>
+      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        imageCompressionQuality: 101
+      })
+    ).toThrow("Expected a number less than or equal to 100")
+    expect(() =>
+      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "../camera.png"
+      })
+    ).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+        sourceName: "Camera",
+        imageFormat: "png",
+        fileName: "."
+      })
+    ).toThrow()
   })
 
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {

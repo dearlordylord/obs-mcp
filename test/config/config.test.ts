@@ -13,7 +13,7 @@ describe("OBS config", () => {
 
   it("decodes environment defaults and toolset filtering", async () => {
     const config = await Effect.runPromise(
-      loadObsConfigFromEnv({ TOOLSETS: "scenes,general,events,filters,inputs,outputs,record,stream,raw" })
+      loadObsConfigFromEnv({ TOOLSETS: "scenes,general,events,filters,inputs,outputs,record,screenshots,stream,raw" })
     )
     expect(config.url).toBe("ws://localhost:4455/")
     expect(config.connectionTimeoutMs).toBe(30_000)
@@ -25,8 +25,15 @@ describe("OBS config", () => {
       "inputs",
       "outputs",
       "record",
+      "screenshots",
       "stream"
     ])
+  })
+
+  it("loads screenshot save output directory policy from the environment", async () => {
+    await expect(Effect.runPromise(loadObsConfigFromEnv({
+      OBS_MCP_SCREENSHOT_OUTPUT_DIR: "/tmp/obs-mcp-screenshots"
+    }))).resolves.toMatchObject({ screenshotOutputDirectory: "/tmp/obs-mcp-screenshots" })
   })
 
   it("defaults blank toolsets and rejects non-websocket URLs", async () => {

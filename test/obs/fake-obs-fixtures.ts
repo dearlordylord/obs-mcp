@@ -192,6 +192,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
   "GetSourceActive",
+  "GetSourceScreenshot",
+  "SaveSourceScreenshot",
   "GetSourceFilterKindList",
   "GetSourceFilterList",
   "GetSourceFilterDefaultSettings",
