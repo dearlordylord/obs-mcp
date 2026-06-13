@@ -2,20 +2,39 @@ import {
   CurrentSceneTransitionOutput,
   SceneTransitionCursorOutput,
   SceneTransitionListOutput,
-  TransitionKindListOutput
+  SetCurrentSceneTransitionDurationInput,
+  SetCurrentSceneTransitionDurationOutput,
+  SetCurrentSceneTransitionInput,
+  SetCurrentSceneTransitionOutput,
+  SetCurrentSceneTransitionSettingsInput,
+  SetCurrentSceneTransitionSettingsOutput,
+  SetTBarPositionInput,
+  SetTBarPositionOutput,
+  TransitionKindListOutput,
+  TriggerStudioModeTransitionOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getCurrentSceneTransition,
   getCurrentSceneTransitionCursor,
   listSceneTransitions,
-  listTransitionKinds
+  listTransitionKinds,
+  setCurrentSceneTransition,
+  setCurrentSceneTransitionDuration,
+  setCurrentSceneTransitionSettings,
+  setTBarPosition,
+  triggerStudioModeTransition
 } from "../../obs/operations/transitions.js"
 import {
   GetCurrentSceneTransition,
   GetCurrentSceneTransitionCursor,
   GetSceneTransitionList,
-  GetTransitionKindList
+  GetTransitionKindList,
+  SetCurrentSceneTransition,
+  SetCurrentSceneTransitionDuration,
+  SetCurrentSceneTransitionSettings,
+  SetTBarPosition,
+  TriggerStudioModeTransition
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -61,5 +80,56 @@ export const transitionTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: SceneTransitionCursorOutput,
     handler: async (_input, context) => getCurrentSceneTransitionCursor(context.client)
+  }),
+  defineTool({
+    name: "set_current_scene_transition",
+    title: "Set Current OBS Scene Transition",
+    description: "Set the current OBS scene transition by non-empty transition name.",
+    category: CATEGORY,
+    requiredObsRequests: [SetCurrentSceneTransition.requestType],
+    inputSchema: SetCurrentSceneTransitionInput,
+    outputSchema: SetCurrentSceneTransitionOutput,
+    handler: async (input, context) => setCurrentSceneTransition(context.client, input)
+  }),
+  defineTool({
+    name: "set_current_scene_transition_duration",
+    title: "Set Current OBS Scene Transition Duration",
+    description: "Set the current OBS scene transition duration in milliseconds, bounded from 50 to 20000.",
+    category: CATEGORY,
+    requiredObsRequests: [SetCurrentSceneTransitionDuration.requestType],
+    inputSchema: SetCurrentSceneTransitionDurationInput,
+    outputSchema: SetCurrentSceneTransitionDurationOutput,
+    handler: async (input, context) => setCurrentSceneTransitionDuration(context.client, input)
+  }),
+  defineTool({
+    name: "set_current_scene_transition_settings",
+    title: "Set Current OBS Scene Transition Settings",
+    description:
+      "Set current OBS scene transition settings using a flat primitive settings record; overlay defaults to true and merges over existing settings, while false replaces them.",
+    category: CATEGORY,
+    requiredObsRequests: [SetCurrentSceneTransitionSettings.requestType],
+    inputSchema: SetCurrentSceneTransitionSettingsInput,
+    outputSchema: SetCurrentSceneTransitionSettingsOutput,
+    handler: async (input, context) => setCurrentSceneTransitionSettings(context.client, input)
+  }),
+  defineTool({
+    name: "trigger_studio_mode_transition",
+    title: "Trigger OBS Studio Mode Transition",
+    description: "Trigger the current OBS studio mode transition.",
+    category: CATEGORY,
+    requiredObsRequests: [TriggerStudioModeTransition.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: TriggerStudioModeTransitionOutput,
+    handler: async (_input, context) => triggerStudioModeTransition(context.client)
+  }),
+  defineTool({
+    name: "set_tbar_position",
+    title: "Set OBS T-Bar Position",
+    description: "Set the OBS T-Bar position between 0 and 1; release defaults to true.",
+    category: CATEGORY,
+    requiredObsRequests: [SetTBarPosition.requestType],
+    inputSchema: SetTBarPositionInput,
+    outputSchema: SetTBarPositionOutput,
+    handler: async (input, context) => setTBarPosition(context.client, input)
   })
 ]

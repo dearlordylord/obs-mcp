@@ -17,7 +17,7 @@ import {
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
-import { handleFakeObsTransitionRequest } from "./fake-obs-transition-requests.js"
+import { FakeObsTransitionState } from "./fake-obs-transition-requests.js"
 
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
@@ -75,6 +75,7 @@ export class FakeObsServer {
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private inputState: FakeObsInputState = new FakeObsInputState([])
   private readonly outputState = new FakeObsOutputState()
+  private transitionState: FakeObsTransitionState = new FakeObsTransitionState([], 1)
   public lastIdentifyEventSubscriptions: unknown
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
@@ -100,7 +101,8 @@ export class FakeObsServer {
     const transitions = options.transitions ?? DEFAULT_TRANSITIONS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
     fake.inputState = new FakeObsInputState(inputs)
-    fake.installHandlers(options, scenes, inputs, canvases, transitions)
+    fake.transitionState = new FakeObsTransitionState(transitions, options.transitionCursor ?? 1)
+    fake.installHandlers(options, scenes, inputs, canvases)
     return fake
   }
 
@@ -125,8 +127,7 @@ export class FakeObsServer {
     options: FakeObsServerOptions,
     scenes: ReadonlyArray<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>,
-    canvases: ReadonlyArray<FakeObsCanvas>,
-    transitions: ReadonlyArray<FakeObsTransition>
+    canvases: ReadonlyArray<FakeObsCanvas>
   ): void {
     this.server.on("connection", (socket) => {
       const salt = "salt"
@@ -174,8 +175,7 @@ export class FakeObsServer {
         }
         socket.on(
           "message",
-          (message) =>
-            this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs, canvases, transitions)
+          (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs, canvases)
         )
       })
     })
@@ -187,8 +187,7 @@ export class FakeObsServer {
     options: FakeObsServerOptions,
     scenes: ReadonlyArray<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>,
-    canvases: ReadonlyArray<FakeObsCanvas>,
-    transitions: ReadonlyArray<FakeObsTransition>
+    canvases: ReadonlyArray<FakeObsCanvas>
   ): void {
     const envelope = JSON.parse(text)
     const requestType = envelope.d.requestType
@@ -291,7 +290,7 @@ export class FakeObsServer {
       send({ canvases })
       return
     }
-    if (handleFakeObsTransitionRequest(transitions, options.transitionCursor ?? 1, requestType, send)) {
+    if (this.transitionState.handleRequest(requestType, envelope.d.requestData, send)) {
       return
     }
     if (requestType === "GetStudioModeEnabled") {

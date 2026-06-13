@@ -61,7 +61,12 @@ import {
   getCurrentSceneTransition,
   getCurrentSceneTransitionCursor,
   listSceneTransitions,
-  listTransitionKinds
+  listTransitionKinds,
+  setCurrentSceneTransition,
+  setCurrentSceneTransitionDuration,
+  setCurrentSceneTransitionSettings,
+  setTBarPosition,
+  triggerStudioModeTransition
 } from "../../src/obs/operations/transitions.js"
 import { getStudioModeEnabled } from "../../src/obs/operations/ui.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
@@ -247,6 +252,94 @@ describe("OBS operations", () => {
         { transitionName: "Cut", transitionDuration: null }
       ]
     })
+  })
+
+  it("mutates transition state through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      transitions: [
+        {
+          transitionName: "Cut",
+          transitionUuid: "transition-cut",
+          transitionKind: "cut_transition",
+          transitionFixed: true,
+          transitionDuration: null,
+          transitionConfigurable: false,
+          transitionSettings: null
+        },
+        {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 300,
+          transitionConfigurable: true,
+          transitionSettings: { color: "black" }
+        }
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(setCurrentSceneTransition(client, { transitionName: "Fade" })).resolves.toEqual({
+      transitionName: "Fade",
+      switched: true
+    })
+    await expect(setCurrentSceneTransitionDuration(client, { transitionDuration: 750 })).resolves.toEqual({
+      transitionDuration: 750,
+      acknowledged: true
+    })
+    await expect(setCurrentSceneTransitionSettings(client, {
+      transitionSettings: { path: "left", speed: 0.5, invert: false, label: null },
+      overlay: false
+    })).resolves.toEqual({ overlay: false, settingsFieldCount: 4, acknowledged: true })
+    await expect(triggerStudioModeTransition(client)).resolves.toEqual({
+      requestType: "TriggerStudioModeTransition",
+      acknowledged: true
+    })
+    await expect(setTBarPosition(client, { position: 0.25, release: false })).resolves.toEqual({
+      position: 0.25,
+      release: false,
+      acknowledged: true
+    })
+    await expect(getCurrentSceneTransition(client)).resolves.toMatchObject({
+      transitionName: "Fade",
+      transitionDuration: 750
+    })
+    await expect(getCurrentSceneTransitionCursor(client)).resolves.toEqual({ transitionCursor: 0.25 })
+    expect(
+      server.requests.filter((request) =>
+        request.requestType.startsWith("Set") || request.requestType.startsWith("Trigger")
+      )
+    )
+      .toEqual([
+        { requestType: "SetCurrentSceneTransition", requestData: { transitionName: "Fade" } },
+        { requestType: "SetCurrentSceneTransitionDuration", requestData: { transitionDuration: 750 } },
+        {
+          requestType: "SetCurrentSceneTransitionSettings",
+          requestData: {
+            transitionSettings: { path: "left", speed: 0.5, invert: false, label: null },
+            overlay: false
+          }
+        },
+        { requestType: "TriggerStudioModeTransition" },
+        { requestType: "SetTBarPosition", requestData: { position: 0.25, release: false } }
+      ])
+  })
+
+  it("surfaces OBS transition mutation request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetCurrentSceneTransition: { code: 404, comment: "Transition not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["transitions"] })
+    clients.push(client)
+    await expect(setCurrentSceneTransition(client, { transitionName: "Missing" })).rejects.toMatchObject(
+      {
+        requestType: "SetCurrentSceneTransition",
+        code: 404,
+        comment: "Transition not found"
+      } satisfies Partial<ObsRequestError>
+    )
   })
 
   it("lists scenes and can filter groups", async () => {

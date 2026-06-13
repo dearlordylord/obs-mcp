@@ -371,12 +371,26 @@ describe("MCP server protocol handlers", () => {
             transitionSettings: { color: "black" }
           }
         }
+        if (
+          requestType === "SetCurrentSceneTransition"
+          || requestType === "SetCurrentSceneTransitionDuration"
+          || requestType === "SetCurrentSceneTransitionSettings"
+          || requestType === "TriggerStudioModeTransition"
+          || requestType === "SetTBarPosition"
+        ) {
+          return {}
+        }
         return { transitionCursor: 1 }
       }, [
         "GetTransitionKindList",
         "GetSceneTransitionList",
         "GetCurrentSceneTransition",
-        "GetCurrentSceneTransitionCursor"
+        "GetCurrentSceneTransitionCursor",
+        "SetCurrentSceneTransition",
+        "SetCurrentSceneTransitionDuration",
+        "SetCurrentSceneTransitionSettings",
+        "TriggerStudioModeTransition",
+        "SetTBarPosition"
       ]),
       { ...config, enabledToolsets: ["transitions"] }
     )
@@ -385,7 +399,12 @@ describe("MCP server protocol handlers", () => {
       "list_transition_kinds",
       "list_scene_transitions",
       "get_current_scene_transition",
-      "get_current_scene_transition_cursor"
+      "get_current_scene_transition_cursor",
+      "set_current_scene_transition",
+      "set_current_scene_transition_duration",
+      "set_current_scene_transition_settings",
+      "trigger_studio_mode_transition",
+      "set_tbar_position"
     ])
     await expect(client.callTool({ name: "list_transition_kinds", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { transitionKinds: ["fade_transition", "cut_transition"] } })
@@ -410,6 +429,22 @@ describe("MCP server protocol handlers", () => {
       })
     await expect(client.callTool({ name: "get_current_scene_transition_cursor", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { transitionCursor: 1 } })
+    await expect(client.callTool({ name: "set_current_scene_transition", arguments: { transitionName: "Fade" } }))
+      .resolves.toMatchObject({ structuredContent: { transitionName: "Fade", switched: true } })
+    await expect(client.callTool({
+      name: "set_current_scene_transition_duration",
+      arguments: { transitionDuration: 500 }
+    })).resolves.toMatchObject({ structuredContent: { transitionDuration: 500, acknowledged: true } })
+    await expect(client.callTool({
+      name: "set_current_scene_transition_settings",
+      arguments: { transitionSettings: { path: "left" } }
+    })).resolves.toMatchObject({ structuredContent: { overlay: true, settingsFieldCount: 1, acknowledged: true } })
+    await expect(client.callTool({ name: "trigger_studio_mode_transition", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: { requestType: "TriggerStudioModeTransition", acknowledged: true }
+      })
+    await expect(client.callTool({ name: "set_tbar_position", arguments: { position: 0.75 } }))
+      .resolves.toMatchObject({ structuredContent: { position: 0.75, release: true, acknowledged: true } })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

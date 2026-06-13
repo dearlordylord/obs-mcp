@@ -96,7 +96,12 @@ const transitionToolNames = [
   "list_transition_kinds",
   "list_scene_transitions",
   "get_current_scene_transition",
-  "get_current_scene_transition_cursor"
+  "get_current_scene_transition_cursor",
+  "set_current_scene_transition",
+  "set_current_scene_transition_duration",
+  "set_current_scene_transition_settings",
+  "trigger_studio_mode_transition",
+  "set_tbar_position"
 ]
 
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
@@ -430,9 +435,16 @@ describe("MCP tool registry", () => {
     expect(
       getEnabledTools(["transitions"], [
         "GetTransitionKindList",
-        "GetCurrentSceneTransition"
+        "GetCurrentSceneTransition",
+        "SetCurrentSceneTransitionDuration",
+        "TriggerStudioModeTransition"
       ]).map((tool) => tool.name)
-    ).toEqual(["list_transition_kinds", "get_current_scene_transition"])
+    ).toEqual([
+      "list_transition_kinds",
+      "get_current_scene_transition",
+      "set_current_scene_transition_duration",
+      "trigger_studio_mode_transition"
+    ])
     expect(getEnabledTools(["transitions"], []).map((tool) => tool.name)).toEqual([])
   })
 
@@ -716,6 +728,63 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["transitions"] },
       client: fakeClient
     })).resolves.toEqual({ transitionCursor: 1 })
+  })
+
+  it("executes transition mutation handlers with structured output", async () => {
+    const seenRequests: Array<readonly [string, unknown]> = []
+    const fakeClient = clientWithData(async (requestType, requestData) => {
+      seenRequests.push([requestType, requestData])
+      return {}
+    })
+
+    await expect(executeTool(toolByName("set_current_scene_transition"), { transitionName: "Fade" }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionName: "Fade", switched: true })
+    await expect(executeTool(toolByName("set_current_scene_transition_duration"), { transitionDuration: 500 }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionDuration: 500, acknowledged: true })
+    await expect(executeTool(toolByName("set_current_scene_transition_settings"), {
+      transitionSettings: { path: "left", speed: 0.5 },
+      overlay: false
+    }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ overlay: false, settingsFieldCount: 2, acknowledged: true })
+    await expect(executeTool(toolByName("trigger_studio_mode_transition"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ requestType: "TriggerStudioModeTransition", acknowledged: true })
+    await expect(executeTool(toolByName("set_tbar_position"), { position: 0.75 }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ position: 0.75, release: true, acknowledged: true })
+    expect(seenRequests).toEqual([
+      ["SetCurrentSceneTransition", { transitionName: "Fade" }],
+      ["SetCurrentSceneTransitionDuration", { transitionDuration: 500 }],
+      ["SetCurrentSceneTransitionSettings", { transitionSettings: { path: "left", speed: 0.5 }, overlay: false }],
+      ["TriggerStudioModeTransition", undefined],
+      ["SetTBarPosition", { position: 0.75, release: true }]
+    ])
+  })
+
+  it("maps transition mutation OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("set_current_scene_transition"), {
+      transitionName: "Missing"
+    }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetCurrentSceneTransition", 404, "Transition not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetCurrentSceneTransition",
+        obsStatusCode: 404,
+        comment: "Transition not found"
+      }
+    })
   })
 
   it("passes optional unversioned input-kind behavior through to OBS", async () => {
