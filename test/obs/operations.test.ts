@@ -57,6 +57,12 @@ import {
   stopStream,
   toggleStream
 } from "../../src/obs/operations/stream.js"
+import {
+  getCurrentSceneTransition,
+  getCurrentSceneTransitionCursor,
+  listSceneTransitions,
+  listTransitionKinds
+} from "../../src/obs/operations/transitions.js"
 import { getStudioModeEnabled } from "../../src/obs/operations/ui.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
@@ -140,6 +146,68 @@ describe("OBS operations", () => {
       ]
     })
     await expect(getStudioModeEnabled(client)).resolves.toEqual({ studioModeEnabled: true })
+  })
+
+  it("reads transition inventory without exposing settings objects", async () => {
+    const server = await FakeObsServer.start({
+      transitions: [
+        {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 350,
+          transitionConfigurable: true,
+          transitionSettings: { color: "black" }
+        },
+        {
+          transitionName: "Cut",
+          transitionUuid: "transition-cut",
+          transitionKind: "cut_transition",
+          transitionFixed: true,
+          transitionDuration: null,
+          transitionConfigurable: false,
+          transitionSettings: null
+        }
+      ],
+      transitionCursor: 0.5
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listTransitionKinds(client)).resolves.toEqual({
+      transitionKinds: ["fade_transition", "cut_transition"]
+    })
+    await expect(listSceneTransitions(client)).resolves.toEqual({
+      currentSceneTransitionName: "Fade",
+      currentSceneTransitionUuid: "transition-fade",
+      currentSceneTransitionKind: "fade_transition",
+      transitions: [
+        {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 350
+        },
+        {
+          transitionName: "Cut",
+          transitionUuid: "transition-cut",
+          transitionKind: "cut_transition",
+          transitionFixed: true,
+          transitionDuration: null
+        }
+      ]
+    })
+    await expect(getCurrentSceneTransition(client)).resolves.toEqual({
+      transitionName: "Fade",
+      transitionUuid: "transition-fade",
+      transitionKind: "fade_transition",
+      transitionFixed: false,
+      transitionDuration: 350,
+      transitionConfigurable: true
+    })
+    await expect(getCurrentSceneTransitionCursor(client)).resolves.toEqual({ transitionCursor: 0.5 })
   })
 
   it("lists scenes and can filter groups", async () => {

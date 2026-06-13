@@ -92,6 +92,10 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `stop_stream`
 - `toggle_stream`
 - `send_stream_caption`
+- `list_transition_kinds`
+- `list_scene_transitions`
+- `get_current_scene_transition`
+- `get_current_scene_transition_cursor`
 - `get_studio_mode_enabled`
 <!-- tools:end -->
 

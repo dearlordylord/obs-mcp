@@ -42,6 +42,16 @@ export interface FakeObsCanvas {
   readonly height?: number
 }
 
+export interface FakeObsTransition {
+  readonly transitionName: string
+  readonly transitionUuid?: string
+  readonly transitionKind: string
+  readonly transitionFixed?: boolean
+  readonly transitionDuration?: number | null
+  readonly transitionConfigurable?: boolean
+  readonly transitionSettings?: Readonly<Record<string, unknown>> | null
+}
+
 export interface FakeObsInputVolume {
   readonly inputVolumeMul: number
   readonly inputVolumeDb: number
@@ -150,10 +160,35 @@ export const DEFAULT_CANVASES: ReadonlyArray<FakeObsCanvas> = [
   }
 ]
 
+export const DEFAULT_TRANSITIONS: ReadonlyArray<FakeObsTransition> = [
+  {
+    transitionName: "Cut",
+    transitionUuid: "transition-cut",
+    transitionKind: "cut_transition",
+    transitionFixed: true,
+    transitionDuration: null,
+    transitionConfigurable: false,
+    transitionSettings: null
+  },
+  {
+    transitionName: "Fade",
+    transitionUuid: "transition-fade",
+    transitionKind: "fade_transition",
+    transitionFixed: false,
+    transitionDuration: 300,
+    transitionConfigurable: true,
+    transitionSettings: { color: "black" }
+  }
+]
+
 export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetVersion",
   "GetStats",
   "GetCanvasList",
+  "GetTransitionKindList",
+  "GetSceneTransitionList",
+  "GetCurrentSceneTransition",
+  "GetCurrentSceneTransitionCursor",
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",

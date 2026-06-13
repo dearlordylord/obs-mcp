@@ -7,6 +7,7 @@ import { outputTools } from "./outputs.js"
 import { recordTools } from "./record.js"
 import { sceneTools } from "./scenes.js"
 import { streamTools } from "./stream.js"
+import { transitionTools } from "./transitions.js"
 import { uiTools } from "./ui.js"
 
 export const allTools: ReadonlyArray<ToolDefinition> = [
@@ -18,6 +19,7 @@ export const allTools: ReadonlyArray<ToolDefinition> = [
   ...outputTools,
   ...recordTools,
   ...streamTools,
+  ...transitionTools,
   ...uiTools
 ]
 

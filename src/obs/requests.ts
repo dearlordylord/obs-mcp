@@ -4,6 +4,10 @@ export const ObsRequestType = Schema.Literal(
   "GetVersion",
   "GetStats",
   "GetCanvasList",
+  "GetTransitionKindList",
+  "GetSceneTransitionList",
+  "GetCurrentSceneTransition",
+  "GetCurrentSceneTransitionCursor",
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
@@ -74,4 +78,5 @@ export * from "./requests/record.js"
 export * from "./requests/scenes.js"
 export type { ObsRequestDescriptor } from "./requests/shared.js"
 export * from "./requests/stream.js"
+export * from "./requests/transitions.js"
 export * from "./requests/ui.js"

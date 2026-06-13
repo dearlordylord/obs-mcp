@@ -27,6 +27,7 @@ describe("OBS config properties", () => {
         "record",
         "scenes",
         "stream",
+        "transitions",
         "ui"
       ])
       expect(enabledToolsets).toEqual(enabledToolsets.filter((toolset) => knownToolsets.has(toolset)))

@@ -92,6 +92,12 @@ const inputAvailableRequests = [
 
 const canvasToolNames = ["list_canvases"]
 const uiToolNames = ["get_studio_mode_enabled"]
+const transitionToolNames = [
+  "list_transition_kinds",
+  "list_scene_transitions",
+  "get_current_scene_transition",
+  "get_current_scene_transition_cursor"
+]
 
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
   fakeObsClient(handler, allAvailableRequests)
@@ -235,6 +241,14 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["ui"], allAvailableRequests).map((tool) => tool.name)).toEqual(uiToolNames)
     expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
       .toEqual(expect.not.arrayContaining([...canvasToolNames, ...uiToolNames]))
+  })
+
+  it("exposes transition inventory tools only for the transitions toolset", () => {
+    expect(getEnabledTools(["transitions"], allAvailableRequests).map((tool) => tool.name)).toEqual(
+      transitionToolNames
+    )
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(expect.not.arrayContaining(transitionToolNames))
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
@@ -410,6 +424,16 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["canvases"], []).map((tool) => tool.name)).toEqual([])
     expect(getEnabledTools(["ui"], ["GetStudioModeEnabled"]).map((tool) => tool.name)).toEqual(uiToolNames)
     expect(getEnabledTools(["ui"], []).map((tool) => tool.name)).toEqual([])
+  })
+
+  it("filters transition inventory tools by negotiated OBS capabilities", () => {
+    expect(
+      getEnabledTools(["transitions"], [
+        "GetTransitionKindList",
+        "GetCurrentSceneTransition"
+      ]).map((tool) => tool.name)
+    ).toEqual(["list_transition_kinds", "get_current_scene_transition"])
+    expect(getEnabledTools(["transitions"], []).map((tool) => tool.name)).toEqual([])
   })
 
   describe("lifecycle tool filtering", () => {
@@ -622,6 +646,76 @@ describe("MCP tool registry", () => {
         return { studioModeEnabled: true }
       })
     })).resolves.toEqual({ studioModeEnabled: true })
+  })
+
+  it("executes transition inventory handlers with structured output", async () => {
+    const fakeClient = clientWithData(async (requestType) => {
+      if (requestType === "GetTransitionKindList") {
+        return { transitionKinds: ["fade_transition"] }
+      }
+      if (requestType === "GetSceneTransitionList") {
+        return {
+          currentSceneTransitionName: "Fade",
+          currentSceneTransitionUuid: "transition-fade",
+          currentSceneTransitionKind: "fade_transition",
+          transitions: [{
+            transitionName: "Fade",
+            transitionUuid: "transition-fade",
+            transitionKind: "fade_transition",
+            transitionFixed: false,
+            transitionDuration: 300,
+            transitionSettings: { color: "black" }
+          }]
+        }
+      }
+      if (requestType === "GetCurrentSceneTransition") {
+        return {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 300,
+          transitionConfigurable: true,
+          transitionSettings: { color: "black" }
+        }
+      }
+      return { transitionCursor: 1 }
+    })
+
+    await expect(executeTool(toolByName("list_transition_kinds"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionKinds: ["fade_transition"] })
+    await expect(executeTool(toolByName("list_scene_transitions"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      currentSceneTransitionName: "Fade",
+      currentSceneTransitionUuid: "transition-fade",
+      currentSceneTransitionKind: "fade_transition",
+      transitions: [{
+        transitionName: "Fade",
+        transitionUuid: "transition-fade",
+        transitionKind: "fade_transition",
+        transitionFixed: false,
+        transitionDuration: 300
+      }]
+    })
+    await expect(executeTool(toolByName("get_current_scene_transition"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      transitionName: "Fade",
+      transitionUuid: "transition-fade",
+      transitionKind: "fade_transition",
+      transitionFixed: false,
+      transitionDuration: 300,
+      transitionConfigurable: true
+    })
+    await expect(executeTool(toolByName("get_current_scene_transition_cursor"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionCursor: 1 })
   })
 
   it("passes optional unversioned input-kind behavior through to OBS", async () => {

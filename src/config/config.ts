@@ -2,7 +2,18 @@ import { Effect, Schema } from "effect"
 
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
 
-const Toolset = Schema.Literal("canvases", "events", "general", "inputs", "outputs", "record", "scenes", "stream", "ui")
+const Toolset = Schema.Literal(
+  "canvases",
+  "events",
+  "general",
+  "inputs",
+  "outputs",
+  "record",
+  "scenes",
+  "stream",
+  "transitions",
+  "ui"
+)
 type Toolset = typeof Toolset.Type
 const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes", "inputs"]
 
@@ -36,6 +47,7 @@ const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
     "record",
     "scenes",
     "stream",
+    "transitions",
     "ui"
   ])
   return values.filter((entry): entry is Toolset => allowed.has(entry))

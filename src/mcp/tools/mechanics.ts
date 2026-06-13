@@ -20,6 +20,7 @@ export type ToolCategory =
   | "record"
   | "scenes"
   | "stream"
+  | "transitions"
   | "ui"
 type ToolHandler<Input> = {
   bivarianceHack(input: Input, context: ToolContext): Promise<unknown>

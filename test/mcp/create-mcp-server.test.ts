@@ -339,6 +339,79 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { studioModeEnabled: true } })
   })
 
+  it("lists and calls transition inventory tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetTransitionKindList") {
+          return { transitionKinds: ["fade_transition", "cut_transition"] }
+        }
+        if (requestType === "GetSceneTransitionList") {
+          return {
+            currentSceneTransitionName: "Fade",
+            currentSceneTransitionUuid: "transition-fade",
+            currentSceneTransitionKind: "fade_transition",
+            transitions: [{
+              transitionName: "Fade",
+              transitionUuid: "transition-fade",
+              transitionKind: "fade_transition",
+              transitionFixed: false,
+              transitionDuration: 300,
+              transitionSettings: { color: "black" }
+            }]
+          }
+        }
+        if (requestType === "GetCurrentSceneTransition") {
+          return {
+            transitionName: "Fade",
+            transitionUuid: "transition-fade",
+            transitionKind: "fade_transition",
+            transitionFixed: false,
+            transitionDuration: 300,
+            transitionConfigurable: true,
+            transitionSettings: { color: "black" }
+          }
+        }
+        return { transitionCursor: 1 }
+      }, [
+        "GetTransitionKindList",
+        "GetSceneTransitionList",
+        "GetCurrentSceneTransition",
+        "GetCurrentSceneTransitionCursor"
+      ]),
+      { ...config, enabledToolsets: ["transitions"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_transition_kinds",
+      "list_scene_transitions",
+      "get_current_scene_transition",
+      "get_current_scene_transition_cursor"
+    ])
+    await expect(client.callTool({ name: "list_transition_kinds", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { transitionKinds: ["fade_transition", "cut_transition"] } })
+    await expect(client.callTool({ name: "list_scene_transitions", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          currentSceneTransitionName: "Fade",
+          transitions: [{
+            transitionName: "Fade",
+            transitionKind: "fade_transition",
+            transitionDuration: 300
+          }]
+        }
+      })
+    await expect(client.callTool({ name: "get_current_scene_transition", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          transitionName: "Fade",
+          transitionKind: "fade_transition",
+          transitionConfigurable: true
+        }
+      })
+    await expect(client.callTool({ name: "get_current_scene_transition_cursor", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { transitionCursor: 1 } })
+  })
+
   it("does not list output tools when the outputs toolset is disabled", async () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()
