@@ -23,22 +23,32 @@ import { GetVersion, type ObsRequestDescriptor } from "./requests.js"
 
 const SUPPORTED_RPC_VERSION = 1
 
-interface PendingRequest {
+interface PendingRequestMetadata {
   readonly requestType: string
-  readonly resolve: (value: Record<string, unknown>) => void
-  readonly reject: (error: Error) => void
   readonly timer: NodeJS.Timeout
 }
 
-export interface ObsClient {
+interface PendingRequestCallbacks {
+  readonly resolve: (value: Record<string, unknown>) => void
+  readonly reject: (error: Error) => void
+}
+
+type PendingRequest = PendingRequestMetadata & PendingRequestCallbacks
+
+interface ObsClientState {
   readonly negotiatedRpcVersion: number
   readonly availableRequests: ReadonlyArray<string>
+}
+
+interface ObsClientCommands {
   request<Output extends Record<string, unknown>>(
     descriptor: ObsRequestDescriptor<Output>,
     requestData?: Record<string, unknown>
   ): Promise<Output>
   close(): Promise<void>
 }
+
+export type ObsClient = ObsClientState & ObsClientCommands
 
 export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => {
   const ws = new WebSocket(config.url, "obswebsocket.json")

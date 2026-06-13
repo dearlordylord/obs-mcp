@@ -1,5 +1,3 @@
-import { Schema } from "effect"
-
 import {
   StartStreamOutput,
   StopStreamOutput,
@@ -8,23 +6,20 @@ import {
 } from "../../domain/schemas/stream.js"
 import type { ObsClient } from "../client.js"
 import { GetStreamStatus, StartStream, StopStream, ToggleStream } from "../requests.js"
+import { requestAndDecode, requestAndReturn } from "./shared.js"
 
 export const getStreamStatus = async (client: ObsClient): Promise<StreamStatusOutput> => {
-  const response = await client.request(GetStreamStatus)
-  return Schema.decodeUnknownSync(StreamStatusOutput)(response)
+  return requestAndDecode(client, GetStreamStatus, StreamStatusOutput)
 }
 
 export const startStream = async (client: ObsClient): Promise<StartStreamOutput> => {
-  await client.request(StartStream)
-  return Schema.decodeUnknownSync(StartStreamOutput)({ outputActive: true })
+  return requestAndReturn(client, StartStream, { outputActive: true }, StartStreamOutput)
 }
 
 export const stopStream = async (client: ObsClient): Promise<StopStreamOutput> => {
-  await client.request(StopStream)
-  return Schema.decodeUnknownSync(StopStreamOutput)({ outputActive: false })
+  return requestAndReturn(client, StopStream, { outputActive: false }, StopStreamOutput)
 }
 
 export const toggleStream = async (client: ObsClient): Promise<ToggleStreamOutput> => {
-  const response = await client.request(ToggleStream)
-  return Schema.decodeUnknownSync(ToggleStreamOutput)(response)
+  return requestAndDecode(client, ToggleStream, ToggleStreamOutput)
 }

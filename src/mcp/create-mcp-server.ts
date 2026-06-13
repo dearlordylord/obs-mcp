@@ -12,7 +12,7 @@ import { Schema } from "effect"
 import type { ObsConfig } from "../config/config.js"
 import type { ObsClient } from "../obs/client.js"
 import { packageVersion } from "../version.js"
-import { executeTool, getEnabledTools } from "./tools/registry.js"
+import { executeTool, getEnabledTools } from "./tools/index.js"
 
 interface ProtocolObjectSchemaSource {
   readonly type: "object"

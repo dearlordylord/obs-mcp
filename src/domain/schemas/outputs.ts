@@ -1,14 +1,11 @@
-import { JSONSchema, Schema } from "effect"
+import { JSONSchema } from "effect"
 
-export const VirtualCamStatusOutput = Schema.Struct({
-  outputActive: Schema.Boolean
-})
+import { OutputActiveState, OutputActiveSwitchState } from "./shared.js"
+
+export const VirtualCamStatusOutput = OutputActiveState
 export type VirtualCamStatusOutput = typeof VirtualCamStatusOutput.Type
 export const VirtualCamStatusOutputJsonSchema = JSONSchema.make(VirtualCamStatusOutput)
 
-export const VirtualCamSwitchOutput = Schema.Struct({
-  outputActive: Schema.Boolean,
-  switched: Schema.Literal(true)
-})
+export const VirtualCamSwitchOutput = OutputActiveSwitchState
 export type VirtualCamSwitchOutput = typeof VirtualCamSwitchOutput.Type
 export const VirtualCamSwitchOutputJsonSchema = JSONSchema.make(VirtualCamSwitchOutput)

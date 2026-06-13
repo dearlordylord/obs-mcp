@@ -1,5 +1,9 @@
 set -e
 
+echo "Updating generated README tool list..."
+pnpm update-readme
+git add README.md
+
 echo "Running lint-staged..."
 pnpm lint-staged
 
