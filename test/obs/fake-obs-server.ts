@@ -417,6 +417,10 @@ export class FakeObsServer {
       send({ outputActive: this.streamActive })
       return
     }
+    if (requestType === "SendStreamCaption") {
+      send()
+      return
+    }
     send()
   }
 }

@@ -26,3 +26,16 @@ export const StopStreamOutputJsonSchema = JSONSchema.make(StopStreamOutput)
 export const ToggleStreamOutput = OutputActiveState
 export type ToggleStreamOutput = typeof ToggleStreamOutput.Type
 export const ToggleStreamOutputJsonSchema = JSONSchema.make(ToggleStreamOutput)
+
+export const SendStreamCaptionInput = Schema.Struct({
+  captionText: Schema.NonEmptyString
+})
+export type SendStreamCaptionInput = typeof SendStreamCaptionInput.Type
+export const SendStreamCaptionInputJsonSchema = JSONSchema.make(SendStreamCaptionInput)
+
+export const SendStreamCaptionOutput = Schema.Struct({
+  requestType: Schema.Literal("SendStreamCaption"),
+  acknowledged: Schema.Literal(true)
+})
+export type SendStreamCaptionOutput = typeof SendStreamCaptionOutput.Type
+export const SendStreamCaptionOutputJsonSchema = JSONSchema.make(SendStreamCaptionOutput)

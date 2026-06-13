@@ -12,6 +12,7 @@ import {
   StopRecordOutput,
   ToggleRecordOutput
 } from "../../src/domain/schemas/record.js"
+import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
@@ -61,7 +62,8 @@ const allAvailableRequests = [
   "GetStreamStatus",
   "StartStream",
   "StopStream",
-  "ToggleStream"
+  "ToggleStream",
+  "SendStreamCaption"
 ]
 
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient => ({
@@ -223,8 +225,10 @@ describe("MCP tool registry", () => {
       "pause_record",
       "resume_record"
     ])
-    expect(getEnabledTools(["stream"], ["GetStreamStatus", "StartStream", "StopStream"]).map((tool) => tool.name))
-      .toEqual(["get_stream_status", "start_stream", "stop_stream"])
+    expect(
+      getEnabledTools(["stream"], ["GetStreamStatus", "StartStream", "StopStream", "SendStreamCaption"])
+        .map((tool) => tool.name)
+    ).toEqual(["get_stream_status", "start_stream", "stop_stream", "send_stream_caption"])
     expect(getEnabledTools(["outputs"], ["GetVirtualCamStatus", "ToggleVirtualCam"]).map((tool) => tool.name))
       .toEqual(["get_virtual_cam_status", "toggle_virtual_cam"])
     expect(getEnabledTools(["outputs"], ["GetReplayBufferStatus", "StopReplayBuffer"]).map((tool) => tool.name))
@@ -283,6 +287,12 @@ describe("MCP tool registry", () => {
     expect(Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "Act 1" }))
       .toEqual({ chapterName: "Act 1" })
     expect(() => Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "" })).toThrow()
+  })
+
+  it("validates stream caption input schemas", () => {
+    expect(Schema.decodeUnknownSync(SendStreamCaptionInput)({ captionText: "Live caption" }))
+      .toEqual({ captionText: "Live caption" })
+    expect(() => Schema.decodeUnknownSync(SendStreamCaptionInput)({ captionText: "" })).toThrow()
   })
 
   it("accepts no-arg tools with empty or missing args", async () => {
@@ -511,6 +521,12 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ outputActive: false })
     await expect(executeTool(toolByName("toggle_stream"), {}, { config: streamConfig, client: fakeClient }))
       .resolves.toEqual({ outputActive: true })
+    await expect(
+      executeTool(toolByName("send_stream_caption"), { captionText: "Live caption" }, {
+        config: streamConfig,
+        client: fakeClient
+      })
+    ).resolves.toEqual({ requestType: "SendStreamCaption", acknowledged: true })
   })
 
   it("executes virtual camera handlers", async () => {

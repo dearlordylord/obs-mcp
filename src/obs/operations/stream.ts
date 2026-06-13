@@ -1,11 +1,14 @@
+import { Schema } from "effect"
 import {
+  SendStreamCaptionInput,
+  SendStreamCaptionOutput,
   StartStreamOutput,
   StopStreamOutput,
   StreamStatusOutput,
   ToggleStreamOutput
 } from "../../domain/schemas/stream.js"
 import type { ObsClient } from "../client.js"
-import { GetStreamStatus, StartStream, StopStream, ToggleStream } from "../requests.js"
+import { GetStreamStatus, SendStreamCaption, StartStream, StopStream, ToggleStream } from "../requests.js"
 import { requestAndDecode, requestAndReturn } from "./shared.js"
 
 export const getStreamStatus = async (client: ObsClient): Promise<StreamStatusOutput> => {
@@ -22,4 +25,16 @@ export const stopStream = async (client: ObsClient): Promise<StopStreamOutput> =
 
 export const toggleStream = async (client: ObsClient): Promise<ToggleStreamOutput> => {
   return requestAndDecode(client, ToggleStream, ToggleStreamOutput)
+}
+
+export const sendStreamCaption = async (
+  client: ObsClient,
+  input: SendStreamCaptionInput
+): Promise<SendStreamCaptionOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SendStreamCaptionInput, { onExcessProperty: "error" })(input)
+  await client.request(SendStreamCaption, decodedInput)
+  return SendStreamCaptionOutput.make({
+    requestType: SendStreamCaption.requestType,
+    acknowledged: true
+  })
 }

@@ -1,5 +1,5 @@
 import { UnknownRecord } from "../../domain/schemas/shared.js"
-import { StreamStatusOutput, ToggleStreamOutput } from "../../domain/schemas/stream.js"
+import { SendStreamCaptionInput, StreamStatusOutput, ToggleStreamOutput } from "../../domain/schemas/stream.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
 export const GetStreamStatus = {
@@ -25,3 +25,9 @@ export const ToggleStream = {
   requestDataSchema: EmptyRequestData,
   responseSchema: ToggleStreamOutput
 } satisfies ObsRequestDescriptor<ToggleStreamOutput>
+
+export const SendStreamCaption = {
+  requestType: "SendStreamCaption",
+  requestDataSchema: SendStreamCaptionInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>

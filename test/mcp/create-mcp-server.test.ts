@@ -58,7 +58,8 @@ const allAvailableRequests = [
   "GetStreamStatus",
   "StartStream",
   "StopStream",
-  "ToggleStream"
+  "ToggleStream",
+  "SendStreamCaption"
 ]
 
 const obsClient = (
@@ -209,7 +210,8 @@ describe("MCP server protocol handlers", () => {
         "GetStreamStatus",
         "StartStream",
         "StopStream",
-        "ToggleStream"
+        "ToggleStream",
+        "SendStreamCaption"
       ]),
       { ...config, enabledToolsets: ["stream"] }
     )
@@ -218,8 +220,16 @@ describe("MCP server protocol handlers", () => {
       "get_stream_status",
       "start_stream",
       "stop_stream",
-      "toggle_stream"
+      "toggle_stream",
+      "send_stream_caption"
     ])
+  })
+
+  it("does not list stream tools when the stream toolset is disabled", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("get_stream_status")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("send_stream_caption")
   })
 
   it("lists replay buffer tools only when the outputs toolset and OBS capabilities are available", async () => {
@@ -545,6 +555,34 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { outputActive: false } })
     await expect(client.callTool({ name: "toggle_stream", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "send_stream_caption", arguments: { captionText: "Live caption" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "SendStreamCaption",
+          acknowledged: true
+        }
+      })
+  })
+
+  it("rejects empty stream captions before OBS mutation", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    await expect(client.callTool({ name: "send_stream_caption", arguments: { captionText: "" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams
+          }
+        }
+      })
+    expect(requested).toEqual([])
   })
 
   it("returns structured virtual camera status and switch results", async () => {
@@ -684,6 +722,27 @@ describe("MCP server protocol handlers", () => {
             requestType: "GetLastReplayBufferReplay",
             obsStatusCode: 703,
             comment: "No replay has been saved"
+          }
+        }
+      })
+  })
+
+  it("keeps OBS status metadata for stream caption errors", async () => {
+    const client = await connect(
+      obsClient(async () => {
+        throw new ObsRequestError("SendStreamCaption", 703, "Stream output is not active")
+      }),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    await expect(client.callTool({ name: "send_stream_caption", arguments: { captionText: "Live caption" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "SendStreamCaption",
+            obsStatusCode: 703,
+            comment: "Stream output is not active"
           }
         }
       })

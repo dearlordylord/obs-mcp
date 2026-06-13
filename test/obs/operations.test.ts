@@ -30,7 +30,13 @@ import {
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
-import { getStreamStatus, startStream, stopStream, toggleStream } from "../../src/obs/operations/stream.js"
+import {
+  getStreamStatus,
+  sendStreamCaption,
+  startStream,
+  stopStream,
+  toggleStream
+} from "../../src/obs/operations/stream.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -418,6 +424,20 @@ describe("OBS operations", () => {
     await expect(stopStream(client)).resolves.toEqual({ outputActive: false })
   })
 
+  it("sends stream captions through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["stream"] })
+    clients.push(client)
+    await expect(sendStreamCaption(client, { captionText: "Live caption" })).resolves.toEqual({
+      requestType: "SendStreamCaption",
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) => request.requestType === "SendStreamCaption")).toEqual([
+      { requestType: "SendStreamCaption", requestData: { captionText: "Live caption" } }
+    ])
+  })
+
   it("surfaces OBS stream lifecycle request failures", async () => {
     const server = await FakeObsServer.start({
       failRequests: { StartStream: { code: 207, comment: "Output already active" } }
@@ -434,6 +454,22 @@ describe("OBS operations", () => {
     )
   })
 
+  it("surfaces OBS stream caption request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SendStreamCaption: { code: 703, comment: "Stream output is not active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(sendStreamCaption(client, { captionText: "Live caption" })).rejects.toMatchObject(
+      {
+        requestType: "SendStreamCaption",
+        code: 703,
+        comment: "Stream output is not active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("filters stream tools when OBS does not advertise stream capabilities", async () => {
     const server = await FakeObsServer.start({
       availableRequestsValue: ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
@@ -442,5 +478,17 @@ describe("OBS operations", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     expect(getEnabledTools(["stream"], client.availableRequests)).toEqual([])
+  })
+
+  it("filters stream caption tools when OBS does not advertise caption capability", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "SendStreamCaption"]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    expect(getEnabledTools(["stream"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "send_stream_caption"
+    ])
   })
 })

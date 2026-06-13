@@ -35,7 +35,8 @@ export const ObsRequestType = Schema.Literal(
   "GetStreamStatus",
   "StartStream",
   "StopStream",
-  "ToggleStream"
+  "ToggleStream",
+  "SendStreamCaption"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 

@@ -83,7 +83,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetStreamStatus",
   "StartStream",
   "StopStream",
-  "ToggleStream"
+  "ToggleStream",
+  "SendStreamCaption"
 ]
 
 export const sceneItemsFor = (
