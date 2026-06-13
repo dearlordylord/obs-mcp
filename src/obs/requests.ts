@@ -10,7 +10,10 @@ export const ObsRequestType = Schema.Literal(
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
-  "GetRecordStatus"
+  "GetRecordStatus",
+  "PauseRecord",
+  "ResumeRecord",
+  "ToggleRecordPause"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
@@ -80,3 +83,21 @@ export const GetRecordStatus = {
   requestDataSchema: EmptyRequestData,
   responseSchema: RecordStatusOutput
 } satisfies ObsRequestDescriptor<RecordStatusOutput>
+
+export const PauseRecord = {
+  requestType: "PauseRecord",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const ResumeRecord = {
+  requestType: "ResumeRecord",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const ToggleRecordPause = {
+  requestType: "ToggleRecordPause",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>

@@ -208,7 +208,10 @@ export class FakeObsServer {
           "GetSceneList",
           "GetCurrentProgramScene",
           "SetCurrentProgramScene",
-          "GetRecordStatus"
+          "GetRecordStatus",
+          "PauseRecord",
+          "ResumeRecord",
+          "ToggleRecordPause"
         ],
         supportedImageFormats: ["png", "jpg"],
         platform: "ubuntu",
@@ -264,6 +267,10 @@ export class FakeObsServer {
         outputDuration: 12345,
         outputBytes: 67890
       })
+      return
+    }
+    if (requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause") {
+      send()
       return
     }
     send()

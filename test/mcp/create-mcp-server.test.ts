@@ -6,9 +6,10 @@ import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import { createObsMcpServer } from "../../src/mcp/create-mcp-server.js"
-import type { ObsClient } from "../../src/obs/client.js"
+import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { FakeObsServer } from "../obs/fake-obs-server.js"
 
 const config: ObsConfig = {
   url: "ws://localhost:4455/",
@@ -18,7 +19,9 @@ const config: ObsConfig = {
 }
 
 const clients: Array<Client> = []
+const obsClients: Array<ObsClient> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
+const fakeObsServers: Array<FakeObsServer> = []
 
 const allAvailableRequests = [
   "GetVersion",
@@ -26,7 +29,10 @@ const allAvailableRequests = [
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
-  "GetRecordStatus"
+  "GetRecordStatus",
+  "PauseRecord",
+  "ResumeRecord",
+  "ToggleRecordPause"
 ]
 
 const obsClient = (
@@ -53,6 +59,8 @@ const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promis
 afterEach(async () => {
   await Promise.all(clients.splice(0).map((client) => client.close().catch(() => undefined)))
   await Promise.all(servers.splice(0).map((server) => server.close().catch(() => undefined)))
+  await Promise.all(obsClients.splice(0).map((client) => client.close().catch(() => undefined)))
+  await Promise.all(fakeObsServers.splice(0).map((server) => server.stop()))
 })
 
 describe("MCP server protocol handlers", () => {
@@ -66,13 +74,18 @@ describe("MCP server protocol handlers", () => {
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
-      "get_record_status"
+      "get_record_status",
+      "pause_record",
+      "resume_record",
+      "toggle_record_pause"
     ])
     expect(tools.tools.find((tool) => tool.name === "set_current_scene")?.inputSchema.required).toEqual(["sceneName"])
     expect(tools.tools.find((tool) => tool.name === "get_current_scene")?.outputSchema?.properties)
       .toHaveProperty("sceneName")
     expect(tools.tools.find((tool) => tool.name === "get_record_status")?.outputSchema?.properties)
       .toHaveProperty("outputActive")
+    expect(tools.tools.find((tool) => tool.name === "pause_record")?.outputSchema?.properties)
+      .toHaveProperty("requestedAction")
   })
 
   it("lists only context and available capability-backed tools", async () => {
@@ -92,6 +105,26 @@ describe("MCP server protocol handlers", () => {
       "get_version",
       "get_obs_stats"
     ])
+  })
+
+  it("hides record pause tools when fake OBS does not advertise the pause capabilities", async () => {
+    const fakeObs = await FakeObsServer.start({ availableRequestsValue: ["GetVersion"] })
+    fakeObsServers.push(fakeObs)
+    const obs = await createObsClient({ ...config, url: fakeObs.url, enabledToolsets: ["record"] })
+    obsClients.push(obs)
+    const client = await connect(obs, { ...config, enabledToolsets: ["record"] })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([])
+  })
+
+  it("hides record pause tools when the record toolset is disabled against fake OBS", async () => {
+    const fakeObs = await FakeObsServer.start()
+    fakeObsServers.push(fakeObs)
+    const obs = await createObsClient({ ...config, url: fakeObs.url, enabledToolsets: ["scenes"] })
+    obsClients.push(obs)
+    const client = await connect(obs, { ...config, enabledToolsets: ["scenes"] })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("pause_record")
   })
 
   it("returns structured success content", async () => {
@@ -164,6 +197,37 @@ describe("MCP server protocol handlers", () => {
         isError: true,
         content: [{ type: "text" }]
       })
+  })
+
+  it("returns structured success content for record pause tools", async () => {
+    const client = await connect(
+      obsClient(async () => ({})),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "pause_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestedAction: "pause",
+          requestType: "PauseRecord",
+          acknowledged: true
+        }
+      })
+  })
+
+  it("rejects extra arguments for record pause tools before OBS mutation", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    for (const name of ["pause_record", "resume_record", "toggle_record_pause"]) {
+      await expect(client.callTool({ name, arguments: { unexpected: true } }))
+        .resolves.toMatchObject({ isError: true })
+    }
+    expect(requested).toEqual([])
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {

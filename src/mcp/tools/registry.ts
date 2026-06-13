@@ -9,6 +9,7 @@ import {
   ListScenesOutput,
   ObsContextOutput,
   ObsStatsOutput,
+  RecordPauseControlOutput,
   RecordStatusOutput,
   SetCurrentSceneInput,
   SetCurrentSceneOutput,
@@ -16,6 +17,7 @@ import {
 } from "../../domain/schemas/index.js"
 import type { ObsClient } from "../../obs/client.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../obs/operations/general.js"
+import { pauseRecord, resumeRecord, toggleRecordPause } from "../../obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../obs/operations/scenes.js"
 import {
   GetCurrentProgramScene,
@@ -23,7 +25,10 @@ import {
   GetSceneList,
   GetStats,
   GetVersion,
-  SetCurrentProgramScene
+  PauseRecord,
+  ResumeRecord,
+  SetCurrentProgramScene,
+  ToggleRecordPause
 } from "../../obs/requests.js"
 import { toMcpError } from "../error-mapping.js"
 
@@ -136,6 +141,36 @@ export const allTools = [
     inputSchema: EmptyInput,
     outputSchema: RecordStatusOutput,
     handler: async (_input, context) => getRecordStatus(context.client)
+  }),
+  defineTool({
+    name: "pause_record",
+    title: "Pause OBS Recording",
+    description: "Pause the active OBS record output.",
+    category: "record",
+    requiredObsRequests: [PauseRecord.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: RecordPauseControlOutput,
+    handler: async (_input, context) => pauseRecord(context.client)
+  }),
+  defineTool({
+    name: "resume_record",
+    title: "Resume OBS Recording",
+    description: "Resume a paused OBS record output.",
+    category: "record",
+    requiredObsRequests: [ResumeRecord.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: RecordPauseControlOutput,
+    handler: async (_input, context) => resumeRecord(context.client)
+  }),
+  defineTool({
+    name: "toggle_record_pause",
+    title: "Toggle OBS Recording Pause",
+    description: "Toggle the pause state of the OBS record output.",
+    category: "record",
+    requiredObsRequests: [ToggleRecordPause.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: RecordPauseControlOutput,
+    handler: async (_input, context) => toggleRecordPause(context.client)
   })
 ] as const
 

@@ -23,7 +23,10 @@ const allAvailableRequests = [
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
-  "GetRecordStatus"
+  "GetRecordStatus",
+  "PauseRecord",
+  "ResumeRecord",
+  "ToggleRecordPause"
 ]
 
 const client = (handler: (requestType: ObsRequestType) => Promise<unknown>): ObsClient => ({
@@ -51,7 +54,10 @@ describe("MCP tool registry", () => {
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
-      "get_record_status"
+      "get_record_status",
+      "pause_record",
+      "resume_record",
+      "toggle_record_pause"
     ])
   })
 
@@ -66,13 +72,17 @@ describe("MCP tool registry", () => {
       "get_obs_stats"
     ])
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
-      "get_record_status"
+      "get_record_status",
+      "pause_record",
+      "resume_record",
+      "toggle_record_pause"
     ])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_scenes",
       "get_current_scene",
       "set_current_scene"
     ])
+    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
   })
 
   it("filters tools by negotiated OBS capabilities", () => {
@@ -83,6 +93,10 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["general", "record"], ["GetStats"]).map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_obs_stats"
+    ])
+    expect(getEnabledTools(["record"], ["PauseRecord", "ResumeRecord"]).map((tool) => tool.name)).toEqual([
+      "pause_record",
+      "resume_record"
     ])
   })
 
@@ -170,6 +184,16 @@ describe("MCP tool registry", () => {
         outputDuration: 0,
         outputBytes: 0
       })
+  })
+
+  it("executes record pause handlers with structured action outputs", async () => {
+    const fakeClient = client(async () => ({}))
+    await expect(executeTool(toolByName("pause_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestedAction: "pause", requestType: "PauseRecord", acknowledged: true })
+    await expect(executeTool(toolByName("resume_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestedAction: "resume", requestType: "ResumeRecord", acknowledged: true })
+    await expect(executeTool(toolByName("toggle_record_pause"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestedAction: "toggle_pause", requestType: "ToggleRecordPause", acknowledged: true })
   })
 
   it("rejects invalid scene params through schema validation", async () => {
