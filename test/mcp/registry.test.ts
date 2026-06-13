@@ -90,6 +90,9 @@ const inputAvailableRequests = [
   "TriggerMediaInputAction"
 ] satisfies ReadonlyArray<ObsRequestType>
 
+const canvasToolNames = ["list_canvases"]
+const uiToolNames = ["get_studio_mode_enabled"]
+
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
   fakeObsClient(handler, allAvailableRequests)
 
@@ -225,6 +228,13 @@ describe("MCP tool registry", () => {
       "save_replay_buffer",
       "get_last_replay_buffer_replay"
     ])
+  })
+
+  it("exposes canvas and studio-mode read tools only for their toolsets", () => {
+    expect(getEnabledTools(["canvases"], allAvailableRequests).map((tool) => tool.name)).toEqual(canvasToolNames)
+    expect(getEnabledTools(["ui"], allAvailableRequests).map((tool) => tool.name)).toEqual(uiToolNames)
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(expect.not.arrayContaining([...canvasToolNames, ...uiToolNames]))
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
@@ -393,6 +403,13 @@ describe("MCP tool registry", () => {
     for (const { availableRequests, expectedTools } of cases) {
       expect(getEnabledTools(["inputs"], availableRequests).map((tool) => tool.name)).toEqual(expectedTools)
     }
+  })
+
+  it("filters canvas and studio-mode tools by negotiated OBS capabilities", () => {
+    expect(getEnabledTools(["canvases"], ["GetCanvasList"]).map((tool) => tool.name)).toEqual(canvasToolNames)
+    expect(getEnabledTools(["canvases"], []).map((tool) => tool.name)).toEqual([])
+    expect(getEnabledTools(["ui"], ["GetStudioModeEnabled"]).map((tool) => tool.name)).toEqual(uiToolNames)
+    expect(getEnabledTools(["ui"], []).map((tool) => tool.name)).toEqual([])
   })
 
   describe("lifecycle tool filtering", () => {
@@ -578,6 +595,33 @@ describe("MCP tool registry", () => {
         unversionedInputKind: "wasapi_input_capture"
       }]
     })
+  })
+
+  it("executes canvas and studio-mode read handlers with structured output", async () => {
+    await expect(executeTool(toolByName("list_canvases"), {}, {
+      config: { ...config, enabledToolsets: ["canvases"] },
+      client: clientWithData(async (requestType) => {
+        expect(requestType).toBe("GetCanvasList")
+        return {
+          canvases: [{
+            canvasName: "Program",
+            canvasUuid: "canvas-program",
+            canvasIndex: 0,
+            width: 1920
+          }]
+        }
+      })
+    })).resolves.toEqual({
+      canvases: [{ canvasIndex: 0, canvasName: "Program", canvasUuid: "canvas-program" }]
+    })
+
+    await expect(executeTool(toolByName("get_studio_mode_enabled"), {}, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType) => {
+        expect(requestType).toBe("GetStudioModeEnabled")
+        return { studioModeEnabled: true }
+      })
+    })).resolves.toEqual({ studioModeEnabled: true })
   })
 
   it("passes optional unversioned input-kind behavior through to OBS", async () => {

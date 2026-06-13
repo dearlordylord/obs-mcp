@@ -11,7 +11,16 @@ export interface ToolContext {
 }
 
 export type RuntimeSchema = Schema.Schema.AnyNoContext
-export type ToolCategory = "events" | "general" | "inputs" | "outputs" | "record" | "scenes" | "stream"
+export type ToolCategory =
+  | "canvases"
+  | "events"
+  | "general"
+  | "inputs"
+  | "outputs"
+  | "record"
+  | "scenes"
+  | "stream"
+  | "ui"
 type ToolHandler<Input> = {
   bivarianceHack(input: Input, context: ToolContext): Promise<unknown>
 }["bivarianceHack"]

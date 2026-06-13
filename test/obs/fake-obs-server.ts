@@ -3,8 +3,10 @@ import { type WebSocket, WebSocketServer } from "ws"
 
 import {
   DEFAULT_AVAILABLE_REQUESTS,
+  DEFAULT_CANVASES,
   DEFAULT_INPUTS,
   DEFAULT_SCENES,
+  type FakeObsCanvas,
   type FakeObsInput,
   type FakeObsReceivedRequest,
   type FakeObsScene,
@@ -43,6 +45,8 @@ interface FakeObsServerOptions {
   readonly failRequests?: Readonly<Record<string, { readonly code: number; readonly comment?: string }>>
   readonly scenes?: ReadonlyArray<FakeObsScene>
   readonly inputs?: ReadonlyArray<FakeObsInput>
+  readonly canvases?: ReadonlyArray<FakeObsCanvas>
+  readonly studioModeEnabled?: boolean
   readonly rpcVersion?: number
   readonly eventAfterIdentify?: Record<string, unknown>
   readonly eventBeforeResponse?: Record<string, unknown>
@@ -87,9 +91,10 @@ export class FakeObsServer {
     })
     const scenes = options.scenes ?? DEFAULT_SCENES
     const inputs = options.inputs ?? DEFAULT_INPUTS
+    const canvases = options.canvases ?? DEFAULT_CANVASES
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
     fake.inputState = new FakeObsInputState(inputs)
-    fake.installHandlers(options, scenes, inputs)
+    fake.installHandlers(options, scenes, inputs, canvases)
     return fake
   }
 
@@ -113,7 +118,8 @@ export class FakeObsServer {
   private installHandlers(
     options: FakeObsServerOptions,
     scenes: ReadonlyArray<FakeObsScene>,
-    inputs: ReadonlyArray<FakeObsInput>
+    inputs: ReadonlyArray<FakeObsInput>,
+    canvases: ReadonlyArray<FakeObsCanvas>
   ): void {
     this.server.on("connection", (socket) => {
       const salt = "salt"
@@ -159,7 +165,10 @@ export class FakeObsServer {
         if (options.sendMalformedAfterIdentify === true) {
           socket.send("{")
         }
-        socket.on("message", (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs))
+        socket.on(
+          "message",
+          (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs, canvases)
+        )
       })
     })
   }
@@ -169,7 +178,8 @@ export class FakeObsServer {
     text: string,
     options: FakeObsServerOptions,
     scenes: ReadonlyArray<FakeObsScene>,
-    inputs: ReadonlyArray<FakeObsInput>
+    inputs: ReadonlyArray<FakeObsInput>,
+    canvases: ReadonlyArray<FakeObsCanvas>
   ): void {
     const envelope = JSON.parse(text)
     const requestType = envelope.d.requestType
@@ -266,6 +276,14 @@ export class FakeObsServer {
         webSocketSessionIncomingMessages: 10,
         webSocketSessionOutgoingMessages: 11
       })
+      return
+    }
+    if (requestType === "GetCanvasList") {
+      send({ canvases })
+      return
+    }
+    if (requestType === "GetStudioModeEnabled") {
+      send({ studioModeEnabled: options.studioModeEnabled ?? false })
       return
     }
     if (requestType === "GetSceneList") {

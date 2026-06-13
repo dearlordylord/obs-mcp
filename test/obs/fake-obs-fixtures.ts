@@ -34,6 +34,14 @@ export interface FakeObsInput {
   readonly mediaCursor?: number | null
 }
 
+export interface FakeObsCanvas {
+  readonly canvasName?: string
+  readonly canvasUuid?: string
+  readonly canvasIndex?: number
+  readonly width?: number
+  readonly height?: number
+}
+
 export interface FakeObsInputVolume {
   readonly inputVolumeMul: number
   readonly inputVolumeDb: number
@@ -125,9 +133,27 @@ export const DEFAULT_INPUTS: ReadonlyArray<FakeObsInput> = [
   }
 ]
 
+export const DEFAULT_CANVASES: ReadonlyArray<FakeObsCanvas> = [
+  {
+    canvasName: "Main Canvas",
+    canvasUuid: "canvas-main",
+    canvasIndex: 0,
+    width: 1920,
+    height: 1080
+  },
+  {
+    canvasName: "Vertical Canvas",
+    canvasUuid: "canvas-vertical",
+    canvasIndex: 1,
+    width: 1080,
+    height: 1920
+  }
+]
+
 export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetVersion",
   "GetStats",
+  "GetCanvasList",
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
@@ -185,7 +211,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "StartStream",
   "StopStream",
   "ToggleStream",
-  "SendStreamCaption"
+  "SendStreamCaption",
+  "GetStudioModeEnabled"
 ]
 
 export const sceneItemsFor = (

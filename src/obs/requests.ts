@@ -3,6 +3,7 @@ import { Schema } from "effect"
 export const ObsRequestType = Schema.Literal(
   "GetVersion",
   "GetStats",
+  "GetCanvasList",
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
@@ -60,10 +61,12 @@ export const ObsRequestType = Schema.Literal(
   "StartStream",
   "StopStream",
   "ToggleStream",
-  "SendStreamCaption"
+  "SendStreamCaption",
+  "GetStudioModeEnabled"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
+export * from "./requests/canvases.js"
 export * from "./requests/general.js"
 export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"
@@ -71,3 +74,4 @@ export * from "./requests/record.js"
 export * from "./requests/scenes.js"
 export type { ObsRequestDescriptor } from "./requests/shared.js"
 export * from "./requests/stream.js"
+export * from "./requests/ui.js"

@@ -33,6 +33,7 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `get_version`
 - `get_obs_stats`
 - `get_recent_obs_events`
+- `list_canvases`
 - `list_scenes`
 - `get_current_scene`
 - `set_current_scene`
@@ -91,6 +92,7 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `stop_stream`
 - `toggle_stream`
 - `send_stream_caption`
+- `get_studio_mode_enabled`
 <!-- tools:end -->
 
 Tool results use MCP structured content rather than textified JSON.

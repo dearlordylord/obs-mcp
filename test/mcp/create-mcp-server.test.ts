@@ -307,6 +307,38 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
   })
 
+  it("lists and calls canvas and studio-mode read tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetCanvasList") {
+          return {
+            canvases: [{
+              canvasName: "Program",
+              canvasUuid: "canvas-program",
+              canvasIndex: 0,
+              width: 1920,
+              height: 1080
+            }]
+          }
+        }
+        return { studioModeEnabled: true }
+      }, ["GetCanvasList", "GetStudioModeEnabled"]),
+      { ...config, enabledToolsets: ["canvases", "ui"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual(["list_canvases", "get_studio_mode_enabled"])
+    expect(tools.tools.find((tool) => tool.name === "list_canvases")?.outputSchema?.properties)
+      .toHaveProperty("canvases")
+    await expect(client.callTool({ name: "list_canvases", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          canvases: [{ canvasIndex: 0, canvasName: "Program", canvasUuid: "canvas-program" }]
+        }
+      })
+    await expect(client.callTool({ name: "get_studio_mode_enabled", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { studioModeEnabled: true } })
+  })
+
   it("does not list output tools when the outputs toolset is disabled", async () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()

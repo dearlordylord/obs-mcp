@@ -5,6 +5,7 @@ import type { ObsConfig } from "../../src/config/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
+import { listCanvases } from "../../src/obs/operations/canvases.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import {
   getInputAudioBalance,
@@ -56,6 +57,7 @@ import {
   stopStream,
   toggleStream
 } from "../../src/obs/operations/stream.js"
+import { getStudioModeEnabled } from "../../src/obs/operations/ui.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -109,6 +111,35 @@ describe("OBS operations", () => {
       outputDuration: 0,
       outputBytes: 0
     })
+  })
+
+  it("lists canvases with stable summaries and reads studio mode state", async () => {
+    const server = await FakeObsServer.start({
+      canvases: [
+        {
+          canvasName: "Program",
+          canvasUuid: "canvas-program",
+          canvasIndex: 2,
+          width: 1920,
+          height: 1080
+        },
+        {
+          width: 1080,
+          height: 1920
+        }
+      ],
+      studioModeEnabled: true
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listCanvases(client)).resolves.toEqual({
+      canvases: [
+        { canvasIndex: 2, canvasName: "Program", canvasUuid: "canvas-program" },
+        { canvasIndex: 1 }
+      ]
+    })
+    await expect(getStudioModeEnabled(client)).resolves.toEqual({ studioModeEnabled: true })
   })
 
   it("lists scenes and can filter groups", async () => {
