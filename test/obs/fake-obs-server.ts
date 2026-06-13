@@ -13,7 +13,7 @@ import {
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
-import { handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
+import { type FakeObsSceneItemTransforms, handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
 import { type FakeObsSceneTransitionOverrides, handleFakeObsSceneRequest } from "./fake-obs-scene-requests.js"
 
 const OP_HELLO = 0
@@ -69,6 +69,7 @@ export class FakeObsServer {
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private inputState: FakeObsInputState = new FakeObsInputState([])
   private readonly outputState = new FakeObsOutputState()
+  private readonly sceneItemTransforms: FakeObsSceneItemTransforms = new Map()
   public lastIdentifyEventSubscriptions: unknown
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
@@ -346,7 +347,7 @@ export class FakeObsServer {
       send({ sceneItems: sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
       return
     }
-    if (handleFakeObsSceneItemReadRequest(requestType, envelope.d.requestData, send)) {
+    if (handleFakeObsSceneItemReadRequest(requestType, envelope.d.requestData, send, this.sceneItemTransforms)) {
       return
     }
     if (requestType === "GetSceneItemEnabled") {

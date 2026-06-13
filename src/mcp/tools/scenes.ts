@@ -24,6 +24,7 @@ import {
   setSceneItemEnabled,
   setSceneItemIndex,
   setSceneItemLocked,
+  setSceneItemTransform,
   setSceneName,
   setSceneTransitionOverride
 } from "../../obs/operations/scenes.js"
@@ -51,6 +52,7 @@ import {
   SetSceneItemEnabled,
   SetSceneItemIndex,
   SetSceneItemLocked,
+  SetSceneItemTransform,
   SetSceneName,
   SetSceneSceneTransitionOverride
 } from "../../obs/requests.js"
@@ -219,6 +221,16 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.GetSceneItemTransformInput,
     outputSchema: SceneSchemas.GetSceneItemTransformOutput,
     handler: async (input, context) => getSceneItemTransform(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_transform",
+    title: "Set OBS Scene Item Transform",
+    description: "Partially update explicit OBS transform and crop fields for a scene item.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemTransform.requestType],
+    inputSchema: SceneSchemas.SetSceneItemTransformInput,
+    outputSchema: SceneSchemas.SetSceneItemTransformOutput,
+    handler: async (input, context) => setSceneItemTransform(context.client, input)
   }),
   defineTool({
     name: "get_scene_item_enabled",

@@ -144,6 +144,7 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetSceneItemId",
   "GetSceneItemSource",
   "GetSceneItemTransform",
+  "SetSceneItemTransform",
   "GetSceneItemEnabled",
   "SetSceneItemEnabled",
   "GetSceneItemLocked",

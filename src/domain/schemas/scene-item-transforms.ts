@@ -34,3 +34,19 @@ export const GetSceneItemTransformOutput = Schema.Struct({
 })
 export type GetSceneItemTransformOutput = typeof GetSceneItemTransformOutput.Type
 export const GetSceneItemTransformOutputJsonSchema = JSONSchema.make(GetSceneItemTransformOutput)
+
+export const SetSceneItemTransformInput = Schema.extend(
+  SceneItemLocatorInput,
+  Schema.Struct({
+    sceneItemTransform: SceneItemTransform
+  })
+)
+export type SetSceneItemTransformInput = typeof SetSceneItemTransformInput.Type
+export const SetSceneItemTransformInputJsonSchema = JSONSchema.make(SetSceneItemTransformInput)
+
+export const SetSceneItemTransformOutput = Schema.Struct({
+  sceneItemTransform: SceneItemTransform,
+  updated: Schema.Literal(true)
+})
+export type SetSceneItemTransformOutput = typeof SetSceneItemTransformOutput.Type
+export const SetSceneItemTransformOutputJsonSchema = JSONSchema.make(SetSceneItemTransformOutput)

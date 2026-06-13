@@ -1,6 +1,11 @@
 import { Schema } from "effect"
 
-import { GetSceneItemTransformInput, GetSceneItemTransformOutput } from "../../domain/schemas/scene-item-transforms.js"
+import {
+  GetSceneItemTransformInput,
+  GetSceneItemTransformOutput,
+  SetSceneItemTransformInput,
+  SetSceneItemTransformOutput
+} from "../../domain/schemas/scene-item-transforms.js"
 import {
   CreateSceneInput,
   CreateSceneOutput,
@@ -72,6 +77,7 @@ import {
   SetSceneItemEnabled,
   SetSceneItemIndex,
   SetSceneItemLocked,
+  SetSceneItemTransform,
   SetSceneName as SetSceneNameRequest,
   SetSceneSceneTransitionOverride as SetSceneTransitionOverrideRequest
 } from "../requests.js"
@@ -241,6 +247,18 @@ export const getSceneItemTransform = async (
   return Schema.decodeUnknownSync(GetSceneItemTransformOutput)(
     await client.request(GetSceneItemTransform, decodedInput)
   )
+}
+
+export const setSceneItemTransform = async (
+  client: ObsClient,
+  input: SetSceneItemTransformInput
+): Promise<SetSceneItemTransformOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetSceneItemTransformInput)(input)
+  await client.request(SetSceneItemTransform, decodedInput)
+  return Schema.decodeUnknownSync(SetSceneItemTransformOutput)({
+    sceneItemTransform: decodedInput.sceneItemTransform,
+    updated: true
+  })
 }
 
 export const getSceneItemEnabled = async (

@@ -59,6 +59,7 @@ import {
   removeScene,
   setCurrentPreviewScene,
   setCurrentScene,
+  setSceneItemTransform,
   setSceneName,
   setSceneTransitionOverride
 } from "../../src/obs/operations/scenes.js"
@@ -295,6 +296,38 @@ describe("OBS operations", () => {
       })
   })
 
+  it("sets scene item transform fields through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(setSceneItemTransform(client, {
+      sceneName: "Intro",
+      sceneItemId: 9,
+      sceneItemTransform: {
+        cropToBounds: false,
+        positionX: 320.25,
+        scaleX: 0.75
+      }
+    })).resolves.toEqual({
+      sceneItemTransform: {
+        cropToBounds: false,
+        positionX: 320.25,
+        scaleX: 0.75
+      },
+      updated: true
+    })
+    await expect(getSceneItemTransform(client, { sceneName: "Intro", sceneItemId: 9 }))
+      .resolves.toMatchObject({
+        sceneItemTransform: {
+          cropToBounds: false,
+          positionX: 320.25,
+          positionY: 512.25,
+          scaleX: 0.75
+        }
+      })
+  })
+
   it("surfaces scene item transform OBS errors", async () => {
     const server = await FakeObsServer.start({
       failRequests: { GetSceneItemTransform: { code: 601, comment: "Scene item not found" } }
@@ -304,6 +337,24 @@ describe("OBS operations", () => {
     clients.push(client)
     await expect(getSceneItemTransform(client, { sceneName: "Intro", sceneItemId: 99 })).rejects.toMatchObject({
       requestType: "GetSceneItemTransform",
+      code: 601,
+      comment: "Scene item not found"
+    })
+  })
+
+  it("surfaces set scene item transform OBS errors", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetSceneItemTransform: { code: 601, comment: "Scene item not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(setSceneItemTransform(client, {
+      sceneName: "Intro",
+      sceneItemId: 99,
+      sceneItemTransform: { positionX: 1 }
+    })).rejects.toMatchObject({
+      requestType: "SetSceneItemTransform",
       code: 601,
       comment: "Scene item not found"
     })

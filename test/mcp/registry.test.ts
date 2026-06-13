@@ -24,7 +24,10 @@ import {
   StopRecordOutput,
   ToggleRecordOutput
 } from "../../src/domain/schemas/record.js"
-import { GetSceneItemTransformOutput } from "../../src/domain/schemas/scene-item-transforms.js"
+import {
+  GetSceneItemTransformOutput,
+  SetSceneItemTransformInput
+} from "../../src/domain/schemas/scene-item-transforms.js"
 import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -196,6 +199,7 @@ describe("MCP tool registry", () => {
       "get_scene_item_id",
       "get_scene_item_source",
       "get_scene_item_transform",
+      "set_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -290,6 +294,7 @@ describe("MCP tool registry", () => {
       "get_scene_item_id",
       "get_scene_item_source",
       "get_scene_item_transform",
+      "set_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -1142,6 +1147,13 @@ describe("MCP tool registry", () => {
         sceneItemTransform: { positionX: 0, scaleX: 1, cropLeft: 0, cropToBounds: "true" }
       })
     ).toThrow("cropToBounds")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSceneItemTransformInput)({
+        sceneName: "Scene",
+        sceneItemId: 42,
+        sceneItemTransform: { positionX: 0, scaleX: "1", cropLeft: 0 }
+      })
+    ).toThrow("scaleX")
   })
 
   it("rejects invalid recent event limits through schema validation", async () => {
@@ -1584,6 +1596,40 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("sets a scene item's transform", async () => {
+    await expect(executeTool(toolByName("set_scene_item_transform"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42,
+      sceneItemTransform: {
+        cropToBounds: true,
+        positionX: 10.5,
+        scaleX: 0.75
+      }
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetSceneItemTransform")
+        expect(requestData).toEqual({
+          sceneUuid: "scene-uuid",
+          sceneItemId: 42,
+          sceneItemTransform: {
+            cropToBounds: true,
+            positionX: 10.5,
+            scaleX: 0.75
+          }
+        })
+        return {}
+      })
+    })).resolves.toEqual({
+      sceneItemTransform: {
+        cropToBounds: true,
+        positionX: 10.5,
+        scaleX: 0.75
+      },
+      updated: true
+    })
+  })
+
   it("gets and sets scene item enabled and locked state", async () => {
     const requests: Array<unknown> = []
     await expect(executeTool(toolByName("get_scene_item_enabled"), {
@@ -1760,6 +1806,23 @@ describe("MCP tool registry", () => {
         comment: "Scene item not found"
       }
     })
+    await expect(executeTool(toolByName("set_scene_item_transform"), {
+      sceneName: "Scene",
+      sceneItemId: 404,
+      sceneItemTransform: { positionX: 1 }
+    }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("SetSceneItemTransform", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetSceneItemTransform",
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
   })
 
   it("maps scene item state OBS errors to MCP errors with OBS status metadata", async () => {
@@ -1915,6 +1978,8 @@ describe("MCP tool registry", () => {
   it("filters scene item transform by partial OBS capabilities", () => {
     expect(getEnabledTools(["scenes"], ["GetSceneItemTransform"]).map((tool) => tool.name))
       .toEqual(["get_scene_item_transform"])
+    expect(getEnabledTools(["scenes"], ["SetSceneItemTransform"]).map((tool) => tool.name))
+      .toEqual(["set_scene_item_transform"])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

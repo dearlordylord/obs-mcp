@@ -1,6 +1,13 @@
 import { sceneItemsFor, sceneItemTransformFor } from "./fake-obs-fixtures.js"
 
 type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
+export type FakeObsSceneItemTransforms = Map<string, Record<string, unknown>>
+
+const sceneItemTransformKey = (requestData: {
+  readonly sceneItemId?: number
+  readonly sceneName?: string
+  readonly sceneUuid?: string
+}): string => `${requestData.sceneUuid ?? requestData.sceneName ?? "scene"}:${requestData.sceneItemId ?? 0}`
 
 export const handleFakeObsSceneItemReadRequest = (
   requestType: string,
@@ -9,8 +16,10 @@ export const handleFakeObsSceneItemReadRequest = (
     readonly sceneName?: string
     readonly sceneUuid?: string
     readonly sourceName?: string
+    readonly sceneItemTransform?: Record<string, unknown>
   },
-  send: SendFakeObsResponse
+  send: SendFakeObsResponse,
+  transforms: FakeObsSceneItemTransforms = new Map()
 ): boolean => {
   if (requestType === "GetSceneItemId") {
     const sceneItem = sceneItemsFor(requestData, false)
@@ -25,7 +34,19 @@ export const handleFakeObsSceneItemReadRequest = (
     return true
   }
   if (requestType === "GetSceneItemTransform") {
-    send({ sceneItemTransform: sceneItemTransformFor(requestData) })
+    const key = sceneItemTransformKey(requestData)
+    const transform = transforms.get(key) ?? sceneItemTransformFor(requestData)
+    transforms.set(key, transform)
+    send({ sceneItemTransform: transform })
+    return true
+  }
+  if (requestType === "SetSceneItemTransform") {
+    const key = sceneItemTransformKey(requestData)
+    transforms.set(key, {
+      ...(transforms.get(key) ?? sceneItemTransformFor(requestData)),
+      ...(requestData.sceneItemTransform ?? {})
+    })
+    send()
     return true
   }
   return false
