@@ -2,25 +2,17 @@ import { JSONSchema, Schema } from "effect"
 
 import { OutputActiveState } from "./shared.js"
 
-export const RecordAcknowledgementRequestType = Schema.Literal(
-  "StartRecord",
-  "SplitRecordFile",
-  "CreateRecordChapter"
-)
-export type RecordAcknowledgementRequestType = typeof RecordAcknowledgementRequestType.Type
+const recordAcknowledgementOutput = <RequestType extends string>(requestType: RequestType) =>
+  Schema.Struct({
+    requestType: Schema.Literal(requestType),
+    acknowledged: Schema.Literal(true)
+  })
 
-export const RecordAcknowledgementOutput = Schema.Struct({
-  requestType: RecordAcknowledgementRequestType,
-  acknowledged: Schema.Literal(true)
-})
-export type RecordAcknowledgementOutput = typeof RecordAcknowledgementOutput.Type
-export const RecordAcknowledgementOutputJsonSchema = JSONSchema.make(RecordAcknowledgementOutput)
-
-export const StartRecordOutput = RecordAcknowledgementOutput
+export const StartRecordOutput = recordAcknowledgementOutput("StartRecord")
 export type StartRecordOutput = typeof StartRecordOutput.Type
 export const StartRecordOutputJsonSchema = JSONSchema.make(StartRecordOutput)
 
-export const SplitRecordFileOutput = RecordAcknowledgementOutput
+export const SplitRecordFileOutput = recordAcknowledgementOutput("SplitRecordFile")
 export type SplitRecordFileOutput = typeof SplitRecordFileOutput.Type
 export const SplitRecordFileOutputJsonSchema = JSONSchema.make(SplitRecordFileOutput)
 
@@ -30,7 +22,7 @@ export const CreateRecordChapterInput = Schema.Struct({
 export type CreateRecordChapterInput = typeof CreateRecordChapterInput.Type
 export const CreateRecordChapterInputJsonSchema = JSONSchema.make(CreateRecordChapterInput)
 
-export const CreateRecordChapterOutput = RecordAcknowledgementOutput
+export const CreateRecordChapterOutput = recordAcknowledgementOutput("CreateRecordChapter")
 export type CreateRecordChapterOutput = typeof CreateRecordChapterOutput.Type
 export const CreateRecordChapterOutputJsonSchema = JSONSchema.make(CreateRecordChapterOutput)
 

@@ -452,6 +452,24 @@ describe("MCP server protocol handlers", () => {
     expect(requested).toEqual([])
   })
 
+  it("rejects unexpected record chapter arguments before OBS mutation", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(
+      client.callTool({
+        name: "create_record_chapter",
+        arguments: { chapterName: "Act 1", unexpected: true }
+      })
+    ).resolves.toMatchObject({ isError: true })
+    expect(requested).toEqual([])
+  })
+
   it("returns structured stream lifecycle content", async () => {
     const client = await connect(
       obsClient(async (requestType) => {

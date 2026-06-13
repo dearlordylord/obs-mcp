@@ -53,7 +53,7 @@ export const createRecordChapter = async (
   client: ObsClient,
   input: CreateRecordChapterInput
 ): Promise<CreateRecordChapterOutput> => {
-  const decodedInput = Schema.decodeUnknownSync(CreateRecordChapterInput)(input)
+  const decodedInput = Schema.decodeUnknownSync(CreateRecordChapterInput, { onExcessProperty: "error" })(input)
   await client.request(CreateRecordChapter, decodedInput)
   return CreateRecordChapterOutput.make({
     requestType: CreateRecordChapter.requestType,

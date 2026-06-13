@@ -70,7 +70,7 @@ export const executeTool = async (
   context: ToolContext
 ): Promise<unknown> => {
   try {
-    const decodedInput = Schema.decodeUnknownSync(tool.inputSchema)(input ?? {})
+    const decodedInput = Schema.decodeUnknownSync(tool.inputSchema, { onExcessProperty: "error" })(input ?? {})
     const result = await tool.handler(decodedInput, context)
     return Schema.decodeUnknownSync(tool.outputSchema)(result)
   } catch (error) {

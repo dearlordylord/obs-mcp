@@ -233,6 +233,9 @@ describe("MCP tool registry", () => {
     expect(Schema.decodeUnknownSync(ToggleRecordOutput)({ outputActive: true })).toEqual({ outputActive: true })
     expect(Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "SplitRecordFile", acknowledged: true }))
       .toEqual({ requestType: "SplitRecordFile", acknowledged: true })
+    expect(() =>
+      Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "CreateRecordChapter", acknowledged: true })
+    ).toThrow()
     expect(
       Schema.decodeUnknownSync(CreateRecordChapterOutput)({
         requestType: "CreateRecordChapter",
