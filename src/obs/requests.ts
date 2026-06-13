@@ -8,6 +8,7 @@ import {
   ListInputsOutput,
   SpecialInputsOutput
 } from "../domain/schemas/inputs.js"
+import { VirtualCamStatusOutput } from "../domain/schemas/outputs.js"
 import {
   GetSceneItemIdInput,
   GetSceneItemIdOutput,
@@ -35,6 +36,10 @@ export const ObsRequestType = Schema.Literal(
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
+  "GetVirtualCamStatus",
+  "StartVirtualCam",
+  "StopVirtualCam",
+  "ToggleVirtualCam",
   "GetRecordStatus",
   "PauseRecord",
   "ResumeRecord",
@@ -148,6 +153,30 @@ export const GetSpecialInputs = {
   requestDataSchema: EmptyRequestData,
   responseSchema: SpecialInputsOutput
 } satisfies ObsRequestDescriptor<SpecialInputsOutput>
+
+export const GetVirtualCamStatus = {
+  requestType: "GetVirtualCamStatus",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: VirtualCamStatusOutput
+} satisfies ObsRequestDescriptor<VirtualCamStatusOutput>
+
+export const StartVirtualCam = {
+  requestType: "StartVirtualCam",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const StopVirtualCam = {
+  requestType: "StopVirtualCam",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const ToggleVirtualCam = {
+  requestType: "ToggleVirtualCam",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: VirtualCamStatusOutput
+} satisfies ObsRequestDescriptor<VirtualCamStatusOutput>
 
 export const GetRecordStatus = {
   requestType: "GetRecordStatus",

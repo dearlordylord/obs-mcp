@@ -1,6 +1,7 @@
 export * from "./connection.js"
 export * from "./general.js"
 export * from "./inputs.js"
+export * from "./outputs.js"
 export * from "./record.js"
 export * from "./scenes.js"
 export * from "./shared.js"

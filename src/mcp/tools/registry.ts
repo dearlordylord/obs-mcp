@@ -29,12 +29,15 @@ import {
   StopStreamOutput,
   StreamStatusOutput,
   ToggleStreamOutput,
-  VersionOutput
+  VersionOutput,
+  VirtualCamStatusOutput,
+  VirtualCamSwitchOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import type { ObsClient } from "../../obs/client.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../obs/operations/general.js"
 import { getSpecialInputs, listInputKinds, listInputs } from "../../obs/operations/inputs.js"
+import { getVirtualCamStatus, startVirtualCam, stopVirtualCam, toggleVirtualCam } from "../../obs/operations/outputs.js"
 import { pauseRecord, resumeRecord, toggleRecordPause } from "../../obs/operations/record.js"
 import {
   getCurrentScene,
@@ -60,13 +63,17 @@ import {
   GetStats,
   GetStreamStatus,
   GetVersion,
+  GetVirtualCamStatus,
   PauseRecord,
   ResumeRecord,
   SetCurrentProgramScene,
   StartStream,
+  StartVirtualCam,
   StopStream,
+  StopVirtualCam,
   ToggleRecordPause,
-  ToggleStream
+  ToggleStream,
+  ToggleVirtualCam
 } from "../../obs/requests.js"
 import { toMcpError } from "../error-mapping.js"
 
@@ -76,7 +83,7 @@ interface ToolContext {
 }
 
 type RuntimeSchema = Schema.Schema.AnyNoContext
-type ToolCategory = "general" | "inputs" | "record" | "scenes" | "stream"
+type ToolCategory = "general" | "inputs" | "outputs" | "record" | "scenes" | "stream"
 
 export interface ToolDefinition {
   readonly name: string
@@ -245,6 +252,46 @@ export const allTools = [
     inputSchema: EmptyInput,
     outputSchema: SpecialInputsOutput,
     handler: async (_input, context) => getSpecialInputs(context.client)
+  }),
+  defineTool({
+    name: "get_virtual_cam_status",
+    title: "Get OBS Virtual Camera Status",
+    description: "Return whether OBS virtual camera output is active.",
+    category: "outputs",
+    requiredObsRequests: [GetVirtualCamStatus.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: VirtualCamStatusOutput,
+    handler: async (_input, context) => getVirtualCamStatus(context.client)
+  }),
+  defineTool({
+    name: "start_virtual_cam",
+    title: "Start OBS Virtual Camera",
+    description: "Start the OBS virtual camera output.",
+    category: "outputs",
+    requiredObsRequests: [StartVirtualCam.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: VirtualCamSwitchOutput,
+    handler: async (_input, context) => startVirtualCam(context.client)
+  }),
+  defineTool({
+    name: "stop_virtual_cam",
+    title: "Stop OBS Virtual Camera",
+    description: "Stop the OBS virtual camera output.",
+    category: "outputs",
+    requiredObsRequests: [StopVirtualCam.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: VirtualCamSwitchOutput,
+    handler: async (_input, context) => stopVirtualCam(context.client)
+  }),
+  defineTool({
+    name: "toggle_virtual_cam",
+    title: "Toggle OBS Virtual Camera",
+    description: "Toggle the OBS virtual camera output and return the resulting activity state.",
+    category: "outputs",
+    requiredObsRequests: [ToggleVirtualCam.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: VirtualCamSwitchOutput,
+    handler: async (_input, context) => toggleVirtualCam(context.client)
   }),
   defineTool({
     name: "get_record_status",

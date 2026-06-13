@@ -36,6 +36,10 @@ const allAvailableRequests = [
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
+  "GetVirtualCamStatus",
+  "StartVirtualCam",
+  "StopVirtualCam",
+  "ToggleVirtualCam",
   "GetRecordStatus",
   "PauseRecord",
   "ResumeRecord",
@@ -216,6 +220,12 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
   })
 
+  it("does not list output tools when the outputs toolset is disabled", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("get_virtual_cam_status")
+  })
+
   it("returns structured success content", async () => {
     const client = await connect(obsClient(async (requestType) => {
       if (requestType === "GetStats") {
@@ -349,6 +359,19 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { outputActive: false } })
     await expect(client.callTool({ name: "toggle_stream", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+  })
+
+  it("returns structured virtual camera status and switch results", async () => {
+    const client = await connect(obsClient(async (requestType) => {
+      if (requestType === "GetVirtualCamStatus" || requestType === "ToggleVirtualCam") {
+        return { outputActive: true }
+      }
+      return {}
+    }))
+    await expect(client.callTool({ name: "get_virtual_cam_status", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "toggle_virtual_cam", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true, switched: true } })
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {

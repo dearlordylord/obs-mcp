@@ -31,6 +31,10 @@ const allAvailableRequests = [
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
+  "GetVirtualCamStatus",
+  "StartVirtualCam",
+  "StopVirtualCam",
+  "ToggleVirtualCam",
   "GetRecordStatus",
   "PauseRecord",
   "ResumeRecord",
@@ -98,6 +102,15 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("exposes virtual camera tools when the outputs toolset is enabled", () => {
+    expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
+      "get_virtual_cam_status",
+      "start_virtual_cam",
+      "stop_virtual_cam",
+      "toggle_virtual_cam"
+    ])
+  })
+
   it("filters disabled categories", () => {
     expect(getEnabledTools([])).toEqual([])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).not.toContain(
@@ -149,6 +162,8 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["stream"], ["GetStreamStatus", "StartStream", "StopStream"]).map((tool) => tool.name))
       .toEqual(["get_stream_status", "start_stream", "stop_stream"])
+    expect(getEnabledTools(["outputs"], ["GetVirtualCamStatus", "ToggleVirtualCam"]).map((tool) => tool.name))
+      .toEqual(["get_virtual_cam_status", "toggle_virtual_cam"])
   })
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
@@ -351,6 +366,29 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ outputActive: true })
   })
 
+  it("executes virtual camera handlers", async () => {
+    const seen: Array<ObsRequestType> = []
+    const fakeClient = client(async (requestType) => {
+      seen.push(requestType)
+      if (requestType === "GetVirtualCamStatus") {
+        return { outputActive: false }
+      }
+      if (requestType === "ToggleVirtualCam") {
+        return { outputActive: true }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("get_virtual_cam_status"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: false })
+    await expect(executeTool(toolByName("start_virtual_cam"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true, switched: true })
+    await expect(executeTool(toolByName("stop_virtual_cam"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: false, switched: true })
+    await expect(executeTool(toolByName("toggle_virtual_cam"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true, switched: true })
+    expect(seen).toEqual(["GetVirtualCamStatus", "StartVirtualCam", "StopVirtualCam", "ToggleVirtualCam"])
+  })
+
   it("rejects invalid scene params through schema validation", async () => {
     await expect(
       executeTool(toolByName("set_current_scene"), { sceneName: "" }, { config, client: client(async () => ({})) })
@@ -537,6 +575,22 @@ describe("MCP tool registry", () => {
     })).rejects.toMatchObject({
       code: ErrorCode.InternalError,
       data: { requestType: "StartStream", obsStatusCode: 207 }
+    })
+  })
+
+  it("maps virtual camera operation errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("start_virtual_cam"), {}, {
+      config: { ...config, enabledToolsets: ["outputs"] },
+      client: client(async () => {
+        throw new ObsRequestError("StartVirtualCam", 500, "virtual camera unavailable")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "StartVirtualCam",
+        obsStatusCode: 500,
+        comment: "virtual camera unavailable"
+      }
     })
   })
 

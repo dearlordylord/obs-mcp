@@ -7,6 +7,12 @@ import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import { getSpecialInputs, listInputKinds, listInputs } from "../../src/obs/operations/inputs.js"
+import {
+  getVirtualCamStatus,
+  startVirtualCam,
+  stopVirtualCam,
+  toggleVirtualCam
+} from "../../src/obs/operations/outputs.js"
 import { pauseRecord, resumeRecord, toggleRecordPause } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
 import { getStreamStatus, startStream, stopStream, toggleStream } from "../../src/obs/operations/stream.js"
@@ -135,6 +141,18 @@ describe("OBS operations", () => {
       mic3: null,
       mic4: null
     })
+  })
+
+  it("controls the virtual camera over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getVirtualCamStatus(client)).resolves.toEqual({ outputActive: false })
+    await expect(startVirtualCam(client)).resolves.toEqual({ outputActive: true, switched: true })
+    await expect(getVirtualCamStatus(client)).resolves.toEqual({ outputActive: true })
+    await expect(toggleVirtualCam(client)).resolves.toEqual({ outputActive: false, switched: true })
+    await expect(stopVirtualCam(client)).resolves.toEqual({ outputActive: false, switched: true })
   })
 
   it("rejects current scene responses without a scene name", async () => {

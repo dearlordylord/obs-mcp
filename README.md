@@ -20,7 +20,7 @@ Environment variables:
 - `OBS_WEBSOCKET_URL`: OBS websocket URL. Defaults to `ws://localhost:4455`. Bare `host:port` values are normalized to `ws://host:port`.
 - `OBS_WEBSOCKET_PASSWORD`: optional OBS websocket password.
 - `OBS_WEBSOCKET_CONNECTION_TIMEOUT`: connection and request timeout in milliseconds. Defaults to `30000`.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `general`, `inputs`, `record`, `scenes`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `TOOLSETS`: optional comma-separated category filter. Available categories are `general`, `inputs`, `outputs`, `record`, `scenes`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
 - `OBS_INTEGRATION_TESTS`: set to `1` to run real OBS websocket integration tests.
 - `OBS_INTEGRATION_MUTATION_TESTS`: set to `1` to enable integration tests that send state-changing OBS requests.
 
@@ -42,6 +42,10 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `list_inputs`
 - `list_input_kinds`
 - `get_special_inputs`
+- `get_virtual_cam_status`
+- `start_virtual_cam`
+- `stop_virtual_cam`
+- `toggle_virtual_cam`
 - `get_record_status`
 - `pause_record`
 - `resume_record`

@@ -74,6 +74,7 @@ export class FakeObsServer {
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private streamActive = false
+  private virtualCamActive = false
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
     this.server = server
@@ -205,20 +206,11 @@ export class FakeObsServer {
       const frame = failure === undefined
         ? {
           op: OP_REQUEST_RESPONSE,
-          d: {
-            requestType,
-            requestId,
-            requestStatus: { result: true, code: REQUEST_STATUS_SUCCESS },
-            ...successData
-          }
+          d: { requestType, requestId, requestStatus: { result: true, code: REQUEST_STATUS_SUCCESS }, ...successData }
         }
         : {
           op: OP_REQUEST_RESPONSE,
-          d: {
-            requestType,
-            requestId,
-            requestStatus: { result: false, code: failure.code, comment: failure.comment }
-          }
+          d: { requestType, requestId, requestStatus: { result: false, code: failure.code, comment: failure.comment } }
         }
       if (options.sendUnrelatedResponseBeforeReal === true) {
         socket.send(JSON.stringify({
@@ -267,6 +259,10 @@ export class FakeObsServer {
           "GetInputList",
           "GetInputKindList",
           "GetSpecialInputs",
+          "GetVirtualCamStatus",
+          "StartVirtualCam",
+          "StopVirtualCam",
+          "ToggleVirtualCam",
           "GetRecordStatus",
           "PauseRecord",
           "ResumeRecord",
@@ -311,10 +307,7 @@ export class FakeObsServer {
     }
     if (requestType === "GetCurrentProgramScene") {
       const current = scenes.find((scene) => scene.sceneName === this.currentSceneName) ?? scenes[0]
-      send({
-        sceneName: current?.sceneName ?? "Intro",
-        sceneUuid: current?.sceneUuid
-      })
+      send({ sceneName: current?.sceneName ?? "Intro", sceneUuid: current?.sceneUuid })
       return
     }
     if (requestType === "SetCurrentProgramScene") {
@@ -335,10 +328,7 @@ export class FakeObsServer {
     if (requestType === "GetSceneItemSource") {
       const sceneItem = this.sceneItemsFor(envelope.d.requestData, false)
         .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
-      send({
-        sourceName: sceneItem?.sourceName ?? "Camera",
-        sourceUuid: sceneItem?.sourceUuid ?? "source-camera"
-      })
+      send({ sourceName: sceneItem?.sourceName ?? "Camera", sourceUuid: sceneItem?.sourceUuid ?? "source-camera" })
       return
     }
     if (requestType === "GetInputList") {
@@ -352,20 +342,30 @@ export class FakeObsServer {
     }
     if (requestType === "GetInputKindList") {
       const unversioned = envelope.d.requestData?.unversioned === true
-      send({
-        inputKinds: inputs.map((input) => unversioned ? input.unversionedInputKind : input.inputKind)
-      })
+      send({ inputKinds: inputs.map((input) => unversioned ? input.unversionedInputKind : input.inputKind) })
       return
     }
     if (requestType === "GetSpecialInputs") {
-      send({
-        desktop1: "Desktop Audio",
-        desktop2: null,
-        mic1: "Mic/Aux",
-        mic2: null,
-        mic3: null,
-        mic4: null
-      })
+      send({ desktop1: "Desktop Audio", desktop2: null, mic1: "Mic/Aux", mic2: null, mic3: null, mic4: null })
+      return
+    }
+    if (requestType === "GetVirtualCamStatus") {
+      send({ outputActive: this.virtualCamActive })
+      return
+    }
+    if (requestType === "StartVirtualCam") {
+      this.virtualCamActive = true
+      send()
+      return
+    }
+    if (requestType === "StopVirtualCam") {
+      this.virtualCamActive = false
+      send()
+      return
+    }
+    if (requestType === "ToggleVirtualCam") {
+      this.virtualCamActive = !this.virtualCamActive
+      send({ outputActive: this.virtualCamActive })
       return
     }
     if (requestType === "GetRecordStatus") {

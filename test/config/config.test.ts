@@ -12,10 +12,12 @@ describe("OBS config", () => {
   })
 
   it("decodes environment defaults and toolset filtering", async () => {
-    const config = await Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: "scenes,general,inputs,record,stream,raw" }))
+    const config = await Effect.runPromise(
+      loadObsConfigFromEnv({ TOOLSETS: "scenes,general,inputs,outputs,record,stream,raw" })
+    )
     expect(config.url).toBe("ws://localhost:4455/")
     expect(config.connectionTimeoutMs).toBe(30_000)
-    expect(config.enabledToolsets).toEqual(["scenes", "general", "inputs", "record", "stream"])
+    expect(config.enabledToolsets).toEqual(["scenes", "general", "inputs", "outputs", "record", "stream"])
   })
 
   it("defaults blank toolsets and rejects non-websocket URLs", async () => {
