@@ -36,6 +36,7 @@ const plansRoot = join(experimentRoot, "plans")
 const logsRoot = join(experimentRoot, "logs")
 const statusPath = join(experimentRoot, "status.json")
 const progressPath = join(experimentRoot, "progress.md")
+const controlPath = join(experimentRoot, "control.json")
 const eventsPath = join(logsRoot, "events.jsonl")
 const execFilePromise = promisify(execFile)
 
@@ -52,8 +53,13 @@ const ReviewOutputSchema = Schema.Struct({
   notes: Schema.String
 })
 
+const RalphControlFileSchema = Schema.Struct({
+  laneConcurrency: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.positive()))
+})
+
 type PlanOutput = Schema.Schema.Type<typeof PlanOutputSchema>
 type ReviewOutput = Schema.Schema.Type<typeof ReviewOutputSchema>
+type RalphControlFile = Schema.Schema.Type<typeof RalphControlFileSchema>
 
 const CodexEffortSchema = Schema.Literal("low", "medium", "high", "xhigh")
 type CodexEffort = Schema.Schema.Type<typeof CodexEffortSchema>
@@ -257,6 +263,45 @@ const readPositiveInteger = (name: string, fallback: number): number => {
   }
   return parsed
 }
+
+const readNonNegativeInteger = (name: string, fallback: number): number => {
+  const value = process.env[name]
+  if (value === undefined) return fallback
+
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${name} must be a non-negative integer`)
+  }
+  return parsed
+}
+
+const readControlFile = async (): Promise<RalphControlFile | undefined> => {
+  try {
+    return Schema.decodeUnknownSync(RalphControlFileSchema)(JSON.parse(await readFile(controlPath, "utf8")))
+  } catch (cause) {
+    if (isNodeError(cause) && cause.code === "ENOENT") return undefined
+    throw cause
+  }
+}
+
+const ensureControlFile = (initialLaneConcurrency: number): Effect.Effect<void, Error> =>
+  Effect.tryPromise({
+    try: async () => {
+      const existing = await readControlFile()
+      if (existing !== undefined) return
+      await writeFile(controlPath, JSON.stringify({ laneConcurrency: initialLaneConcurrency }, null, 2).concat("\n"))
+    },
+    catch: (cause) => cause instanceof Error ? cause : new Error(String(cause))
+  })
+
+const readLiveLaneConcurrency = (fallback: number): Effect.Effect<number, Error> =>
+  Effect.tryPromise({
+    try: async () => {
+      const control = await readControlFile()
+      return control?.laneConcurrency ?? fallback
+    },
+    catch: (cause) => cause instanceof Error ? cause : new Error(String(cause))
+  })
 
 const renderPromptFile = (
   promptFile: string,
@@ -978,9 +1023,15 @@ const agentMode = process.env["RALPH_AGENT_MODE"] ?? "scripted"
 const agentLayer = agentMode === "codex"
   ? createRalphAgentLayer(worktrees)
   : createScriptedRalphAgentLayer(worktrees)
+const initialLaneConcurrency = readPositiveInteger("RALPH_LANE_CONCURRENCY", Math.max(1, selectedLaneSpecs.length))
+const laneConcurrencyPollMs = readNonNegativeInteger("RALPH_LANE_CONCURRENCY_POLL_MS", 5_000)
+
+await Effect.runPromise(ensureControlFile(initialLaneConcurrency))
 
 const program = runRalphLanes(selectedLaneSpecs, {
-  laneConcurrency: readPositiveInteger("RALPH_LANE_CONCURRENCY", Math.max(1, selectedLaneSpecs.length)),
+  laneConcurrency: initialLaneConcurrency,
+  readLaneConcurrency: () => readLiveLaneConcurrency(initialLaneConcurrency),
+  ...(laneConcurrencyPollMs === 0 ? {} : { laneConcurrencyPollMs }),
   maxReviewAttempts: readPositiveInteger("RALPH_MAX_REVIEW_ATTEMPTS", 12),
   maxTasksPerLane: readPositiveInteger("RALPH_MAX_TASKS_PER_LANE", 1),
   resumeExistingPlan: true,

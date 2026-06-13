@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { Context, Effect, Layer, Ref, Schema } from "effect"
+import { Context, Deferred, Effect, Fiber, Layer, Queue, Ref, Schema } from "effect"
 
 const NonEmptyString = Schema.String.pipe(Schema.nonEmptyString())
 
@@ -116,6 +116,8 @@ export interface RalphLoopObserver {
 export interface RalphLoopOptions {
   readonly maxReviewAttempts: number
   readonly laneConcurrency?: number
+  readonly readLaneConcurrency?: () => Effect.Effect<number, Error>
+  readonly laneConcurrencyPollMs?: number
   readonly maxTasksPerLane?: number
   readonly resumeExistingPlan?: boolean
   readonly observer?: RalphLoopObserver
@@ -486,30 +488,98 @@ export const runRalphLanes = (
   lanes: ReadonlyArray<RalphLaneSpec>,
   options: RalphLoopOptions
 ): Effect.Effect<ReadonlyArray<RalphLaneResult>, Error, RalphAgent | RalphPlanStore> =>
-  Effect.forEach(
-    lanes,
-    (lane) =>
-      runRalphLane(lane, options).pipe(
-        Effect.map((result) => ({ _tag: "success" as const, result })),
-        Effect.catchAll((error) =>
-          Effect.succeed({
-            _tag: "failure" as const,
-            laneId: lane.laneId,
-            error
-          })
-        )
-      ),
-    { concurrency: options.laneConcurrency ?? Math.max(1, lanes.length) }
-  ).pipe(
-    Effect.flatMap((results) => {
-      const failures = results.flatMap((result) =>
-        result._tag === "failure"
-          ? [{ laneId: result.laneId, error: result.error }]
-          : []
+  Effect.gen(function*() {
+    if (lanes.length === 0) {
+      return []
+    }
+
+    type LaneOutcome =
+      | { readonly _tag: "success"; readonly index: number; readonly result: RalphLaneResult }
+      | { readonly _tag: "failure"; readonly index: number; readonly laneId: RalphLaneId; readonly error: Error }
+
+    const nextIndex = yield* Ref.make(0)
+    const activeLanes = yield* Ref.make(0)
+    const remainingLanes = yield* Ref.make(lanes.length)
+    const outcomes = yield* Ref.make<ReadonlyArray<LaneOutcome>>([])
+    const scheduleRequests = yield* Queue.unbounded<void>()
+    const allLanesSettled = yield* Deferred.make<void>()
+
+    const readDesiredConcurrency = (): Effect.Effect<number, Error> =>
+      (options.readLaneConcurrency?.() ?? Effect.succeed(options.laneConcurrency ?? Math.max(1, lanes.length))).pipe(
+        Effect.map((value) => Math.max(1, Math.floor(value)))
       )
 
-      return failures.length === 0
-        ? Effect.succeed(results.flatMap((result) => result._tag === "success" ? [result.result] : []))
-        : Effect.fail(new RalphLanesFailedError(failures))
+    const recordOutcome = (outcome: LaneOutcome): Effect.Effect<void, Error> =>
+      Effect.gen(function*() {
+        yield* Ref.update(outcomes, (current) => [...current, outcome])
+        yield* Ref.update(activeLanes, (current) => Math.max(0, current - 1))
+        const remaining = yield* Ref.updateAndGet(remainingLanes, (current) => current - 1)
+        if (remaining === 0) {
+          yield* Deferred.succeed(allLanesSettled, undefined)
+          return
+        }
+        yield* Queue.offer(scheduleRequests, undefined)
+      })
+
+    const startLane = (index: number): Effect.Effect<void, Error, RalphAgent | RalphPlanStore> =>
+      Effect.gen(function*() {
+        const lane = lanes[index]
+        if (lane === undefined) {
+          return
+        }
+
+        yield* Ref.update(activeLanes, (current) => current + 1)
+        yield* runRalphLane(lane, options).pipe(
+          Effect.matchEffect({
+            onFailure: (error) => recordOutcome({ _tag: "failure", index, laneId: lane.laneId, error }),
+            onSuccess: (result) => recordOutcome({ _tag: "success", index, result })
+          }),
+          Effect.fork
+        )
+      })
+
+    const scheduleMore = Effect.gen(function*() {
+      const desiredConcurrency = yield* readDesiredConcurrency()
+      const active = yield* Ref.get(activeLanes)
+      const next = yield* Ref.get(nextIndex)
+      const availableSlots = Math.min(Math.max(0, desiredConcurrency - active), lanes.length - next)
+
+      if (availableSlots <= 0) {
+        return
+      }
+
+      yield* Ref.set(nextIndex, next + availableSlots)
+      for (const index of Array.from({ length: availableSlots }, (_, offset) => next + offset)) {
+        yield* startLane(index)
+      }
     })
-  )
+
+    const scheduler = Effect.forever(Queue.take(scheduleRequests).pipe(Effect.zipRight(scheduleMore)))
+    const schedulerFiber = yield* Effect.fork(scheduler)
+    const pollFiber = options.laneConcurrencyPollMs === undefined
+      ? undefined
+      : yield* Effect.fork(
+        Effect.forever(
+          Effect.sleep(options.laneConcurrencyPollMs).pipe(Effect.zipRight(Queue.offer(scheduleRequests, undefined)))
+        )
+      )
+
+    yield* Queue.offer(scheduleRequests, undefined)
+    yield* Deferred.await(allLanesSettled)
+    yield* Fiber.interrupt(schedulerFiber)
+    if (pollFiber !== undefined) {
+      yield* Fiber.interrupt(pollFiber)
+    }
+
+    const recordedOutcomes = yield* Ref.get(outcomes)
+    const orderedOutcomes = [...recordedOutcomes].sort((left, right) => left.index - right.index)
+    const failures = orderedOutcomes.flatMap((outcome) =>
+      outcome._tag === "failure" ? [{ laneId: outcome.laneId, error: outcome.error }] : []
+    )
+
+    if (failures.length > 0) {
+      return yield* Effect.fail(new RalphLanesFailedError(failures))
+    }
+
+    return orderedOutcomes.flatMap((outcome) => outcome._tag === "success" ? [outcome.result] : [])
+  })

@@ -32,6 +32,26 @@ Run a subset:
 RALPH_LANES=status-record-core,inputs-discovery-audio-core pnpm run run
 ```
 
+## Live Concurrency
+
+`RALPH_LANE_CONCURRENCY` sets the initial lane concurrency and initializes
+`.ralph/control.json` when it does not exist. While Ralph is running, edit that
+runtime file to change concurrency without restarting:
+
+```json
+{
+  "laneConcurrency": 3
+}
+```
+
+Increasing the value starts more queued lanes on the next scheduler poll.
+Decreasing the value does not cancel active work; Ralph lets current lane tasks
+finish and only starts replacements when active lanes drop below the new target.
+
+The scheduler polls every 5000 ms by default. Set
+`RALPH_LANE_CONCURRENCY_POLL_MS=0` to disable polling and only apply control-file
+changes when a lane finishes.
+
 ## Current Lanes
 
 Lane specs live in `run.ts`. Tracked task plans live in `plans/` so future

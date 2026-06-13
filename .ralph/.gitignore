@@ -4,4 +4,5 @@ worktrees
 sandcastle
 status.json
 progress.md
+control.json
 *.tsbuildinfo
