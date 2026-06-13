@@ -423,6 +423,23 @@ describe("OBS websocket client", () => {
     expect(client.getBufferedEvents().events).toEqual([])
   })
 
+  it("drops no-payload events with unexpected raw event data", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "ExitStarted",
+        eventIntent: EventSubscription.General,
+        eventData: { raw: true }
+      },
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([])
+  })
+
   it("keeps buffered event snapshots readable after close", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {

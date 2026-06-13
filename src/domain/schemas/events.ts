@@ -60,7 +60,13 @@ const ProfileListChangedEventData = Schema.Struct({
   profiles: Schema.Array(Schema.String)
 })
 
-const ExitStartedEventData = Schema.Struct({})
+const ExitStartedEventData = Schema.Struct({}).pipe(
+  Schema.filter((eventData) => Object.keys(eventData).length === 0, {
+    message: () => "Expected no ExitStarted event data"
+  })
+).annotations({
+  jsonSchema: { type: "object", properties: {}, additionalProperties: false }
+})
 
 const SceneEventData = Schema.Struct({
   sceneName: Schema.String,

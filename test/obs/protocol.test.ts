@@ -294,6 +294,7 @@ describe("OBS event protocol foundation", () => {
   it("rejects malformed typed low-volume event payloads", () => {
     expect(() => decodeTypedObsEventData("SceneCollectionListChanged", { sceneCollections: [1] })).toThrow()
     expect(() => decodeTypedObsEventData("CurrentProfileChanged", { sceneCollectionName: "Profile" })).toThrow()
+    expect(() => decodeTypedObsEventData("ExitStarted", { raw: true })).toThrow()
     expect(() => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true })).toThrow()
     expect(() =>
       decodeTypedObsEventData("MediaInputActionTriggered", {
