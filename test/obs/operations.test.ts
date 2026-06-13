@@ -57,6 +57,7 @@ import {
   stopStream,
   toggleStream
 } from "../../src/obs/operations/stream.js"
+import { broadcastCustomEvent, callVendorRequest } from "../../src/obs/operations/vendor.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -128,6 +129,41 @@ describe("OBS operations", () => {
     expect(server.requests.filter((request) => request.requestType.includes("PersistentData"))).toEqual([
       { requestType: "SetPersistentData", requestData: { ...locator, slotValue } },
       { requestType: "GetPersistentData", requestData: locator }
+    ])
+  })
+
+  it("calls vendor requests and broadcasts custom events through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["vendor"] })
+    clients.push(client)
+    const requestData = { enabled: true, count: 2, nested: { label: "ok" } }
+
+    await expect(callVendorRequest(client, {
+      vendorName: "example.vendor",
+      requestType: "DoThing",
+      requestData
+    })).resolves.toEqual({
+      vendorName: "example.vendor",
+      requestType: "DoThing",
+      provenance: "vendor_plugin",
+      responseData: {
+        accepted: true,
+        echo: requestData
+      }
+    })
+    await expect(broadcastCustomEvent(client, { eventData: { eventName: "ralph.task9", requestData } }))
+      .resolves.toEqual({ provenance: "custom_event", broadcasted: true })
+    expect(
+      server.requests.filter((request) =>
+        request.requestType === "CallVendorRequest" || request.requestType === "BroadcastCustomEvent"
+      )
+    ).toEqual([
+      {
+        requestType: "CallVendorRequest",
+        requestData: { vendorName: "example.vendor", requestType: "DoThing", requestData }
+      },
+      { requestType: "BroadcastCustomEvent", requestData: { eventData: { eventName: "ralph.task9", requestData } } }
     ])
   })
 

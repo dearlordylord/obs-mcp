@@ -181,6 +181,30 @@ describe("MCP server protocol handlers", () => {
     expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("set_persistent_data")
   })
 
+  it("lists vendor tools only for the vendor toolset and advertised OBS capabilities", async () => {
+    const vendorClient = await connect(
+      obsClient(async () => ({}), ["CallVendorRequest", "BroadcastCustomEvent"]),
+      { ...config, enabledToolsets: ["vendor"] }
+    )
+    const vendorTools = await vendorClient.listTools()
+    expect(vendorTools.tools.map((tool) => tool.name)).toEqual([
+      "call_vendor_request",
+      "broadcast_custom_event"
+    ])
+
+    const partialClient = await connect(
+      obsClient(async () => ({}), ["CallVendorRequest"]),
+      { ...config, enabledToolsets: ["vendor"] }
+    )
+    const partialTools = await partialClient.listTools()
+    expect(partialTools.tools.map((tool) => tool.name)).toEqual(["call_vendor_request"])
+
+    const defaultClient = await connect(obsClient(async () => ({}), ["CallVendorRequest", "BroadcastCustomEvent"]))
+    const defaultTools = await defaultClient.listTools()
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("call_vendor_request")
+    expect(defaultTools.tools.map((tool) => tool.name)).not.toContain("broadcast_custom_event")
+  })
+
   it("hides record lifecycle and pause tools when fake OBS does not advertise the capabilities", async () => {
     const fakeObs = await FakeObsServer.start({ availableRequestsValue: ["GetVersion"] })
     fakeObsServers.push(fakeObs)
@@ -566,6 +590,75 @@ describe("MCP server protocol handlers", () => {
     expect(JSON.stringify(result.content)).not.toContain("s3cr3t")
     expect(JSON.stringify(result._meta)).not.toContain("s3cr3t")
     expect(requested).toEqual([])
+  })
+
+  it("returns structured vendor tool results and rejects non JSON-safe vendor inputs before OBS requests", async () => {
+    const requested: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const client = await connect(
+      fakeObsClient(async (requestType, requestData) => {
+        requested.push({ requestType, requestData })
+        return requestType === "CallVendorRequest"
+          ? {
+            vendorName: "example.vendor",
+            requestType: "DoThing",
+            responseData: { accepted: true, echo: { ok: true } }
+          }
+          : {}
+      }, ["CallVendorRequest", "BroadcastCustomEvent"]),
+      {
+        ...config,
+        enabledToolsets: ["vendor"]
+      }
+    )
+
+    await expect(client.callTool({
+      name: "call_vendor_request",
+      arguments: {
+        vendorName: "example.vendor",
+        requestType: "DoThing",
+        requestData: { ok: true }
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        vendorName: "example.vendor",
+        requestType: "DoThing",
+        provenance: "vendor_plugin",
+        responseData: { accepted: true, echo: { ok: true } }
+      }
+    })
+    await expect(client.callTool({
+      name: "broadcast_custom_event",
+      arguments: { eventData: { eventName: "ralph.task9", ok: true } }
+    })).resolves.toMatchObject({
+      structuredContent: { provenance: "custom_event", broadcasted: true }
+    })
+
+    const invalid = await client.callTool({
+      name: "call_vendor_request",
+      arguments: {
+        vendorName: "example.vendor",
+        requestType: "DoThing",
+        requestData: { token: "s3cr3t", missing: undefined }
+      }
+    })
+    expect(invalid).toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams,
+          message: expect.stringContaining("Invalid arguments for call_vendor_request")
+        }
+      }
+    })
+    expect(JSON.stringify(invalid.content)).not.toContain("s3cr3t")
+    expect(JSON.stringify(invalid._meta)).not.toContain("s3cr3t")
+    expect(requested).toEqual([
+      {
+        requestType: "CallVendorRequest",
+        requestData: { vendorName: "example.vendor", requestType: "DoThing", requestData: { ok: true } }
+      },
+      { requestType: "BroadcastCustomEvent", requestData: { eventData: { eventName: "ralph.task9", ok: true } } }
+    ])
   })
 
   it("rejects invalid scene item IDs before OBS scene-item state requests", async () => {

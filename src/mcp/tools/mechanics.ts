@@ -11,10 +11,25 @@ export interface ToolContext {
 }
 
 export type RuntimeSchema = Schema.Schema.AnyNoContext
-export type ToolCategory = "admin_raw" | "events" | "general" | "inputs" | "outputs" | "record" | "scenes" | "stream"
+export type ToolCategory =
+  | "admin_raw"
+  | "events"
+  | "general"
+  | "inputs"
+  | "outputs"
+  | "record"
+  | "scenes"
+  | "stream"
+  | "vendor"
 type ToolHandler<Input> = {
   bivarianceHack(input: Input, context: ToolContext): Promise<unknown>
 }["bivarianceHack"]
+
+const REDACTED_PARSE_ERROR_TOOLS = new Set([
+  "set_persistent_data",
+  "call_vendor_request",
+  "broadcast_custom_event"
+])
 
 // eslint-disable-next-line functional/no-mixed-types -- tool definitions carry metadata plus a handler.
 export interface ToolDefinition<Input = unknown> {
@@ -75,8 +90,8 @@ export const executeTool = async (
     decodedInput = Schema.decodeUnknownSync(tool.inputSchema, { onExcessProperty: "error" })(input ?? {})
   } catch (error) {
     if (ParseResult.isParseError(error)) {
-      const message = tool.name === "set_persistent_data"
-        ? "Invalid arguments for set_persistent_data"
+      const message = REDACTED_PARSE_ERROR_TOOLS.has(tool.name)
+        ? `Invalid arguments for ${tool.name}`
         : error.message
       throw new McpError(ErrorCode.InvalidParams, message)
     }

@@ -394,6 +394,22 @@ export class FakeObsServer {
       send()
       return
     }
+    if (requestType === "CallVendorRequest") {
+      const requestData = envelope.d.requestData
+      send({
+        vendorName: requestData.vendorName,
+        requestType: requestData.requestType,
+        responseData: {
+          accepted: true,
+          echo: requestData.requestData
+        }
+      })
+      return
+    }
+    if (requestType === "BroadcastCustomEvent") {
+      send()
+      return
+    }
     send()
   }
 }

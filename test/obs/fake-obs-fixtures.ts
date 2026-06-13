@@ -187,7 +187,9 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "ToggleStream",
   "SendStreamCaption",
   "GetPersistentData",
-  "SetPersistentData"
+  "SetPersistentData",
+  "CallVendorRequest",
+  "BroadcastCustomEvent"
 ]
 
 export const sceneItemsFor = (

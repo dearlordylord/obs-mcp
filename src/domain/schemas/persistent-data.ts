@@ -14,7 +14,7 @@ const isPlainJsonObject = (value: unknown): value is { readonly [key: string]: u
   && !Array.isArray(value)
   && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
 
-const isJsonSafeValue = (value: unknown): value is JsonSafeValue => {
+export const isJsonSafeValue = (value: unknown): value is JsonSafeValue => {
   if (value === null || typeof value === "string" || typeof value === "boolean") {
     return true
   }

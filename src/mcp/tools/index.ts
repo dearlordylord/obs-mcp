@@ -7,6 +7,7 @@ import { persistentDataTools } from "./persistent-data.js"
 import { recordTools } from "./record.js"
 import { sceneTools } from "./scenes.js"
 import { streamTools } from "./stream.js"
+import { vendorTools } from "./vendor.js"
 
 export const allTools: ReadonlyArray<ToolDefinition> = [
   ...generalTools,
@@ -16,7 +17,8 @@ export const allTools: ReadonlyArray<ToolDefinition> = [
   ...outputTools,
   ...recordTools,
   ...streamTools,
-  ...persistentDataTools
+  ...persistentDataTools,
+  ...vendorTools
 ]
 
 export const getEnabledTools = (
