@@ -5,6 +5,7 @@ const RESOURCE_NOT_FOUND_STATUS_CODE = 600
 const RESOURCE_STATE_STATUS_CODE = 500
 
 export class FakeObsOutputState {
+  private readonly outputSettings = new Map<string, Record<string, unknown>>()
   private recordActive = false
   private replayBufferActive = false
   private streamActive = false
@@ -12,7 +13,7 @@ export class FakeObsOutputState {
 
   public handleRequest(
     requestType: string,
-    requestData: { readonly outputName?: string } | undefined,
+    requestData: { readonly outputName?: string; readonly outputSettings?: Record<string, unknown> } | undefined,
     send: SendFakeObsResponse,
     sendError: SendFakeObsError
   ): boolean {
@@ -33,6 +34,29 @@ export class FakeObsOutputState {
         sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
       } else {
         send(status)
+      }
+      return true
+    }
+    if (requestType === "GetOutputSettings") {
+      const outputSettings = this.settingsForOutput(requestData?.outputName ?? "")
+      if (outputSettings === undefined) {
+        sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
+      } else {
+        send({ outputSettings })
+      }
+      return true
+    }
+    if (requestType === "SetOutputSettings") {
+      const outputName = requestData?.outputName ?? ""
+      const previousSettings = this.settingsForOutput(outputName)
+      if (previousSettings === undefined) {
+        sendError(RESOURCE_NOT_FOUND_STATUS_CODE, "Output not found")
+      } else {
+        this.outputSettings.set(outputName, {
+          ...previousSettings,
+          ...requestData?.outputSettings
+        })
+        send()
       }
       return true
     }
@@ -198,6 +222,36 @@ export class FakeObsOutputState {
         outputSkippedFrames: 0,
         outputTotalFrames: 0
       }
+    }
+    return undefined
+  }
+
+  private settingsForOutput(outputName: string): Record<string, unknown> | undefined {
+    const existingSettings = this.outputSettings.get(outputName)
+    if (existingSettings !== undefined) return existingSettings
+    if (outputName === "adv_stream") {
+      return {
+        server: "rtmp://live.example.invalid/app",
+        key: "<redacted>",
+        reconnect: true,
+        retryDelaySec: 5,
+        maxRetries: 10,
+        bindIp: "default",
+        ipFamily: "IPv4+IPv6"
+      }
+    }
+    if (outputName === "adv_file_output") {
+      return {
+        path: "/opaque/recordings",
+        formatName: "mkv",
+        videoEncoder: "obs_x264",
+        audioEncoder: "ffmpeg_aac",
+        muxerSettings: "",
+        trackIndex: 1
+      }
+    }
+    if (outputName === "virtualcam_output" || outputName === "replay_buffer") {
+      return { path: "/opaque/output" }
     }
     return undefined
   }

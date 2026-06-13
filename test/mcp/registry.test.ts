@@ -233,6 +233,8 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
       "list_outputs",
       "get_output_status",
+      "get_output_settings",
+      "set_output_settings",
       "start_output",
       "stop_output",
       "toggle_output",
@@ -293,6 +295,84 @@ describe("MCP tool registry", () => {
       config,
       client: fakeObsClient(async () => ({ outputActive: true }))
     })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("gets and sets sanitized generic output settings", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("get_output_settings"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetOutputSettings")
+        requests.push(requestData)
+        return {
+          outputSettings: {
+            server: "rtmp://live.example.invalid/app",
+            key: "<redacted>",
+            reconnect: true,
+            retryDelaySec: 5
+          }
+        }
+      })
+    })).resolves.toEqual({
+      outputName: "adv_stream",
+      outputSettings: {
+        server: "rtmp://live.example.invalid/app",
+        reconnect: true,
+        retryDelaySec: 5
+      }
+    })
+    await expect(executeTool(toolByName("set_output_settings"), {
+      outputName: "adv_stream",
+      outputSettings: { reconnect: false, retryDelaySec: 7 }
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetOutputSettings")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({
+      outputName: "adv_stream",
+      outputSettings: { reconnect: false, retryDelaySec: 7 },
+      updated: true
+    })
+    expect(requests).toEqual([
+      { outputName: "adv_stream" },
+      { outputName: "adv_stream", outputSettings: { reconnect: false, retryDelaySec: 7 } }
+    ])
+  })
+
+  it("rejects unsupported generic output settings fields", async () => {
+    await expect(executeTool(toolByName("set_output_settings"), {
+      outputName: "adv_stream",
+      outputSettings: { key: "<redacted>" }
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+    await expect(executeTool(toolByName("set_output_settings"), {
+      outputName: "adv_stream",
+      outputSettings: {}
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("maps generic output settings OBS errors with metadata", async () => {
+    await expect(executeTool(toolByName("get_output_settings"), { outputName: "missing_output" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("GetOutputSettings", 600, "Output not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetOutputSettings",
+        obsStatusCode: 600,
+        comment: "Output not found"
+      }
+    })
   })
 
   it("starts, stops, and toggles generic outputs", async () => {
@@ -428,6 +508,8 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_outputs",
       "get_output_status",
+      "get_output_settings",
+      "set_output_settings",
       "start_output",
       "stop_output",
       "toggle_output",
@@ -2202,6 +2284,10 @@ describe("MCP tool registry", () => {
       .toEqual(["list_outputs"])
     expect(getEnabledTools(["outputs"], ["GetOutputStatus"]).map((tool) => tool.name))
       .toEqual(["get_output_status"])
+    expect(getEnabledTools(["outputs"], ["GetOutputSettings"]).map((tool) => tool.name))
+      .toEqual(["get_output_settings"])
+    expect(getEnabledTools(["outputs"], ["SetOutputSettings"]).map((tool) => tool.name))
+      .toEqual(["set_output_settings"])
     expect(getEnabledTools(["outputs"], ["StartOutput"]).map((tool) => tool.name))
       .toEqual(["start_output"])
     expect(getEnabledTools(["outputs"], ["StopOutput"]).map((tool) => tool.name))

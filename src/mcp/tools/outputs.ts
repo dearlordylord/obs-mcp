@@ -1,4 +1,6 @@
 import {
+  GetOutputSettingsInput,
+  GetOutputSettingsOutput,
   GetOutputStatusInput,
   GetOutputStatusOutput,
   LastReplayBufferReplayOutput,
@@ -8,17 +10,21 @@ import {
   ReplayBufferStatusOutput,
   ReplayBufferSwitchOutput,
   SaveReplayBufferOutput,
+  SetOutputSettingsInput,
+  SetOutputSettingsOutput,
   VirtualCamStatusOutput,
   VirtualCamSwitchOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getLastReplayBufferReplay,
+  getOutputSettings,
   getOutputStatus,
   getReplayBufferStatus,
   getVirtualCamStatus,
   listOutputs,
   saveReplayBuffer,
+  setOutputSettings,
   startOutput,
   startReplayBuffer,
   startVirtualCam,
@@ -32,10 +38,12 @@ import {
 import {
   GetLastReplayBufferReplay,
   GetOutputList,
+  GetOutputSettings,
   GetOutputStatus,
   GetReplayBufferStatus,
   GetVirtualCamStatus,
   SaveReplayBuffer,
+  SetOutputSettings,
   StartOutput,
   StartReplayBuffer,
   StartVirtualCam,
@@ -70,6 +78,26 @@ export const outputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: GetOutputStatusInput,
     outputSchema: GetOutputStatusOutput,
     handler: async (input, context) => getOutputStatus(context.client, input)
+  }),
+  defineTool({
+    name: "get_output_settings",
+    title: "Get OBS Output Settings",
+    description: "Return sanitized, typed settings for a generic OBS output by name.",
+    category: CATEGORY,
+    requiredObsRequests: [GetOutputSettings.requestType],
+    inputSchema: GetOutputSettingsInput,
+    outputSchema: GetOutputSettingsOutput,
+    handler: async (input, context) => getOutputSettings(context.client, input)
+  }),
+  defineTool({
+    name: "set_output_settings",
+    title: "Set OBS Output Settings",
+    description: "Update sanitized, typed settings for a generic OBS output by name.",
+    category: CATEGORY,
+    requiredObsRequests: [SetOutputSettings.requestType],
+    inputSchema: SetOutputSettingsInput,
+    outputSchema: SetOutputSettingsOutput,
+    handler: async (input, context) => setOutputSettings(context.client, input)
   }),
   defineTool({
     name: "start_output",

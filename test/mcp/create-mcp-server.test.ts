@@ -493,6 +493,9 @@ describe("MCP server protocol handlers", () => {
             outputTotalFrames: 740
           }
         }
+        if (requestType === "GetOutputSettings") {
+          return { outputSettings: { server: "rtmp://live.example.invalid/app", key: "<redacted>", reconnect: true } }
+        }
         return {}
       }),
       { ...config, enabledToolsets: ["outputs"] }
@@ -518,6 +521,23 @@ describe("MCP server protocol handlers", () => {
           outputTotalFrames: 740
         }
       })
+    await expect(client.callTool({ name: "get_output_settings", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputName: "adv_stream",
+          outputSettings: { server: "rtmp://live.example.invalid/app", reconnect: true }
+        }
+      })
+    await expect(client.callTool({
+      name: "set_output_settings",
+      arguments: { outputName: "adv_stream", outputSettings: { reconnect: false } }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        outputName: "adv_stream",
+        outputSettings: { reconnect: false },
+        updated: true
+      }
+    })
   })
 
   it("returns generic output OBS error metadata", async () => {

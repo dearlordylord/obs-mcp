@@ -53,6 +53,8 @@ export const ObsRequestType = Schema.Literal(
   "GetVirtualCamStatus",
   "GetOutputList",
   "GetOutputStatus",
+  "GetOutputSettings",
+  "SetOutputSettings",
   "StartOutput",
   "StopOutput",
   "ToggleOutput",

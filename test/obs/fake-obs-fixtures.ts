@@ -178,6 +178,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetVirtualCamStatus",
   "GetOutputList",
   "GetOutputStatus",
+  "GetOutputSettings",
+  "SetOutputSettings",
   "StartOutput",
   "StopOutput",
   "ToggleOutput",

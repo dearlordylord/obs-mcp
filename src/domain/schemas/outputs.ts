@@ -52,6 +52,65 @@ export const OutputLifecycleOutput = Schema.Struct({
 export type OutputLifecycleOutput = typeof OutputLifecycleOutput.Type
 export const OutputLifecycleOutputJsonSchema = JSONSchema.make(OutputLifecycleOutput)
 
+export const OutputSettings = Schema.Struct({
+  path: Schema.optional(Schema.NonEmptyString),
+  url: Schema.optional(Schema.NonEmptyString),
+  server: Schema.optional(Schema.NonEmptyString),
+  formatName: Schema.optional(Schema.NonEmptyString),
+  videoEncoder: Schema.optional(Schema.NonEmptyString),
+  audioEncoder: Schema.optional(Schema.NonEmptyString),
+  muxerSettings: Schema.optional(Schema.String),
+  reconnect: Schema.optional(Schema.Boolean),
+  retryDelaySec: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
+  maxRetries: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
+  bitrateKbps: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
+  trackIndex: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
+  useAuthentication: Schema.optional(Schema.Boolean),
+  username: Schema.optional(Schema.NonEmptyString),
+  bindIp: Schema.optional(Schema.NonEmptyString),
+  ipFamily: Schema.optional(Schema.NonEmptyString)
+})
+export type OutputSettings = typeof OutputSettings.Type
+
+export const GetOutputSettingsInput = GetOutputStatusInput
+export type GetOutputSettingsInput = typeof GetOutputSettingsInput.Type
+export const GetOutputSettingsInputJsonSchema = JSONSchema.make(GetOutputSettingsInput)
+
+export const GetOutputSettingsResponse = Schema.Struct({
+  outputSettings: OutputSettings
+})
+export type GetOutputSettingsResponse = typeof GetOutputSettingsResponse.Type
+
+export const GetOutputSettingsOutput = Schema.extend(
+  GetOutputSettingsInput,
+  GetOutputSettingsResponse
+)
+export type GetOutputSettingsOutput = typeof GetOutputSettingsOutput.Type
+export const GetOutputSettingsOutputJsonSchema = JSONSchema.make(GetOutputSettingsOutput)
+
+const SetOutputSettingsPayload = OutputSettings.pipe(
+  Schema.filter((settings) => Object.keys(settings).length > 0, {
+    message: () => "At least one output setting is required"
+  })
+)
+
+export const SetOutputSettingsInput = Schema.extend(
+  GetOutputSettingsInput,
+  Schema.Struct({
+    outputSettings: SetOutputSettingsPayload
+  })
+)
+export type SetOutputSettingsInput = typeof SetOutputSettingsInput.Type
+export const SetOutputSettingsInputJsonSchema = JSONSchema.make(SetOutputSettingsInput)
+
+export const SetOutputSettingsOutput = Schema.Struct({
+  outputName: Schema.String,
+  outputSettings: OutputSettings,
+  updated: Schema.Literal(true)
+})
+export type SetOutputSettingsOutput = typeof SetOutputSettingsOutput.Type
+export const SetOutputSettingsOutputJsonSchema = JSONSchema.make(SetOutputSettingsOutput)
+
 export const VirtualCamStatusOutput = OutputActiveState
 export type VirtualCamStatusOutput = typeof VirtualCamStatusOutput.Type
 export const VirtualCamStatusOutputJsonSchema = JSONSchema.make(VirtualCamStatusOutput)

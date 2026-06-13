@@ -28,11 +28,13 @@ import {
 } from "../../src/obs/operations/inputs.js"
 import {
   getLastReplayBufferReplay,
+  getOutputSettings,
   getOutputStatus,
   getReplayBufferStatus,
   getVirtualCamStatus,
   listOutputs,
   saveReplayBuffer,
+  setOutputSettings,
   startOutput,
   startReplayBuffer,
   startVirtualCam,
@@ -934,6 +936,40 @@ describe("OBS operations", () => {
     })
     await expect(getOutputStatus(client, { outputName: "missing_output" })).rejects.toMatchObject({
       requestType: "GetOutputStatus",
+      code: 600,
+      comment: "Output not found"
+    })
+  })
+
+  it("gets and sets generic output settings over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getOutputSettings(client, { outputName: "adv_stream" })).resolves.toEqual({
+      outputName: "adv_stream",
+      outputSettings: {
+        server: "rtmp://live.example.invalid/app",
+        reconnect: true,
+        retryDelaySec: 5,
+        maxRetries: 10,
+        bindIp: "default",
+        ipFamily: "IPv4+IPv6"
+      }
+    })
+    await expect(setOutputSettings(client, {
+      outputName: "adv_stream",
+      outputSettings: { retryDelaySec: 7, reconnect: false }
+    })).resolves.toEqual({
+      outputName: "adv_stream",
+      outputSettings: { retryDelaySec: 7, reconnect: false },
+      updated: true
+    })
+    await expect(getOutputSettings(client, { outputName: "adv_stream" })).resolves.toMatchObject({
+      outputSettings: { reconnect: false, retryDelaySec: 7 }
+    })
+    await expect(getOutputSettings(client, { outputName: "missing_output" })).rejects.toMatchObject({
+      requestType: "GetOutputSettings",
       code: 600,
       comment: "Output not found"
     })
