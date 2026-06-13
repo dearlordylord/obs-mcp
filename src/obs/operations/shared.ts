@@ -21,3 +21,16 @@ export const requestAndReturn = async <
   await client.request(descriptor)
   return Schema.decodeUnknownSync(outputSchema)(output)
 }
+
+export const acknowledged = <RequestType extends string>(
+  requestType: RequestType
+): { readonly requestType: RequestType; readonly acknowledged: true } => ({
+  requestType,
+  acknowledged: true
+})
+
+export const outputActive = (active: boolean): { readonly outputActive: boolean } => ({ outputActive: active })
+
+export const outputActiveSwitch = (
+  active: boolean
+): { readonly outputActive: boolean; readonly switched: true } => ({ outputActive: active, switched: true })

@@ -1,4 +1,8 @@
-import { VirtualCamStatusOutput } from "../../domain/schemas/outputs.js"
+import {
+  LastReplayBufferReplayOutput,
+  ReplayBufferStatusOutput,
+  VirtualCamStatusOutput
+} from "../../domain/schemas/outputs.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
@@ -25,3 +29,39 @@ export const ToggleVirtualCam = {
   requestDataSchema: EmptyRequestData,
   responseSchema: VirtualCamStatusOutput
 } satisfies ObsRequestDescriptor<VirtualCamStatusOutput>
+
+export const GetReplayBufferStatus = {
+  requestType: "GetReplayBufferStatus",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: ReplayBufferStatusOutput
+} satisfies ObsRequestDescriptor<ReplayBufferStatusOutput>
+
+export const StartReplayBuffer = {
+  requestType: "StartReplayBuffer",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const StopReplayBuffer = {
+  requestType: "StopReplayBuffer",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const ToggleReplayBuffer = {
+  requestType: "ToggleReplayBuffer",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: ReplayBufferStatusOutput
+} satisfies ObsRequestDescriptor<ReplayBufferStatusOutput>
+
+export const SaveReplayBuffer = {
+  requestType: "SaveReplayBuffer",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetLastReplayBufferReplay = {
+  requestType: "GetLastReplayBufferReplay",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: LastReplayBufferReplayOutput
+} satisfies ObsRequestDescriptor<LastReplayBufferReplayOutput>

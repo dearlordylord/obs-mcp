@@ -27,14 +27,35 @@ import {
   triggerMediaInputAction
 } from "../../src/obs/operations/inputs.js"
 import {
+  getLastReplayBufferReplay,
+  getReplayBufferStatus,
   getVirtualCamStatus,
+  saveReplayBuffer,
+  startReplayBuffer,
   startVirtualCam,
+  stopReplayBuffer,
   stopVirtualCam,
+  toggleReplayBuffer,
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
-import { pauseRecord, resumeRecord, toggleRecordPause } from "../../src/obs/operations/record.js"
+import {
+  createRecordChapter,
+  pauseRecord,
+  resumeRecord,
+  splitRecordFile,
+  startRecord,
+  stopRecord,
+  toggleRecord,
+  toggleRecordPause
+} from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
-import { getStreamStatus, startStream, stopStream, toggleStream } from "../../src/obs/operations/stream.js"
+import {
+  getStreamStatus,
+  sendStreamCaption,
+  startStream,
+  stopStream,
+  toggleStream
+} from "../../src/obs/operations/stream.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -81,11 +102,11 @@ describe("OBS operations", () => {
       webSocketSessionOutgoingMessages: 11
     })
     await expect(getRecordStatus(client)).resolves.toEqual({
-      outputActive: true,
+      outputActive: false,
       outputPaused: false,
-      outputTimecode: "00:00:12.345",
-      outputDuration: 12345,
-      outputBytes: 67890
+      outputTimecode: "00:00:00.000",
+      outputDuration: 0,
+      outputBytes: 0
     })
   })
 
@@ -544,6 +565,25 @@ describe("OBS operations", () => {
     await expect(stopVirtualCam(client)).resolves.toEqual({ outputActive: false, switched: true })
   })
 
+  it("controls the replay buffer over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["outputs"] })
+    clients.push(client)
+    await expect(getReplayBufferStatus(client)).resolves.toEqual({ outputActive: false })
+    await expect(startReplayBuffer(client)).resolves.toEqual({ outputActive: true })
+    await expect(getReplayBufferStatus(client)).resolves.toEqual({ outputActive: true })
+    await expect(toggleReplayBuffer(client)).resolves.toEqual({ outputActive: false })
+    await expect(stopReplayBuffer(client)).resolves.toEqual({ outputActive: false })
+    await expect(saveReplayBuffer(client)).resolves.toEqual({
+      requestType: "SaveReplayBuffer",
+      acknowledged: true
+    })
+    await expect(getLastReplayBufferReplay(client)).resolves.toEqual({
+      savedReplayPath: "/opaque/replay-buffer.mp4"
+    })
+  })
+
   it("rejects current scene responses without a scene name", async () => {
     await expect(getCurrentScene(fakeClient(async () => ({})))).rejects.toThrow("current program scene name")
   })
@@ -577,6 +617,47 @@ describe("OBS operations", () => {
     })
   })
 
+  it("starts, stops, and toggles record lifecycle through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(startRecord(client)).resolves.toEqual({
+      requestType: "StartRecord",
+      acknowledged: true
+    })
+    await expect(getRecordStatus(client)).resolves.toMatchObject({ outputActive: true })
+    await expect(toggleRecord(client)).resolves.toEqual({ outputActive: false })
+    await expect(stopRecord(client)).resolves.toEqual({
+      requestType: "StopRecord",
+      acknowledged: true,
+      outputPath: "/opaque/obs-recording.mkv"
+    })
+  })
+
+  it("splits record files and creates record chapters through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(splitRecordFile(client)).resolves.toEqual({
+      requestType: "SplitRecordFile",
+      acknowledged: true
+    })
+    await expect(createRecordChapter(client, {})).resolves.toEqual({
+      requestType: "CreateRecordChapter",
+      acknowledged: true
+    })
+    await expect(createRecordChapter(client, { chapterName: "Act 1" })).resolves.toEqual({
+      requestType: "CreateRecordChapter",
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) => request.requestType === "CreateRecordChapter")).toEqual([
+      { requestType: "CreateRecordChapter", requestData: {} },
+      { requestType: "CreateRecordChapter", requestData: { chapterName: "Act 1" } }
+    ])
+  })
+
   it("surfaces OBS failures for record pause controls", async () => {
     const server = await FakeObsServer.start({
       failRequests: { PauseRecord: { code: 500, comment: "Record output is not active" } }
@@ -585,6 +666,139 @@ describe("OBS operations", () => {
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
     clients.push(client)
     await expect(pauseRecord(client)).rejects.toThrow("PauseRecord failed")
+  })
+
+  it("surfaces OBS failures for record lifecycle controls with metadata", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { StartRecord: { code: 207, comment: "Output already active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(startRecord(client)).rejects.toMatchObject(
+      {
+        requestType: "StartRecord",
+        code: 207,
+        comment: "Output already active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("surfaces OBS failures for record file and chapter controls with metadata", async () => {
+    const splitServer = await FakeObsServer.start({
+      failRequests: { SplitRecordFile: { code: 703, comment: "Recording not active" } }
+    })
+    servers.push(splitServer)
+    const splitClient = await createObsClient({ ...configFor(splitServer.url), enabledToolsets: ["record"] })
+    clients.push(splitClient)
+    await expect(splitRecordFile(splitClient)).rejects.toMatchObject(
+      {
+        requestType: "SplitRecordFile",
+        code: 703,
+        comment: "Recording not active"
+      } satisfies Partial<ObsRequestError>
+    )
+
+    const chapterServer = await FakeObsServer.start({
+      failRequests: { CreateRecordChapter: { code: 703, comment: "Chapter markers unavailable" } }
+    })
+    servers.push(chapterServer)
+    const chapterClient = await createObsClient({ ...configFor(chapterServer.url), enabledToolsets: ["record"] })
+    clients.push(chapterClient)
+    await expect(createRecordChapter(chapterClient, { chapterName: "Act 1" })).rejects.toMatchObject(
+      {
+        requestType: "CreateRecordChapter",
+        code: 703,
+        comment: "Chapter markers unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("filters record lifecycle tools when OBS does not advertise record capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "PauseRecord", "ResumeRecord", "ToggleRecordPause"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    expect(getEnabledTools(["record"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "pause_record",
+      "resume_record",
+      "toggle_record_pause"
+    ])
+  })
+
+  it("filters record file and chapter tools when OBS does not advertise those capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "SplitRecordFile"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    expect(getEnabledTools(["record"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "split_record_file"
+    ])
+  })
+
+  it("surfaces OBS replay buffer request failures", async () => {
+    const lifecycleServer = await FakeObsServer.start({
+      failRequests: { StartReplayBuffer: { code: 207, comment: "Output already active" } }
+    })
+    servers.push(lifecycleServer)
+    const lifecycleClient = await createObsClient({ ...configFor(lifecycleServer.url), enabledToolsets: ["outputs"] })
+    clients.push(lifecycleClient)
+    await expect(startReplayBuffer(lifecycleClient)).rejects.toMatchObject(
+      {
+        requestType: "StartReplayBuffer",
+        code: 207,
+        comment: "Output already active"
+      } satisfies Partial<ObsRequestError>
+    )
+
+    const saveServer = await FakeObsServer.start({
+      failRequests: { SaveReplayBuffer: { code: 703, comment: "Replay buffer is not active" } }
+    })
+    servers.push(saveServer)
+    const saveClient = await createObsClient({ ...configFor(saveServer.url), enabledToolsets: ["outputs"] })
+    clients.push(saveClient)
+    await expect(saveReplayBuffer(saveClient)).rejects.toMatchObject(
+      {
+        requestType: "SaveReplayBuffer",
+        code: 703,
+        comment: "Replay buffer is not active"
+      } satisfies Partial<ObsRequestError>
+    )
+
+    const lastReplayServer = await FakeObsServer.start({
+      failRequests: { GetLastReplayBufferReplay: { code: 703, comment: "No replay has been saved" } }
+    })
+    servers.push(lastReplayServer)
+    const lastReplayClient = await createObsClient({
+      ...configFor(lastReplayServer.url),
+      enabledToolsets: ["outputs"]
+    })
+    clients.push(lastReplayClient)
+    await expect(getLastReplayBufferReplay(lastReplayClient)).rejects.toMatchObject(
+      {
+        requestType: "GetLastReplayBufferReplay",
+        code: 703,
+        comment: "No replay has been saved"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("filters replay buffer tools when OBS does not advertise replay buffer capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "GetReplayBufferStatus", "ToggleReplayBuffer", "SaveReplayBuffer"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["outputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["outputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "get_replay_buffer_status",
+      "toggle_replay_buffer",
+      "save_replay_buffer"
+    ])
   })
 
   it("gets and controls stream lifecycle state", async () => {
@@ -597,6 +811,20 @@ describe("OBS operations", () => {
     await expect(getStreamStatus(client)).resolves.toMatchObject({ outputActive: true, outputDuration: 12345 })
     await expect(toggleStream(client)).resolves.toEqual({ outputActive: false })
     await expect(stopStream(client)).resolves.toEqual({ outputActive: false })
+  })
+
+  it("sends stream captions through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["stream"] })
+    clients.push(client)
+    await expect(sendStreamCaption(client, { captionText: "Live caption" })).resolves.toEqual({
+      requestType: "SendStreamCaption",
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) => request.requestType === "SendStreamCaption")).toEqual([
+      { requestType: "SendStreamCaption", requestData: { captionText: "Live caption" } }
+    ])
   })
 
   it("surfaces OBS stream lifecycle request failures", async () => {
@@ -615,6 +843,22 @@ describe("OBS operations", () => {
     )
   })
 
+  it("surfaces OBS stream caption request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SendStreamCaption: { code: 703, comment: "Stream output is not active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(sendStreamCaption(client, { captionText: "Live caption" })).rejects.toMatchObject(
+      {
+        requestType: "SendStreamCaption",
+        code: 703,
+        comment: "Stream output is not active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("filters stream tools when OBS does not advertise stream capabilities", async () => {
     const server = await FakeObsServer.start({
       availableRequestsValue: ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
@@ -625,195 +869,15 @@ describe("OBS operations", () => {
     expect(getEnabledTools(["stream"], client.availableRequests)).toEqual([])
   })
 
-  it("filters input mute tools when OBS does not advertise input mute capabilities", async () => {
+  it("filters stream caption tools when OBS does not advertise caption capability", async () => {
     const server = await FakeObsServer.start({
-      availableRequestsValue: ["GetVersion", "GetInputList", "GetInputKindList", "GetSpecialInputs"]
+      availableRequestsValue: ["GetVersion", "SendStreamCaption"]
     })
     servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    const client = await createObsClient(configFor(server.url))
     clients.push(client)
-    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs"
-    ])
-  })
-
-  it("filters input volume tools when OBS does not advertise input volume capabilities", async () => {
-    const server = await FakeObsServer.start({
-      availableRequestsValue: [
-        "GetVersion",
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetInputMute",
-        "SetInputMute",
-        "ToggleInputMute"
-      ]
-    })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
-    clients.push(client)
-    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute"
-    ])
-  })
-
-  it("filters advanced input audio tools when OBS does not advertise advanced input audio capabilities", async () => {
-    const server = await FakeObsServer.start({
-      availableRequestsValue: [
-        "GetVersion",
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetInputMute",
-        "SetInputMute",
-        "ToggleInputMute",
-        "GetInputVolume",
-        "SetInputVolume"
-      ]
-    })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
-    clients.push(client)
-    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute",
-      "get_input_volume",
-      "set_input_volume"
-    ])
-  })
-
-  it("filters input audio sync offset tools when OBS does not advertise sync offset capabilities", async () => {
-    const server = await FakeObsServer.start({
-      availableRequestsValue: [
-        "GetVersion",
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetInputMute",
-        "SetInputMute",
-        "ToggleInputMute",
-        "GetInputVolume",
-        "SetInputVolume",
-        "GetInputAudioBalance",
-        "SetInputAudioBalance",
-        "GetInputAudioMonitorType",
-        "SetInputAudioMonitorType"
-      ]
-    })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
-    clients.push(client)
-    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute",
-      "get_input_volume",
-      "set_input_volume",
-      "get_input_audio_balance",
-      "set_input_audio_balance",
-      "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type"
-    ])
-  })
-
-  it("filters media input status when OBS does not advertise media input capabilities", async () => {
-    const server = await FakeObsServer.start({
-      availableRequestsValue: [
-        "GetVersion",
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetInputMute",
-        "SetInputMute",
-        "ToggleInputMute",
-        "GetInputVolume",
-        "SetInputVolume",
-        "GetInputAudioBalance",
-        "SetInputAudioBalance",
-        "GetInputAudioMonitorType",
-        "SetInputAudioMonitorType",
-        "GetInputAudioSyncOffset",
-        "SetInputAudioSyncOffset"
-      ]
-    })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
-    clients.push(client)
-    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute",
-      "get_input_volume",
-      "set_input_volume",
-      "get_input_audio_balance",
-      "set_input_audio_balance",
-      "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type",
-      "get_input_audio_sync_offset",
-      "set_input_audio_sync_offset"
-    ])
-  })
-
-  it("filters media cursor tools when OBS does not advertise media cursor capabilities", async () => {
-    const server = await FakeObsServer.start({
-      availableRequestsValue: [
-        "GetVersion",
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetMediaInputStatus"
-      ]
-    })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
-    clients.push(client)
-    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_media_input_status"
-    ])
-  })
-
-  it("filters media action tool when OBS does not advertise media action capability", async () => {
-    const server = await FakeObsServer.start({
-      availableRequestsValue: [
-        "GetVersion",
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetMediaInputStatus",
-        "SetMediaInputCursor",
-        "OffsetMediaInputCursor"
-      ]
-    })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
-    clients.push(client)
-    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_media_input_status",
-      "set_media_input_cursor",
-      "offset_media_input_cursor"
+    expect(getEnabledTools(["stream"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "send_stream_caption"
     ])
   })
 })

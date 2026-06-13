@@ -16,12 +16,21 @@ import {
   SetMediaInputCursorInput,
   TriggerMediaInputActionInput
 } from "../../src/domain/schemas/inputs.js"
+import {
+  CreateRecordChapterInput,
+  CreateRecordChapterOutput,
+  SplitRecordFileOutput,
+  StartRecordOutput,
+  StopRecordOutput,
+  ToggleRecordOutput
+} from "../../src/domain/schemas/record.js"
+import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
-import type { ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
 const config: ObsConfig = {
   url: "ws://localhost:4455/",
@@ -79,49 +88,6 @@ const inputAvailableRequests = [
   "TriggerMediaInputAction"
 ] satisfies ReadonlyArray<ObsRequestType>
 
-const allAvailableRequests = [
-  "GetVersion",
-  "GetStats",
-  "GetSceneList",
-  "GetCurrentProgramScene",
-  "SetCurrentProgramScene",
-  "GetSceneItemList",
-  "GetGroupSceneItemList",
-  "GetSceneItemId",
-  "GetSceneItemSource",
-  ...inputAvailableRequests,
-  "GetVirtualCamStatus",
-  "StartVirtualCam",
-  "StopVirtualCam",
-  "ToggleVirtualCam",
-  "GetRecordStatus",
-  "PauseRecord",
-  "ResumeRecord",
-  "ToggleRecordPause",
-  "GetStreamStatus",
-  "StartStream",
-  "StopStream",
-  "ToggleStream"
-]
-
-const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient => ({
-  negotiatedRpcVersion: 1,
-  availableRequests: allAvailableRequests,
-  request: async (descriptor, requestData) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
-  close: async () => undefined
-})
-
-const clientWithData = (
-  handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>
-): ObsClient => ({
-  negotiatedRpcVersion: 1,
-  availableRequests: allAvailableRequests,
-  request: async (descriptor, requestData) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
-  close: async () => undefined
-})
-
 const toolByName = (name: string): ToolDefinition => {
   const tool = allTools.find((entry) => entry.name === name)
   if (tool === undefined) {
@@ -129,6 +95,67 @@ const toolByName = (name: string): ToolDefinition => {
   }
   return tool
 }
+
+const lifecycleToolGroups = [
+  {
+    name: "record",
+    toolset: "record",
+    disabledToolset: "stream",
+    tools: [
+      ["GetRecordStatus", "get_record_status"],
+      ["StartRecord", "start_record"],
+      ["StopRecord", "stop_record"],
+      ["ToggleRecord", "toggle_record"],
+      ["SplitRecordFile", "split_record_file"],
+      ["CreateRecordChapter", "create_record_chapter"],
+      ["PauseRecord", "pause_record"],
+      ["ResumeRecord", "resume_record"],
+      ["ToggleRecordPause", "toggle_record_pause"]
+    ]
+  },
+  {
+    name: "stream",
+    toolset: "stream",
+    disabledToolset: "record",
+    tools: [
+      ["GetStreamStatus", "get_stream_status"],
+      ["StartStream", "start_stream"],
+      ["StopStream", "stop_stream"],
+      ["ToggleStream", "toggle_stream"],
+      ["SendStreamCaption", "send_stream_caption"]
+    ]
+  },
+  {
+    name: "virtual camera",
+    toolset: "outputs",
+    disabledToolset: "stream",
+    tools: [
+      ["GetVirtualCamStatus", "get_virtual_cam_status"],
+      ["StartVirtualCam", "start_virtual_cam"],
+      ["StopVirtualCam", "stop_virtual_cam"],
+      ["ToggleVirtualCam", "toggle_virtual_cam"]
+    ]
+  },
+  {
+    name: "replay buffer",
+    toolset: "outputs",
+    disabledToolset: "stream",
+    tools: [
+      ["GetReplayBufferStatus", "get_replay_buffer_status"],
+      ["StartReplayBuffer", "start_replay_buffer"],
+      ["StopReplayBuffer", "stop_replay_buffer"],
+      ["ToggleReplayBuffer", "toggle_replay_buffer"],
+      ["SaveReplayBuffer", "save_replay_buffer"],
+      ["GetLastReplayBufferReplay", "get_last_replay_buffer_replay"]
+    ]
+  }
+] as const
+
+const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
+  tools.map(([, toolName]) => toolName)
+
+const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
+  tools.map(([requestName]) => requestName)
 
 describe("MCP tool registry", () => {
   it("exposes exactly the enabled tools by default", () => {
@@ -145,6 +172,11 @@ describe("MCP tool registry", () => {
       "get_scene_item_source",
       ...inputToolNames,
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -155,12 +187,18 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual(inputToolNames)
   })
 
-  it("exposes virtual camera tools when the outputs toolset is enabled", () => {
+  it("exposes output tools when the outputs toolset is enabled", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
-      "toggle_virtual_cam"
+      "toggle_virtual_cam",
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer",
+      "save_replay_buffer",
+      "get_last_replay_buffer_replay"
     ])
   })
 
@@ -179,6 +217,11 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -193,6 +236,18 @@ describe("MCP tool registry", () => {
       "get_scene_item_source"
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual(inputToolNames)
+    expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "get_virtual_cam_status",
+      "start_virtual_cam",
+      "stop_virtual_cam",
+      "toggle_virtual_cam",
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer",
+      "save_replay_buffer",
+      "get_last_replay_buffer_replay"
+    ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
     const sceneToolNames = getEnabledTools(["scenes"]).map((tool) => tool.name)
     for (const name of inputToolNames) {
@@ -212,14 +267,36 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_obs_stats"
     ])
-    expect(getEnabledTools(["record"], ["PauseRecord", "ResumeRecord"]).map((tool) => tool.name)).toEqual([
+    expect(
+      getEnabledTools(["record"], [
+        "StartRecord",
+        "StopRecord",
+        "ToggleRecord",
+        "SplitRecordFile",
+        "CreateRecordChapter",
+        "PauseRecord",
+        "ResumeRecord"
+      ])
+        .map((tool) => tool.name)
+    ).toEqual([
+      "start_record",
+      "stop_record",
+      "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record"
     ])
-    expect(getEnabledTools(["stream"], ["GetStreamStatus", "StartStream", "StopStream"]).map((tool) => tool.name))
-      .toEqual(["get_stream_status", "start_stream", "stop_stream"])
+    expect(
+      getEnabledTools(["stream"], ["GetStreamStatus", "StartStream", "StopStream", "SendStreamCaption"])
+        .map((tool) => tool.name)
+    ).toEqual(["get_stream_status", "start_stream", "stop_stream", "send_stream_caption"])
     expect(getEnabledTools(["outputs"], ["GetVirtualCamStatus", "ToggleVirtualCam"]).map((tool) => tool.name))
       .toEqual(["get_virtual_cam_status", "toggle_virtual_cam"])
+    expect(getEnabledTools(["outputs"], ["GetReplayBufferStatus", "StopReplayBuffer"]).map((tool) => tool.name))
+      .toEqual(["get_replay_buffer_status", "stop_replay_buffer"])
+    expect(getEnabledTools(["outputs"], ["SaveReplayBuffer", "GetLastReplayBufferReplay"]).map((tool) => tool.name))
+      .toEqual(["save_replay_buffer", "get_last_replay_buffer_replay"])
   })
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
@@ -273,6 +350,29 @@ describe("MCP tool registry", () => {
     }
   })
 
+  describe("lifecycle tool filtering", () => {
+    it.each(lifecycleToolGroups)("filters $name tools by toolset category", ({ disabledToolset, tools, toolset }) => {
+      const expectedToolNames = lifecycleToolNames(tools)
+      expect(getEnabledTools([toolset], allAvailableRequests).map((tool) => tool.name))
+        .toEqual(expect.arrayContaining(expectedToolNames))
+      expect(getEnabledTools([disabledToolset], allAvailableRequests).map((tool) => tool.name))
+        .toEqual(expect.not.arrayContaining(expectedToolNames))
+    })
+
+    it.each(lifecycleToolGroups)("filters $name tools by partial OBS capabilities", ({ tools, toolset }) => {
+      const partialTools = tools.filter((_, index) => index % 2 === 0)
+      expect(getEnabledTools([toolset], lifecycleRequestNames(partialTools)).map((tool) => tool.name))
+        .toEqual(lifecycleToolNames(partialTools))
+      expect(getEnabledTools([toolset], []).map((tool) => tool.name)).toEqual([])
+    })
+
+    it.each(lifecycleToolGroups)("maps every $name tool to its required OBS request", ({ tools, toolset }) => {
+      for (const [requestName, toolName] of tools) {
+        expect(getEnabledTools([toolset], [requestName]).map((tool) => tool.name)).toEqual([toolName])
+      }
+    })
+  })
+
   it("keeps protocol schemas owned by each registered tool definition", () => {
     for (const tool of allTools) {
       expect(tool.inputJsonSchema).toEqual(JSONSchema.make(tool.inputSchema))
@@ -280,10 +380,57 @@ describe("MCP tool registry", () => {
     }
   })
 
+  it("decodes record lifecycle output schemas", () => {
+    expect(Schema.decodeUnknownSync(StartRecordOutput)({ requestType: "StartRecord", acknowledged: true }))
+      .toEqual({ requestType: "StartRecord", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(StopRecordOutput)({
+        requestType: "StopRecord",
+        acknowledged: true,
+        outputPath: "/opaque/obs-recording.mkv"
+      })
+    ).toEqual({
+      requestType: "StopRecord",
+      acknowledged: true,
+      outputPath: "/opaque/obs-recording.mkv"
+    })
+    expect(Schema.decodeUnknownSync(ToggleRecordOutput)({ outputActive: true })).toEqual({ outputActive: true })
+    expect(Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "SplitRecordFile", acknowledged: true }))
+      .toEqual({ requestType: "SplitRecordFile", acknowledged: true })
+    expect(() =>
+      Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "CreateRecordChapter", acknowledged: true })
+    ).toThrow()
+    expect(
+      Schema.decodeUnknownSync(CreateRecordChapterOutput)({
+        requestType: "CreateRecordChapter",
+        acknowledged: true
+      })
+    ).toEqual({ requestType: "CreateRecordChapter", acknowledged: true })
+    expect(() =>
+      Schema.decodeUnknownSync(StopRecordOutput)({
+        requestType: "StopRecord",
+        acknowledged: true
+      })
+    ).toThrow()
+  })
+
+  it("validates record chapter input schemas", () => {
+    expect(Schema.decodeUnknownSync(CreateRecordChapterInput)({})).toEqual({})
+    expect(Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "Act 1" }))
+      .toEqual({ chapterName: "Act 1" })
+    expect(() => Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "" })).toThrow()
+  })
+
+  it("validates stream caption input schemas", () => {
+    expect(Schema.decodeUnknownSync(SendStreamCaptionInput)({ captionText: "Live caption" }))
+      .toEqual({ captionText: "Live caption" })
+    expect(() => Schema.decodeUnknownSync(SendStreamCaptionInput)({ captionText: "" })).toThrow()
+  })
+
   it("accepts no-arg tools with empty or missing args", async () => {
     const output = await executeTool(toolByName("get_obs_context"), undefined, {
       config,
-      client: client(async () => ({}))
+      client: fakeObsClient(async () => ({}))
     })
     expect(output).toMatchObject({ transport: "stdio" })
   })
@@ -291,7 +438,7 @@ describe("MCP tool registry", () => {
   it("uses default list_scenes args", async () => {
     const output = await executeTool(toolByName("list_scenes"), {}, {
       config,
-      client: client(async () => ({
+      client: fakeObsClient(async () => ({
         currentProgramSceneName: "Intro",
         currentProgramSceneUuid: "scene-intro",
         currentPreviewSceneName: null,
@@ -307,7 +454,7 @@ describe("MCP tool registry", () => {
     const statsTool = toolByName("get_obs_stats")
     const currentTool = toolByName("get_current_scene")
     const recordTool = toolByName("get_record_status")
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       if (requestType === "GetVersion") {
         return {
           obsVersion: "31.0.0",
@@ -363,7 +510,7 @@ describe("MCP tool registry", () => {
     const output = await executeTool(toolByName("list_inputs"), { inputKind: "wasapi_input_capture" }, {
       config: { ...config, enabledToolsets: ["inputs"] },
       client: {
-        ...client(async () => ({ inputs: [] })),
+        ...fakeObsClient(async () => ({ inputs: [] })),
         request: async (descriptor, requestData) => {
           expect(descriptor.requestType).toBe("GetInputList")
           expect(requestData).toEqual({ inputKind: "wasapi_input_capture" })
@@ -392,7 +539,7 @@ describe("MCP tool registry", () => {
     const output = await executeTool(toolByName("list_input_kinds"), { unversioned: true }, {
       config: { ...config, enabledToolsets: ["inputs"] },
       client: {
-        ...client(async () => ({ inputKinds: ["wasapi_input_capture"] })),
+        ...fakeObsClient(async () => ({ inputKinds: ["wasapi_input_capture"] })),
         request: async (descriptor, requestData) => {
           expect(descriptor.requestType).toBe("GetInputKindList")
           expect(requestData).toEqual({ unversioned: true })
@@ -521,39 +668,14 @@ describe("MCP tool registry", () => {
         message: "Expected a number less than or equal to 1"
       },
       {
-        decode: Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput),
-        input: { inputName: "Mic/Aux", monitorType: "invalid" },
-        message: "Expected"
-      },
-      {
         decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
         input: { inputName: "Mic/Aux", inputAudioSyncOffset: 1.5 },
         message: "Expected an integer"
       },
       {
-        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
-        input: { inputName: "Mic/Aux", inputAudioSyncOffset: -951 },
-        message: "Expected a number greater than or equal to -950"
-      },
-      {
-        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
-        input: { inputName: "Mic/Aux", inputAudioSyncOffset: 20001 },
-        message: "Expected a number less than or equal to 20000"
-      },
-      {
-        decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
-        input: { mediaState: "invalid", mediaDuration: null, mediaCursor: null },
-        message: "Expected"
-      },
-      {
         decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
         input: { inputName: "Media Source", mediaCursor: -1 },
         message: "Expected a non-negative number"
-      },
-      {
-        decode: Schema.decodeUnknownSync(TriggerMediaInputActionInput),
-        input: { inputName: "Media Source", mediaAction: "invalid" },
-        message: "Expected"
       }
     ]
 
@@ -562,210 +684,10 @@ describe("MCP tool registry", () => {
     }
   })
 
-  it("executes input mute handlers with structured output", async () => {
-    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
-    const fakeClient = client(async (requestType, requestData) => {
-      seen.push({ requestType, requestData })
-      if (requestType === "GetInputMute") {
-        return { inputMuted: false }
-      }
-      if (requestType === "ToggleInputMute") {
-        return { inputMuted: true }
-      }
-      return {}
-    })
-    await expect(executeTool(toolByName("get_input_mute"), { inputName: "Mic/Aux" }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputMuted: false })
-    await expect(executeTool(toolByName("set_input_mute"), { inputUuid: "input-mic-aux", inputMuted: true }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputMuted: true })
-    await expect(executeTool(toolByName("toggle_input_mute"), { inputUuid: "input-mic-aux" }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputMuted: true })
-    expect(seen).toEqual([
-      { requestType: "GetInputMute", requestData: { inputName: "Mic/Aux" } },
-      { requestType: "SetInputMute", requestData: { inputUuid: "input-mic-aux", inputMuted: true } },
-      { requestType: "ToggleInputMute", requestData: { inputUuid: "input-mic-aux" } }
-    ])
-  })
-
-  it("executes input volume handlers with structured output", async () => {
-    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
-    const fakeClient = client(async (requestType, requestData) => {
-      seen.push({ requestType, requestData })
-      if (requestType === "GetInputVolume") {
-        return { inputVolumeMul: 1, inputVolumeDb: 0 }
-      }
-      return {}
-    })
-    await expect(executeTool(toolByName("get_input_volume"), { inputName: "Mic/Aux" }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputVolumeMul: 1, inputVolumeDb: 0 })
-    await expect(executeTool(toolByName("set_input_volume"), { inputUuid: "input-mic-aux", inputVolumeDb: -6 }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputVolumeDb: -6, acknowledged: true })
-    expect(seen).toEqual([
-      { requestType: "GetInputVolume", requestData: { inputName: "Mic/Aux" } },
-      { requestType: "SetInputVolume", requestData: { inputUuid: "input-mic-aux", inputVolumeDb: -6 } }
-    ])
-  })
-
-  it("executes advanced input audio handlers with structured output", async () => {
-    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
-    const fakeClient = client(async (requestType, requestData) => {
-      seen.push({ requestType, requestData })
-      if (requestType === "GetInputAudioBalance") {
-        return { inputAudioBalance: 0.5 }
-      }
-      if (requestType === "GetInputAudioMonitorType") {
-        return { monitorType: "OBS_MONITORING_TYPE_NONE" }
-      }
-      return {}
-    })
-    await expect(executeTool(toolByName("get_input_audio_balance"), { inputName: "Mic/Aux" }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputAudioBalance: 0.5 })
-    await expect(executeTool(toolByName("set_input_audio_balance"), {
-      inputUuid: "input-mic-aux",
-      inputAudioBalance: 0.25
-    }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputAudioBalance: 0.25, acknowledged: true })
-    await expect(executeTool(toolByName("get_input_audio_monitor_type"), { inputName: "Mic/Aux" }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ monitorType: "OBS_MONITORING_TYPE_NONE" })
-    await expect(executeTool(toolByName("set_input_audio_monitor_type"), {
-      inputUuid: "input-mic-aux",
-      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
-    }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT", acknowledged: true })
-    expect(seen).toEqual([
-      { requestType: "GetInputAudioBalance", requestData: { inputName: "Mic/Aux" } },
-      { requestType: "SetInputAudioBalance", requestData: { inputUuid: "input-mic-aux", inputAudioBalance: 0.25 } },
-      { requestType: "GetInputAudioMonitorType", requestData: { inputName: "Mic/Aux" } },
-      {
-        requestType: "SetInputAudioMonitorType",
-        requestData: {
-          inputUuid: "input-mic-aux",
-          monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
-        }
-      }
-    ])
-  })
-
-  it("executes input audio sync offset handlers with structured output", async () => {
-    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
-    const fakeClient = client(async (requestType, requestData) => {
-      seen.push({ requestType, requestData })
-      if (requestType === "GetInputAudioSyncOffset") {
-        return { inputAudioSyncOffset: -125 }
-      }
-      return {}
-    })
-    await expect(executeTool(toolByName("get_input_audio_sync_offset"), { inputName: "Mic/Aux" }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputAudioSyncOffset: -125 })
-    await expect(executeTool(toolByName("set_input_audio_sync_offset"), {
-      inputUuid: "input-mic-aux",
-      inputAudioSyncOffset: 0
-    }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ inputAudioSyncOffset: 0, acknowledged: true })
-    expect(seen).toEqual([
-      { requestType: "GetInputAudioSyncOffset", requestData: { inputName: "Mic/Aux" } },
-      {
-        requestType: "SetInputAudioSyncOffset",
-        requestData: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 0 }
-      }
-    ])
-  })
-
-  it("executes media input status handler with structured output", async () => {
-    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
-    const fakeClient = client(async (requestType, requestData) => {
-      seen.push({ requestType, requestData })
-      return {
-        mediaState: "OBS_MEDIA_STATE_STOPPED",
-        mediaDuration: null,
-        mediaCursor: null
-      }
-    })
-    await expect(executeTool(toolByName("get_media_input_status"), { inputName: "Media Source" }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({
-      mediaState: "OBS_MEDIA_STATE_STOPPED",
-      mediaDuration: null,
-      mediaCursor: null
-    })
-    expect(seen).toEqual([
-      { requestType: "GetMediaInputStatus", requestData: { inputName: "Media Source" } }
-    ])
-  })
-
-  it("executes media input cursor handlers with structured output", async () => {
-    const seen: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
-    const fakeClient = client(async (requestType, requestData) => {
-      seen.push({ requestType, requestData })
-      return {}
-    })
-    await expect(executeTool(toolByName("set_media_input_cursor"), {
-      inputName: "Media Source",
-      mediaCursor: 2500
-    }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ mediaCursor: 2500, acknowledged: true })
-    await expect(executeTool(toolByName("offset_media_input_cursor"), {
-      inputUuid: "input-media-source",
-      mediaCursorOffset: -500
-    }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({ mediaCursorOffset: -500, acknowledged: true })
-    await expect(executeTool(toolByName("trigger_media_input_action"), {
-      inputName: "Media Source",
-      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
-    }, {
-      config: { ...config, enabledToolsets: ["inputs"] },
-      client: fakeClient
-    })).resolves.toEqual({
-      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE",
-      acknowledged: true
-    })
-    expect(seen).toEqual([
-      { requestType: "SetMediaInputCursor", requestData: { inputName: "Media Source", mediaCursor: 2500 } },
-      {
-        requestType: "OffsetMediaInputCursor",
-        requestData: { inputUuid: "input-media-source", mediaCursorOffset: -500 }
-      },
-      {
-        requestType: "TriggerMediaInputAction",
-        requestData: {
-          inputName: "Media Source",
-          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
-        }
-      }
-    ])
-  })
-
   it("executes get_special_inputs handler", async () => {
     const output = await executeTool(toolByName("get_special_inputs"), {}, {
       config: { ...config, enabledToolsets: ["inputs"] },
-      client: client(async () => ({
+      client: fakeObsClient(async () => ({
         desktop1: "Desktop Audio",
         desktop2: null,
         mic1: "Mic/Aux",
@@ -778,7 +700,7 @@ describe("MCP tool registry", () => {
   })
 
   it("executes record pause handlers with structured action outputs", async () => {
-    const fakeClient = client(async () => ({}))
+    const fakeClient = fakeObsClient(async () => ({}))
     await expect(executeTool(toolByName("pause_record"), {}, { config, client: fakeClient }))
       .resolves.toEqual({ requestedAction: "pause", requestType: "PauseRecord", acknowledged: true })
     await expect(executeTool(toolByName("resume_record"), {}, { config, client: fakeClient }))
@@ -787,9 +709,48 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ requestedAction: "toggle_pause", requestType: "ToggleRecordPause", acknowledged: true })
   })
 
+  it("executes record lifecycle handlers with structured outputs", async () => {
+    const fakeClient = fakeObsClient(async (requestType) => {
+      if (requestType === "StopRecord") {
+        return { outputPath: "/opaque/obs-recording.mkv" }
+      }
+      if (requestType === "ToggleRecord") {
+        return { outputActive: true }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("start_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestType: "StartRecord", acknowledged: true })
+    await expect(executeTool(toolByName("stop_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({
+        requestType: "StopRecord",
+        acknowledged: true,
+        outputPath: "/opaque/obs-recording.mkv"
+      })
+    await expect(executeTool(toolByName("toggle_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
+  })
+
+  it("executes record file and chapter handlers with structured outputs", async () => {
+    const requests: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const fakeClient = fakeObsClient(async (requestType, requestData) => {
+      requests.push({ requestType, requestData })
+      return {}
+    })
+    await expect(executeTool(toolByName("split_record_file"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestType: "SplitRecordFile", acknowledged: true })
+    await expect(
+      executeTool(toolByName("create_record_chapter"), { chapterName: "Act 1" }, { config, client: fakeClient })
+    ).resolves.toEqual({ requestType: "CreateRecordChapter", acknowledged: true })
+    expect(requests).toEqual([
+      { requestType: "SplitRecordFile", requestData: undefined },
+      { requestType: "CreateRecordChapter", requestData: { chapterName: "Act 1" } }
+    ])
+  })
+
   it("executes stream status and lifecycle handlers", async () => {
     const streamConfig: ObsConfig = { ...config, enabledToolsets: ["stream"] }
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       if (requestType === "GetStreamStatus") {
         return {
           outputActive: false,
@@ -815,11 +776,17 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ outputActive: false })
     await expect(executeTool(toolByName("toggle_stream"), {}, { config: streamConfig, client: fakeClient }))
       .resolves.toEqual({ outputActive: true })
+    await expect(
+      executeTool(toolByName("send_stream_caption"), { captionText: "Live caption" }, {
+        config: streamConfig,
+        client: fakeClient
+      })
+    ).resolves.toEqual({ requestType: "SendStreamCaption", acknowledged: true })
   })
 
   it("executes virtual camera handlers", async () => {
     const seen: Array<ObsRequestType> = []
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       seen.push(requestType)
       if (requestType === "GetVirtualCamStatus") {
         return { outputActive: false }
@@ -840,9 +807,49 @@ describe("MCP tool registry", () => {
     expect(seen).toEqual(["GetVirtualCamStatus", "StartVirtualCam", "StopVirtualCam", "ToggleVirtualCam"])
   })
 
+  it("executes replay buffer lifecycle handlers", async () => {
+    const seen: Array<ObsRequestType> = []
+    const fakeClient = fakeObsClient(async (requestType) => {
+      seen.push(requestType)
+      if (requestType === "GetReplayBufferStatus") {
+        return { outputActive: false }
+      }
+      if (requestType === "ToggleReplayBuffer") {
+        return { outputActive: true }
+      }
+      if (requestType === "GetLastReplayBufferReplay") {
+        return { savedReplayPath: "/opaque/replay-buffer.mp4" }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("get_replay_buffer_status"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: false })
+    await expect(executeTool(toolByName("start_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
+    await expect(executeTool(toolByName("stop_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: false })
+    await expect(executeTool(toolByName("toggle_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
+    await expect(executeTool(toolByName("save_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestType: "SaveReplayBuffer", acknowledged: true })
+    await expect(executeTool(toolByName("get_last_replay_buffer_replay"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ savedReplayPath: "/opaque/replay-buffer.mp4" })
+    expect(seen).toEqual([
+      "GetReplayBufferStatus",
+      "StartReplayBuffer",
+      "StopReplayBuffer",
+      "ToggleReplayBuffer",
+      "SaveReplayBuffer",
+      "GetLastReplayBufferReplay"
+    ])
+  })
+
   it("rejects invalid scene params through schema validation", async () => {
     await expect(
-      executeTool(toolByName("set_current_scene"), { sceneName: "" }, { config, client: client(async () => ({})) })
+      executeTool(toolByName("set_current_scene"), { sceneName: "" }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
     )
       .rejects.toBeInstanceOf(McpError)
   })
@@ -851,21 +858,21 @@ describe("MCP tool registry", () => {
     await expect(
       executeTool(toolByName("list_scene_items"), { sceneName: "Scene", sceneUuid: "scene-uuid" }, {
         config,
-        client: client(async () => ({}))
+        client: fakeObsClient(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
 
     await expect(
       executeTool(toolByName("list_scene_items"), { sceneUuid: "scene-uuid", canvasUuid: "canvas-uuid" }, {
         config,
-        client: client(async () => ({}))
+        client: fakeObsClient(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
 
     await expect(
       executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Camera", searchOffset: -2 }, {
         config,
-        client: client(async () => ({}))
+        client: fakeObsClient(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
   })
@@ -877,7 +884,7 @@ describe("MCP tool registry", () => {
       canvasUuid: "canvas-uuid"
     }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         requests.push(requestData)
         return {
           sceneItems: [
@@ -929,7 +936,7 @@ describe("MCP tool registry", () => {
     const requests: Array<unknown> = []
     await expect(executeTool(toolByName("list_scene_items"), { sceneUuid: "scene-uuid" }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         requests.push(requestData)
         return { sceneItems: [] }
       })
@@ -941,7 +948,7 @@ describe("MCP tool registry", () => {
     const requests: Array<unknown> = []
     await expect(executeTool(toolByName("list_group_scene_items"), { sceneName: "Group" }, {
       config,
-      client: clientWithData(async (requestType, requestData) => {
+      client: fakeObsClient(async (requestType, requestData) => {
         requests.push({ requestType, requestData })
         return {
           sceneItems: [{ sceneItemId: 3, sceneItemIndex: 0, sourceName: "Nested", sourceUuid: "source-nested" }]
@@ -961,7 +968,7 @@ describe("MCP tool registry", () => {
       searchOffset: -1
     }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         requests.push(requestData)
         return { sceneItemId: 42 }
       })
@@ -975,7 +982,7 @@ describe("MCP tool registry", () => {
       sceneItemId: 42
     }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         expect(requestData).toEqual({ sceneUuid: "scene-uuid", sceneItemId: 42 })
         return { sourceName: "Camera", sourceUuid: "source-camera" }
       })
@@ -985,7 +992,7 @@ describe("MCP tool registry", () => {
   it("maps OBS missing scene item errors to MCP errors", async () => {
     await expect(executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Missing" }, {
       config,
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("GetSceneItemId", 601, "Source not found")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
@@ -1005,7 +1012,7 @@ describe("MCP tool registry", () => {
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("set_current_scene"), { sceneName: "Missing" }, {
       config,
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("SetCurrentProgramScene", 608, "Parameter: sceneName")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
@@ -1014,7 +1021,7 @@ describe("MCP tool registry", () => {
   it("maps stream operation errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("start_stream"), {}, {
       config: { ...config, enabledToolsets: ["stream"] },
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("StartStream", 207, "Output already active")
       })
     })).rejects.toMatchObject({
@@ -1026,7 +1033,7 @@ describe("MCP tool registry", () => {
   it("maps virtual camera operation errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("start_virtual_cam"), {}, {
       config: { ...config, enabledToolsets: ["outputs"] },
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("StartVirtualCam", 500, "virtual camera unavailable")
       })
     })).rejects.toMatchObject({

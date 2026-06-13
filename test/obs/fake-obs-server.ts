@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto"
 import { type WebSocket, WebSocketServer } from "ws"
+
 import {
   DEFAULT_AVAILABLE_REQUESTS,
   DEFAULT_INPUTS,
@@ -10,6 +11,7 @@ import {
   sceneItemsFor
 } from "./fake-obs-fixtures.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
+
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
 const OP_EVENT = 5
@@ -18,6 +20,7 @@ const REQUEST_STATUS_SUCCESS = 100
 const AUTH_FAILURE_CLOSE_CODE = 4009
 const BINARY_FRAME_HEX = "010203"
 const BINARY_FRAME = Buffer.from(BINARY_FRAME_HEX, "hex")
+
 interface FakeObsServerOptions {
   readonly password?: string
   readonly malformedHello?: boolean
@@ -44,26 +47,33 @@ interface FakeObsServerOptions {
   readonly envelopeBeforeResponse?: Record<string, unknown>
   readonly envelopeBeforeResponseFor?: string
 }
+
 const sha256Base64 = (input: string): string => createHash("sha256").update(input).digest("base64")
+
 const authString = (password: string, salt: string, challenge: string): string => {
   const secret = sha256Base64(`${password}${salt}`)
   return sha256Base64(`${secret}${challenge}`)
 }
+
 export class FakeObsServer {
   public readonly url: string
   private readonly server: WebSocketServer
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private inputState: FakeObsInputState = new FakeObsInputState([])
+  private recordActive = false
+  private replayBufferActive = false
   private streamActive = false
   private virtualCamActive = false
   public lastIdentifyEventSubscriptions: unknown
+
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
     this.server = server
     this.url = url
     this.currentSceneName = currentSceneName
     this.lastIdentifyEventSubscriptions = undefined
   }
+
   public static async start(options: FakeObsServerOptions = {}): Promise<FakeObsServer> {
     const server = new WebSocketServer({ port: 0 })
     const address = await new Promise<{ port: number }>((resolve) => {
@@ -81,6 +91,7 @@ export class FakeObsServer {
     fake.installHandlers(options, scenes, inputs)
     return fake
   }
+
   public async stop(): Promise<void> {
     for (const client of this.server.clients) {
       client.close()
@@ -89,12 +100,15 @@ export class FakeObsServer {
       this.server.close((error) => error === undefined ? resolve() : reject(error))
     })
   }
+
   public get connectedClientCount(): number {
     return this.server.clients.size
   }
+
   public get requests(): ReadonlyArray<FakeObsReceivedRequest> {
     return this.receivedRequests
   }
+
   private installHandlers(
     options: FakeObsServerOptions,
     scenes: ReadonlyArray<FakeObsScene>,
@@ -345,33 +359,29 @@ export class FakeObsServer {
       return
     }
     if (requestType === "GetMediaInputStatus") {
-      return send({
-        ...this.inputState.getMediaStatus(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid)
-      })
+      send({ ...this.inputState.getMediaStatus(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid) })
+      return
     }
     if (requestType === "SetMediaInputCursor" || requestType === "OffsetMediaInputCursor") {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
       this.inputState.applyMediaCursorRequest(requestType, locator, envelope.d.requestData)
-      return send()
+      send()
+      return
     }
     if (requestType === "TriggerMediaInputAction") {
       this.inputState.triggerMediaAction(
         envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid,
         envelope.d.requestData.mediaAction
       )
-      return send()
+      send()
+      return
     }
     if (requestType === "GetVirtualCamStatus") {
       send({ outputActive: this.virtualCamActive })
       return
     }
-    if (requestType === "StartVirtualCam") {
-      this.virtualCamActive = true
-      send()
-      return
-    }
-    if (requestType === "StopVirtualCam") {
-      this.virtualCamActive = false
+    if (requestType === "StartVirtualCam" || requestType === "StopVirtualCam") {
+      this.virtualCamActive = requestType === "StartVirtualCam"
       send()
       return
     }
@@ -380,21 +390,59 @@ export class FakeObsServer {
       send({ outputActive: this.virtualCamActive })
       return
     }
+    if (requestType === "GetReplayBufferStatus") {
+      send({ outputActive: this.replayBufferActive })
+      return
+    }
+    if (requestType === "StartReplayBuffer" || requestType === "StopReplayBuffer") {
+      this.replayBufferActive = requestType === "StartReplayBuffer"
+      send()
+      return
+    }
+    if (requestType === "ToggleReplayBuffer") {
+      this.replayBufferActive = !this.replayBufferActive
+      send({ outputActive: this.replayBufferActive })
+      return
+    }
+    if (
+      requestType === "SaveReplayBuffer" || requestType === "SplitRecordFile" || requestType === "CreateRecordChapter"
+      || requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause"
+      || requestType === "SendStreamCaption"
+    ) {
+      send()
+      return
+    }
+    if (requestType === "GetLastReplayBufferReplay") {
+      send({ savedReplayPath: "/opaque/replay-buffer.mp4" })
+      return
+    }
     if (requestType === "GetRecordStatus") {
       send({
-        outputActive: true,
+        outputActive: this.recordActive,
         outputPaused: false,
-        outputTimecode: "00:00:12.345",
-        outputDuration: 12345,
-        outputBytes: 67890
+        outputTimecode: this.recordActive ? "00:00:12.345" : "00:00:00.000",
+        outputDuration: this.recordActive ? 12345 : 0,
+        outputBytes: this.recordActive ? 67890 : 0
       })
       return
     }
-    if (requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause") {
-      return send()
+    if (requestType === "StartRecord") {
+      this.recordActive = true
+      send()
+      return
+    }
+    if (requestType === "StopRecord") {
+      this.recordActive = false
+      send({ outputPath: "/opaque/obs-recording.mkv" })
+      return
+    }
+    if (requestType === "ToggleRecord") {
+      this.recordActive = !this.recordActive
+      send({ outputActive: this.recordActive })
+      return
     }
     if (requestType === "GetStreamStatus") {
-      return send({
+      send({
         outputActive: this.streamActive,
         outputReconnecting: false,
         outputTimecode: this.streamActive ? "00:00:12.345" : "00:00:00.000",
@@ -404,18 +452,17 @@ export class FakeObsServer {
         outputSkippedFrames: 0,
         outputTotalFrames: this.streamActive ? 740 : 0
       })
+      return
     }
-    if (requestType === "StartStream") {
-      this.streamActive = true
-      return send()
-    }
-    if (requestType === "StopStream") {
-      this.streamActive = false
-      return send()
+    if (requestType === "StartStream" || requestType === "StopStream") {
+      this.streamActive = requestType === "StartStream"
+      send()
+      return
     }
     if (requestType === "ToggleStream") {
       this.streamActive = !this.streamActive
-      return send({ outputActive: this.streamActive })
+      send({ outputActive: this.streamActive })
+      return
     }
     send()
   }

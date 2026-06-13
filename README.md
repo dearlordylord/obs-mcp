@@ -61,7 +61,18 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `start_virtual_cam`
 - `stop_virtual_cam`
 - `toggle_virtual_cam`
+- `get_replay_buffer_status`
+- `start_replay_buffer`
+- `stop_replay_buffer`
+- `toggle_replay_buffer`
+- `save_replay_buffer`
+- `get_last_replay_buffer_replay`
 - `get_record_status`
+- `start_record`
+- `stop_record`
+- `toggle_record`
+- `split_record_file`
+- `create_record_chapter`
 - `pause_record`
 - `resume_record`
 - `toggle_record_pause`
@@ -69,6 +80,7 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `start_stream`
 - `stop_stream`
 - `toggle_stream`
+- `send_stream_caption`
 <!-- tools:end -->
 
 Tool results use MCP structured content rather than textified JSON.
@@ -100,7 +112,9 @@ Read-only integration tests:
 pnpm test:integration
 ```
 
-Mutation tests are separate because they can switch the current OBS scene:
+Mutation tests are separate because they send state-changing OBS requests. They require both
+`OBS_INTEGRATION_TESTS=1` and `OBS_INTEGRATION_MUTATION_TESTS=1`; `pnpm test:integration` sets
+`OBS_INTEGRATION_TESTS=1` for you. Lifecycle mutation smoke checks do not start recording or streaming.
 
 ```sh
 OBS_INTEGRATION_MUTATION_TESTS=1 pnpm test:integration

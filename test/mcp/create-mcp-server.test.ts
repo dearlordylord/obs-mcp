@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js"
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js"
-import { Option, Schema } from "effect"
+import { Option } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
@@ -10,6 +10,7 @@ import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "../obs/fake-obs-server.js"
+import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
 const config: ObsConfig = {
   url: "ws://localhost:4455/",
@@ -23,58 +24,10 @@ const obsClients: Array<ObsClient> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 const fakeObsServers: Array<FakeObsServer> = []
 
-const allAvailableRequests = [
-  "GetVersion",
-  "GetStats",
-  "GetSceneList",
-  "GetCurrentProgramScene",
-  "SetCurrentProgramScene",
-  "GetSceneItemList",
-  "GetGroupSceneItemList",
-  "GetSceneItemId",
-  "GetSceneItemSource",
-  "GetInputList",
-  "GetInputKindList",
-  "GetSpecialInputs",
-  "GetInputMute",
-  "SetInputMute",
-  "ToggleInputMute",
-  "GetInputVolume",
-  "SetInputVolume",
-  "GetInputAudioBalance",
-  "SetInputAudioBalance",
-  "GetInputAudioMonitorType",
-  "SetInputAudioMonitorType",
-  "GetInputAudioSyncOffset",
-  "SetInputAudioSyncOffset",
-  "GetMediaInputStatus",
-  "SetMediaInputCursor",
-  "OffsetMediaInputCursor",
-  "TriggerMediaInputAction",
-  "GetVirtualCamStatus",
-  "StartVirtualCam",
-  "StopVirtualCam",
-  "ToggleVirtualCam",
-  "GetRecordStatus",
-  "PauseRecord",
-  "ResumeRecord",
-  "ToggleRecordPause",
-  "GetStreamStatus",
-  "StartStream",
-  "StopStream",
-  "ToggleStream"
-]
-
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
   availableRequests: ReadonlyArray<string> = allAvailableRequests
-): ObsClient => ({
-  negotiatedRpcVersion: 1,
-  availableRequests,
-  request: async (descriptor) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType)),
-  close: async () => undefined
-})
+): ObsClient => fakeObsClient(handler, availableRequests)
 
 const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promise<Client> => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
@@ -127,6 +80,11 @@ describe("MCP server protocol handlers", () => {
       "offset_media_input_cursor",
       "trigger_media_input_action",
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -138,6 +96,10 @@ describe("MCP server protocol handlers", () => {
       .toHaveProperty("outputActive")
     expect(tools.tools.find((tool) => tool.name === "pause_record")?.outputSchema?.properties)
       .toHaveProperty("requestedAction")
+    expect(tools.tools.find((tool) => tool.name === "stop_record")?.outputSchema?.properties)
+      .toHaveProperty("outputPath")
+    expect(tools.tools.find((tool) => tool.name === "create_record_chapter")?.inputSchema.properties)
+      .toHaveProperty("chapterName")
     expect(tools.tools.find((tool) => tool.name === "list_inputs")?.outputSchema?.properties)
       .toHaveProperty("inputs")
   })
@@ -170,7 +132,7 @@ describe("MCP server protocol handlers", () => {
     ])
   })
 
-  it("hides record pause tools when fake OBS does not advertise the pause capabilities", async () => {
+  it("hides record lifecycle and pause tools when fake OBS does not advertise the capabilities", async () => {
     const fakeObs = await FakeObsServer.start({ availableRequestsValue: ["GetVersion"] })
     fakeObsServers.push(fakeObs)
     const obs = await createObsClient({ ...config, url: fakeObs.url, enabledToolsets: ["record"] })
@@ -188,6 +150,29 @@ describe("MCP server protocol handlers", () => {
     const client = await connect(obs, { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("pause_record")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("start_record")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("split_record_file")
+  })
+
+  it("lists record lifecycle and file tools only when OBS capabilities are available", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), [
+        "StartRecord",
+        "StopRecord",
+        "ToggleRecord",
+        "SplitRecordFile",
+        "CreateRecordChapter"
+      ]),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "start_record",
+      "stop_record",
+      "toggle_record",
+      "split_record_file",
+      "create_record_chapter"
+    ])
   })
 
   it("lists stream tools only when the stream toolset and OBS capabilities are available", async () => {
@@ -196,7 +181,8 @@ describe("MCP server protocol handlers", () => {
         "GetStreamStatus",
         "StartStream",
         "StopStream",
-        "ToggleStream"
+        "ToggleStream",
+        "SendStreamCaption"
       ]),
       { ...config, enabledToolsets: ["stream"] }
     )
@@ -205,7 +191,38 @@ describe("MCP server protocol handlers", () => {
       "get_stream_status",
       "start_stream",
       "stop_stream",
-      "toggle_stream"
+      "toggle_stream",
+      "send_stream_caption"
+    ])
+  })
+
+  it("does not list stream tools when the stream toolset is disabled", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("get_stream_status")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("send_stream_caption")
+  })
+
+  it("lists replay buffer tools only when the outputs toolset and OBS capabilities are available", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), [
+        "GetReplayBufferStatus",
+        "StartReplayBuffer",
+        "StopReplayBuffer",
+        "ToggleReplayBuffer",
+        "SaveReplayBuffer",
+        "GetLastReplayBufferReplay"
+      ]),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer",
+      "save_replay_buffer",
+      "get_last_replay_buffer_replay"
     ])
   })
 
@@ -224,45 +241,6 @@ describe("MCP server protocol handlers", () => {
         }
         if (requestType === "GetInputKindList") {
           return { inputKinds: ["wasapi_input_capture"] }
-        }
-        if (requestType === "GetInputMute") {
-          return { inputMuted: false }
-        }
-        if (requestType === "ToggleInputMute") {
-          return { inputMuted: true }
-        }
-        if (requestType === "SetInputMute") {
-          return {}
-        }
-        if (requestType === "GetInputVolume") {
-          return { inputVolumeMul: 1, inputVolumeDb: 0 }
-        }
-        if (requestType === "SetInputVolume") {
-          return {}
-        }
-        if (requestType === "GetInputAudioBalance") {
-          return { inputAudioBalance: 0.5 }
-        }
-        if (requestType === "GetInputAudioMonitorType") {
-          return { monitorType: "OBS_MONITORING_TYPE_NONE" }
-        }
-        if (requestType === "SetInputAudioBalance" || requestType === "SetInputAudioMonitorType") {
-          return {}
-        }
-        if (requestType === "GetInputAudioSyncOffset") {
-          return { inputAudioSyncOffset: -125 }
-        }
-        if (requestType === "SetInputAudioSyncOffset") {
-          return {}
-        }
-        if (requestType === "GetMediaInputStatus") {
-          return { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
-        }
-        if (requestType === "SetMediaInputCursor" || requestType === "OffsetMediaInputCursor") {
-          return {}
-        }
-        if (requestType === "TriggerMediaInputAction") {
-          return {}
         }
         return {
           desktop1: "Desktop Audio",
@@ -302,73 +280,14 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { inputKinds: ["wasapi_input_capture"] } })
     await expect(client.callTool({ name: "get_special_inputs", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
-    await expect(client.callTool({ name: "get_input_mute", arguments: { inputName: "Mic/Aux" } }))
-      .resolves.toMatchObject({ structuredContent: { inputMuted: false } })
-    await expect(client.callTool({
-      name: "set_input_mute",
-      arguments: { inputUuid: "input-mic-aux", inputMuted: true }
-    })).resolves.toMatchObject({ structuredContent: { inputMuted: true } })
-    await expect(client.callTool({ name: "toggle_input_mute", arguments: { inputUuid: "input-mic-aux" } }))
-      .resolves.toMatchObject({ structuredContent: { inputMuted: true } })
-    await expect(client.callTool({ name: "get_input_volume", arguments: { inputName: "Mic/Aux" } }))
-      .resolves.toMatchObject({ structuredContent: { inputVolumeMul: 1, inputVolumeDb: 0 } })
-    await expect(client.callTool({
-      name: "set_input_volume",
-      arguments: { inputUuid: "input-mic-aux", inputVolumeDb: -6 }
-    })).resolves.toMatchObject({ structuredContent: { inputVolumeDb: -6, acknowledged: true } })
-    await expect(client.callTool({ name: "get_input_audio_balance", arguments: { inputName: "Mic/Aux" } }))
-      .resolves.toMatchObject({ structuredContent: { inputAudioBalance: 0.5 } })
-    await expect(client.callTool({
-      name: "set_input_audio_balance",
-      arguments: { inputUuid: "input-mic-aux", inputAudioBalance: 0.25 }
-    })).resolves.toMatchObject({ structuredContent: { inputAudioBalance: 0.25, acknowledged: true } })
-    await expect(client.callTool({ name: "get_input_audio_monitor_type", arguments: { inputName: "Mic/Aux" } }))
-      .resolves.toMatchObject({ structuredContent: { monitorType: "OBS_MONITORING_TYPE_NONE" } })
-    await expect(client.callTool({
-      name: "set_input_audio_monitor_type",
-      arguments: {
-        inputUuid: "input-mic-aux",
-        monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
-      }
-    })).resolves.toMatchObject({
-      structuredContent: { monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT", acknowledged: true }
-    })
-    await expect(client.callTool({ name: "get_input_audio_sync_offset", arguments: { inputName: "Mic/Aux" } }))
-      .resolves.toMatchObject({ structuredContent: { inputAudioSyncOffset: -125 } })
-    await expect(client.callTool({
-      name: "set_input_audio_sync_offset",
-      arguments: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 0 }
-    })).resolves.toMatchObject({ structuredContent: { inputAudioSyncOffset: 0, acknowledged: true } })
-    await expect(client.callTool({ name: "get_media_input_status", arguments: { inputName: "Media Source" } }))
-      .resolves.toMatchObject({
-        structuredContent: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
-      })
-    await expect(client.callTool({
-      name: "set_media_input_cursor",
-      arguments: { inputName: "Media Source", mediaCursor: 2500 }
-    })).resolves.toMatchObject({ structuredContent: { mediaCursor: 2500, acknowledged: true } })
-    await expect(client.callTool({
-      name: "offset_media_input_cursor",
-      arguments: { inputUuid: "input-media-source", mediaCursorOffset: -500 }
-    })).resolves.toMatchObject({ structuredContent: { mediaCursorOffset: -500, acknowledged: true } })
-    await expect(client.callTool({
-      name: "trigger_media_input_action",
-      arguments: {
-        inputName: "Media Source",
-        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
-      }
-    })).resolves.toMatchObject({
-      structuredContent: {
-        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE",
-        acknowledged: true
-      }
-    })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("get_virtual_cam_status")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("get_replay_buffer_status")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("save_replay_buffer")
   })
 
   it("returns structured success content", async () => {
@@ -458,6 +377,68 @@ describe("MCP server protocol handlers", () => {
       })
   })
 
+  it("returns structured success content for record lifecycle tools", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "StopRecord") {
+          return { outputPath: "/opaque/obs-recording.mkv" }
+        }
+        if (requestType === "ToggleRecord") {
+          return { outputActive: true }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "start_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "StartRecord",
+          acknowledged: true
+        }
+      })
+    await expect(client.callTool({ name: "stop_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "StopRecord",
+          acknowledged: true,
+          outputPath: "/opaque/obs-recording.mkv"
+        }
+      })
+    await expect(client.callTool({ name: "toggle_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputActive: true
+        }
+      })
+  })
+
+  it("returns structured success content for record file and chapter tools", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "split_record_file", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "SplitRecordFile",
+          acknowledged: true
+        }
+      })
+    await expect(client.callTool({ name: "create_record_chapter", arguments: { chapterName: "Act 1" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "CreateRecordChapter",
+          acknowledged: true
+        }
+      })
+    expect(requested).toEqual(["SplitRecordFile", "CreateRecordChapter"])
+  })
+
   it("rejects extra arguments for record pause tools before OBS mutation", async () => {
     const requested: Array<ObsRequestType> = []
     const client = await connect(
@@ -467,10 +448,66 @@ describe("MCP server protocol handlers", () => {
       }),
       { ...config, enabledToolsets: ["record"] }
     )
-    for (const name of ["pause_record", "resume_record", "toggle_record_pause"]) {
+    for (
+      const name of [
+        "start_record",
+        "stop_record",
+        "toggle_record",
+        "split_record_file",
+        "pause_record",
+        "resume_record",
+        "toggle_record_pause"
+      ]
+    ) {
       await expect(client.callTool({ name, arguments: { unexpected: true } }))
         .resolves.toMatchObject({ isError: true })
     }
+    expect(requested).toEqual([])
+  })
+
+  it("rejects empty record chapter names before OBS mutation", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "create_record_chapter", arguments: { chapterName: "" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams
+          }
+        }
+      })
+    expect(requested).toEqual([])
+  })
+
+  it("rejects unexpected record chapter arguments before OBS mutation", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(
+      client.callTool({
+        name: "create_record_chapter",
+        arguments: { chapterName: "Act 1", unexpected: true }
+      })
+    ).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
     expect(requested).toEqual([])
   })
 
@@ -504,6 +541,34 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { outputActive: false } })
     await expect(client.callTool({ name: "toggle_stream", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "send_stream_caption", arguments: { captionText: "Live caption" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "SendStreamCaption",
+          acknowledged: true
+        }
+      })
+  })
+
+  it("rejects empty stream captions before OBS mutation", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    await expect(client.callTool({ name: "send_stream_caption", arguments: { captionText: "" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams
+          }
+        }
+      })
+    expect(requested).toEqual([])
   })
 
   it("returns structured virtual camera status and switch results", async () => {
@@ -522,6 +587,45 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { outputActive: true, switched: true } })
   })
 
+  it("returns structured replay buffer lifecycle results", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetReplayBufferStatus") {
+          return { outputActive: false }
+        }
+        if (requestType === "ToggleReplayBuffer") {
+          return { outputActive: true }
+        }
+        if (requestType === "GetLastReplayBufferReplay") {
+          return { savedReplayPath: "/opaque/replay-buffer.mp4" }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+    await expect(client.callTool({ name: "get_replay_buffer_status", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "start_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "stop_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: false } })
+    await expect(client.callTool({ name: "toggle_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "save_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "SaveReplayBuffer",
+          acknowledged: true
+        }
+      })
+    await expect(client.callTool({ name: "get_last_replay_buffer_replay", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          savedReplayPath: "/opaque/replay-buffer.mp4"
+        }
+      })
+  })
+
   it("keeps OBS status metadata in actual tools/call error results", async () => {
     const client = await connect(obsClient(async () => {
       throw new ObsRequestError("SetCurrentProgramScene", 608, "Parameter: sceneName")
@@ -535,6 +639,96 @@ describe("MCP server protocol handlers", () => {
             requestType: "SetCurrentProgramScene",
             obsStatusCode: 608,
             comment: "Parameter: sceneName"
+          }
+        }
+      })
+  })
+
+  it("keeps OBS status metadata for record file tool errors", async () => {
+    const client = await connect(obsClient(async (requestType) => {
+      if (requestType === "CreateRecordChapter") {
+        throw new ObsRequestError("CreateRecordChapter", 703, "Chapter markers unavailable")
+      }
+      throw new ObsRequestError("SplitRecordFile", 703, "Recording not active")
+    }))
+    await expect(client.callTool({ name: "split_record_file", arguments: {} }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "SplitRecordFile",
+            obsStatusCode: 703,
+            comment: "Recording not active"
+          }
+        }
+      })
+    await expect(client.callTool({ name: "create_record_chapter", arguments: { chapterName: "Act 1" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "CreateRecordChapter",
+            obsStatusCode: 703,
+            comment: "Chapter markers unavailable"
+          }
+        }
+      })
+  })
+
+  it("keeps OBS status metadata for replay buffer save and metadata errors", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetLastReplayBufferReplay") {
+          throw new ObsRequestError("GetLastReplayBufferReplay", 703, "No replay has been saved")
+        }
+        throw new ObsRequestError("SaveReplayBuffer", 703, "Replay buffer is not active")
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+    await expect(client.callTool({ name: "save_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "SaveReplayBuffer",
+            obsStatusCode: 703,
+            comment: "Replay buffer is not active"
+          }
+        }
+      })
+    await expect(client.callTool({ name: "get_last_replay_buffer_replay", arguments: {} }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "GetLastReplayBufferReplay",
+            obsStatusCode: 703,
+            comment: "No replay has been saved"
+          }
+        }
+      })
+  })
+
+  it("keeps OBS status metadata for stream caption errors", async () => {
+    const client = await connect(
+      obsClient(async () => {
+        throw new ObsRequestError("SendStreamCaption", 703, "Stream output is not active")
+      }),
+      { ...config, enabledToolsets: ["stream"] }
+    )
+    await expect(client.callTool({ name: "send_stream_caption", arguments: { captionText: "Live caption" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "SendStreamCaption",
+            obsStatusCode: 703,
+            comment: "Stream output is not active"
           }
         }
       })

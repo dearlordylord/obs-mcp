@@ -32,14 +32,26 @@ export const ObsRequestType = Schema.Literal(
   "StartVirtualCam",
   "StopVirtualCam",
   "ToggleVirtualCam",
+  "GetReplayBufferStatus",
+  "StartReplayBuffer",
+  "StopReplayBuffer",
+  "ToggleReplayBuffer",
+  "SaveReplayBuffer",
+  "GetLastReplayBufferReplay",
   "GetRecordStatus",
+  "StartRecord",
+  "StopRecord",
+  "ToggleRecord",
+  "SplitRecordFile",
+  "CreateRecordChapter",
   "PauseRecord",
   "ResumeRecord",
   "ToggleRecordPause",
   "GetStreamStatus",
   "StartStream",
   "StopStream",
-  "ToggleStream"
+  "ToggleStream",
+  "SendStreamCaption"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
