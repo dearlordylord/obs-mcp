@@ -166,6 +166,58 @@ describe("OBS websocket client", () => {
     expect(client.getBufferedEvents()).toMatchObject({ droppedEvents: 0, events: [] })
   })
 
+  it("drops high-volume event bursts without leaking raw payloads", async () => {
+    const stdoutBytesBefore = process.stdout.bytesWritten
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "InputVolumeMeters",
+          eventIntent: EventSubscription.InputVolumeMeters,
+          eventData: { inputs: [{ inputName: "Mic/Aux", levels: [[0.5, 0.25]], raw: true }] }
+        },
+        {
+          eventType: "InputActiveStateChanged",
+          eventIntent: EventSubscription.InputActiveStateChanged,
+          eventData: { inputName: "Camera", inputUuid: "input-camera", videoActive: true, raw: true }
+        },
+        {
+          eventType: "InputShowStateChanged",
+          eventIntent: EventSubscription.InputShowStateChanged,
+          eventData: { inputName: "Camera", inputUuid: "input-camera", videoShowing: true, raw: true }
+        },
+        {
+          eventType: "SceneItemTransformChanged",
+          eventIntent: EventSubscription.SceneItemTransformChanged,
+          eventData: { sceneName: "Scene", sceneUuid: "scene", sceneItemId: 1, sceneItemTransform: { raw: true } }
+        },
+        {
+          eventType: "CurrentProgramSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["events"] }, {
+      eventBufferCapacity: 1
+    })
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents()).toEqual({
+      capacity: 1,
+      droppedEvents: 0,
+      events: [{
+        sequence: 1,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }]
+    })
+    expect(process.stdout.bytesWritten).toBe(stdoutBytesBefore)
+  })
+
   it("buffers safe low-volume event frames without surfacing a stream", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {
