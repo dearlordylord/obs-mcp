@@ -8,7 +8,17 @@ import {
   ListInputsOutput,
   SpecialInputsOutput
 } from "../domain/schemas/inputs.js"
-import { ListScenesOutput } from "../domain/schemas/scenes.js"
+import {
+  GetSceneItemIdInput,
+  GetSceneItemIdOutput,
+  GetSceneItemSourceInput,
+  GetSceneItemSourceOutput,
+  ListGroupSceneItemsInput,
+  ListGroupSceneItemsOutput,
+  ListSceneItemsInput,
+  ListSceneItemsOutput,
+  ListScenesOutput
+} from "../domain/schemas/scenes.js"
 import { StringArray, UnknownRecord } from "../domain/schemas/shared.js"
 import { StreamStatusOutput, ToggleStreamOutput } from "../domain/schemas/stream.js"
 
@@ -18,6 +28,10 @@ export const ObsRequestType = Schema.Literal(
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
+  "GetSceneItemList",
+  "GetGroupSceneItemList",
+  "GetSceneItemId",
+  "GetSceneItemSource",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -92,6 +106,30 @@ export const SetCurrentProgramScene = {
   requestDataSchema: SetCurrentProgramSceneRequest,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSceneItemList = {
+  requestType: "GetSceneItemList",
+  requestDataSchema: ListSceneItemsInput,
+  responseSchema: ListSceneItemsOutput
+} satisfies ObsRequestDescriptor<ListSceneItemsOutput>
+
+export const GetGroupSceneItemList = {
+  requestType: "GetGroupSceneItemList",
+  requestDataSchema: ListGroupSceneItemsInput,
+  responseSchema: ListGroupSceneItemsOutput
+} satisfies ObsRequestDescriptor<ListGroupSceneItemsOutput>
+
+export const GetSceneItemId = {
+  requestType: "GetSceneItemId",
+  requestDataSchema: GetSceneItemIdInput,
+  responseSchema: GetSceneItemIdOutput
+} satisfies ObsRequestDescriptor<GetSceneItemIdOutput>
+
+export const GetSceneItemSource = {
+  requestType: "GetSceneItemSource",
+  requestDataSchema: GetSceneItemSourceInput,
+  responseSchema: GetSceneItemSourceOutput
+} satisfies ObsRequestDescriptor<GetSceneItemSourceOutput>
 
 export const GetInputList = {
   requestType: "GetInputList",

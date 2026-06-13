@@ -29,6 +29,10 @@ const allAvailableRequests = [
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
+  "GetSceneItemList",
+  "GetGroupSceneItemList",
+  "GetSceneItemId",
+  "GetSceneItemSource",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -81,6 +85,10 @@ describe("MCP server protocol handlers", () => {
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
+      "list_scene_items",
+      "list_group_scene_items",
+      "get_scene_item_id",
+      "get_scene_item_source",
       "list_inputs",
       "list_input_kinds",
       "get_special_inputs",
@@ -98,6 +106,15 @@ describe("MCP server protocol handlers", () => {
       .toHaveProperty("requestedAction")
     expect(tools.tools.find((tool) => tool.name === "list_inputs")?.outputSchema?.properties)
       .toHaveProperty("inputs")
+  })
+
+  it("lists scene-item tools with MCP-compatible object schemas", async () => {
+    const client = await connect(obsClient(async () => ({})))
+    const tools = await client.listTools()
+    const sceneItemsTool = tools.tools.find((tool) => tool.name === "list_scene_items")
+    expect(sceneItemsTool?.inputSchema.type).toBe("object")
+    expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
+    expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
   })
 
   it("lists only context and available capability-backed tools", async () => {
