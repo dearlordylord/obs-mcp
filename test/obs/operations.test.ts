@@ -13,7 +13,14 @@ import {
   stopVirtualCam,
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
-import { pauseRecord, resumeRecord, toggleRecordPause } from "../../src/obs/operations/record.js"
+import {
+  pauseRecord,
+  resumeRecord,
+  startRecord,
+  stopRecord,
+  toggleRecord,
+  toggleRecordPause
+} from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
 import { getStreamStatus, startStream, stopStream, toggleStream } from "../../src/obs/operations/stream.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
@@ -62,11 +69,11 @@ describe("OBS operations", () => {
       webSocketSessionOutgoingMessages: 11
     })
     await expect(getRecordStatus(client)).resolves.toEqual({
-      outputActive: true,
+      outputActive: false,
       outputPaused: false,
-      outputTimecode: "00:00:12.345",
-      outputDuration: 12345,
-      outputBytes: 67890
+      outputTimecode: "00:00:00.000",
+      outputDuration: 0,
+      outputBytes: 0
     })
   })
 
@@ -188,6 +195,24 @@ describe("OBS operations", () => {
     })
   })
 
+  it("starts, stops, and toggles record lifecycle through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(startRecord(client)).resolves.toEqual({
+      requestType: "StartRecord",
+      acknowledged: true
+    })
+    await expect(getRecordStatus(client)).resolves.toMatchObject({ outputActive: true })
+    await expect(toggleRecord(client)).resolves.toEqual({ outputActive: false })
+    await expect(stopRecord(client)).resolves.toEqual({
+      requestType: "StopRecord",
+      acknowledged: true,
+      outputPath: "/opaque/obs-recording.mkv"
+    })
+  })
+
   it("surfaces OBS failures for record pause controls", async () => {
     const server = await FakeObsServer.start({
       failRequests: { PauseRecord: { code: 500, comment: "Record output is not active" } }
@@ -196,6 +221,36 @@ describe("OBS operations", () => {
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
     clients.push(client)
     await expect(pauseRecord(client)).rejects.toThrow("PauseRecord failed")
+  })
+
+  it("surfaces OBS failures for record lifecycle controls with metadata", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { StartRecord: { code: 207, comment: "Output already active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(startRecord(client)).rejects.toMatchObject(
+      {
+        requestType: "StartRecord",
+        code: 207,
+        comment: "Output already active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("filters record lifecycle tools when OBS does not advertise record capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "PauseRecord", "ResumeRecord", "ToggleRecordPause"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    expect(getEnabledTools(["record"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "pause_record",
+      "resume_record",
+      "toggle_record_pause"
+    ])
   })
 
   it("gets and controls stream lifecycle state", async () => {

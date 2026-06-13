@@ -41,6 +41,9 @@ const allAvailableRequests = [
   "StopVirtualCam",
   "ToggleVirtualCam",
   "GetRecordStatus",
+  "StartRecord",
+  "StopRecord",
+  "ToggleRecord",
   "PauseRecord",
   "ResumeRecord",
   "ToggleRecordPause",
@@ -97,6 +100,9 @@ describe("MCP server protocol handlers", () => {
       "list_input_kinds",
       "get_special_inputs",
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -108,6 +114,8 @@ describe("MCP server protocol handlers", () => {
       .toHaveProperty("outputActive")
     expect(tools.tools.find((tool) => tool.name === "pause_record")?.outputSchema?.properties)
       .toHaveProperty("requestedAction")
+    expect(tools.tools.find((tool) => tool.name === "stop_record")?.outputSchema?.properties)
+      .toHaveProperty("outputPath")
     expect(tools.tools.find((tool) => tool.name === "list_inputs")?.outputSchema?.properties)
       .toHaveProperty("inputs")
   })
@@ -140,7 +148,7 @@ describe("MCP server protocol handlers", () => {
     ])
   })
 
-  it("hides record pause tools when fake OBS does not advertise the pause capabilities", async () => {
+  it("hides record lifecycle and pause tools when fake OBS does not advertise the capabilities", async () => {
     const fakeObs = await FakeObsServer.start({ availableRequestsValue: ["GetVersion"] })
     fakeObsServers.push(fakeObs)
     const obs = await createObsClient({ ...config, url: fakeObs.url, enabledToolsets: ["record"] })
@@ -158,6 +166,20 @@ describe("MCP server protocol handlers", () => {
     const client = await connect(obs, { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("pause_record")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("start_record")
+  })
+
+  it("lists record lifecycle tools only when OBS capabilities are available", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), ["StartRecord", "StopRecord", "ToggleRecord"]),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "start_record",
+      "stop_record",
+      "toggle_record"
+    ])
   })
 
   it("lists stream tools only when the stream toolset and OBS capabilities are available", async () => {
@@ -313,6 +335,42 @@ describe("MCP server protocol handlers", () => {
       })
   })
 
+  it("returns structured success content for record lifecycle tools", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "StopRecord") {
+          return { outputPath: "/opaque/obs-recording.mkv" }
+        }
+        if (requestType === "ToggleRecord") {
+          return { outputActive: true }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "start_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "StartRecord",
+          acknowledged: true
+        }
+      })
+    await expect(client.callTool({ name: "stop_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "StopRecord",
+          acknowledged: true,
+          outputPath: "/opaque/obs-recording.mkv"
+        }
+      })
+    await expect(client.callTool({ name: "toggle_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputActive: true
+        }
+      })
+  })
+
   it("rejects extra arguments for record pause tools before OBS mutation", async () => {
     const requested: Array<ObsRequestType> = []
     const client = await connect(
@@ -322,7 +380,16 @@ describe("MCP server protocol handlers", () => {
       }),
       { ...config, enabledToolsets: ["record"] }
     )
-    for (const name of ["pause_record", "resume_record", "toggle_record_pause"]) {
+    for (
+      const name of [
+        "start_record",
+        "stop_record",
+        "toggle_record",
+        "pause_record",
+        "resume_record",
+        "toggle_record_pause"
+      ]
+    ) {
       await expect(client.callTool({ name, arguments: { unexpected: true } }))
         .resolves.toMatchObject({ isError: true })
     }

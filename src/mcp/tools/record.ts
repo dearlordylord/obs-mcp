@@ -1,8 +1,29 @@
-import { RecordPauseControlOutput, RecordStatusOutput } from "../../domain/schemas/index.js"
+import {
+  RecordPauseControlOutput,
+  RecordStatusOutput,
+  StartRecordOutput,
+  StopRecordOutput,
+  ToggleRecordOutput
+} from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import { getRecordStatus } from "../../obs/operations/general.js"
-import { pauseRecord, resumeRecord, toggleRecordPause } from "../../obs/operations/record.js"
-import { GetRecordStatus, PauseRecord, ResumeRecord, ToggleRecordPause } from "../../obs/requests.js"
+import {
+  pauseRecord,
+  resumeRecord,
+  startRecord,
+  stopRecord,
+  toggleRecord,
+  toggleRecordPause
+} from "../../obs/operations/record.js"
+import {
+  GetRecordStatus,
+  PauseRecord,
+  ResumeRecord,
+  StartRecord,
+  StopRecord,
+  ToggleRecord,
+  ToggleRecordPause
+} from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
 const CATEGORY = "record" as const
@@ -17,6 +38,36 @@ export const recordTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: RecordStatusOutput,
     handler: async (_input, context) => getRecordStatus(context.client)
+  }),
+  defineTool({
+    name: "start_record",
+    title: "Start OBS Recording",
+    description: "Start the OBS record output.",
+    category: CATEGORY,
+    requiredObsRequests: [StartRecord.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: StartRecordOutput,
+    handler: async (_input, context) => startRecord(context.client)
+  }),
+  defineTool({
+    name: "stop_record",
+    title: "Stop OBS Recording",
+    description: "Stop the OBS record output and return OBS-provided output metadata.",
+    category: CATEGORY,
+    requiredObsRequests: [StopRecord.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: StopRecordOutput,
+    handler: async (_input, context) => stopRecord(context.client)
+  }),
+  defineTool({
+    name: "toggle_record",
+    title: "Toggle OBS Recording",
+    description: "Toggle the active state of the OBS record output.",
+    category: CATEGORY,
+    requiredObsRequests: [ToggleRecord.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: ToggleRecordOutput,
+    handler: async (_input, context) => toggleRecord(context.client)
   }),
   defineTool({
     name: "pause_record",

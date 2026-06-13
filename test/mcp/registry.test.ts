@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import { InputLocatorInput, ListInputKindsInput } from "../../src/domain/schemas/inputs.js"
+import { StartRecordOutput, StopRecordOutput, ToggleRecordOutput } from "../../src/domain/schemas/record.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
@@ -36,6 +37,9 @@ const allAvailableRequests = [
   "StopVirtualCam",
   "ToggleVirtualCam",
   "GetRecordStatus",
+  "StartRecord",
+  "StopRecord",
+  "ToggleRecord",
   "PauseRecord",
   "ResumeRecord",
   "ToggleRecordPause",
@@ -88,6 +92,9 @@ describe("MCP tool registry", () => {
       "list_input_kinds",
       "get_special_inputs",
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -126,6 +133,9 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -156,7 +166,13 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_obs_stats"
     ])
-    expect(getEnabledTools(["record"], ["PauseRecord", "ResumeRecord"]).map((tool) => tool.name)).toEqual([
+    expect(
+      getEnabledTools(["record"], ["StartRecord", "StopRecord", "ToggleRecord", "PauseRecord", "ResumeRecord"])
+        .map((tool) => tool.name)
+    ).toEqual([
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "pause_record",
       "resume_record"
     ])
@@ -175,6 +191,29 @@ describe("MCP tool registry", () => {
       expect(tool.inputJsonSchema).toEqual(JSONSchema.make(tool.inputSchema))
       expect(tool.outputJsonSchema).toEqual(JSONSchema.make(tool.outputSchema))
     }
+  })
+
+  it("decodes record lifecycle output schemas", () => {
+    expect(Schema.decodeUnknownSync(StartRecordOutput)({ requestType: "StartRecord", acknowledged: true }))
+      .toEqual({ requestType: "StartRecord", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(StopRecordOutput)({
+        requestType: "StopRecord",
+        acknowledged: true,
+        outputPath: "/opaque/obs-recording.mkv"
+      })
+    ).toEqual({
+      requestType: "StopRecord",
+      acknowledged: true,
+      outputPath: "/opaque/obs-recording.mkv"
+    })
+    expect(Schema.decodeUnknownSync(ToggleRecordOutput)({ outputActive: true })).toEqual({ outputActive: true })
+    expect(() =>
+      Schema.decodeUnknownSync(StopRecordOutput)({
+        requestType: "StopRecord",
+        acknowledged: true
+      })
+    ).toThrow()
   })
 
   it("accepts no-arg tools with empty or missing args", async () => {
@@ -334,6 +373,28 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ requestedAction: "resume", requestType: "ResumeRecord", acknowledged: true })
     await expect(executeTool(toolByName("toggle_record_pause"), {}, { config, client: fakeClient }))
       .resolves.toEqual({ requestedAction: "toggle_pause", requestType: "ToggleRecordPause", acknowledged: true })
+  })
+
+  it("executes record lifecycle handlers with structured outputs", async () => {
+    const fakeClient = client(async (requestType) => {
+      if (requestType === "StopRecord") {
+        return { outputPath: "/opaque/obs-recording.mkv" }
+      }
+      if (requestType === "ToggleRecord") {
+        return { outputActive: true }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("start_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestType: "StartRecord", acknowledged: true })
+    await expect(executeTool(toolByName("stop_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({
+        requestType: "StopRecord",
+        acknowledged: true,
+        outputPath: "/opaque/obs-recording.mkv"
+      })
+    await expect(executeTool(toolByName("toggle_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
   })
 
   it("executes stream status and lifecycle handlers", async () => {

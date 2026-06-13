@@ -59,6 +59,7 @@ export class FakeObsServer {
   private readonly server: WebSocketServer
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
+  private recordActive = false
   private streamActive = false
   private virtualCamActive = false
   public lastIdentifyEventSubscriptions: unknown
@@ -329,12 +330,27 @@ export class FakeObsServer {
     }
     if (requestType === "GetRecordStatus") {
       send({
-        outputActive: true,
+        outputActive: this.recordActive,
         outputPaused: false,
-        outputTimecode: "00:00:12.345",
-        outputDuration: 12345,
-        outputBytes: 67890
+        outputTimecode: this.recordActive ? "00:00:12.345" : "00:00:00.000",
+        outputDuration: this.recordActive ? 12345 : 0,
+        outputBytes: this.recordActive ? 67890 : 0
       })
+      return
+    }
+    if (requestType === "StartRecord") {
+      this.recordActive = true
+      send()
+      return
+    }
+    if (requestType === "StopRecord") {
+      this.recordActive = false
+      send({ outputPath: "/opaque/obs-recording.mkv" })
+      return
+    }
+    if (requestType === "ToggleRecord") {
+      this.recordActive = !this.recordActive
+      send({ outputActive: this.recordActive })
       return
     }
     if (requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause") {
