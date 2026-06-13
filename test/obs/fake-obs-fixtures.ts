@@ -251,6 +251,7 @@ export const sceneItemTransformFor = (
   cropLeft: requestData.sceneItemId === 9 ? 8 : 0,
   cropRight: 0,
   cropTop: 0,
+  cropToBounds: requestData.sceneItemId === 9,
   height: requestData.sceneItemId === 9 ? 120 : 720,
   positionX: requestData.sceneItemId === 9 ? 64.5 : 0,
   positionY: requestData.sceneItemId === 9 ? 512.25 : 0,

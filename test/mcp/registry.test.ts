@@ -1134,9 +1134,14 @@ describe("MCP tool registry", () => {
       .rejects.toBeInstanceOf(McpError)
     expect(() =>
       Schema.decodeUnknownSync(GetSceneItemTransformOutput)({
-        sceneItemTransform: { positionX: "0", scaleX: 1, cropLeft: 0 }
+        sceneItemTransform: { positionX: "0", scaleX: 1, cropLeft: 0, cropToBounds: true }
       })
     ).toThrow("positionX")
+    expect(() =>
+      Schema.decodeUnknownSync(GetSceneItemTransformOutput)({
+        sceneItemTransform: { positionX: 0, scaleX: 1, cropLeft: 0, cropToBounds: "true" }
+      })
+    ).toThrow("cropToBounds")
   })
 
   it("rejects invalid recent event limits through schema validation", async () => {
@@ -1556,6 +1561,7 @@ describe("MCP tool registry", () => {
             cropLeft: 0,
             cropRight: 0,
             cropTop: 0,
+            cropToBounds: false,
             height: 720,
             positionX: 0,
             positionY: 0,
@@ -1572,6 +1578,7 @@ describe("MCP tool registry", () => {
       sceneItemTransform: {
         positionX: 0,
         scaleX: 1,
+        cropToBounds: false,
         width: 1280
       }
     })

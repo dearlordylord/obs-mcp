@@ -281,6 +281,7 @@ describe("OBS operations", () => {
           cropLeft: 8,
           cropRight: 0,
           cropTop: 0,
+          cropToBounds: true,
           height: 120,
           positionX: 64.5,
           positionY: 512.25,

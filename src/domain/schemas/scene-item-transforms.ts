@@ -12,6 +12,7 @@ export const SceneItemTransform = Schema.Struct({
   cropLeft: Schema.optional(Schema.Number.pipe(Schema.int())),
   cropRight: Schema.optional(Schema.Number.pipe(Schema.int())),
   cropTop: Schema.optional(Schema.Number.pipe(Schema.int())),
+  cropToBounds: Schema.optional(Schema.Boolean),
   height: Schema.optional(Schema.Number),
   positionX: Schema.optional(Schema.Number),
   positionY: Schema.optional(Schema.Number),
