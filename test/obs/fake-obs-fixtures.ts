@@ -143,6 +143,7 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetGroupSceneItemList",
   "GetSceneItemId",
   "GetSceneItemSource",
+  "GetSceneItemTransform",
   "GetSceneItemEnabled",
   "SetSceneItemEnabled",
   "GetSceneItemLocked",
@@ -236,3 +237,28 @@ export const sceneItemsFor = (
     }
   ]
 }
+
+/* eslint-disable no-magic-numbers */
+export const sceneItemTransformFor = (
+  requestData: { readonly sceneItemId?: number }
+): Record<string, unknown> => ({
+  alignment: 5,
+  boundsAlignment: 5,
+  boundsHeight: requestData.sceneItemId === 9 ? 120 : 0,
+  boundsType: requestData.sceneItemId === 9 ? "OBS_BOUNDS_SCALE_INNER" : "OBS_BOUNDS_NONE",
+  boundsWidth: requestData.sceneItemId === 9 ? 640 : 0,
+  cropBottom: requestData.sceneItemId === 9 ? 4 : 0,
+  cropLeft: requestData.sceneItemId === 9 ? 8 : 0,
+  cropRight: 0,
+  cropTop: 0,
+  height: requestData.sceneItemId === 9 ? 120 : 720,
+  positionX: requestData.sceneItemId === 9 ? 64.5 : 0,
+  positionY: requestData.sceneItemId === 9 ? 512.25 : 0,
+  rotation: requestData.sceneItemId === 9 ? 0.5 : 0,
+  scaleX: requestData.sceneItemId === 9 ? 0.5 : 1,
+  scaleY: requestData.sceneItemId === 9 ? 0.5 : 1,
+  sourceHeight: requestData.sceneItemId === 9 ? 240 : 720,
+  sourceWidth: requestData.sceneItemId === 9 ? 1280 : 1280,
+  width: requestData.sceneItemId === 9 ? 640 : 1280
+})
+/* eslint-enable no-magic-numbers */

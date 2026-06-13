@@ -1,5 +1,6 @@
 import { Schema } from "effect"
 
+import { GetSceneItemTransformInput, GetSceneItemTransformOutput } from "../../domain/schemas/scene-item-transforms.js"
 import {
   CreateSceneInput,
   GetSceneItemBlendModeInput,
@@ -160,6 +161,12 @@ export const GetSceneItemSource = {
   requestDataSchema: GetSceneItemSourceInput,
   responseSchema: GetSceneItemSourceOutput
 } satisfies ObsRequestDescriptor<GetSceneItemSourceOutput>
+
+export const GetSceneItemTransform = {
+  requestType: "GetSceneItemTransform",
+  requestDataSchema: GetSceneItemTransformInput,
+  responseSchema: GetSceneItemTransformOutput
+} satisfies ObsRequestDescriptor<GetSceneItemTransformOutput>
 
 export const GetSceneItemEnabled = {
   requestType: "GetSceneItemEnabled",

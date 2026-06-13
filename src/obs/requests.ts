@@ -18,6 +18,7 @@ export const ObsRequestType = Schema.Literal(
   "GetGroupSceneItemList",
   "GetSceneItemId",
   "GetSceneItemSource",
+  "GetSceneItemTransform",
   "GetSceneItemEnabled",
   "SetSceneItemEnabled",
   "GetSceneItemLocked",

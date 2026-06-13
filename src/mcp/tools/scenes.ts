@@ -10,6 +10,7 @@ import {
   getSceneItemIndex,
   getSceneItemLocked,
   getSceneItemSource,
+  getSceneItemTransform,
   getSceneTransitionOverride,
   getSourceActive,
   listGroups,
@@ -39,6 +40,7 @@ import {
   GetSceneItemList,
   GetSceneItemLocked,
   GetSceneItemSource,
+  GetSceneItemTransform,
   GetSceneList,
   GetSceneSceneTransitionOverride,
   GetSourceActive,
@@ -207,6 +209,16 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.GetSceneItemSourceInput,
     outputSchema: SceneSchemas.GetSceneItemSourceOutput,
     handler: async (input, context) => getSceneItemSource(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_transform",
+    title: "Get OBS Scene Item Transform",
+    description: "Return explicit OBS transform and crop fields for a scene item.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemTransform.requestType],
+    inputSchema: SceneSchemas.GetSceneItemTransformInput,
+    outputSchema: SceneSchemas.GetSceneItemTransformOutput,
+    handler: async (input, context) => getSceneItemTransform(context.client, input)
   }),
   defineTool({
     name: "get_scene_item_enabled",

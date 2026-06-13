@@ -52,6 +52,7 @@ import {
   createScene,
   getCurrentPreviewScene,
   getCurrentScene,
+  getSceneItemTransform,
   getSceneTransitionOverride,
   listGroups,
   listScenes,
@@ -261,6 +262,50 @@ describe("OBS operations", () => {
     })
     await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
       .resolves.toEqual({ transitionName: null, transitionDuration: null })
+  })
+
+  it("gets scene item transform fields through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getSceneItemTransform(client, { sceneName: "Intro", sceneItemId: 9 }))
+      .resolves.toEqual({
+        sceneItemTransform: {
+          alignment: 5,
+          boundsAlignment: 5,
+          boundsHeight: 120,
+          boundsType: "OBS_BOUNDS_SCALE_INNER",
+          boundsWidth: 640,
+          cropBottom: 4,
+          cropLeft: 8,
+          cropRight: 0,
+          cropTop: 0,
+          height: 120,
+          positionX: 64.5,
+          positionY: 512.25,
+          rotation: 0.5,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          sourceHeight: 240,
+          sourceWidth: 1280,
+          width: 640
+        }
+      })
+  })
+
+  it("surfaces scene item transform OBS errors", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetSceneItemTransform: { code: 601, comment: "Scene item not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getSceneItemTransform(client, { sceneName: "Intro", sceneItemId: 99 })).rejects.toMatchObject({
+      requestType: "GetSceneItemTransform",
+      code: 601,
+      comment: "Scene item not found"
+    })
   })
 
   it("discovers inputs and input kinds through the fake OBS protocol", async () => {

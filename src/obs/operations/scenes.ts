@@ -1,5 +1,6 @@
 import { Schema } from "effect"
 
+import { GetSceneItemTransformInput, GetSceneItemTransformOutput } from "../../domain/schemas/scene-item-transforms.js"
 import {
   CreateSceneInput,
   CreateSceneOutput,
@@ -60,6 +61,7 @@ import {
   GetSceneItemList,
   GetSceneItemLocked,
   GetSceneItemSource,
+  GetSceneItemTransform,
   GetSceneList as GetSceneListRequest,
   GetSceneSceneTransitionOverride as GetSceneTransitionOverrideRequest,
   GetSourceActive as GetSourceActiveRequest,
@@ -229,6 +231,16 @@ export const getSceneItemSource = async (
 ): Promise<GetSceneItemSourceOutput> => {
   const decodedInput = Schema.decodeUnknownSync(GetSceneItemSourceInput)(input)
   return Schema.decodeUnknownSync(GetSceneItemSourceOutput)(await client.request(GetSceneItemSource, decodedInput))
+}
+
+export const getSceneItemTransform = async (
+  client: ObsClient,
+  input: GetSceneItemTransformInput
+): Promise<GetSceneItemTransformOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(GetSceneItemTransformInput)(input)
+  return Schema.decodeUnknownSync(GetSceneItemTransformOutput)(
+    await client.request(GetSceneItemTransform, decodedInput)
+  )
 }
 
 export const getSceneItemEnabled = async (

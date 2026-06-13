@@ -71,6 +71,7 @@ describe("MCP server protocol handlers", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -135,6 +136,8 @@ describe("MCP server protocol handlers", () => {
     expect(sceneItemsTool?.inputSchema.type).toBe("object")
     expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "get_scene_item_transform")?.outputSchema?.properties)
+      .toHaveProperty("sceneItemTransform")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_enabled")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_index")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "get_source_active")?.inputSchema.type).toBe("object")

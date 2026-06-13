@@ -24,6 +24,7 @@ import {
   StopRecordOutput,
   ToggleRecordOutput
 } from "../../src/domain/schemas/record.js"
+import { GetSceneItemTransformOutput } from "../../src/domain/schemas/scene-item-transforms.js"
 import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -194,6 +195,7 @@ describe("MCP tool registry", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -287,6 +289,7 @@ describe("MCP tool registry", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -1129,6 +1132,11 @@ describe("MCP tool registry", () => {
       })
     )
       .rejects.toBeInstanceOf(McpError)
+    expect(() =>
+      Schema.decodeUnknownSync(GetSceneItemTransformOutput)({
+        sceneItemTransform: { positionX: "0", scaleX: 1, cropLeft: 0 }
+      })
+    ).toThrow("positionX")
   })
 
   it("rejects invalid recent event limits through schema validation", async () => {
@@ -1528,6 +1536,47 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ sourceName: "Camera", sourceUuid: "source-camera" })
   })
 
+  it("gets a scene item's transform", async () => {
+    await expect(executeTool(toolByName("get_scene_item_transform"), {
+      sceneName: "Scene",
+      sceneItemId: 42
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetSceneItemTransform")
+        expect(requestData).toEqual({ sceneName: "Scene", sceneItemId: 42 })
+        return {
+          sceneItemTransform: {
+            alignment: 5,
+            boundsAlignment: 5,
+            boundsHeight: 720,
+            boundsType: "OBS_BOUNDS_NONE",
+            boundsWidth: 1280,
+            cropBottom: 0,
+            cropLeft: 0,
+            cropRight: 0,
+            cropTop: 0,
+            height: 720,
+            positionX: 0,
+            positionY: 0,
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            sourceHeight: 720,
+            sourceWidth: 1280,
+            width: 1280
+          }
+        }
+      })
+    })).resolves.toMatchObject({
+      sceneItemTransform: {
+        positionX: 0,
+        scaleX: 1,
+        width: 1280
+      }
+    })
+  })
+
   it("gets and sets scene item enabled and locked state", async () => {
     const requests: Array<unknown> = []
     await expect(executeTool(toolByName("get_scene_item_enabled"), {
@@ -1691,6 +1740,19 @@ describe("MCP tool registry", () => {
         throw new ObsRequestError("GetSceneItemId", 601, "Source not found")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("get_scene_item_transform"), { sceneName: "Scene", sceneItemId: 404 }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("GetSceneItemTransform", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetSceneItemTransform",
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
   })
 
   it("maps scene item state OBS errors to MCP errors with OBS status metadata", async () => {
@@ -1841,6 +1903,11 @@ describe("MCP tool registry", () => {
     expect(
       getEnabledTools(["scenes"], ["SetSceneSceneTransitionOverride"]).map((tool) => tool.name)
     ).toEqual(["set_scene_transition_override"])
+  })
+
+  it("filters scene item transform by partial OBS capabilities", () => {
+    expect(getEnabledTools(["scenes"], ["GetSceneItemTransform"]).map((tool) => tool.name))
+      .toEqual(["get_scene_item_transform"])
   })
 
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {

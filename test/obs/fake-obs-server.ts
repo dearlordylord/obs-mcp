@@ -13,6 +13,7 @@ import {
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
+import { handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
 import { type FakeObsSceneTransitionOverrides, handleFakeObsSceneRequest } from "./fake-obs-scene-requests.js"
 
 const OP_HELLO = 0
@@ -345,16 +346,7 @@ export class FakeObsServer {
       send({ sceneItems: sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
       return
     }
-    if (requestType === "GetSceneItemId") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sourceName === envelope.d.requestData.sourceName)
-      send({ sceneItemId: sceneItem?.sceneItemId ?? 0 })
-      return
-    }
-    if (requestType === "GetSceneItemSource") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
-      send({ sourceName: sceneItem?.sourceName ?? "Camera", sourceUuid: sceneItem?.sourceUuid ?? "source-camera" })
+    if (handleFakeObsSceneItemReadRequest(requestType, envelope.d.requestData, send)) {
       return
     }
     if (requestType === "GetSceneItemEnabled") {
