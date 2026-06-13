@@ -1,46 +1,48 @@
 import { JSONSchema, Schema } from "effect"
 
+import { ObsInteger, ObsNumber, ObsString } from "./shared.js"
+
 import { SceneItemLocatorInput } from "./scenes.js"
 
 export const SceneItemTransform = Schema.Struct({
-  alignment: Schema.optional(Schema.Number.pipe(Schema.int())),
-  boundsAlignment: Schema.optional(Schema.Number.pipe(Schema.int())),
-  boundsHeight: Schema.optional(Schema.Number),
-  boundsType: Schema.optional(Schema.String),
-  boundsWidth: Schema.optional(Schema.Number),
-  cropBottom: Schema.optional(Schema.Number.pipe(Schema.int())),
-  cropLeft: Schema.optional(Schema.Number.pipe(Schema.int())),
-  cropRight: Schema.optional(Schema.Number.pipe(Schema.int())),
-  cropTop: Schema.optional(Schema.Number.pipe(Schema.int())),
+  alignment: Schema.optional(ObsInteger),
+  boundsAlignment: Schema.optional(ObsInteger),
+  boundsHeight: Schema.optional(ObsNumber),
+  boundsType: Schema.optional(ObsString),
+  boundsWidth: Schema.optional(ObsNumber),
+  cropBottom: Schema.optional(ObsInteger),
+  cropLeft: Schema.optional(ObsInteger),
+  cropRight: Schema.optional(ObsInteger),
+  cropTop: Schema.optional(ObsInteger),
   cropToBounds: Schema.optional(Schema.Boolean),
-  height: Schema.optional(Schema.Number),
-  positionX: Schema.optional(Schema.Number),
-  positionY: Schema.optional(Schema.Number),
-  rotation: Schema.optional(Schema.Number),
-  scaleX: Schema.optional(Schema.Number),
-  scaleY: Schema.optional(Schema.Number),
-  sourceHeight: Schema.optional(Schema.Number),
-  sourceWidth: Schema.optional(Schema.Number),
-  width: Schema.optional(Schema.Number)
+  height: Schema.optional(ObsNumber),
+  positionX: Schema.optional(ObsNumber),
+  positionY: Schema.optional(ObsNumber),
+  rotation: Schema.optional(ObsNumber),
+  scaleX: Schema.optional(ObsNumber),
+  scaleY: Schema.optional(ObsNumber),
+  sourceHeight: Schema.optional(ObsNumber),
+  sourceWidth: Schema.optional(ObsNumber),
+  width: Schema.optional(ObsNumber)
 })
 export type SceneItemTransform = typeof SceneItemTransform.Type
 
 export const SettableSceneItemTransform = Schema.Struct({
-  alignment: Schema.optional(Schema.Number.pipe(Schema.int())),
-  boundsAlignment: Schema.optional(Schema.Number.pipe(Schema.int())),
-  boundsHeight: Schema.optional(Schema.Number),
-  boundsType: Schema.optional(Schema.String),
-  boundsWidth: Schema.optional(Schema.Number),
-  cropBottom: Schema.optional(Schema.Number.pipe(Schema.int())),
-  cropLeft: Schema.optional(Schema.Number.pipe(Schema.int())),
-  cropRight: Schema.optional(Schema.Number.pipe(Schema.int())),
-  cropTop: Schema.optional(Schema.Number.pipe(Schema.int())),
+  alignment: Schema.optional(ObsInteger),
+  boundsAlignment: Schema.optional(ObsInteger),
+  boundsHeight: Schema.optional(ObsNumber),
+  boundsType: Schema.optional(ObsString),
+  boundsWidth: Schema.optional(ObsNumber),
+  cropBottom: Schema.optional(ObsInteger),
+  cropLeft: Schema.optional(ObsInteger),
+  cropRight: Schema.optional(ObsInteger),
+  cropTop: Schema.optional(ObsInteger),
   cropToBounds: Schema.optional(Schema.Boolean),
-  positionX: Schema.optional(Schema.Number),
-  positionY: Schema.optional(Schema.Number),
-  rotation: Schema.optional(Schema.Number),
-  scaleX: Schema.optional(Schema.Number),
-  scaleY: Schema.optional(Schema.Number)
+  positionX: Schema.optional(ObsNumber),
+  positionY: Schema.optional(ObsNumber),
+  rotation: Schema.optional(ObsNumber),
+  scaleX: Schema.optional(ObsNumber),
+  scaleY: Schema.optional(ObsNumber)
 }).pipe(
   Schema.filter((transform) => Object.keys(transform).length > 0, {
     message: () => "At least one settable scene item transform field is required"

@@ -1,16 +1,23 @@
 import { JSONSchema, Schema } from "effect"
 
 import { SourceLocatorInput } from "./scenes.js"
-import { UnknownRecord } from "./shared.js"
+import {
+  ObsNonEmptyString,
+  ObsNonNegativeInteger,
+  ObsNumber,
+  ObsString,
+  ObsUnitInterval,
+  UnknownRecord
+} from "./shared.js"
 
 export const ListSourceFilterKindsOutput = Schema.Struct({
-  sourceFilterKinds: Schema.Array(Schema.String)
+  sourceFilterKinds: Schema.Array(ObsString)
 })
 export type ListSourceFilterKindsOutput = typeof ListSourceFilterKindsOutput.Type
 export const ListSourceFilterKindsOutputJsonSchema = JSONSchema.make(ListSourceFilterKindsOutput)
 
 export const SourceFilterKindInput = Schema.Struct({
-  filterKind: Schema.NonEmptyString
+  filterKind: ObsNonEmptyString
 })
 export type SourceFilterKindInput = typeof SourceFilterKindInput.Type
 export const SourceFilterKindInputJsonSchema = JSONSchema.make(SourceFilterKindInput)
@@ -18,7 +25,7 @@ export const SourceFilterKindInputJsonSchema = JSONSchema.make(SourceFilterKindI
 export const SourceFilterLocatorInput = Schema.extend(
   SourceLocatorInput,
   Schema.Struct({
-    filterName: Schema.NonEmptyString
+    filterName: ObsNonEmptyString
   })
 )
 export type SourceFilterLocatorInput = typeof SourceFilterLocatorInput.Type
@@ -36,13 +43,13 @@ export const SanitizedFilterValueType = Schema.Literal(
 export type SanitizedFilterValueType = typeof SanitizedFilterValueType.Type
 
 export const SanitizedFilterSetting = Schema.Struct({
-  settingName: Schema.String,
+  settingName: ObsString,
   valueType: SanitizedFilterValueType
 })
 export type SanitizedFilterSetting = typeof SanitizedFilterSetting.Type
 
 export const SourceFilterDefaultSettingsOutput = Schema.Struct({
-  filterKind: Schema.String,
+  filterKind: ObsString,
   defaultFilterSettings: Schema.Array(SanitizedFilterSetting),
   rawSettingsDeferred: Schema.Literal(true)
 })
@@ -50,10 +57,10 @@ export type SourceFilterDefaultSettingsOutput = typeof SourceFilterDefaultSettin
 export const SourceFilterDefaultSettingsOutputJsonSchema = JSONSchema.make(SourceFilterDefaultSettingsOutput)
 
 export const SourceFilterSummary = Schema.Struct({
-  filterName: Schema.String,
+  filterName: ObsString,
   filterEnabled: Schema.Boolean,
-  filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
-  filterKind: Schema.String,
+  filterIndex: ObsNonNegativeInteger,
+  filterKind: ObsString,
   filterSettings: Schema.Array(SanitizedFilterSetting),
   rawSettingsDeferred: Schema.Literal(true)
 })
@@ -69,23 +76,31 @@ export const SourceFilterOutput = SourceFilterSummary
 export type SourceFilterOutput = typeof SourceFilterOutput.Type
 export const SourceFilterOutputJsonSchema = JSONSchema.make(SourceFilterOutput)
 
-const FilterSignedUnit = Schema.Number.pipe(Schema.greaterThanOrEqualTo(-1), Schema.lessThanOrEqualTo(1))
-const FilterColorInteger = Schema.Number.pipe(
+// Filter signed unit values are bounded structural floats where negative, zero, and positive are meaningful.
+const FilterSignedUnit = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-1), Schema.lessThanOrEqualTo(1))
+// OBS color values are packed unsigned integers; the field name carries color semantics, not a brand.
+const FilterColorInteger = ObsNumber.pipe(
   Schema.int(),
   Schema.greaterThanOrEqualTo(0),
   Schema.lessThanOrEqualTo(4_294_967_295)
 )
+// Gamma is a bounded OBS filter scalar; branding would not add meaning beyond the allowlisted field.
+const FilterGamma = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-3), Schema.lessThanOrEqualTo(3))
+// Hue shift is a bounded degree value whose unit is carried by the field name.
+const FilterHueShift = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-180), Schema.lessThanOrEqualTo(180))
+// Gain is a bounded dB value where negative, zero, and positive values are expected.
+const FilterDb = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-100), Schema.lessThanOrEqualTo(100))
 
 export const SourceFilterSettingsPatch = Schema.Struct({
   brightness: Schema.optional(FilterSignedUnit),
   contrast: Schema.optional(FilterSignedUnit),
-  gamma: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(-3), Schema.lessThanOrEqualTo(3))),
+  gamma: Schema.optional(FilterGamma),
   saturation: Schema.optional(FilterSignedUnit),
-  hueShift: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(-180), Schema.lessThanOrEqualTo(180))),
-  opacity: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(0), Schema.lessThanOrEqualTo(1))),
+  hueShift: Schema.optional(FilterHueShift),
+  opacity: Schema.optional(ObsUnitInterval),
   colorMultiply: Schema.optional(FilterColorInteger),
   colorAdd: Schema.optional(FilterColorInteger),
-  db: Schema.optional(Schema.Number.pipe(Schema.greaterThanOrEqualTo(-100), Schema.lessThanOrEqualTo(100)))
+  db: Schema.optional(FilterDb)
 }).pipe(
   Schema.filter((settings) => Object.values(settings).some((value) => value !== undefined), {
     message: () => "At least one allowlisted filter setting is required"
@@ -97,8 +112,8 @@ export const SourceFilterSettingsPatchJsonSchema = JSONSchema.make(SourceFilterS
 export const CreateSourceFilterInput = Schema.extend(
   SourceLocatorInput,
   Schema.Struct({
-    filterName: Schema.NonEmptyString,
-    filterKind: Schema.NonEmptyString,
+    filterName: ObsNonEmptyString,
+    filterKind: ObsNonEmptyString,
     filterSettings: Schema.optional(SourceFilterSettingsPatch)
   })
 )
@@ -106,8 +121,8 @@ export type CreateSourceFilterInput = typeof CreateSourceFilterInput.Type
 export const CreateSourceFilterInputJsonSchema = JSONSchema.make(CreateSourceFilterInput)
 
 export const CreateSourceFilterOutput = Schema.Struct({
-  filterName: Schema.String,
-  filterKind: Schema.String,
+  filterName: ObsString,
+  filterKind: ObsString,
   acknowledged: Schema.Literal(true)
 })
 export type CreateSourceFilterOutput = typeof CreateSourceFilterOutput.Type
@@ -116,8 +131,8 @@ export const CreateSourceFilterOutputJsonSchema = JSONSchema.make(CreateSourceFi
 export const ObsCreateSourceFilterInput = Schema.extend(
   SourceLocatorInput,
   Schema.Struct({
-    filterName: Schema.NonEmptyString,
-    filterKind: Schema.NonEmptyString,
+    filterName: ObsNonEmptyString,
+    filterKind: ObsNonEmptyString,
     filterSettings: Schema.optional(UnknownRecord)
   })
 )
@@ -134,7 +149,7 @@ export type SetSourceFilterSettingsInput = typeof SetSourceFilterSettingsInput.T
 export const SetSourceFilterSettingsInputJsonSchema = JSONSchema.make(SetSourceFilterSettingsInput)
 
 export const SetSourceFilterSettingsOutput = Schema.Struct({
-  filterName: Schema.String,
+  filterName: ObsString,
   filterSettings: SourceFilterSettingsPatch,
   overlay: Schema.Boolean,
   acknowledged: Schema.Literal(true)
@@ -152,7 +167,7 @@ export const ObsSetSourceFilterSettingsInput = Schema.extend(
 export type ObsSetSourceFilterSettingsInput = typeof ObsSetSourceFilterSettingsInput.Type
 
 export const SourceFilterAcknowledgedOutput = Schema.Struct({
-  filterName: Schema.String,
+  filterName: ObsString,
   acknowledged: Schema.Literal(true)
 })
 export type SourceFilterAcknowledgedOutput = typeof SourceFilterAcknowledgedOutput.Type
@@ -168,7 +183,7 @@ export type SetSourceFilterEnabledInput = typeof SetSourceFilterEnabledInput.Typ
 export const SetSourceFilterEnabledInputJsonSchema = JSONSchema.make(SetSourceFilterEnabledInput)
 
 export const SetSourceFilterEnabledOutput = Schema.Struct({
-  filterName: Schema.String,
+  filterName: ObsString,
   filterEnabled: Schema.Boolean,
   acknowledged: Schema.Literal(true)
 })
@@ -178,15 +193,15 @@ export const SetSourceFilterEnabledOutputJsonSchema = JSONSchema.make(SetSourceF
 export const SetSourceFilterIndexInput = Schema.extend(
   SourceFilterLocatorInput,
   Schema.Struct({
-    filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+    filterIndex: ObsNonNegativeInteger
   })
 )
 export type SetSourceFilterIndexInput = typeof SetSourceFilterIndexInput.Type
 export const SetSourceFilterIndexInputJsonSchema = JSONSchema.make(SetSourceFilterIndexInput)
 
 export const SetSourceFilterIndexOutput = Schema.Struct({
-  filterName: Schema.String,
-  filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  filterName: ObsString,
+  filterIndex: ObsNonNegativeInteger,
   acknowledged: Schema.Literal(true)
 })
 export type SetSourceFilterIndexOutput = typeof SetSourceFilterIndexOutput.Type
@@ -195,14 +210,14 @@ export const SetSourceFilterIndexOutputJsonSchema = JSONSchema.make(SetSourceFil
 export const SetSourceFilterNameInput = Schema.extend(
   SourceFilterLocatorInput,
   Schema.Struct({
-    newFilterName: Schema.NonEmptyString
+    newFilterName: ObsNonEmptyString
   })
 )
 export type SetSourceFilterNameInput = typeof SetSourceFilterNameInput.Type
 export const SetSourceFilterNameInputJsonSchema = JSONSchema.make(SetSourceFilterNameInput)
 
 export const SetSourceFilterNameOutput = Schema.Struct({
-  filterName: Schema.String,
+  filterName: ObsString,
   acknowledged: Schema.Literal(true)
 })
 export type SetSourceFilterNameOutput = typeof SetSourceFilterNameOutput.Type
@@ -220,8 +235,8 @@ export type ObsSourceFilterListOutput = typeof ObsSourceFilterListOutput.Type
 
 export const ObsSourceFilterOutput = Schema.Struct({
   filterEnabled: Schema.Boolean,
-  filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
-  filterKind: Schema.String,
+  filterIndex: ObsNonNegativeInteger,
+  filterKind: ObsString,
   filterSettings: UnknownRecord
 })
 export type ObsSourceFilterOutput = typeof ObsSourceFilterOutput.Type

@@ -1,13 +1,19 @@
 import { JSONSchema, Schema } from "effect"
 
+import { ObsNonEmptyString, ObsNonNegativeInteger, ObsNumber, ObsString } from "./shared.js"
+
 import { SourceLocatorInput } from "./scenes.js"
 
-const ImageDimension = Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(8), Schema.lessThanOrEqualTo(4_096))
-const ImageCompressionQuality = Schema.Number.pipe(
+// Screenshot dimensions are bounded structural pixels, not branded image identities.
+const ImageDimension = ObsNumber.pipe(Schema.int(), Schema.greaterThanOrEqualTo(8), Schema.lessThanOrEqualTo(4_096))
+// OBS accepts -1 as "use default quality", so this remains a structural option value instead of a brand.
+const ImageCompressionQuality = ObsNumber.pipe(
   Schema.int(),
   Schema.greaterThanOrEqualTo(-1),
   Schema.lessThanOrEqualTo(100)
 )
+// A byte limit is a transport safety bound; branding would not add meaning beyond positive integer validation.
+const PositiveByteLimit = ObsNumber.pipe(Schema.int(), Schema.greaterThan(0))
 
 export const SourceScreenshotFormat = Schema.Literal("png", "jpg", "jpeg", "webp", "bmp")
 export type SourceScreenshotFormat = typeof SourceScreenshotFormat.Type
@@ -27,22 +33,22 @@ export const GetSourceScreenshotInputJsonSchema = JSONSchema.make(GetSourceScree
 export const GetSourceScreenshotOutput = Schema.Struct({
   imageFormat: SourceScreenshotFormat,
   mimeType: Schema.Literal("image/png", "image/jpeg", "image/webp", "image/bmp"),
-  imageBytes: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
-  maxImageBytes: Schema.Number.pipe(Schema.int(), Schema.greaterThan(0)),
-  base64Data: Schema.String
+  imageBytes: ObsNonNegativeInteger,
+  maxImageBytes: PositiveByteLimit,
+  base64Data: ObsString
 })
 export type GetSourceScreenshotOutput = typeof GetSourceScreenshotOutput.Type
 export const GetSourceScreenshotOutputJsonSchema = JSONSchema.make(GetSourceScreenshotOutput)
 
 export const ObsGetSourceScreenshotOutput = Schema.Struct({
-  imageData: Schema.String
+  imageData: ObsString
 })
 export type ObsGetSourceScreenshotOutput = typeof ObsGetSourceScreenshotOutput.Type
 
 export const SaveSourceScreenshotInput = Schema.extend(
   GetSourceScreenshotInput,
   Schema.Struct({
-    fileName: Schema.NonEmptyString.pipe(
+    fileName: ObsNonEmptyString.pipe(
       Schema.pattern(/^[A-Za-z0-9._-]+$/),
       Schema.filter((value) => value !== "." && value !== "..", {
         message: () => "fileName must be a simple filename, not a path"
@@ -54,7 +60,7 @@ export type SaveSourceScreenshotInput = typeof SaveSourceScreenshotInput.Type
 export const SaveSourceScreenshotInputJsonSchema = JSONSchema.make(SaveSourceScreenshotInput)
 
 export const SaveSourceScreenshotOutput = Schema.Struct({
-  imageFilePath: Schema.String,
+  imageFilePath: ObsString,
   imageFormat: SourceScreenshotFormat,
   saved: Schema.Literal(true)
 })
@@ -64,7 +70,7 @@ export const SaveSourceScreenshotOutputJsonSchema = JSONSchema.make(SaveSourceSc
 export const ObsSaveSourceScreenshotInput = Schema.extend(
   GetSourceScreenshotInput,
   Schema.Struct({
-    imageFilePath: Schema.NonEmptyString
+    imageFilePath: ObsNonEmptyString
   })
 )
 export type ObsSaveSourceScreenshotInput = typeof ObsSaveSourceScreenshotInput.Type

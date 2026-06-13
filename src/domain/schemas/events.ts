@@ -1,5 +1,7 @@
 import { JSONSchema, Schema } from "effect"
 
+import { ObsInteger, ObsNonNegativeInteger, ObsNumber, ObsPositiveInteger, ObsString } from "./shared.js"
+
 import { ObsMediaInputAction } from "./inputs.js"
 
 const DEFAULT_RECENT_OBS_EVENTS_LIMIT = 20
@@ -45,19 +47,19 @@ export const ObsInputAudioMonitorType = Schema.Literal(
 export type ObsInputAudioMonitorType = typeof ObsInputAudioMonitorType.Type
 
 const SceneCollectionEventData = Schema.Struct({
-  sceneCollectionName: Schema.String
+  sceneCollectionName: ObsString
 })
 
 const SceneCollectionListChangedEventData = Schema.Struct({
-  sceneCollections: Schema.Array(Schema.String)
+  sceneCollections: Schema.Array(ObsString)
 })
 
 const ProfileEventData = Schema.Struct({
-  profileName: Schema.String
+  profileName: ObsString
 })
 
 const ProfileListChangedEventData = Schema.Struct({
-  profiles: Schema.Array(Schema.String)
+  profiles: Schema.Array(ObsString)
 })
 
 const ExitStartedEventData = Schema.Struct({}).pipe(
@@ -68,7 +70,7 @@ const ExitStartedEventData = Schema.Struct({}).pipe(
   jsonSchema: { type: "object", properties: {}, additionalProperties: false }
 })
 
-const UnknownEventRecord = Schema.Record({ key: Schema.String, value: Schema.Unknown })
+const UnknownEventRecord = Schema.Record({ key: ObsString, value: Schema.Unknown })
 
 const pickEventFields = (eventData: unknown, keys: ReadonlyArray<string>): Record<string, unknown> => {
   const record = Schema.decodeUnknownSync(UnknownEventRecord)(eventData)
@@ -76,42 +78,42 @@ const pickEventFields = (eventData: unknown, keys: ReadonlyArray<string>): Recor
 }
 
 const CanvasEventData = Schema.Struct({
-  canvasName: Schema.String,
-  canvasUuid: Schema.String
+  canvasName: ObsString,
+  canvasUuid: ObsString
 })
 
 const CanvasNameChangedEventData = Schema.Struct({
-  canvasUuid: Schema.String,
-  oldCanvasName: Schema.String,
-  canvasName: Schema.String
+  canvasUuid: ObsString,
+  oldCanvasName: ObsString,
+  canvasName: ObsString
 })
 
 const SourceFilterEventData = Schema.Struct({
-  sourceName: Schema.String,
-  filterName: Schema.String
+  sourceName: ObsString,
+  filterName: ObsString
 })
 
 const SourceFilterCreatedEventData = Schema.extend(SourceFilterEventData)(
   Schema.Struct({
-    filterKind: Schema.String,
-    filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+    filterKind: ObsString,
+    filterIndex: ObsNonNegativeInteger
   })
 )
 
 const SourceFilterListItem = Schema.Struct({
-  filterName: Schema.String,
-  filterIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  filterName: ObsString,
+  filterIndex: ObsNonNegativeInteger
 })
 
 const SourceFilterListReindexedEventData = Schema.Struct({
-  sourceName: Schema.String,
+  sourceName: ObsString,
   filters: Schema.Array(SourceFilterListItem)
 })
 
 const SourceFilterNameChangedEventData = Schema.Struct({
-  sourceName: Schema.String,
-  oldFilterName: Schema.String,
-  filterName: Schema.String
+  sourceName: ObsString,
+  oldFilterName: ObsString,
+  filterName: ObsString
 })
 
 const SourceFilterEnableStateChangedEventData = Schema.extend(SourceFilterEventData)(
@@ -119,8 +121,8 @@ const SourceFilterEnableStateChangedEventData = Schema.extend(SourceFilterEventD
 )
 
 const SceneEventData = Schema.Struct({
-  sceneName: Schema.String,
-  sceneUuid: Schema.String
+  sceneName: ObsString,
+  sceneUuid: ObsString
 })
 
 const SceneGroupEventData = Schema.extend(SceneEventData)(
@@ -128,15 +130,15 @@ const SceneGroupEventData = Schema.extend(SceneEventData)(
 )
 
 const SceneNameChangedEventData = Schema.Struct({
-  sceneUuid: Schema.String,
-  oldSceneName: Schema.String,
-  sceneName: Schema.String
+  sceneUuid: ObsString,
+  oldSceneName: ObsString,
+  sceneName: ObsString
 })
 
 const SceneListItem = Schema.Struct({
-  sceneName: Schema.String,
-  sceneUuid: Schema.String,
-  sceneIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  sceneName: ObsString,
+  sceneUuid: ObsString,
+  sceneIndex: ObsNonNegativeInteger
 })
 
 const SceneListChangedEventData = Schema.Struct({
@@ -144,32 +146,32 @@ const SceneListChangedEventData = Schema.Struct({
 })
 
 const SceneItemEventData = Schema.Struct({
-  sceneName: Schema.String,
-  sceneUuid: Schema.String,
-  sceneItemId: Schema.Number.pipe(Schema.int())
+  sceneName: ObsString,
+  sceneUuid: ObsString,
+  sceneItemId: ObsInteger
 })
 
 const SceneItemSourceEventData = Schema.extend(SceneItemEventData)(
   Schema.Struct({
-    sourceName: Schema.String,
-    sourceUuid: Schema.String
+    sourceName: ObsString,
+    sourceUuid: ObsString
   })
 )
 
 const SceneItemCreatedEventData = Schema.extend(SceneItemSourceEventData)(
   Schema.Struct({
-    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+    sceneItemIndex: ObsNonNegativeInteger
   })
 )
 
 const ReindexedSceneItem = Schema.Struct({
-  sceneItemId: Schema.Number.pipe(Schema.int()),
-  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  sceneItemId: ObsInteger,
+  sceneItemIndex: ObsNonNegativeInteger
 })
 
 const SceneItemListReindexedEventData = Schema.Struct({
-  sceneName: Schema.String,
-  sceneUuid: Schema.String,
+  sceneName: ObsString,
+  sceneUuid: ObsString,
   sceneItems: Schema.Array(ReindexedSceneItem)
 })
 
@@ -182,14 +184,14 @@ const SceneItemLockStateChangedEventData = Schema.extend(SceneItemEventData)(
 )
 
 const InputEventData = Schema.Struct({
-  inputName: Schema.String,
-  inputUuid: Schema.String
+  inputName: ObsString,
+  inputUuid: ObsString
 })
 
 const InputNameChangedEventData = Schema.Struct({
-  inputUuid: Schema.String,
-  oldInputName: Schema.String,
-  inputName: Schema.String
+  inputUuid: ObsString,
+  oldInputName: ObsString,
+  inputName: ObsString
 })
 
 const InputMuteStateChangedEventData = Schema.extend(InputEventData)(
@@ -198,17 +200,17 @@ const InputMuteStateChangedEventData = Schema.extend(InputEventData)(
 
 const InputVolumeChangedEventData = Schema.extend(InputEventData)(
   Schema.Struct({
-    inputVolumeMul: Schema.Number,
-    inputVolumeDb: Schema.Number
+    inputVolumeMul: ObsNumber,
+    inputVolumeDb: ObsNumber
   })
 )
 
 const InputAudioBalanceChangedEventData = Schema.extend(InputEventData)(
-  Schema.Struct({ inputAudioBalance: Schema.Number })
+  Schema.Struct({ inputAudioBalance: ObsNumber })
 )
 
 const InputAudioSyncOffsetChangedEventData = Schema.extend(InputEventData)(
-  Schema.Struct({ inputAudioSyncOffset: Schema.Number })
+  Schema.Struct({ inputAudioSyncOffset: ObsNumber })
 )
 
 const InputAudioTracksChangedEventData = Schema.extend(InputEventData)(
@@ -234,24 +236,24 @@ const OutputStateChangedEventData = Schema.Struct({
 })
 
 const RecordStateChangedEventData = Schema.extend(OutputStateChangedEventData)(
-  Schema.Struct({ outputPath: Schema.NullOr(Schema.String) })
+  Schema.Struct({ outputPath: Schema.NullOr(ObsString) })
 )
 
 const RecordFileChangedEventData = Schema.Struct({
-  newOutputPath: Schema.String
+  newOutputPath: ObsString
 })
 
 const ReplayBufferSavedEventData = Schema.Struct({
-  savedReplayPath: Schema.String
+  savedReplayPath: ObsString
 })
 
 const TransitionEventData = Schema.Struct({
-  transitionName: Schema.String,
-  transitionUuid: Schema.String
+  transitionName: ObsString,
+  transitionUuid: ObsString
 })
 
 const TransitionDurationChangedEventData = Schema.Struct({
-  transitionDuration: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  transitionDuration: ObsNonNegativeInteger
 })
 
 const StudioModeStateChangedEventData = Schema.Struct({
@@ -259,7 +261,7 @@ const StudioModeStateChangedEventData = Schema.Struct({
 })
 
 const ScreenshotSavedEventData = Schema.Struct({
-  savedScreenshotPath: Schema.String
+  savedScreenshotPath: ObsString
 })
 
 const MediaInputEventData = InputEventData
@@ -419,7 +421,8 @@ export const decodeTypedObsEventData = (
   }
 }
 
-const RecentObsEventsLimit = Schema.Number.pipe(
+// Recent-event limit is a request-local page size, not a durable branded count type.
+const RecentObsEventsLimit = ObsNumber.pipe(
   Schema.int(),
   Schema.greaterThanOrEqualTo(1),
   Schema.lessThanOrEqualTo(MAX_RECENT_OBS_EVENTS_LIMIT)
@@ -434,18 +437,18 @@ export type GetRecentObsEventsInput = typeof GetRecentObsEventsInput.Type
 export const GetRecentObsEventsInputJsonSchema = JSONSchema.make(GetRecentObsEventsInput)
 
 export const ObsEventSummary = Schema.Struct({
-  sequence: Schema.Number.pipe(Schema.int(), Schema.positive()),
-  eventType: Schema.String,
-  eventIntent: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  sequence: ObsPositiveInteger,
+  eventType: ObsString,
+  eventIntent: ObsNonNegativeInteger,
   category: ObsEventCategory,
   eventData: Schema.optional(TypedObsEventData)
 })
 export type ObsEventSummary = typeof ObsEventSummary.Type
 
 export const GetRecentObsEventsOutput = Schema.Struct({
-  capacity: Schema.Number.pipe(Schema.int(), Schema.positive()),
-  droppedEvents: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
-  returnedEvents: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  capacity: ObsPositiveInteger,
+  droppedEvents: ObsNonNegativeInteger,
+  returnedEvents: ObsNonNegativeInteger,
   order: RecentObsEventsOrder,
   events: Schema.Array(ObsEventSummary)
 })

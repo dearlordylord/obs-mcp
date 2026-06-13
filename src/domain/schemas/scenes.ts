@@ -1,5 +1,7 @@
 import { JSONSchema, Schema } from "effect"
 
+import { ObsNonEmptyString, ObsNonNegativeInteger, ObsNumber, ObsString } from "./shared.js"
+
 export const ListScenesInput = Schema.Struct({
   includeGroups: Schema.optionalWith(Schema.Boolean, { default: () => true })
 })
@@ -7,44 +9,44 @@ export type ListScenesInput = typeof ListScenesInput.Type
 export const ListScenesInputJsonSchema = JSONSchema.make(ListScenesInput)
 
 export const SceneSummary = Schema.Struct({
-  sceneName: Schema.String,
-  sceneUuid: Schema.optional(Schema.String),
-  sceneIndex: Schema.Number,
+  sceneName: ObsString,
+  sceneUuid: Schema.optional(ObsString),
+  sceneIndex: ObsNumber,
   isGroup: Schema.optional(Schema.Boolean)
 })
 export type SceneSummary = typeof SceneSummary.Type
 
 export const ListScenesOutput = Schema.Struct({
-  currentProgramSceneName: Schema.NullOr(Schema.String),
-  currentProgramSceneUuid: Schema.NullOr(Schema.String),
-  currentPreviewSceneName: Schema.optional(Schema.NullOr(Schema.String)),
-  currentPreviewSceneUuid: Schema.optional(Schema.NullOr(Schema.String)),
+  currentProgramSceneName: Schema.NullOr(ObsString),
+  currentProgramSceneUuid: Schema.NullOr(ObsString),
+  currentPreviewSceneName: Schema.optional(Schema.NullOr(ObsString)),
+  currentPreviewSceneUuid: Schema.optional(Schema.NullOr(ObsString)),
   scenes: Schema.Array(SceneSummary)
 })
 export type ListScenesOutput = typeof ListScenesOutput.Type
 export const ListScenesOutputJsonSchema = JSONSchema.make(ListScenesOutput)
 
 export const ListGroupsOutput = Schema.Struct({
-  groups: Schema.Array(Schema.String)
+  groups: Schema.Array(ObsString)
 })
 export type ListGroupsOutput = typeof ListGroupsOutput.Type
 export const ListGroupsOutputJsonSchema = JSONSchema.make(ListGroupsOutput)
 
 export const CurrentSceneOutput = Schema.Struct({
-  sceneName: Schema.String,
-  sceneUuid: Schema.optional(Schema.String)
+  sceneName: ObsString,
+  sceneUuid: Schema.optional(ObsString)
 })
 export type CurrentSceneOutput = typeof CurrentSceneOutput.Type
 export const CurrentSceneOutputJsonSchema = JSONSchema.make(CurrentSceneOutput)
 
 export const SetCurrentSceneInput = Schema.Struct({
-  sceneName: Schema.NonEmptyString
+  sceneName: ObsNonEmptyString
 })
 export type SetCurrentSceneInput = typeof SetCurrentSceneInput.Type
 export const SetCurrentSceneInputJsonSchema = JSONSchema.make(SetCurrentSceneInput)
 
 export const SetCurrentSceneOutput = Schema.Struct({
-  sceneName: Schema.String,
+  sceneName: ObsString,
   switched: Schema.Literal(true)
 })
 export type SetCurrentSceneOutput = typeof SetCurrentSceneOutput.Type
@@ -53,15 +55,15 @@ export const SetCurrentSceneOutputJsonSchema = JSONSchema.make(SetCurrentSceneOu
 const ForbiddenLocatorField = Schema.optional(Schema.Never)
 
 export const SceneNameLocator = Schema.Struct({
-  sceneName: Schema.NonEmptyString,
+  sceneName: ObsNonEmptyString,
   sceneUuid: ForbiddenLocatorField,
-  canvasUuid: Schema.optional(Schema.NonEmptyString)
+  canvasUuid: Schema.optional(ObsNonEmptyString)
 })
 export type SceneNameLocator = typeof SceneNameLocator.Type
 
 export const SceneUuidLocator = Schema.Struct({
   sceneName: ForbiddenLocatorField,
-  sceneUuid: Schema.NonEmptyString,
+  sceneUuid: ObsNonEmptyString,
   canvasUuid: ForbiddenLocatorField
 })
 export type SceneUuidLocator = typeof SceneUuidLocator.Type
@@ -70,7 +72,7 @@ export const SceneLocator = Schema.Union(SceneNameLocator, SceneUuidLocator)
 export type SceneLocator = typeof SceneLocator.Type
 
 const PreviewSceneNameLocator = Schema.Struct({
-  sceneName: Schema.NonEmptyString,
+  sceneName: ObsNonEmptyString,
   sceneUuid: ForbiddenLocatorField,
   canvasUuid: ForbiddenLocatorField
 })
@@ -80,23 +82,23 @@ export type SetCurrentPreviewSceneInput = typeof SetCurrentPreviewSceneInput.Typ
 export const SetCurrentPreviewSceneInputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneInput)
 
 export const SetCurrentPreviewSceneOutput = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
   updated: Schema.Literal(true)
 })
 export type SetCurrentPreviewSceneOutput = typeof SetCurrentPreviewSceneOutput.Type
 export const SetCurrentPreviewSceneOutputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneOutput)
 
 export const CreateSceneInput = Schema.Struct({
-  sceneName: Schema.NonEmptyString,
-  canvasUuid: Schema.optional(Schema.NonEmptyString)
+  sceneName: ObsNonEmptyString,
+  canvasUuid: Schema.optional(ObsNonEmptyString)
 })
 export type CreateSceneInput = typeof CreateSceneInput.Type
 export const CreateSceneInputJsonSchema = JSONSchema.make(CreateSceneInput)
 
 export const CreateSceneOutput = Schema.Struct({
-  sceneName: Schema.String,
-  sceneUuid: Schema.optional(Schema.String),
+  sceneName: ObsString,
+  sceneUuid: Schema.optional(ObsString),
   created: Schema.Literal(true)
 })
 export type CreateSceneOutput = typeof CreateSceneOutput.Type
@@ -107,28 +109,28 @@ export type RemoveSceneInput = typeof RemoveSceneInput.Type
 export const RemoveSceneInputJsonSchema = JSONSchema.make(RemoveSceneInput)
 
 export const RemoveSceneOutput = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  canvasUuid: Schema.optional(Schema.String),
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  canvasUuid: Schema.optional(ObsString),
   removed: Schema.Literal(true)
 })
 export type RemoveSceneOutput = typeof RemoveSceneOutput.Type
 export const RemoveSceneOutputJsonSchema = JSONSchema.make(RemoveSceneOutput)
 
 const SetSceneNameFields = {
-  newSceneName: Schema.NonEmptyString
+  newSceneName: ObsNonEmptyString
 } as const
 
 export const SetSceneNameInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SetSceneNameFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SetSceneNameFields
   })
@@ -137,10 +139,10 @@ export type SetSceneNameInput = typeof SetSceneNameInput.Type
 export const SetSceneNameInputJsonSchema = JSONSchema.make(SetSceneNameInput)
 
 export const SetSceneNameOutput = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  canvasUuid: Schema.optional(Schema.String),
-  newSceneName: Schema.String,
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  canvasUuid: Schema.optional(ObsString),
+  newSceneName: ObsString,
   renamed: Schema.Literal(true)
 })
 export type SetSceneNameOutput = typeof SetSceneNameOutput.Type
@@ -148,7 +150,8 @@ export const SetSceneNameOutputJsonSchema = JSONSchema.make(SetSceneNameOutput)
 
 const MinTransitionDuration = 50
 const MaxTransitionDuration = 20000
-const TransitionDuration = Schema.Number.pipe(
+// Scene transition duration is a bounded structural millisecond value, not a branded transition identity.
+const TransitionDuration = ObsNumber.pipe(
   Schema.greaterThanOrEqualTo(MinTransitionDuration),
   Schema.lessThanOrEqualTo(MaxTransitionDuration)
 )
@@ -158,27 +161,27 @@ export type GetSceneTransitionOverrideInput = typeof GetSceneTransitionOverrideI
 export const GetSceneTransitionOverrideInputJsonSchema = JSONSchema.make(GetSceneTransitionOverrideInput)
 
 export const SceneTransitionOverrideOutput = Schema.Struct({
-  transitionName: Schema.NullOr(Schema.String),
-  transitionDuration: Schema.NullOr(Schema.Number)
+  transitionName: Schema.NullOr(ObsString),
+  transitionDuration: Schema.NullOr(ObsNumber)
 })
 export type SceneTransitionOverrideOutput = typeof SceneTransitionOverrideOutput.Type
 export const SceneTransitionOverrideOutputJsonSchema = JSONSchema.make(SceneTransitionOverrideOutput)
 
 const SetSceneTransitionOverrideFields = {
-  transitionName: Schema.optional(Schema.NullOr(Schema.NonEmptyString)),
+  transitionName: Schema.optional(Schema.NullOr(ObsNonEmptyString)),
   transitionDuration: Schema.optional(Schema.NullOr(TransitionDuration))
 } as const
 
 export const SetSceneTransitionOverrideInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SetSceneTransitionOverrideFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SetSceneTransitionOverrideFields
   })
@@ -187,26 +190,28 @@ export type SetSceneTransitionOverrideInput = typeof SetSceneTransitionOverrideI
 export const SetSceneTransitionOverrideInputJsonSchema = JSONSchema.make(SetSceneTransitionOverrideInput)
 
 export const SetSceneTransitionOverrideOutput = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  canvasUuid: Schema.optional(Schema.String),
-  transitionName: Schema.optional(Schema.NullOr(Schema.String)),
-  transitionDuration: Schema.optional(Schema.NullOr(Schema.Number)),
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  canvasUuid: Schema.optional(ObsString),
+  transitionName: Schema.optional(Schema.NullOr(ObsString)),
+  transitionDuration: Schema.optional(Schema.NullOr(ObsNumber)),
   updated: Schema.Literal(true)
 })
 export type SetSceneTransitionOverrideOutput = typeof SetSceneTransitionOverrideOutput.Type
 export const SetSceneTransitionOverrideOutputJsonSchema = JSONSchema.make(SetSceneTransitionOverrideOutput)
 
-const SceneItemId = Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+const SceneItemId = ObsNonNegativeInteger
 const LastMatchSearchOffset = -1
+// OBS permits -1 as a "last match" search sentinel; this locator offset is structural, not branded.
+const SceneItemSearchOffset = ObsNumber.pipe(Schema.int(), Schema.greaterThanOrEqualTo(LastMatchSearchOffset))
 
 export const SceneItemSummary = Schema.Struct({
   sceneItemId: SceneItemId,
-  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
-  sourceName: Schema.String,
-  sourceUuid: Schema.optional(Schema.String),
-  sourceType: Schema.optional(Schema.String),
-  inputKind: Schema.optional(Schema.NullOr(Schema.String)),
+  sceneItemIndex: ObsNonNegativeInteger,
+  sourceName: ObsString,
+  sourceUuid: Schema.optional(ObsString),
+  sourceType: Schema.optional(ObsString),
+  inputKind: Schema.optional(Schema.NullOr(ObsString)),
   isGroup: Schema.optional(Schema.NullOr(Schema.Boolean))
 })
 export type SceneItemSummary = typeof SceneItemSummary.Type
@@ -230,20 +235,20 @@ export type ListGroupSceneItemsOutput = typeof ListGroupSceneItemsOutput.Type
 export const ListGroupSceneItemsOutputJsonSchema = JSONSchema.make(ListGroupSceneItemsOutput)
 
 const SceneItemIdLookupFields = {
-  sourceName: Schema.NonEmptyString,
-  searchOffset: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(LastMatchSearchOffset)))
+  sourceName: ObsNonEmptyString,
+  searchOffset: Schema.optional(SceneItemSearchOffset)
 } as const
 
 export const GetSceneItemIdInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SceneItemIdLookupFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SceneItemIdLookupFields
   })
@@ -263,14 +268,14 @@ const SceneItemLocatorFields = {
 
 export const SceneItemLocatorInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SceneItemLocatorFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SceneItemLocatorFields
   })
@@ -283,22 +288,22 @@ export type GetSceneItemSourceInput = typeof GetSceneItemSourceInput.Type
 export const GetSceneItemSourceInputJsonSchema = JSONSchema.make(GetSceneItemSourceInput)
 
 export const GetSceneItemSourceOutput = Schema.Struct({
-  sourceName: Schema.String,
-  sourceUuid: Schema.String
+  sourceName: ObsString,
+  sourceUuid: ObsString
 })
 export type GetSceneItemSourceOutput = typeof GetSceneItemSourceOutput.Type
 export const GetSceneItemSourceOutputJsonSchema = JSONSchema.make(GetSceneItemSourceOutput)
 
 export const SourceNameLocator = Schema.Struct({
-  sourceName: Schema.NonEmptyString,
+  sourceName: ObsNonEmptyString,
   sourceUuid: ForbiddenLocatorField,
-  canvasUuid: Schema.optional(Schema.NonEmptyString)
+  canvasUuid: Schema.optional(ObsNonEmptyString)
 })
 export type SourceNameLocator = typeof SourceNameLocator.Type
 
 export const SourceUuidLocator = Schema.Struct({
   sourceName: ForbiddenLocatorField,
-  sourceUuid: Schema.NonEmptyString,
+  sourceUuid: ObsNonEmptyString,
   canvasUuid: ForbiddenLocatorField
 })
 export type SourceUuidLocator = typeof SourceUuidLocator.Type
@@ -314,8 +319,8 @@ export const GetSourceActiveInputJsonSchema = JSONSchema.make(GetSourceActiveInp
 export const GetSourceActiveOutput = Schema.Struct({
   videoActive: Schema.Boolean,
   videoShowing: Schema.Boolean,
-  sourceName: Schema.optional(Schema.String),
-  sourceUuid: Schema.optional(Schema.String)
+  sourceName: Schema.optional(ObsString),
+  sourceUuid: Schema.optional(ObsString)
 })
 export type GetSourceActiveOutput = typeof GetSourceActiveOutput.Type
 export const GetSourceActiveOutputJsonSchema = JSONSchema.make(GetSourceActiveOutput)
@@ -332,15 +337,15 @@ export const GetSceneItemEnabledOutputJsonSchema = JSONSchema.make(GetSceneItemE
 
 export const SetSceneItemEnabledInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SceneItemLocatorFields,
     sceneItemEnabled: Schema.Boolean
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SceneItemLocatorFields,
     sceneItemEnabled: Schema.Boolean
@@ -368,15 +373,15 @@ export const GetSceneItemLockedOutputJsonSchema = JSONSchema.make(GetSceneItemLo
 
 export const SetSceneItemLockedInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SceneItemLocatorFields,
     sceneItemLocked: Schema.Boolean
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SceneItemLocatorFields,
     sceneItemLocked: Schema.Boolean
@@ -397,7 +402,7 @@ export type GetSceneItemIndexInput = typeof GetSceneItemIndexInput.Type
 export const GetSceneItemIndexInputJsonSchema = JSONSchema.make(GetSceneItemIndexInput)
 
 export const GetSceneItemIndexOutput = Schema.Struct({
-  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  sceneItemIndex: ObsNonNegativeInteger
 })
 export type GetSceneItemIndexOutput = typeof GetSceneItemIndexOutput.Type
 export const GetSceneItemIndexOutputJsonSchema = JSONSchema.make(GetSceneItemIndexOutput)
@@ -425,25 +430,25 @@ export const GetSceneItemBlendModeOutputJsonSchema = JSONSchema.make(GetSceneIte
 
 export const SetSceneItemIndexInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SceneItemLocatorFields,
-    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+    sceneItemIndex: ObsNonNegativeInteger
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SceneItemLocatorFields,
-    sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+    sceneItemIndex: ObsNonNegativeInteger
   })
 )
 export type SetSceneItemIndexInput = typeof SetSceneItemIndexInput.Type
 export const SetSceneItemIndexInputJsonSchema = JSONSchema.make(SetSceneItemIndexInput)
 
 export const SetSceneItemIndexOutput = Schema.Struct({
-  sceneItemIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
+  sceneItemIndex: ObsNonNegativeInteger,
   updated: Schema.Literal(true)
 })
 export type SetSceneItemIndexOutput = typeof SetSceneItemIndexOutput.Type
@@ -451,15 +456,15 @@ export const SetSceneItemIndexOutputJsonSchema = JSONSchema.make(SetSceneItemInd
 
 export const SetSceneItemBlendModeInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     ...SceneItemLocatorFields,
     sceneItemBlendMode: SceneItemBlendMode
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     ...SceneItemLocatorFields,
     sceneItemBlendMode: SceneItemBlendMode

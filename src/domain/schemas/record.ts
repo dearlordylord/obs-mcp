@@ -1,6 +1,6 @@
 import { JSONSchema, Schema } from "effect"
 
-import { OutputActiveState } from "./shared.js"
+import { ObsNonEmptyString, ObsString, OutputActiveState } from "./shared.js"
 
 const recordAcknowledgementOutput = <RequestType extends string>(requestType: RequestType) =>
   Schema.Struct({
@@ -17,7 +17,7 @@ export type SplitRecordFileOutput = typeof SplitRecordFileOutput.Type
 export const SplitRecordFileOutputJsonSchema = JSONSchema.make(SplitRecordFileOutput)
 
 export const CreateRecordChapterInput = Schema.Struct({
-  chapterName: Schema.optional(Schema.NonEmptyString)
+  chapterName: Schema.optional(ObsNonEmptyString)
 })
 export type CreateRecordChapterInput = typeof CreateRecordChapterInput.Type
 export const CreateRecordChapterInputJsonSchema = JSONSchema.make(CreateRecordChapterInput)
@@ -29,7 +29,7 @@ export const CreateRecordChapterOutputJsonSchema = JSONSchema.make(CreateRecordC
 export const StopRecordOutput = Schema.Struct({
   requestType: Schema.Literal("StopRecord"),
   acknowledged: Schema.Literal(true),
-  outputPath: Schema.String
+  outputPath: ObsString
 })
 export type StopRecordOutput = typeof StopRecordOutput.Type
 export const StopRecordOutputJsonSchema = JSONSchema.make(StopRecordOutput)

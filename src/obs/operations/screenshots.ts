@@ -11,6 +11,7 @@ import type {
   SaveSourceScreenshotOutput,
   SourceScreenshotFormat
 } from "../../domain/schemas/screenshots.js"
+import { ObsString } from "../../domain/schemas/shared.js"
 import type { ObsClient } from "../client.js"
 import { GetSourceScreenshot, SaveSourceScreenshot } from "../requests.js"
 
@@ -35,13 +36,13 @@ const parseScreenshotData = (
   }
   const [, mimeTypeText, base64Data] = match
   const mimeType = Schema.decodeUnknownSync(ScreenshotSchemas.GetSourceScreenshotOutput.fields.mimeType)(
-    Schema.decodeUnknownSync(Schema.String)(mimeTypeText)
+    Schema.decodeUnknownSync(ObsString)(mimeTypeText)
   )
   const expectedMimeType = mimeForFormat(requestedFormat)
   if (mimeType !== expectedMimeType) {
     throw new Error(`OBS screenshot MIME ${mimeType} does not match requested ${expectedMimeType}`)
   }
-  return { base64Data: Schema.decodeUnknownSync(Schema.String)(base64Data), mimeType }
+  return { base64Data: Schema.decodeUnknownSync(ObsString)(base64Data), mimeType }
 }
 
 export const getSourceScreenshot = async (

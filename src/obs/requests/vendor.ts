@@ -1,11 +1,12 @@
 import { Schema } from "effect"
 
+import { ObsString } from "../../domain/schemas/shared.js"
 import { BroadcastCustomEventInput, CallVendorRequestInput, JsonSafeObject } from "../../domain/schemas/vendor.js"
 import { type ObsRequestDescriptor } from "./shared.js"
 
 const CallVendorRequestResponse = Schema.Struct({
-  vendorName: Schema.String,
-  requestType: Schema.String,
+  vendorName: ObsString,
+  requestType: ObsString,
   responseData: JsonSafeObject
 })
 type CallVendorRequestResponse = typeof CallVendorRequestResponse.Type

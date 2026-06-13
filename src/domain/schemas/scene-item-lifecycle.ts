@@ -1,9 +1,11 @@
 import { JSONSchema, Schema } from "effect"
 
+import { ObsNonEmptyString, ObsNonNegativeInteger, ObsString } from "./shared.js"
+
 import { SceneItemLocatorInput } from "./scenes.js"
 
 const ForbiddenLocatorField = Schema.optional(Schema.Never)
-const SceneItemId = Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+const SceneItemId = ObsNonNegativeInteger
 
 const CreateSceneItemFields = {
   sceneItemEnabled: Schema.optional(Schema.Boolean)
@@ -11,35 +13,35 @@ const CreateSceneItemFields = {
 
 export const CreateSceneItemInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
-    sourceName: Schema.NonEmptyString,
+    canvasUuid: Schema.optional(ObsNonEmptyString),
+    sourceName: ObsNonEmptyString,
     sourceUuid: ForbiddenLocatorField,
     ...CreateSceneItemFields
   }),
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     sourceName: ForbiddenLocatorField,
-    sourceUuid: Schema.NonEmptyString,
+    sourceUuid: ObsNonEmptyString,
     ...CreateSceneItemFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
-    sourceName: Schema.NonEmptyString,
+    sourceName: ObsNonEmptyString,
     sourceUuid: ForbiddenLocatorField,
     ...CreateSceneItemFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     sourceName: ForbiddenLocatorField,
-    sourceUuid: Schema.NonEmptyString,
+    sourceUuid: ObsNonEmptyString,
     ...CreateSceneItemFields
   })
 )
@@ -47,11 +49,11 @@ export type CreateSceneItemInput = typeof CreateSceneItemInput.Type
 export const CreateSceneItemInputJsonSchema = JSONSchema.make(CreateSceneItemInput)
 
 export const CreateSceneItemOutput = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  canvasUuid: Schema.optional(Schema.String),
-  sourceName: Schema.optional(Schema.String),
-  sourceUuid: Schema.optional(Schema.String),
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  canvasUuid: Schema.optional(ObsString),
+  sourceName: Schema.optional(ObsString),
+  sourceUuid: Schema.optional(ObsString),
   sceneItemId: SceneItemId,
   created: Schema.Literal(true)
 })
@@ -63,9 +65,9 @@ export type RemoveSceneItemInput = typeof RemoveSceneItemInput.Type
 export const RemoveSceneItemInputJsonSchema = JSONSchema.make(RemoveSceneItemInput)
 
 export const RemoveSceneItemOutput = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  canvasUuid: Schema.optional(Schema.String),
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  canvasUuid: Schema.optional(ObsString),
   sceneItemId: SceneItemId,
   removed: Schema.Literal(true)
 })
@@ -73,21 +75,21 @@ export type RemoveSceneItemOutput = typeof RemoveSceneItemOutput.Type
 export const RemoveSceneItemOutputJsonSchema = JSONSchema.make(RemoveSceneItemOutput)
 
 const DuplicateSceneItemDestinationFields = {
-  destinationSceneName: Schema.optional(Schema.NonEmptyString),
-  destinationSceneUuid: Schema.optional(Schema.NonEmptyString)
+  destinationSceneName: Schema.optional(ObsNonEmptyString),
+  destinationSceneUuid: Schema.optional(ObsNonEmptyString)
 } as const
 
 export const DuplicateSceneItemInput = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: ForbiddenLocatorField,
-    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    canvasUuid: Schema.optional(ObsNonEmptyString),
     sceneItemId: SceneItemId,
     ...DuplicateSceneItemDestinationFields
   }),
   Schema.Struct({
     sceneName: ForbiddenLocatorField,
-    sceneUuid: Schema.NonEmptyString,
+    sceneUuid: ObsNonEmptyString,
     canvasUuid: ForbiddenLocatorField,
     sceneItemId: SceneItemId,
     ...DuplicateSceneItemDestinationFields
@@ -101,11 +103,11 @@ export type DuplicateSceneItemInput = typeof DuplicateSceneItemInput.Type
 export const DuplicateSceneItemInputJsonSchema = JSONSchema.make(DuplicateSceneItemInput)
 
 export const DuplicateSceneItemOutput = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  canvasUuid: Schema.optional(Schema.String),
-  destinationSceneName: Schema.optional(Schema.String),
-  destinationSceneUuid: Schema.optional(Schema.String),
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  canvasUuid: Schema.optional(ObsString),
+  destinationSceneName: Schema.optional(ObsString),
+  destinationSceneUuid: Schema.optional(ObsString),
   sceneItemId: SceneItemId,
   duplicated: Schema.Literal(true)
 })

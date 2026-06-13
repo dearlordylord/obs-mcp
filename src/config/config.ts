@@ -1,5 +1,7 @@
 import { Effect, Schema } from "effect"
 
+import { ObsNonEmptyString, ObsPositiveInteger, ObsString } from "../domain/schemas/shared.js"
+
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
 
 const Toolset = Schema.Literal(
@@ -26,15 +28,15 @@ const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes",
 const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
 const DEFAULT_OBS_CONNECTION_TIMEOUT = 30_000
 
-const EventBufferCapacity = Schema.Number.pipe(Schema.int(), Schema.positive())
+const EventBufferCapacity = ObsPositiveInteger
 
 export const ObsConfig = Schema.Struct({
-  url: Schema.String,
-  password: Schema.OptionFromNullOr(Schema.String),
-  connectionTimeoutMs: Schema.Number.pipe(Schema.int(), Schema.positive()),
+  url: ObsString,
+  password: Schema.OptionFromNullOr(ObsString),
+  connectionTimeoutMs: ObsPositiveInteger,
   enabledToolsets: Schema.Array(Toolset),
   eventBufferCapacity: Schema.optional(EventBufferCapacity),
-  screenshotOutputDirectory: Schema.optional(Schema.NonEmptyString)
+  screenshotOutputDirectory: Schema.optional(ObsNonEmptyString)
 })
 export type ObsConfig = typeof ObsConfig.Type
 

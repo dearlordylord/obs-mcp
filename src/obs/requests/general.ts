@@ -6,19 +6,19 @@ import {
   TriggerHotkeyByKeySequenceInput,
   TriggerHotkeyByNameInput
 } from "../../domain/schemas/general.js"
-import { StringArray } from "../../domain/schemas/shared.js"
+import { ObsNumber, ObsString, StringArray } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
 const EmptyResponseData = Schema.Struct({})
 
 const GetVersionResponse = Schema.Struct({
-  obsVersion: Schema.String,
-  obsWebSocketVersion: Schema.String,
-  rpcVersion: Schema.Number,
+  obsVersion: ObsString,
+  obsWebSocketVersion: ObsString,
+  rpcVersion: ObsNumber,
   availableRequests: StringArray,
   supportedImageFormats: StringArray,
-  platform: Schema.optional(Schema.String),
-  platformDescription: Schema.optional(Schema.String)
+  platform: Schema.optional(ObsString),
+  platformDescription: Schema.optional(ObsString)
 })
 type GetVersionResponse = typeof GetVersionResponse.Type
 

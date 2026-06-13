@@ -1,6 +1,6 @@
 import { Schema } from "effect"
 
-import { UnknownRecord } from "../domain/schemas/shared.js"
+import { ObsNumber, ObsString, UnknownRecord } from "../domain/schemas/shared.js"
 
 const OP_HELLO = 0
 export const OP_IDENTIFY = 1
@@ -123,16 +123,16 @@ const OFFICIAL_EVENT_SUBSCRIPTIONS = new Map<string, number>([
 ])
 
 const ObsAuthenticationSchema = Schema.Struct({
-  challenge: Schema.String,
-  salt: Schema.String
+  challenge: ObsString,
+  salt: ObsString
 })
 
 const HelloEnvelope = Schema.Struct({
   op: Schema.Literal(OP_HELLO),
   d: Schema.Struct({
-    obsStudioVersion: Schema.String,
-    obsWebSocketVersion: Schema.String,
-    rpcVersion: Schema.Number,
+    obsStudioVersion: ObsString,
+    obsWebSocketVersion: ObsString,
+    rpcVersion: ObsNumber,
     authentication: Schema.optional(ObsAuthenticationSchema)
   })
 })
@@ -140,21 +140,21 @@ const HelloEnvelope = Schema.Struct({
 const IdentifiedEnvelope = Schema.Struct({
   op: Schema.Literal(OP_IDENTIFIED),
   d: Schema.Struct({
-    negotiatedRpcVersion: Schema.Number
+    negotiatedRpcVersion: ObsNumber
   })
 })
 
 const RequestStatus = Schema.Struct({
   result: Schema.Boolean,
-  code: Schema.Number,
-  comment: Schema.optional(Schema.String)
+  code: ObsNumber,
+  comment: Schema.optional(ObsString)
 })
 
 export const RequestResponseEnvelope = Schema.Struct({
   op: Schema.Literal(OP_REQUEST_RESPONSE),
   d: Schema.Struct({
-    requestType: Schema.String,
-    requestId: Schema.String,
+    requestType: ObsString,
+    requestId: ObsString,
     requestStatus: RequestStatus,
     responseData: Schema.optional(UnknownRecord)
   })
@@ -164,10 +164,10 @@ export type RequestResponseEnvelope = typeof RequestResponseEnvelope.Type
 export const RequestBatchResponseEnvelope = Schema.Struct({
   op: Schema.Literal(OP_REQUEST_BATCH_RESPONSE),
   d: Schema.Struct({
-    requestId: Schema.String,
+    requestId: ObsString,
     results: Schema.Array(Schema.Struct({
-      requestType: Schema.String,
-      requestId: Schema.optional(Schema.String),
+      requestType: ObsString,
+      requestId: Schema.optional(ObsString),
       requestStatus: RequestStatus,
       responseData: Schema.optional(UnknownRecord)
     }))
@@ -178,8 +178,8 @@ export type RequestBatchResponseEnvelope = typeof RequestBatchResponseEnvelope.T
 export const EventEnvelope = Schema.Struct({
   op: Schema.Literal(OP_EVENT),
   d: Schema.Struct({
-    eventType: Schema.String,
-    eventIntent: Schema.Number,
+    eventType: ObsString,
+    eventIntent: ObsNumber,
     eventData: Schema.optional(UnknownRecord)
   })
 })

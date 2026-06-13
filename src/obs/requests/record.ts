@@ -2,7 +2,7 @@ import { Schema } from "effect"
 
 import { RecordStatusOutput } from "../../domain/schemas/general.js"
 import { CreateRecordChapterInput, ToggleRecordOutput } from "../../domain/schemas/record.js"
-import { UnknownRecord } from "../../domain/schemas/shared.js"
+import { ObsString, UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
 export const GetRecordStatus = {
@@ -20,7 +20,7 @@ export const StartRecord = {
 export const StopRecord = {
   requestType: "StopRecord",
   requestDataSchema: EmptyRequestData,
-  responseSchema: Schema.Struct({ outputPath: Schema.String })
+  responseSchema: Schema.Struct({ outputPath: ObsString })
 } satisfies ObsRequestDescriptor<{ readonly outputPath: string }>
 
 export const ToggleRecord = {

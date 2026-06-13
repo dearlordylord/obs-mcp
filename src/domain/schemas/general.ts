@@ -1,33 +1,33 @@
 import { JSONSchema, Schema } from "effect"
 
-import { StringArray } from "./shared.js"
+import { ObsNonEmptyString, ObsNumber, ObsString, StringArray } from "./shared.js"
 
 export const VersionOutput = Schema.Struct({
-  obsVersion: Schema.String,
-  obsWebSocketVersion: Schema.String,
-  rpcVersion: Schema.Number,
-  negotiatedRpcVersion: Schema.Number,
+  obsVersion: ObsString,
+  obsWebSocketVersion: ObsString,
+  rpcVersion: ObsNumber,
+  negotiatedRpcVersion: ObsNumber,
   availableRequests: StringArray,
   supportedImageFormats: StringArray,
-  platform: Schema.optional(Schema.String),
-  platformDescription: Schema.optional(Schema.String)
+  platform: Schema.optional(ObsString),
+  platformDescription: Schema.optional(ObsString)
 })
 
 export type VersionOutput = typeof VersionOutput.Type
 export const VersionOutputJsonSchema = JSONSchema.make(VersionOutput)
 
 export const ObsStatsOutput = Schema.Struct({
-  cpuUsage: Schema.Number,
-  memoryUsage: Schema.Number,
-  availableDiskSpace: Schema.Number,
-  activeFps: Schema.Number,
-  averageFrameRenderTime: Schema.Number,
-  renderSkippedFrames: Schema.Number,
-  renderTotalFrames: Schema.Number,
-  outputSkippedFrames: Schema.Number,
-  outputTotalFrames: Schema.Number,
-  webSocketSessionIncomingMessages: Schema.Number,
-  webSocketSessionOutgoingMessages: Schema.Number
+  cpuUsage: ObsNumber,
+  memoryUsage: ObsNumber,
+  availableDiskSpace: ObsNumber,
+  activeFps: ObsNumber,
+  averageFrameRenderTime: ObsNumber,
+  renderSkippedFrames: ObsNumber,
+  renderTotalFrames: ObsNumber,
+  outputSkippedFrames: ObsNumber,
+  outputTotalFrames: ObsNumber,
+  webSocketSessionIncomingMessages: ObsNumber,
+  webSocketSessionOutgoingMessages: ObsNumber
 })
 
 export type ObsStatsOutput = typeof ObsStatsOutput.Type
@@ -36,30 +36,30 @@ export const ObsStatsOutputJsonSchema = JSONSchema.make(ObsStatsOutput)
 export const RecordStatusOutput = Schema.Struct({
   outputActive: Schema.Boolean,
   outputPaused: Schema.Boolean,
-  outputTimecode: Schema.String,
-  outputDuration: Schema.Number,
-  outputBytes: Schema.Number
+  outputTimecode: ObsString,
+  outputDuration: ObsNumber,
+  outputBytes: ObsNumber
 })
 
 export type RecordStatusOutput = typeof RecordStatusOutput.Type
 export const RecordStatusOutputJsonSchema = JSONSchema.make(RecordStatusOutput)
 
 export const HotkeyListOutput = Schema.Struct({
-  hotkeys: Schema.Array(Schema.String)
+  hotkeys: Schema.Array(ObsString)
 })
 export type HotkeyListOutput = typeof HotkeyListOutput.Type
 export const HotkeyListOutputJsonSchema = JSONSchema.make(HotkeyListOutput)
 
 export const TriggerHotkeyByNameInput = Schema.Struct({
-  hotkeyName: Schema.NonEmptyString,
-  contextName: Schema.optional(Schema.NonEmptyString)
+  hotkeyName: ObsNonEmptyString,
+  contextName: Schema.optional(ObsNonEmptyString)
 })
 export type TriggerHotkeyByNameInput = typeof TriggerHotkeyByNameInput.Type
 export const TriggerHotkeyByNameInputJsonSchema = JSONSchema.make(TriggerHotkeyByNameInput)
 
 export const TriggerHotkeyByNameOutput = Schema.Struct({
-  hotkeyName: Schema.String,
-  contextName: Schema.optional(Schema.String),
+  hotkeyName: ObsString,
+  contextName: Schema.optional(ObsString),
   triggered: Schema.Literal(true)
 })
 export type TriggerHotkeyByNameOutput = typeof TriggerHotkeyByNameOutput.Type
@@ -79,7 +79,7 @@ export type HotkeyModifiers = typeof HotkeyModifiers.Type
 export const HotkeyModifiersJsonSchema = JSONSchema.make(HotkeyModifiers)
 
 export const TriggerHotkeyByKeySequenceInput = Schema.Struct({
-  keyId: Schema.optional(Schema.NonEmptyString),
+  keyId: Schema.optional(ObsNonEmptyString),
   keyModifiers: Schema.optional(HotkeyModifiers)
 }).pipe(
   Schema.filter((input) => input.keyId !== undefined || input.keyModifiers !== undefined, {
@@ -90,7 +90,7 @@ export type TriggerHotkeyByKeySequenceInput = typeof TriggerHotkeyByKeySequenceI
 export const TriggerHotkeyByKeySequenceInputJsonSchema = JSONSchema.make(TriggerHotkeyByKeySequenceInput)
 
 export const TriggerHotkeyByKeySequenceOutput = Schema.Struct({
-  keyId: Schema.optional(Schema.String),
+  keyId: Schema.optional(ObsString),
   keyModifiers: Schema.optional(HotkeyModifiers),
   triggered: Schema.Literal(true)
 })

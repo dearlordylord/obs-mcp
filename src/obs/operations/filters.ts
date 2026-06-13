@@ -31,6 +31,7 @@ import {
   SourceFilterOutput as SourceFilterOutputSchema
 } from "../../domain/schemas/filters.js"
 import { SourceLocatorInput } from "../../domain/schemas/scenes.js"
+import { JsonRecordKey } from "../../domain/schemas/shared.js"
 import type { ObsClient } from "../client.js"
 import {
   CreateSourceFilter,
@@ -83,7 +84,7 @@ const indexField = (record: Readonly<Record<string, unknown>>, key: string, fall
 
 const settingsField = (record: Readonly<Record<string, unknown>>, key: string): Readonly<Record<string, unknown>> =>
   typeof record[key] === "object" && record[key] !== null && !Array.isArray(record[key])
-    ? Schema.decodeUnknownSync(Schema.Record({ key: Schema.String, value: Schema.Unknown }))(record[key])
+    ? Schema.decodeUnknownSync(Schema.Record({ key: JsonRecordKey, value: Schema.Unknown }))(record[key])
     : {}
 
 const sanitizeFilterSummary = (

@@ -1,5 +1,7 @@
 import { Schema } from "effect"
 
+import { ObsString } from "./shared.js"
+
 export type JsonSafeValue =
   | null
   | boolean
@@ -49,7 +51,7 @@ export const PersistentDataRealm = Schema.Literal(
 )
 export type PersistentDataRealm = typeof PersistentDataRealm.Type
 
-export const PersistentDataSlotName = Schema.String.pipe(Schema.minLength(1))
+export const PersistentDataSlotName = ObsString.pipe(Schema.minLength(1))
 
 export const PersistentDataLocatorInput = Schema.Struct({
   realm: PersistentDataRealm,

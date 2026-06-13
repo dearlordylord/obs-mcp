@@ -1,10 +1,18 @@
 import { JSONSchema, Schema } from "effect"
 
-import { OutputActiveState, OutputActiveSwitchState } from "./shared.js"
+import {
+  ObsInteger,
+  ObsNonEmptyString,
+  ObsNonNegativeInteger,
+  ObsNumber,
+  ObsString,
+  OutputActiveState,
+  OutputActiveSwitchState
+} from "./shared.js"
 
 export const OutputSummary = Schema.Struct({
-  outputName: Schema.String,
-  outputKind: Schema.String,
+  outputName: ObsString,
+  outputKind: ObsString,
   outputActive: Schema.Boolean
 })
 export type OutputSummary = typeof OutputSummary.Type
@@ -16,7 +24,7 @@ export type ListOutputsOutput = typeof ListOutputsOutput.Type
 export const ListOutputsOutputJsonSchema = JSONSchema.make(ListOutputsOutput)
 
 export const GetOutputStatusInput = Schema.Struct({
-  outputName: Schema.NonEmptyString
+  outputName: ObsNonEmptyString
 })
 export type GetOutputStatusInput = typeof GetOutputStatusInput.Type
 export const GetOutputStatusInputJsonSchema = JSONSchema.make(GetOutputStatusInput)
@@ -24,12 +32,12 @@ export const GetOutputStatusInputJsonSchema = JSONSchema.make(GetOutputStatusInp
 export const OutputStatusResponse = Schema.Struct({
   outputActive: Schema.Boolean,
   outputReconnecting: Schema.Boolean,
-  outputTimecode: Schema.String,
-  outputDuration: Schema.Number,
-  outputCongestion: Schema.Number,
-  outputBytes: Schema.Number,
-  outputSkippedFrames: Schema.Number.pipe(Schema.int()),
-  outputTotalFrames: Schema.Number.pipe(Schema.int())
+  outputTimecode: ObsString,
+  outputDuration: ObsNumber,
+  outputCongestion: ObsNumber,
+  outputBytes: ObsNumber,
+  outputSkippedFrames: ObsInteger,
+  outputTotalFrames: ObsInteger
 })
 export type OutputStatusResponse = typeof OutputStatusResponse.Type
 
@@ -45,7 +53,7 @@ export type OutputLifecycleInput = typeof OutputLifecycleInput.Type
 export const OutputLifecycleInputJsonSchema = JSONSchema.make(OutputLifecycleInput)
 
 export const OutputLifecycleOutput = Schema.Struct({
-  outputName: Schema.String,
+  outputName: ObsString,
   outputActive: Schema.Boolean,
   updated: Schema.Literal(true)
 })
@@ -53,15 +61,15 @@ export type OutputLifecycleOutput = typeof OutputLifecycleOutput.Type
 export const OutputLifecycleOutputJsonSchema = JSONSchema.make(OutputLifecycleOutput)
 
 export const OutputSettings = Schema.Struct({
-  path: Schema.optional(Schema.NonEmptyString),
-  format_name: Schema.optional(Schema.NonEmptyString),
-  muxer_settings: Schema.optional(Schema.String),
-  video_encoder: Schema.optional(Schema.NonEmptyString),
-  audio_encoder: Schema.optional(Schema.NonEmptyString),
+  path: Schema.optional(ObsNonEmptyString),
+  format_name: Schema.optional(ObsNonEmptyString),
+  muxer_settings: Schema.optional(ObsString),
+  video_encoder: Schema.optional(ObsNonEmptyString),
+  audio_encoder: Schema.optional(ObsNonEmptyString),
   replay_buffer: Schema.optional(Schema.Boolean),
-  max_time_sec: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  max_size_mb: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  max_shutdown_time_sec: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)))
+  max_time_sec: Schema.optional(ObsNonNegativeInteger),
+  max_size_mb: Schema.optional(ObsNonNegativeInteger),
+  max_shutdown_time_sec: Schema.optional(ObsNonNegativeInteger)
 })
 export type OutputSettings = typeof OutputSettings.Type
 
@@ -97,7 +105,7 @@ export type SetOutputSettingsInput = typeof SetOutputSettingsInput.Type
 export const SetOutputSettingsInputJsonSchema = JSONSchema.make(SetOutputSettingsInput)
 
 export const SetOutputSettingsOutput = Schema.Struct({
-  outputName: Schema.String,
+  outputName: ObsString,
   outputSettings: OutputSettings,
   updated: Schema.Literal(true)
 })
@@ -128,7 +136,7 @@ export type SaveReplayBufferOutput = typeof SaveReplayBufferOutput.Type
 export const SaveReplayBufferOutputJsonSchema = JSONSchema.make(SaveReplayBufferOutput)
 
 export const LastReplayBufferReplayOutput = Schema.Struct({
-  savedReplayPath: Schema.String
+  savedReplayPath: ObsString
 })
 export type LastReplayBufferReplayOutput = typeof LastReplayBufferReplayOutput.Type
 export const LastReplayBufferReplayOutputJsonSchema = JSONSchema.make(LastReplayBufferReplayOutput)

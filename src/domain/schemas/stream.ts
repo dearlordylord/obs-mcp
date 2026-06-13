@@ -1,16 +1,16 @@
 import { JSONSchema, Schema } from "effect"
 
-import { OutputActiveState } from "./shared.js"
+import { ObsNonEmptyString, ObsNumber, ObsString, OutputActiveState } from "./shared.js"
 
 export const StreamStatusOutput = Schema.Struct({
   outputActive: Schema.Boolean,
   outputReconnecting: Schema.Boolean,
-  outputTimecode: Schema.String,
-  outputDuration: Schema.Number,
-  outputCongestion: Schema.Number,
-  outputBytes: Schema.Number,
-  outputSkippedFrames: Schema.Number,
-  outputTotalFrames: Schema.Number
+  outputTimecode: ObsString,
+  outputDuration: ObsNumber,
+  outputCongestion: ObsNumber,
+  outputBytes: ObsNumber,
+  outputSkippedFrames: ObsNumber,
+  outputTotalFrames: ObsNumber
 })
 export type StreamStatusOutput = typeof StreamStatusOutput.Type
 export const StreamStatusOutputJsonSchema = JSONSchema.make(StreamStatusOutput)
@@ -28,7 +28,7 @@ export type ToggleStreamOutput = typeof ToggleStreamOutput.Type
 export const ToggleStreamOutputJsonSchema = JSONSchema.make(ToggleStreamOutput)
 
 export const SendStreamCaptionInput = Schema.Struct({
-  captionText: Schema.NonEmptyString
+  captionText: ObsNonEmptyString
 })
 export type SendStreamCaptionInput = typeof SendStreamCaptionInput.Type
 export const SendStreamCaptionInputJsonSchema = JSONSchema.make(SendStreamCaptionInput)

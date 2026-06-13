@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto"
 import WebSocket from "ws"
 
 import { type ObsConfig, redactedObsWebSocketUrl } from "../config/config.js"
-import { UnknownRecord } from "../domain/schemas/shared.js"
+import { ObsNumber, ObsString, UnknownRecord } from "../domain/schemas/shared.js"
 import { calculateObsAuthentication } from "./auth.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "./errors.js"
 import { createObsEventBuffer, type ObsEventBufferSnapshot } from "./events.js"
@@ -336,12 +336,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         resolve: (value) => {
           const decoded = Schema.decodeUnknownSync(Schema.Struct({
             results: Schema.Array(Schema.Struct({
-              requestType: Schema.String,
-              requestId: Schema.optional(Schema.String),
+              requestType: ObsString,
+              requestId: Schema.optional(ObsString),
               requestStatus: Schema.Struct({
                 result: Schema.Boolean,
-                code: Schema.Number,
-                comment: Schema.optional(Schema.String)
+                code: ObsNumber,
+                comment: Schema.optional(ObsString)
               }),
               responseData: Schema.optional(UnknownRecord)
             }))
@@ -362,7 +362,7 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     })
 
   const getVersion = await request(GetVersion)
-  const availableRequests = Schema.decodeUnknownSync(Schema.Array(Schema.String))(getVersion["availableRequests"])
+  const availableRequests = Schema.decodeUnknownSync(Schema.Array(ObsString))(getVersion["availableRequests"])
 
   return {
     negotiatedRpcVersion,

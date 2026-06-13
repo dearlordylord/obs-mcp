@@ -10,6 +10,7 @@ import {
 import { Schema } from "effect"
 
 import type { ObsConfig } from "../config/config.js"
+import { JsonRecordKey } from "../domain/schemas/shared.js"
 import type { ObsClient } from "../obs/client.js"
 import { packageVersion } from "../version.js"
 import { executeTool, getEnabledTools } from "./tools/index.js"
@@ -23,8 +24,8 @@ interface ProtocolObjectSchemaSource {
 
 type ProtocolObjectSchema = ListToolsResult["tools"][number]["inputSchema"]
 
-const JsonSchema = Schema.Record({ key: Schema.String, value: Schema.Unknown })
-const JsonSchemaProperties = Schema.Record({ key: Schema.String, value: Schema.Object })
+const JsonSchema = Schema.Record({ key: JsonRecordKey, value: Schema.Unknown })
+const JsonSchemaProperties = Schema.Record({ key: JsonRecordKey, value: Schema.Object })
 
 /* v8 ignore start -- defensive normalization for Effect-generated JSON Schemas; list/call handlers are covered. */
 const jsonObjectSchema = (schema: unknown): ProtocolObjectSchemaSource => {

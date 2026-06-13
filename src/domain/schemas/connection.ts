@@ -1,21 +1,21 @@
 import { JSONSchema, Schema } from "effect"
 
-import { StringArray } from "./shared.js"
+import { ObsNumber, ObsString, StringArray } from "./shared.js"
 
 export const ObsContextOutput = Schema.Struct({
-  packageVersion: Schema.String,
+  packageVersion: ObsString,
   transport: Schema.Literal("stdio"),
   obs: Schema.Struct({
     url: Schema.Struct({
-      origin: Schema.String,
-      host: Schema.String,
+      origin: ObsString,
+      host: ObsString,
       protocol: Schema.Literal("ws:", "wss:")
     }),
-    connectionTimeoutMs: Schema.Number,
+    connectionTimeoutMs: ObsNumber,
     authMode: Schema.Literal("password", "none")
   }),
   enabledToolsets: StringArray,
-  protocolReferencePath: Schema.String
+  protocolReferencePath: ObsString
 })
 
 export type ObsContextOutput = typeof ObsContextOutput.Type

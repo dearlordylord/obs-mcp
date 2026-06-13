@@ -42,7 +42,7 @@ import {
   SetSceneNameInput,
   SetSceneTransitionOverrideInput
 } from "../../domain/schemas/scenes.js"
-import { UnknownRecord } from "../../domain/schemas/shared.js"
+import { ObsNonEmptyString, ObsNonNegativeInteger, ObsString, UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
 export const GetSceneList = {
@@ -58,10 +58,10 @@ export const GetGroupList = {
 } satisfies ObsRequestDescriptor<ListGroupsOutput>
 
 const GetCurrentProgramSceneResponse = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  currentProgramSceneName: Schema.optional(Schema.String),
-  currentProgramSceneUuid: Schema.optional(Schema.String)
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  currentProgramSceneName: Schema.optional(ObsString),
+  currentProgramSceneUuid: Schema.optional(ObsString)
 })
 type GetCurrentProgramSceneResponse = typeof GetCurrentProgramSceneResponse.Type
 
@@ -72,10 +72,10 @@ export const GetCurrentProgramScene = {
 } satisfies ObsRequestDescriptor<GetCurrentProgramSceneResponse>
 
 const GetCurrentPreviewSceneResponse = Schema.Struct({
-  sceneName: Schema.optional(Schema.String),
-  sceneUuid: Schema.optional(Schema.String),
-  currentPreviewSceneName: Schema.optional(Schema.String),
-  currentPreviewSceneUuid: Schema.optional(Schema.String)
+  sceneName: Schema.optional(ObsString),
+  sceneUuid: Schema.optional(ObsString),
+  currentPreviewSceneName: Schema.optional(ObsString),
+  currentPreviewSceneUuid: Schema.optional(ObsString)
 })
 type GetCurrentPreviewSceneResponse = typeof GetCurrentPreviewSceneResponse.Type
 
@@ -86,7 +86,7 @@ export const GetCurrentPreviewScene = {
 } satisfies ObsRequestDescriptor<GetCurrentPreviewSceneResponse>
 
 const SetCurrentProgramSceneRequest = Schema.Struct({
-  sceneName: Schema.NonEmptyString
+  sceneName: ObsNonEmptyString
 })
 
 export const SetCurrentProgramScene = {
@@ -97,12 +97,12 @@ export const SetCurrentProgramScene = {
 
 const SetCurrentPreviewSceneRequest = Schema.Union(
   Schema.Struct({
-    sceneName: Schema.NonEmptyString,
+    sceneName: ObsNonEmptyString,
     sceneUuid: Schema.optional(Schema.Never)
   }),
   Schema.Struct({
     sceneName: Schema.optional(Schema.Never),
-    sceneUuid: Schema.NonEmptyString
+    sceneUuid: ObsNonEmptyString
   })
 )
 
@@ -113,7 +113,7 @@ export const SetCurrentPreviewScene = {
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
 
 const CreateSceneResponse = Schema.Struct({
-  sceneUuid: Schema.optional(Schema.String)
+  sceneUuid: Schema.optional(ObsString)
 })
 type CreateSceneResponse = typeof CreateSceneResponse.Type
 
@@ -160,7 +160,7 @@ export const GetGroupSceneItemList = {
 } satisfies ObsRequestDescriptor<ListGroupSceneItemsOutput>
 
 const SceneItemIdResponse = Schema.Struct({
-  sceneItemId: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
+  sceneItemId: ObsNonNegativeInteger
 })
 type SceneItemIdResponse = typeof SceneItemIdResponse.Type
 

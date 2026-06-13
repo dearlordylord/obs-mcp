@@ -1,5 +1,7 @@
 import { Schema } from "effect"
 
+import { ObsString } from "./shared.js"
+
 import { isJsonSafeValue, type JsonSafeValue as JsonSafeValueType } from "./persistent-data.js"
 
 export type JsonSafeObject = Readonly<Record<string, JsonSafeValueType>>
@@ -15,7 +17,7 @@ export const JsonSafeObject = Schema.declare((value: unknown): value is JsonSafe
   jsonSchema: { type: "object", additionalProperties: true }
 })
 
-const NonEmptyString = Schema.String.pipe(Schema.minLength(1))
+const NonEmptyString = ObsString.pipe(Schema.minLength(1))
 
 export const CallVendorRequestInput = Schema.Struct({
   vendorName: NonEmptyString,

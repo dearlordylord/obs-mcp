@@ -1,5 +1,7 @@
 import { JSONSchema, Schema } from "effect"
 
+import { ObsInteger, ObsNonEmptyString, ObsNonNegativeInteger, ObsNumber, ObsString } from "./shared.js"
+
 import { InputLocatorInput } from "./inputs.js"
 
 export const StudioModeEnabledOutput = Schema.Struct({
@@ -35,20 +37,21 @@ export const OpenInputInteractDialogOutput = UiSideEffectOutput("OpenInputIntera
 export type OpenInputInteractDialogOutput = typeof OpenInputInteractDialogOutput.Type
 export const OpenInputInteractDialogOutputJsonSchema = JSONSchema.make(OpenInputInteractDialogOutput)
 
-const RawMonitor = Schema.Record({ key: Schema.String, value: Schema.Unknown })
+const RawMonitor = Schema.Record({ key: ObsString, value: Schema.Unknown })
 const WindowedProjectorMonitorIndex = -1
+// Projector monitor index is structural because OBS uses -1 as the windowed-projector sentinel.
 const ProjectorMonitorIndex = Schema.optional(
-  Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(WindowedProjectorMonitorIndex))
+  ObsNumber.pipe(Schema.int(), Schema.greaterThanOrEqualTo(WindowedProjectorMonitorIndex))
 )
-const ProjectorGeometry = Schema.optional(Schema.NonEmptyString)
+const ProjectorGeometry = Schema.optional(ObsNonEmptyString)
 
 export const MonitorSummary = Schema.Struct({
-  monitorIndex: Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0)),
-  monitorName: Schema.optional(Schema.String),
-  monitorWidth: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  monitorHeight: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))),
-  monitorPositionX: Schema.optional(Schema.Number.pipe(Schema.int())),
-  monitorPositionY: Schema.optional(Schema.Number.pipe(Schema.int()))
+  monitorIndex: ObsNonNegativeInteger,
+  monitorName: Schema.optional(ObsString),
+  monitorWidth: Schema.optional(ObsNonNegativeInteger),
+  monitorHeight: Schema.optional(ObsNonNegativeInteger),
+  monitorPositionX: Schema.optional(ObsInteger),
+  monitorPositionY: Schema.optional(ObsInteger)
 })
 export type MonitorSummary = typeof MonitorSummary.Type
 
@@ -92,9 +95,9 @@ export type OpenVideoMixProjectorOutput = typeof OpenVideoMixProjectorOutput.Typ
 export const OpenVideoMixProjectorOutputJsonSchema = JSONSchema.make(OpenVideoMixProjectorOutput)
 
 export const OpenSourceProjectorInput = Schema.Struct({
-  canvasUuid: Schema.optional(Schema.NonEmptyString),
-  sourceName: Schema.optional(Schema.NonEmptyString),
-  sourceUuid: Schema.optional(Schema.NonEmptyString),
+  canvasUuid: Schema.optional(ObsNonEmptyString),
+  sourceName: Schema.optional(ObsNonEmptyString),
+  sourceUuid: Schema.optional(ObsNonEmptyString),
   monitorIndex: ProjectorMonitorIndex,
   projectorGeometry: ProjectorGeometry
 }).pipe(
