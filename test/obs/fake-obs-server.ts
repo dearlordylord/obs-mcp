@@ -350,6 +350,10 @@ export class FakeObsServer {
       send()
       return
     }
+    if (requestType === "GetMediaInputStatus") {
+      send({ ...this.inputState.getMediaStatus(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid) })
+      return
+    }
     if (requestType === "GetVirtualCamStatus") {
       send({ outputActive: this.virtualCamActive })
       return

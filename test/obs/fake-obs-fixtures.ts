@@ -26,6 +26,9 @@ export interface FakeObsInput {
   readonly inputAudioBalance?: number
   readonly monitorType?: FakeObsInputAudioMonitorType
   readonly inputAudioSyncOffset?: number
+  readonly mediaState?: FakeObsMediaState
+  readonly mediaDuration?: number | null
+  readonly mediaCursor?: number | null
 }
 
 export interface FakeObsInputVolume {
@@ -60,6 +63,28 @@ export const DEFAULT_INPUT_AUDIO_STATE: FakeObsInputAudioState = {
   inputAudioBalance: 0.5,
   monitorType: "OBS_MONITORING_TYPE_NONE",
   inputAudioSyncOffset: 0
+}
+
+export type FakeObsMediaState =
+  | "OBS_MEDIA_STATE_NONE"
+  | "OBS_MEDIA_STATE_PLAYING"
+  | "OBS_MEDIA_STATE_OPENING"
+  | "OBS_MEDIA_STATE_BUFFERING"
+  | "OBS_MEDIA_STATE_PAUSED"
+  | "OBS_MEDIA_STATE_STOPPED"
+  | "OBS_MEDIA_STATE_ENDED"
+  | "OBS_MEDIA_STATE_ERROR"
+
+export interface FakeObsMediaInputStatus {
+  readonly mediaState: FakeObsMediaState
+  readonly mediaDuration: number | null
+  readonly mediaCursor: number | null
+}
+
+export const DEFAULT_MEDIA_INPUT_STATUS: FakeObsMediaInputStatus = {
+  mediaState: "OBS_MEDIA_STATE_STOPPED",
+  mediaDuration: null,
+  mediaCursor: null
 }
 
 export interface FakeObsReceivedRequest {
@@ -112,6 +137,7 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetMediaInputStatus",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",

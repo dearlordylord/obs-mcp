@@ -1,10 +1,12 @@
 import {
   DEFAULT_INPUT_AUDIO_STATE,
   DEFAULT_INPUT_VOLUME,
+  DEFAULT_MEDIA_INPUT_STATUS,
   fakeInputVolumeFromRequest,
   type FakeObsInput,
   type FakeObsInputAudioState,
-  type FakeObsInputVolume
+  type FakeObsInputVolume,
+  type FakeObsMediaInputStatus
 } from "./fake-obs-fixtures.js"
 
 interface FakeObsInputAudioRequestData {
@@ -93,6 +95,15 @@ export class FakeObsInputState {
         ? { ...state, monitorType: requestData.monitorType ?? state.monitorType }
         : { ...state, inputAudioSyncOffset: requestData.inputAudioSyncOffset ?? state.inputAudioSyncOffset }
     )
+  }
+
+  public getMediaStatus(locator: string): FakeObsMediaInputStatus {
+    const input = this.inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
+    return {
+      mediaState: input?.mediaState ?? DEFAULT_MEDIA_INPUT_STATUS.mediaState,
+      mediaDuration: input?.mediaDuration ?? DEFAULT_MEDIA_INPUT_STATUS.mediaDuration,
+      mediaCursor: input?.mediaCursor ?? DEFAULT_MEDIA_INPUT_STATUS.mediaCursor
+    }
   }
 
   private keysFor(locator: string): ReadonlyArray<string> {

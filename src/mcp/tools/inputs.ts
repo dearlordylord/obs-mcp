@@ -9,6 +9,7 @@ import {
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
+  MediaInputStatusOutput,
   SetInputAudioBalanceInput,
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeInput,
@@ -27,6 +28,7 @@ import {
   getInputAudioSyncOffset,
   getInputMute,
   getInputVolume,
+  getMediaInputStatus,
   getSpecialInputs,
   listInputKinds,
   listInputs,
@@ -45,6 +47,7 @@ import {
   GetInputList,
   GetInputMute,
   GetInputVolume,
+  GetMediaInputStatus,
   GetSpecialInputs,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
@@ -197,5 +200,15 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SetInputAudioSyncOffsetInput,
     outputSchema: SetInputAudioSyncOffsetOutput,
     handler: async (input, context) => setInputAudioSyncOffset(context.client, input)
+  }),
+  defineTool({
+    name: "get_media_input_status",
+    title: "Get OBS Media Input Status",
+    description: "Return an OBS media input status with duration and cursor data.",
+    category: CATEGORY,
+    requiredObsRequests: [GetMediaInputStatus.requestType],
+    inputSchema: InputLocatorInput,
+    outputSchema: MediaInputStatusOutput,
+    handler: async (input, context) => getMediaInputStatus(context.client, input)
   })
 ]

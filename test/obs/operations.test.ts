@@ -12,6 +12,7 @@ import {
   getInputAudioSyncOffset,
   getInputMute,
   getInputVolume,
+  getMediaInputStatus,
   getSpecialInputs,
   listInputKinds,
   listInputs,
@@ -354,6 +355,61 @@ describe("OBS operations", () => {
       )
   })
 
+  it("gets nullable and playing media input status over the OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      inputs: [
+        {
+          inputName: "Media Source",
+          inputUuid: "input-media-source",
+          inputKind: "ffmpeg_source",
+          unversionedInputKind: "ffmpeg_source",
+          mediaState: "OBS_MEDIA_STATE_PLAYING",
+          mediaDuration: 120000,
+          mediaCursor: 4500
+        },
+        {
+          inputName: "Stopped Media",
+          inputUuid: "input-stopped-media",
+          inputKind: "vlc_source",
+          unversionedInputKind: "vlc_source"
+        }
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getMediaInputStatus(client, { inputName: "Media Source" })).resolves.toEqual({
+      mediaState: "OBS_MEDIA_STATE_PLAYING",
+      mediaDuration: 120000,
+      mediaCursor: 4500
+    })
+    await expect(getMediaInputStatus(client, { inputUuid: "input-stopped-media" })).resolves.toEqual({
+      mediaState: "OBS_MEDIA_STATE_STOPPED",
+      mediaDuration: null,
+      mediaCursor: null
+    })
+    expect(server.requests.filter((request) => request.requestType === "GetMediaInputStatus")).toEqual([
+      { requestType: "GetMediaInputStatus", requestData: { inputName: "Media Source" } },
+      { requestType: "GetMediaInputStatus", requestData: { inputUuid: "input-stopped-media" } }
+    ])
+  })
+
+  it("surfaces OBS failures for media input status", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetMediaInputStatus: { code: 604, comment: "Media input unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getMediaInputStatus(client, { inputName: "Missing Media" })).rejects.toMatchObject(
+      {
+        requestType: "GetMediaInputStatus",
+        code: 604,
+        comment: "Media input unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -549,6 +605,47 @@ describe("OBS operations", () => {
       "set_input_audio_balance",
       "get_input_audio_monitor_type",
       "set_input_audio_monitor_type"
+    ])
+  })
+
+  it("filters media input status when OBS does not advertise media input capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute",
+        "GetInputVolume",
+        "SetInputVolume",
+        "GetInputAudioBalance",
+        "SetInputAudioBalance",
+        "GetInputAudioMonitorType",
+        "SetInputAudioMonitorType",
+        "GetInputAudioSyncOffset",
+        "SetInputAudioSyncOffset"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume",
+      "get_input_audio_balance",
+      "set_input_audio_balance",
+      "get_input_audio_monitor_type",
+      "set_input_audio_monitor_type",
+      "get_input_audio_sync_offset",
+      "set_input_audio_sync_offset"
     ])
   })
 })

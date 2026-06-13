@@ -24,6 +24,7 @@ export const ObsRequestType = Schema.Literal(
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetMediaInputStatus",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",

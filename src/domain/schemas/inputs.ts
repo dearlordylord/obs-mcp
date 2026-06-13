@@ -143,6 +143,26 @@ export const SetInputAudioSyncOffsetOutput = Schema.Struct({
 export type SetInputAudioSyncOffsetOutput = typeof SetInputAudioSyncOffsetOutput.Type
 export const SetInputAudioSyncOffsetOutputJsonSchema = JSONSchema.make(SetInputAudioSyncOffsetOutput)
 
+export const MediaInputState = Schema.Literal(
+  "OBS_MEDIA_STATE_NONE",
+  "OBS_MEDIA_STATE_PLAYING",
+  "OBS_MEDIA_STATE_OPENING",
+  "OBS_MEDIA_STATE_BUFFERING",
+  "OBS_MEDIA_STATE_PAUSED",
+  "OBS_MEDIA_STATE_STOPPED",
+  "OBS_MEDIA_STATE_ENDED",
+  "OBS_MEDIA_STATE_ERROR"
+)
+export type MediaInputState = typeof MediaInputState.Type
+
+export const MediaInputStatusOutput = Schema.Struct({
+  mediaState: MediaInputState,
+  mediaDuration: Schema.NullOr(Schema.Number),
+  mediaCursor: Schema.NullOr(Schema.Number)
+})
+export type MediaInputStatusOutput = typeof MediaInputStatusOutput.Type
+export const MediaInputStatusOutputJsonSchema = JSONSchema.make(MediaInputStatusOutput)
+
 export const ListInputsInput = Schema.Struct({
   inputKind: Schema.optional(Schema.NonEmptyString)
 })

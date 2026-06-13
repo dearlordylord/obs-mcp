@@ -11,6 +11,7 @@ import {
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
+  MediaInputStatusOutput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
@@ -105,3 +106,9 @@ export const SetInputAudioSyncOffset = {
   requestDataSchema: SetInputAudioSyncOffsetInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const GetMediaInputStatus = {
+  requestType: "GetMediaInputStatus",
+  requestDataSchema: InputLocatorInput,
+  responseSchema: MediaInputStatusOutput
+} satisfies ObsRequestDescriptor<MediaInputStatusOutput>

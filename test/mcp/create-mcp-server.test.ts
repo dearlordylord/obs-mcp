@@ -47,6 +47,7 @@ const allAvailableRequests = [
   "SetInputAudioMonitorType",
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
+  "GetMediaInputStatus",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -118,6 +119,7 @@ describe("MCP server protocol handlers", () => {
       "set_input_audio_monitor_type",
       "get_input_audio_sync_offset",
       "set_input_audio_sync_offset",
+      "get_media_input_status",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -247,6 +249,9 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "SetInputAudioSyncOffset") {
           return {}
         }
+        if (requestType === "GetMediaInputStatus") {
+          return { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -273,7 +278,8 @@ describe("MCP server protocol handlers", () => {
       "get_input_audio_monitor_type",
       "set_input_audio_monitor_type",
       "get_input_audio_sync_offset",
-      "set_input_audio_sync_offset"
+      "set_input_audio_sync_offset",
+      "get_media_input_status"
     ])
     await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
       .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
@@ -318,6 +324,10 @@ describe("MCP server protocol handlers", () => {
       name: "set_input_audio_sync_offset",
       arguments: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 0 }
     })).resolves.toMatchObject({ structuredContent: { inputAudioSyncOffset: 0, acknowledged: true } })
+    await expect(client.callTool({ name: "get_media_input_status", arguments: { inputName: "Media Source" } }))
+      .resolves.toMatchObject({
+        structuredContent: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
+      })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

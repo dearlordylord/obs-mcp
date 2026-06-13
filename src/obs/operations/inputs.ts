@@ -16,6 +16,7 @@ import {
   ListInputKindsOutput,
   ListInputsInput,
   ListInputsOutput,
+  MediaInputStatusOutput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
@@ -33,6 +34,7 @@ import {
   GetInputList,
   GetInputMute,
   GetInputVolume,
+  GetMediaInputStatus,
   GetSpecialInputs,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
@@ -151,4 +153,13 @@ export const setInputAudioSyncOffset = async (
   const decodedInput = Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)(input)
   await client.request(SetInputAudioSyncOffset, decodedInput)
   return { inputAudioSyncOffset: decodedInput.inputAudioSyncOffset, acknowledged: true }
+}
+
+export const getMediaInputStatus = async (
+  client: ObsClient,
+  input: InputLocatorInput
+): Promise<MediaInputStatusOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
+  const response = await client.request(GetMediaInputStatus, decodedInput)
+  return Schema.decodeUnknownSync(MediaInputStatusOutput)(response)
 }
