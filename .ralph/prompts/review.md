@@ -20,6 +20,12 @@ This Ralph run is production-scoped. Review the actual lane plan, task prompt,
 and branch diff. Do not infer task scope from scripted-mode fallback code in
 `.ralph/run.ts`; scripted mode is only an orchestration smoke path.
 
+Ralph lane branches are cumulative. When task `N` is under review, already
+approved commits from earlier tasks in the same lane are expected to remain in
+the branch and must not be treated as task `N` scope creep. Review whether the
+new task preserves those earlier changes and adds only the requested current-task
+surface on top of them.
+
 # DIFF
 
 !`git diff --stat HEAD~20..HEAD || true`
