@@ -69,6 +69,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "StartReplayBuffer",
   "StopReplayBuffer",
   "ToggleReplayBuffer",
+  "SaveReplayBuffer",
+  "GetLastReplayBufferReplay",
   "GetRecordStatus",
   "StartRecord",
   "StopRecord",

@@ -44,6 +44,8 @@ const allAvailableRequests = [
   "StartReplayBuffer",
   "StopReplayBuffer",
   "ToggleReplayBuffer",
+  "SaveReplayBuffer",
+  "GetLastReplayBufferReplay",
   "GetRecordStatus",
   "StartRecord",
   "StopRecord",
@@ -226,7 +228,9 @@ describe("MCP server protocol handlers", () => {
         "GetReplayBufferStatus",
         "StartReplayBuffer",
         "StopReplayBuffer",
-        "ToggleReplayBuffer"
+        "ToggleReplayBuffer",
+        "SaveReplayBuffer",
+        "GetLastReplayBufferReplay"
       ]),
       { ...config, enabledToolsets: ["outputs"] }
     )
@@ -235,7 +239,9 @@ describe("MCP server protocol handlers", () => {
       "get_replay_buffer_status",
       "start_replay_buffer",
       "stop_replay_buffer",
-      "toggle_replay_buffer"
+      "toggle_replay_buffer",
+      "save_replay_buffer",
+      "get_last_replay_buffer_replay"
     ])
   })
 
@@ -285,6 +291,7 @@ describe("MCP server protocol handlers", () => {
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("get_virtual_cam_status")
     expect(tools.tools.map((tool) => tool.name)).not.toContain("get_replay_buffer_status")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("save_replay_buffer")
   })
 
   it("returns structured success content", async () => {
@@ -565,6 +572,9 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "ToggleReplayBuffer") {
           return { outputActive: true }
         }
+        if (requestType === "GetLastReplayBufferReplay") {
+          return { savedReplayPath: "/opaque/replay-buffer.mp4" }
+        }
         return {}
       }),
       { ...config, enabledToolsets: ["outputs"] }
@@ -577,6 +587,19 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { outputActive: false } })
     await expect(client.callTool({ name: "toggle_replay_buffer", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "save_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "SaveReplayBuffer",
+          acknowledged: true
+        }
+      })
+    await expect(client.callTool({ name: "get_last_replay_buffer_replay", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          savedReplayPath: "/opaque/replay-buffer.mp4"
+        }
+      })
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {
@@ -625,6 +648,42 @@ describe("MCP server protocol handlers", () => {
             requestType: "CreateRecordChapter",
             obsStatusCode: 703,
             comment: "Chapter markers unavailable"
+          }
+        }
+      })
+  })
+
+  it("keeps OBS status metadata for replay buffer save and metadata errors", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetLastReplayBufferReplay") {
+          throw new ObsRequestError("GetLastReplayBufferReplay", 703, "No replay has been saved")
+        }
+        throw new ObsRequestError("SaveReplayBuffer", 703, "Replay buffer is not active")
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+    await expect(client.callTool({ name: "save_replay_buffer", arguments: {} }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "SaveReplayBuffer",
+            obsStatusCode: 703,
+            comment: "Replay buffer is not active"
+          }
+        }
+      })
+    await expect(client.callTool({ name: "get_last_replay_buffer_replay", arguments: {} }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "GetLastReplayBufferReplay",
+            obsStatusCode: 703,
+            comment: "No replay has been saved"
           }
         }
       })

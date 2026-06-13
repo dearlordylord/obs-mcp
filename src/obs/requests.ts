@@ -21,6 +21,8 @@ export const ObsRequestType = Schema.Literal(
   "StartReplayBuffer",
   "StopReplayBuffer",
   "ToggleReplayBuffer",
+  "SaveReplayBuffer",
+  "GetLastReplayBufferReplay",
   "GetRecordStatus",
   "StartRecord",
   "StopRecord",

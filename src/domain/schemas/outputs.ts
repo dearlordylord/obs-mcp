@@ -1,4 +1,4 @@
-import { JSONSchema } from "effect"
+import { JSONSchema, Schema } from "effect"
 
 import { OutputActiveState, OutputActiveSwitchState } from "./shared.js"
 
@@ -17,3 +17,16 @@ export const ReplayBufferStatusOutputJsonSchema = JSONSchema.make(ReplayBufferSt
 export const ReplayBufferSwitchOutput = OutputActiveState
 export type ReplayBufferSwitchOutput = typeof ReplayBufferSwitchOutput.Type
 export const ReplayBufferSwitchOutputJsonSchema = JSONSchema.make(ReplayBufferSwitchOutput)
+
+export const SaveReplayBufferOutput = Schema.Struct({
+  requestType: Schema.Literal("SaveReplayBuffer"),
+  acknowledged: Schema.Literal(true)
+})
+export type SaveReplayBufferOutput = typeof SaveReplayBufferOutput.Type
+export const SaveReplayBufferOutputJsonSchema = JSONSchema.make(SaveReplayBufferOutput)
+
+export const LastReplayBufferReplayOutput = Schema.Struct({
+  savedReplayPath: Schema.String
+})
+export type LastReplayBufferReplayOutput = typeof LastReplayBufferReplayOutput.Type
+export const LastReplayBufferReplayOutputJsonSchema = JSONSchema.make(LastReplayBufferReplayOutput)

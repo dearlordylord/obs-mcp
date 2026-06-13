@@ -8,8 +8,10 @@ import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import { getSpecialInputs, listInputKinds, listInputs } from "../../src/obs/operations/inputs.js"
 import {
+  getLastReplayBufferReplay,
   getReplayBufferStatus,
   getVirtualCamStatus,
+  saveReplayBuffer,
   startReplayBuffer,
   startVirtualCam,
   stopReplayBuffer,
@@ -178,6 +180,13 @@ describe("OBS operations", () => {
     await expect(getReplayBufferStatus(client)).resolves.toEqual({ outputActive: true })
     await expect(toggleReplayBuffer(client)).resolves.toEqual({ outputActive: false })
     await expect(stopReplayBuffer(client)).resolves.toEqual({ outputActive: false })
+    await expect(saveReplayBuffer(client)).resolves.toEqual({
+      requestType: "SaveReplayBuffer",
+      acknowledged: true
+    })
+    await expect(getLastReplayBufferReplay(client)).resolves.toEqual({
+      savedReplayPath: "/opaque/replay-buffer.mp4"
+    })
   })
 
   it("rejects current scene responses without a scene name", async () => {
@@ -337,31 +346,63 @@ describe("OBS operations", () => {
   })
 
   it("surfaces OBS replay buffer request failures", async () => {
-    const server = await FakeObsServer.start({
+    const lifecycleServer = await FakeObsServer.start({
       failRequests: { StartReplayBuffer: { code: 207, comment: "Output already active" } }
     })
-    servers.push(server)
-    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["outputs"] })
-    clients.push(client)
-    await expect(startReplayBuffer(client)).rejects.toMatchObject(
+    servers.push(lifecycleServer)
+    const lifecycleClient = await createObsClient({ ...configFor(lifecycleServer.url), enabledToolsets: ["outputs"] })
+    clients.push(lifecycleClient)
+    await expect(startReplayBuffer(lifecycleClient)).rejects.toMatchObject(
       {
         requestType: "StartReplayBuffer",
         code: 207,
         comment: "Output already active"
       } satisfies Partial<ObsRequestError>
     )
+
+    const saveServer = await FakeObsServer.start({
+      failRequests: { SaveReplayBuffer: { code: 703, comment: "Replay buffer is not active" } }
+    })
+    servers.push(saveServer)
+    const saveClient = await createObsClient({ ...configFor(saveServer.url), enabledToolsets: ["outputs"] })
+    clients.push(saveClient)
+    await expect(saveReplayBuffer(saveClient)).rejects.toMatchObject(
+      {
+        requestType: "SaveReplayBuffer",
+        code: 703,
+        comment: "Replay buffer is not active"
+      } satisfies Partial<ObsRequestError>
+    )
+
+    const lastReplayServer = await FakeObsServer.start({
+      failRequests: { GetLastReplayBufferReplay: { code: 703, comment: "No replay has been saved" } }
+    })
+    servers.push(lastReplayServer)
+    const lastReplayClient = await createObsClient({
+      ...configFor(lastReplayServer.url),
+      enabledToolsets: ["outputs"]
+    })
+    clients.push(lastReplayClient)
+    await expect(getLastReplayBufferReplay(lastReplayClient)).rejects.toMatchObject(
+      {
+        requestType: "GetLastReplayBufferReplay",
+        code: 703,
+        comment: "No replay has been saved"
+      } satisfies Partial<ObsRequestError>
+    )
   })
 
   it("filters replay buffer tools when OBS does not advertise replay buffer capabilities", async () => {
     const server = await FakeObsServer.start({
-      availableRequestsValue: ["GetVersion", "GetReplayBufferStatus", "ToggleReplayBuffer"]
+      availableRequestsValue: ["GetVersion", "GetReplayBufferStatus", "ToggleReplayBuffer", "SaveReplayBuffer"]
     })
     servers.push(server)
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["outputs"] })
     clients.push(client)
     expect(getEnabledTools(["outputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
       "get_replay_buffer_status",
-      "toggle_replay_buffer"
+      "toggle_replay_buffer",
+      "save_replay_buffer"
     ])
   })
 

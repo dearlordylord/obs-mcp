@@ -1,15 +1,19 @@
 import { Schema } from "effect"
 
 import {
+  LastReplayBufferReplayOutput,
   ReplayBufferStatusOutput,
   ReplayBufferSwitchOutput,
+  SaveReplayBufferOutput,
   VirtualCamStatusOutput,
   VirtualCamSwitchOutput
 } from "../../domain/schemas/outputs.js"
 import type { ObsClient } from "../client.js"
 import {
+  GetLastReplayBufferReplay,
   GetReplayBufferStatus,
   GetVirtualCamStatus,
+  SaveReplayBuffer,
   StartReplayBuffer,
   StartVirtualCam,
   StopReplayBuffer,
@@ -50,4 +54,15 @@ export const stopReplayBuffer = async (client: ObsClient): Promise<ReplayBufferS
 
 export const toggleReplayBuffer = async (client: ObsClient): Promise<ReplayBufferSwitchOutput> => {
   return requestAndDecode(client, ToggleReplayBuffer, ReplayBufferSwitchOutput)
+}
+
+export const saveReplayBuffer = async (client: ObsClient): Promise<SaveReplayBufferOutput> => {
+  return requestAndReturn(client, SaveReplayBuffer, {
+    requestType: SaveReplayBuffer.requestType,
+    acknowledged: true
+  }, SaveReplayBufferOutput)
+}
+
+export const getLastReplayBufferReplay = async (client: ObsClient): Promise<LastReplayBufferReplayOutput> => {
+  return requestAndDecode(client, GetLastReplayBufferReplay, LastReplayBufferReplayOutput)
 }

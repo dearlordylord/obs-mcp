@@ -348,6 +348,14 @@ export class FakeObsServer {
       send({ outputActive: this.replayBufferActive })
       return
     }
+    if (requestType === "SaveReplayBuffer") {
+      send()
+      return
+    }
+    if (requestType === "GetLastReplayBufferReplay") {
+      send({ savedReplayPath: "/opaque/replay-buffer.mp4" })
+      return
+    }
     if (requestType === "GetRecordStatus") {
       send({
         outputActive: this.recordActive,

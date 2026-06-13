@@ -1,13 +1,17 @@
 import {
+  LastReplayBufferReplayOutput,
   ReplayBufferStatusOutput,
   ReplayBufferSwitchOutput,
+  SaveReplayBufferOutput,
   VirtualCamStatusOutput,
   VirtualCamSwitchOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  getLastReplayBufferReplay,
   getReplayBufferStatus,
   getVirtualCamStatus,
+  saveReplayBuffer,
   startReplayBuffer,
   startVirtualCam,
   stopReplayBuffer,
@@ -16,8 +20,10 @@ import {
   toggleVirtualCam
 } from "../../obs/operations/outputs.js"
 import {
+  GetLastReplayBufferReplay,
   GetReplayBufferStatus,
   GetVirtualCamStatus,
+  SaveReplayBuffer,
   StartReplayBuffer,
   StartVirtualCam,
   StopReplayBuffer,
@@ -109,5 +115,25 @@ export const outputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: ReplayBufferSwitchOutput,
     handler: async (_input, context) => toggleReplayBuffer(context.client)
+  }),
+  defineTool({
+    name: "save_replay_buffer",
+    title: "Save OBS Replay Buffer",
+    description: "Save the current OBS replay buffer contents.",
+    category: CATEGORY,
+    requiredObsRequests: [SaveReplayBuffer.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: SaveReplayBufferOutput,
+    handler: async (_input, context) => saveReplayBuffer(context.client)
+  }),
+  defineTool({
+    name: "get_last_replay_buffer_replay",
+    title: "Get Last OBS Replay Buffer Replay",
+    description: "Return the OBS-provided saved replay path for the last replay buffer save.",
+    category: CATEGORY,
+    requiredObsRequests: [GetLastReplayBufferReplay.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: LastReplayBufferReplayOutput,
+    handler: async (_input, context) => getLastReplayBufferReplay(context.client)
   })
 ]

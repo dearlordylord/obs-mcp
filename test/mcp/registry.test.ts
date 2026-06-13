@@ -47,6 +47,8 @@ const allAvailableRequests = [
   "StartReplayBuffer",
   "StopReplayBuffer",
   "ToggleReplayBuffer",
+  "SaveReplayBuffer",
+  "GetLastReplayBufferReplay",
   "GetRecordStatus",
   "StartRecord",
   "StopRecord",
@@ -133,7 +135,9 @@ describe("MCP tool registry", () => {
       "get_replay_buffer_status",
       "start_replay_buffer",
       "stop_replay_buffer",
-      "toggle_replay_buffer"
+      "toggle_replay_buffer",
+      "save_replay_buffer",
+      "get_last_replay_buffer_replay"
     ])
   })
 
@@ -183,7 +187,9 @@ describe("MCP tool registry", () => {
       "get_replay_buffer_status",
       "start_replay_buffer",
       "stop_replay_buffer",
-      "toggle_replay_buffer"
+      "toggle_replay_buffer",
+      "save_replay_buffer",
+      "get_last_replay_buffer_replay"
     ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
   })
@@ -223,6 +229,8 @@ describe("MCP tool registry", () => {
       .toEqual(["get_virtual_cam_status", "toggle_virtual_cam"])
     expect(getEnabledTools(["outputs"], ["GetReplayBufferStatus", "StopReplayBuffer"]).map((tool) => tool.name))
       .toEqual(["get_replay_buffer_status", "stop_replay_buffer"])
+    expect(getEnabledTools(["outputs"], ["SaveReplayBuffer", "GetLastReplayBufferReplay"]).map((tool) => tool.name))
+      .toEqual(["save_replay_buffer", "get_last_replay_buffer_replay"])
   })
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
@@ -538,6 +546,9 @@ describe("MCP tool registry", () => {
       if (requestType === "ToggleReplayBuffer") {
         return { outputActive: true }
       }
+      if (requestType === "GetLastReplayBufferReplay") {
+        return { savedReplayPath: "/opaque/replay-buffer.mp4" }
+      }
       return {}
     })
     await expect(executeTool(toolByName("get_replay_buffer_status"), {}, { config, client: fakeClient }))
@@ -548,11 +559,17 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ outputActive: false })
     await expect(executeTool(toolByName("toggle_replay_buffer"), {}, { config, client: fakeClient }))
       .resolves.toEqual({ outputActive: true })
+    await expect(executeTool(toolByName("save_replay_buffer"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestType: "SaveReplayBuffer", acknowledged: true })
+    await expect(executeTool(toolByName("get_last_replay_buffer_replay"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ savedReplayPath: "/opaque/replay-buffer.mp4" })
     expect(seen).toEqual([
       "GetReplayBufferStatus",
       "StartReplayBuffer",
       "StopReplayBuffer",
-      "ToggleReplayBuffer"
+      "ToggleReplayBuffer",
+      "SaveReplayBuffer",
+      "GetLastReplayBufferReplay"
     ])
   })
 

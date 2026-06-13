@@ -50,6 +50,8 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `start_replay_buffer`
 - `stop_replay_buffer`
 - `toggle_replay_buffer`
+- `save_replay_buffer`
+- `get_last_replay_buffer_replay`
 - `get_record_status`
 - `start_record`
 - `stop_record`
