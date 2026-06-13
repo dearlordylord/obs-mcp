@@ -147,10 +147,10 @@ const lifecycleToolGroups = [
   }
 ] as const
 
-const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): ReadonlyArray<string> =>
+const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
   tools.map(([, toolName]) => toolName)
 
-const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): ReadonlyArray<string> =>
+const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
   tools.map(([requestName]) => requestName)
 
 describe("MCP tool registry", () => {
