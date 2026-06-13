@@ -34,6 +34,10 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `list_scenes`
 - `get_current_scene`
 - `set_current_scene`
+- `get_virtual_cam_status`
+- `start_virtual_cam`
+- `stop_virtual_cam`
+- `toggle_virtual_cam`
 <!-- tools:end -->
 
 Tool results use MCP structured content rather than textified JSON.

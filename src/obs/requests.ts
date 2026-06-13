@@ -1,5 +1,6 @@
 import { Schema } from "effect"
 
+import { VirtualCamStatusOutput } from "../domain/schemas/outputs.js"
 import { ListScenesOutput } from "../domain/schemas/scenes.js"
 import { StringArray, UnknownRecord } from "../domain/schemas/shared.js"
 
@@ -7,7 +8,11 @@ export const ObsRequestType = Schema.Literal(
   "GetVersion",
   "GetSceneList",
   "GetCurrentProgramScene",
-  "SetCurrentProgramScene"
+  "SetCurrentProgramScene",
+  "GetVirtualCamStatus",
+  "StartVirtualCam",
+  "StopVirtualCam",
+  "ToggleVirtualCam"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
@@ -65,3 +70,27 @@ export const SetCurrentProgramScene = {
   requestDataSchema: SetCurrentProgramSceneRequest,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetVirtualCamStatus = {
+  requestType: "GetVirtualCamStatus",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: VirtualCamStatusOutput
+} satisfies ObsRequestDescriptor<VirtualCamStatusOutput>
+
+export const StartVirtualCam = {
+  requestType: "StartVirtualCam",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const StopVirtualCam = {
+  requestType: "StopVirtualCam",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const ToggleVirtualCam = {
+  requestType: "ToggleVirtualCam",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: VirtualCamStatusOutput
+} satisfies ObsRequestDescriptor<VirtualCamStatusOutput>

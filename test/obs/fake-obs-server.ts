@@ -49,6 +49,7 @@ export class FakeObsServer {
   public readonly url: string
   private readonly server: WebSocketServer
   private currentSceneName: string
+  private virtualCamActive = false
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
     this.server = server
@@ -206,7 +207,11 @@ export class FakeObsServer {
           "GetVersion",
           "GetSceneList",
           "GetCurrentProgramScene",
-          "SetCurrentProgramScene"
+          "SetCurrentProgramScene",
+          "GetVirtualCamStatus",
+          "StartVirtualCam",
+          "StopVirtualCam",
+          "ToggleVirtualCam"
         ],
         supportedImageFormats: ["png", "jpg"],
         platform: "ubuntu",
@@ -236,6 +241,25 @@ export class FakeObsServer {
     if (requestType === "SetCurrentProgramScene") {
       this.currentSceneName = envelope.d.requestData.sceneName
       send()
+      return
+    }
+    if (requestType === "GetVirtualCamStatus") {
+      send({ outputActive: this.virtualCamActive })
+      return
+    }
+    if (requestType === "StartVirtualCam") {
+      this.virtualCamActive = true
+      send()
+      return
+    }
+    if (requestType === "StopVirtualCam") {
+      this.virtualCamActive = false
+      send()
+      return
+    }
+    if (requestType === "ToggleVirtualCam") {
+      this.virtualCamActive = !this.virtualCamActive
+      send({ outputActive: this.virtualCamActive })
       return
     }
     send()

@@ -14,13 +14,22 @@ const config: ObsConfig = {
   url: "ws://localhost:4455/",
   password: Option.none(),
   connectionTimeoutMs: 300,
-  enabledToolsets: ["scenes"]
+  enabledToolsets: ["scenes", "outputs"]
 }
 
 const clients: Array<Client> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetVirtualCamStatus",
+  "StartVirtualCam",
+  "StopVirtualCam",
+  "ToggleVirtualCam"
+]
 
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
@@ -57,7 +66,11 @@ describe("MCP server protocol handlers", () => {
       "get_version",
       "list_scenes",
       "get_current_scene",
-      "set_current_scene"
+      "set_current_scene",
+      "get_virtual_cam_status",
+      "start_virtual_cam",
+      "stop_virtual_cam",
+      "toggle_virtual_cam"
     ])
     expect(tools.tools.find((tool) => tool.name === "set_current_scene")?.inputSchema.required).toEqual(["sceneName"])
     expect(tools.tools.find((tool) => tool.name === "get_current_scene")?.outputSchema?.properties)
@@ -70,10 +83,35 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual(["get_obs_context", "get_version"])
   })
 
+  it("does not list output tools when the outputs toolset is disabled", async () => {
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
+    const scenesOnlyConfig = { ...config, enabledToolsets: ["scenes"] as const }
+    const server = createObsMcpServer(scenesOnlyConfig, obsClient(async () => ({})))
+    const client = new Client({ name: "test-client", version: "0.0.0" })
+    servers.push(server)
+    clients.push(client)
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)])
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("get_virtual_cam_status")
+  })
+
   it("returns structured success content", async () => {
     const client = await connect(obsClient(async () => ({ sceneName: "Intro", sceneUuid: "scene-intro" })))
     await expect(client.callTool({ name: "get_current_scene", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { sceneName: "Intro", sceneUuid: "scene-intro" } })
+  })
+
+  it("returns structured virtual camera status and switch results", async () => {
+    const client = await connect(obsClient(async (requestType) => {
+      if (requestType === "GetVirtualCamStatus" || requestType === "ToggleVirtualCam") {
+        return { outputActive: true }
+      }
+      return {}
+    }))
+    await expect(client.callTool({ name: "get_virtual_cam_status", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true } })
+    await expect(client.callTool({ name: "toggle_virtual_cam", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputActive: true, switched: true } })
   })
 
   it("keeps OBS status metadata in actual tools/call error results", async () => {
