@@ -4,7 +4,11 @@ import { afterEach, describe, expect, it } from "vitest"
 import type { ObsConfig } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
-import { EventSubscription, SAFE_EVENT_SUBSCRIPTION_MASK } from "../../src/obs/protocol.js"
+import {
+  EventSubscription,
+  HIGH_VOLUME_EVENT_SUBSCRIPTIONS,
+  SAFE_EVENT_SUBSCRIPTION_MASK
+} from "../../src/obs/protocol.js"
 import {
   GetCurrentProgramScene,
   GetGroupSceneItemList,
@@ -27,11 +31,16 @@ import { FakeObsServer } from "./fake-obs-server.js"
 const servers: Array<FakeObsServer> = []
 const clients: Array<ObsClient> = []
 
-const configFor = (url: string, password?: string, timeout = 300): ObsConfig => ({
+const configFor = (
+  url: string,
+  password?: string,
+  timeout = 300,
+  enabledToolsets: ObsConfig["enabledToolsets"] = ["scenes"]
+): ObsConfig => ({
   url,
   password: password === undefined ? Option.none() : Option.some(password),
   connectionTimeoutMs: timeout,
-  enabledToolsets: ["scenes"]
+  enabledToolsets
 })
 
 afterEach(async () => {
@@ -48,6 +57,25 @@ describe("OBS websocket client", () => {
     expect(client.negotiatedRpcVersion).toBe(1)
     expect(client.availableRequests).toContain("GetSceneList")
     expect(server.lastIdentifyEventSubscriptions).toBe(SAFE_EVENT_SUBSCRIPTION_MASK)
+    const subscriptions = server.lastIdentifyEventSubscriptions as number
+    expect(subscriptions & EventSubscription.Vendors).toBe(0)
+    for (const subscription of HIGH_VOLUME_EVENT_SUBSCRIPTIONS) {
+      expect(subscriptions & EventSubscription[subscription]).toBe(0)
+    }
+  })
+
+  it("keeps raw vendor, custom, and high-volume subscriptions disabled for the events toolset", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url, undefined, 300, ["events"]))
+    clients.push(client)
+
+    expect(server.lastIdentifyEventSubscriptions).toBe(SAFE_EVENT_SUBSCRIPTION_MASK)
+    const subscriptions = server.lastIdentifyEventSubscriptions as number
+    expect(subscriptions & EventSubscription.Vendors).toBe(0)
+    for (const subscription of HIGH_VOLUME_EVENT_SUBSCRIPTIONS) {
+      expect(subscriptions & EventSubscription[subscription]).toBe(0)
+    }
   })
 
   it("connects through an authenticated handshake", async () => {
@@ -278,6 +306,31 @@ describe("OBS websocket client", () => {
     })
   })
 
+  it("keeps event buffer capacity bounded under burst input", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: Array.from({ length: 5 }, (_, index) => ({
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: `Scene ${index + 1}`, sceneUuid: `scene-${index + 1}` }
+      })),
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url), { eventBufferCapacity: 3 })
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents()).toMatchObject({
+      capacity: 3,
+      droppedEvents: 2,
+      events: [
+        { sequence: 3, eventData: { sceneName: "Scene 3", sceneUuid: "scene-3" } },
+        { sequence: 4, eventData: { sceneName: "Scene 4", sceneUuid: "scene-4" } },
+        { sequence: 5, eventData: { sceneName: "Scene 5", sceneUuid: "scene-5" } }
+      ]
+    })
+  })
+
   it("rejects invalid event buffer capacity before connecting", async () => {
     await expect(createObsClient(configFor("ws://127.0.0.1:1"), { eventBufferCapacity: 0 }))
       .rejects.toThrow("capacity")
@@ -292,7 +345,7 @@ describe("OBS websocket client", () => {
       }
     })
     servers.push(vendor)
-    const vendorClient = await createObsClient(configFor(vendor.url))
+    const vendorClient = await createObsClient(configFor(vendor.url, undefined, 300, ["events"]))
     clients.push(vendorClient)
     await expect(vendorClient.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
     expect(vendorClient.getBufferedEvents().events).toEqual([])
@@ -305,7 +358,7 @@ describe("OBS websocket client", () => {
       }
     })
     servers.push(custom)
-    const customClient = await createObsClient(configFor(custom.url))
+    const customClient = await createObsClient(configFor(custom.url, undefined, 300, ["events"]))
     clients.push(customClient)
     await expect(customClient.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
     expect(customClient.getBufferedEvents().events).toEqual([])

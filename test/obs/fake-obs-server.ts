@@ -43,6 +43,7 @@ interface FakeObsServerOptions {
   readonly rpcVersion?: number
   readonly eventAfterIdentify?: Record<string, unknown>
   readonly eventBeforeResponse?: Record<string, unknown>
+  readonly eventBurstBeforeResponse?: ReadonlyArray<Record<string, unknown>>
   readonly eventBeforeResponseFor?: string
   readonly envelopeBeforeResponse?: Record<string, unknown>
   readonly envelopeBeforeResponseFor?: string
@@ -212,6 +213,12 @@ export class FakeObsServer {
         && (options.eventBeforeResponseFor === undefined || options.eventBeforeResponseFor === requestType)
       ) {
         socket.send(JSON.stringify({ op: OP_EVENT, d: options.eventBeforeResponse }))
+      }
+      if (
+        options.eventBurstBeforeResponse !== undefined
+        && (options.eventBeforeResponseFor === undefined || options.eventBeforeResponseFor === requestType)
+      ) {
+        for (const event of options.eventBurstBeforeResponse) socket.send(JSON.stringify({ op: OP_EVENT, d: event }))
       }
       if (
         options.envelopeBeforeResponse !== undefined
