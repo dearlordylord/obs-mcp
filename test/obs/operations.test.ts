@@ -91,13 +91,20 @@ import {
 } from "../../src/obs/operations/inputs.js"
 import {
   getLastReplayBufferReplay,
+  getOutputSettings,
+  getOutputStatus,
   getReplayBufferStatus,
   getVirtualCamStatus,
+  listOutputs,
   saveReplayBuffer,
+  setOutputSettings,
+  startOutput,
   startReplayBuffer,
   startVirtualCam,
+  stopOutput,
   stopReplayBuffer,
   stopVirtualCam,
+  toggleOutput,
   toggleReplayBuffer,
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
@@ -112,8 +119,32 @@ import {
   toggleRecord,
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
-import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
 import { getSourceScreenshot, saveSourceScreenshot } from "../../src/obs/operations/screenshots.js"
+import {
+  createScene,
+  createSceneItem,
+  duplicateSceneItem,
+  getCurrentPreviewScene,
+  getCurrentScene,
+  getSceneItemBlendMode,
+  getSceneItemEnabled,
+  getSceneItemIndex,
+  getSceneItemSource,
+  getSceneItemTransform,
+  getSceneTransitionOverride,
+  getSourceActive,
+  listGroups,
+  listGroupSceneItems,
+  listSceneItems,
+  listScenes,
+  removeScene,
+  removeSceneItem,
+  setCurrentPreviewScene,
+  setCurrentScene,
+  setSceneItemTransform,
+  setSceneName,
+  setSceneTransitionOverride
+} from "../../src/obs/operations/scenes.js"
 import {
   getStreamStatus,
   sendStreamCaption,
@@ -143,6 +174,7 @@ import {
 } from "../../src/obs/operations/ui.js"
 import { broadcastCustomEvent, callVendorRequest } from "../../src/obs/operations/vendor.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
 const servers: Array<FakeObsServer> = []
@@ -1213,6 +1245,14 @@ describe("OBS operations", () => {
     expect(noGroups.scenes.map((scene) => scene.sceneName)).toEqual(["Intro", "Main"])
   })
 
+  it("lists groups through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listGroups(client)).resolves.toEqual({ groups: ["Group"] })
+  })
+
   it("gets and sets the current scene", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -1221,6 +1261,322 @@ describe("OBS operations", () => {
     await expect(getCurrentScene(client)).resolves.toEqual({ sceneName: "Intro", sceneUuid: "scene-intro" })
     await expect(setCurrentScene(client, { sceneName: "Main" })).resolves.toEqual({ sceneName: "Main", switched: true })
     await expect(getCurrentScene(client)).resolves.toEqual({ sceneName: "Main", sceneUuid: "scene-main" })
+  })
+
+  it("gets and sets the current studio mode preview scene", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getCurrentPreviewScene(client)).resolves.toEqual({ sceneName: "Intro", sceneUuid: "scene-intro" })
+    await expect(setCurrentPreviewScene(client, { sceneUuid: "scene-main" }))
+      .resolves.toEqual({ sceneUuid: "scene-main", updated: true })
+    await expect(getCurrentPreviewScene(client)).resolves.toEqual({ sceneName: "Main", sceneUuid: "scene-main" })
+  })
+
+  it("creates, renames, and removes scenes through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createScene(client, { sceneName: "Break" }))
+      .resolves.toEqual({ sceneName: "Break", sceneUuid: "scene-break", created: true })
+    await expect(createScene(client, { sceneName: "Temp" }))
+      .resolves.toEqual({ sceneName: "Temp", sceneUuid: "scene-temp", created: true })
+    await expect(removeScene(client, { sceneUuid: "scene-temp" }))
+      .resolves.toEqual({ sceneUuid: "scene-temp", removed: true })
+    await expect(listScenes(client, { includeGroups: true }))
+      .resolves.toMatchObject({
+        scenes: expect.arrayContaining([expect.objectContaining({ sceneName: "Break", sceneUuid: "scene-break" })])
+      })
+    await expect(setSceneName(client, {
+      sceneName: "Break",
+      canvasUuid: "canvas-main",
+      newSceneName: "Intermission"
+    })).resolves.toEqual({
+      sceneName: "Break",
+      canvasUuid: "canvas-main",
+      newSceneName: "Intermission",
+      renamed: true
+    })
+    await expect(listScenes(client, { includeGroups: true }))
+      .resolves.toMatchObject({
+        scenes: expect.arrayContaining([
+          expect.objectContaining({ sceneName: "Intermission", sceneUuid: "scene-break" })
+        ])
+      })
+    await expect(removeScene(client, { sceneName: "Intermission", canvasUuid: "canvas-main" }))
+      .resolves.toEqual({ sceneName: "Intermission", canvasUuid: "canvas-main", removed: true })
+    const scenes = await listScenes(client, { includeGroups: true })
+    expect(scenes.scenes.map((scene) => scene.sceneName)).not.toContain("Intermission")
+  })
+
+  it("surfaces duplicate and missing scene lifecycle OBS errors", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createScene(client, { sceneName: "Intro" })).rejects.toMatchObject({
+      requestType: "CreateScene",
+      code: 601,
+      comment: "Scene already exists"
+    })
+    await expect(removeScene(client, { sceneName: "Missing" })).rejects.toMatchObject({
+      requestType: "RemoveScene",
+      code: 600,
+      comment: "Scene not found"
+    })
+    await expect(setSceneName(client, { sceneName: "Missing", newSceneName: "Other" })).rejects.toMatchObject({
+      requestType: "SetSceneName",
+      code: 600,
+      comment: "Scene not found"
+    })
+  })
+
+  it("gets, sets, replaces, and clears scene transition overrides", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: null, transitionDuration: null })
+    await expect(setSceneTransitionOverride(client, {
+      sceneName: "Intro",
+      transitionName: "Fade",
+      transitionDuration: 300
+    })).resolves.toEqual({
+      sceneName: "Intro",
+      transitionName: "Fade",
+      transitionDuration: 300,
+      updated: true
+    })
+    await expect(getSceneTransitionOverride(client, { sceneUuid: "scene-intro" }))
+      .resolves.toEqual({ transitionName: "Fade", transitionDuration: 300 })
+    await expect(setSceneTransitionOverride(client, { sceneUuid: "scene-intro", transitionName: "Cut" }))
+      .resolves.toEqual({ sceneUuid: "scene-intro", transitionName: "Cut", updated: true })
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: "Cut", transitionDuration: 300 })
+    await expect(setSceneTransitionOverride(client, { sceneUuid: "scene-intro", transitionDuration: 500 }))
+      .resolves.toEqual({ sceneUuid: "scene-intro", transitionDuration: 500, updated: true })
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: "Cut", transitionDuration: 500 })
+    await expect(setSceneTransitionOverride(client, {
+      sceneName: "Intro",
+      transitionName: null,
+      transitionDuration: null
+    })).resolves.toEqual({
+      sceneName: "Intro",
+      transitionName: null,
+      transitionDuration: null,
+      updated: true
+    })
+    await expect(getSceneTransitionOverride(client, { sceneName: "Intro" }))
+      .resolves.toEqual({ transitionName: null, transitionDuration: null })
+  })
+
+  it("gets scene item transform fields through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getSceneItemTransform(client, { sceneName: "Intro", sceneItemId: 9 }))
+      .resolves.toEqual({
+        sceneItemTransform: {
+          alignment: 5,
+          boundsAlignment: 5,
+          boundsHeight: 120,
+          boundsType: "OBS_BOUNDS_SCALE_INNER",
+          boundsWidth: 640,
+          cropBottom: 4,
+          cropLeft: 8,
+          cropRight: 0,
+          cropTop: 0,
+          cropToBounds: true,
+          height: 120,
+          positionX: 64.5,
+          positionY: 512.25,
+          rotation: 0.5,
+          scaleX: 0.5,
+          scaleY: 0.5,
+          sourceHeight: 240,
+          sourceWidth: 1280,
+          width: 640
+        }
+      })
+  })
+
+  it("updates fake OBS scene item lists for lifecycle operations without changing group items", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(createSceneItem(client, {
+      sceneName: "Intro",
+      sourceName: "Title",
+      sceneItemEnabled: false
+    })).resolves.toEqual({
+      sceneName: "Intro",
+      sourceName: "Title",
+      sceneItemId: 10,
+      created: true
+    })
+    await expect(duplicateSceneItem(client, { sceneName: "Intro", sceneItemId: 7 }))
+      .resolves.toEqual({ sceneName: "Intro", sceneItemId: 11, duplicated: true })
+    await expect(listSceneItems(client, { sceneName: "Intro" }))
+      .resolves.toMatchObject({
+        sceneItems: [
+          { sceneItemId: 7, sceneItemIndex: 0, sourceName: "Camera" },
+          { sceneItemId: 9, sceneItemIndex: 1, sourceName: "Lower Third" },
+          { sceneItemId: 10, sceneItemIndex: 2, sourceName: "Title" },
+          { sceneItemId: 11, sceneItemIndex: 3, sourceName: "Camera" }
+        ]
+      })
+    await expect(getSceneItemEnabled(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sceneItemEnabled: false })
+    await expect(getSceneItemIndex(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sceneItemIndex: 2 })
+    await expect(getSceneItemBlendMode(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sceneItemBlendMode: "OBS_BLEND_NORMAL" })
+    await expect(getSceneItemSource(client, { sceneName: "Intro", sceneItemId: 10 }))
+      .resolves.toEqual({ sourceName: "Title", sourceUuid: "source-10" })
+    await expect(getSourceActive(client, { sourceName: "Title" }))
+      .resolves.toEqual({ sourceName: "Title", videoActive: false, videoShowing: true })
+    await expect(removeSceneItem(client, { sceneName: "Intro", sceneItemId: 9 }))
+      .resolves.toEqual({ sceneName: "Intro", sceneItemId: 9, removed: true })
+    await expect(listSceneItems(client, { sceneName: "Intro" }))
+      .resolves.toMatchObject({
+        sceneItems: [
+          { sceneItemId: 7, sceneItemIndex: 0, sourceName: "Camera" },
+          { sceneItemId: 10, sceneItemIndex: 1, sourceName: "Title" },
+          { sceneItemId: 11, sceneItemIndex: 2, sourceName: "Camera" }
+        ]
+      })
+    await expect(listGroupSceneItems(client, { sceneName: "Group" }))
+      .resolves.toEqual({
+        sceneItems: [{
+          sceneItemId: 3,
+          sceneItemIndex: 0,
+          sourceName: "Nested",
+          sourceUuid: "source-nested"
+        }]
+      })
+  })
+
+  it("surfaces fake OBS missing scene item lifecycle errors", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(removeSceneItem(client, { sceneName: "Intro", sceneItemId: 404 }))
+      .rejects.toMatchObject({
+        requestType: "RemoveSceneItem",
+        code: 600,
+        comment: "Scene item not found"
+      })
+    await expect(duplicateSceneItem(client, { sceneName: "Intro", sceneItemId: 404 }))
+      .rejects.toMatchObject({
+        requestType: "DuplicateSceneItem",
+        code: 600,
+        comment: "Scene item not found"
+      })
+  })
+
+  it("duplicates scene items into the source scene when selected by scene UUID", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(duplicateSceneItem(client, { sceneUuid: "scene-intro", sceneItemId: 7 }))
+      .resolves.toEqual({ sceneUuid: "scene-intro", sceneItemId: 10, duplicated: true })
+    await expect(listSceneItems(client, { sceneUuid: "scene-intro" }))
+      .resolves.toMatchObject({
+        sceneItems: [
+          { sceneItemId: 7, sceneItemIndex: 0, sourceName: "Camera" },
+          { sceneItemId: 9, sceneItemIndex: 1, sourceName: "Lower Third" },
+          { sceneItemId: 10, sceneItemIndex: 2, sourceName: "Camera" }
+        ]
+      })
+  })
+
+  it("sets scene item transform fields through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(setSceneItemTransform(client, {
+      sceneName: "Intro",
+      sceneItemId: 9,
+      sceneItemTransform: {
+        cropToBounds: false,
+        positionX: 320.25,
+        scaleX: 0.75
+      }
+    })).resolves.toEqual({
+      sceneItemTransform: {
+        cropToBounds: false,
+        positionX: 320.25,
+        scaleX: 0.75
+      },
+      updated: true
+    })
+    await expect(getSceneItemTransform(client, { sceneName: "Intro", sceneItemId: 9 }))
+      .resolves.toMatchObject({
+        sceneItemTransform: {
+          cropToBounds: false,
+          positionX: 320.25,
+          positionY: 512.25,
+          scaleX: 0.75
+        }
+      })
+  })
+
+  it("rejects unsupported-only scene item transform updates in fake OBS", () => {
+    const errors: Array<unknown> = []
+    const handled = handleFakeObsSceneItemReadRequest(
+      "SetSceneItemTransform",
+      {
+        sceneName: "Intro",
+        sceneItemId: 9,
+        sceneItemTransform: { width: 1280 }
+      },
+      () => undefined,
+      new Map(),
+      (code, comment) => errors.push({ code, comment })
+    )
+    expect(handled).toBe(true)
+    expect(errors).toEqual([{ code: 402, comment: "No valid scene item transform fields" }])
+  })
+
+  it("surfaces scene item transform OBS errors", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetSceneItemTransform: { code: 601, comment: "Scene item not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getSceneItemTransform(client, { sceneName: "Intro", sceneItemId: 99 })).rejects.toMatchObject({
+      requestType: "GetSceneItemTransform",
+      code: 601,
+      comment: "Scene item not found"
+    })
+  })
+
+  it("surfaces set scene item transform OBS errors", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetSceneItemTransform: { code: 601, comment: "Scene item not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(setSceneItemTransform(client, {
+      sceneName: "Intro",
+      sceneItemId: 99,
+      sceneItemTransform: { positionX: 1 }
+    })).rejects.toMatchObject({
+      requestType: "SetSceneItemTransform",
+      code: 601,
+      comment: "Scene item not found"
+    })
   })
 
   it("discovers inputs and input kinds through the fake OBS protocol", async () => {
@@ -2794,6 +3150,99 @@ describe("OBS operations", () => {
     }])
   })
 
+  it("lists outputs and gets generic output status over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listOutputs(client)).resolves.toEqual({
+      outputs: [
+        { outputName: "adv_stream", outputKind: "rtmp_output", outputActive: false },
+        { outputName: "adv_file_output", outputKind: "ffmpeg_muxer", outputActive: false },
+        { outputName: "virtualcam_output", outputKind: "virtualcam_output", outputActive: false },
+        { outputName: "replay_buffer", outputKind: "replay_buffer", outputActive: false }
+      ]
+    })
+    await expect(startStream(client)).resolves.toEqual({ outputActive: true })
+    await expect(getOutputStatus(client, { outputName: "adv_stream" })).resolves.toMatchObject({
+      outputName: "adv_stream",
+      outputActive: true,
+      outputReconnecting: false,
+      outputDuration: 12345,
+      outputCongestion: 0,
+      outputBytes: 4096,
+      outputSkippedFrames: 0,
+      outputTotalFrames: 740
+    })
+    await expect(getOutputStatus(client, { outputName: "missing_output" })).rejects.toMatchObject({
+      requestType: "GetOutputStatus",
+      code: 600,
+      comment: "Output not found"
+    })
+  })
+
+  it("gets and sets generic output settings over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(getOutputSettings(client, { outputName: "adv_file_output" })).resolves.toEqual({
+      outputName: "adv_file_output",
+      outputSettings: {
+        path: "/opaque/recordings",
+        format_name: "mkv",
+        video_encoder: "obs_x264",
+        audio_encoder: "ffmpeg_aac",
+        muxer_settings: "",
+        replay_buffer: true,
+        max_time_sec: 0,
+        max_size_mb: 0
+      }
+    })
+    await expect(setOutputSettings(client, {
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false }
+    })).resolves.toEqual({
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false },
+      updated: true
+    })
+    await expect(getOutputSettings(client, { outputName: "adv_file_output" })).resolves.toMatchObject({
+      outputSettings: { replay_buffer: false, max_time_sec: 60 }
+    })
+    await expect(getOutputSettings(client, { outputName: "missing_output" })).rejects.toMatchObject({
+      requestType: "GetOutputSettings",
+      code: 600,
+      comment: "Output not found"
+    })
+  })
+
+  it("controls generic outputs over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(startOutput(client, { outputName: "adv_stream" }))
+      .resolves.toEqual({ outputName: "adv_stream", outputActive: true, updated: true })
+    await expect(startOutput(client, { outputName: "adv_stream" })).rejects.toMatchObject({
+      requestType: "StartOutput",
+      code: 500,
+      comment: "Output already active"
+    })
+    await expect(toggleOutput(client, { outputName: "adv_stream" }))
+      .resolves.toEqual({ outputName: "adv_stream", outputActive: false, updated: true })
+    await expect(stopOutput(client, { outputName: "adv_stream" })).rejects.toMatchObject({
+      requestType: "StopOutput",
+      code: 500,
+      comment: "Output not active"
+    })
+    await expect(startOutput(client, { outputName: "missing_output" })).rejects.toMatchObject({
+      requestType: "StartOutput",
+      code: 600,
+      comment: "Output not found"
+    })
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -2834,6 +3283,17 @@ describe("OBS operations", () => {
       currentProgramSceneName: "Fallback",
       currentProgramSceneUuid: "fallback-uuid"
     })))).resolves.toEqual({ sceneName: "Fallback", sceneUuid: "fallback-uuid" })
+  })
+
+  it("uses deprecated current preview scene fields as fallbacks", async () => {
+    await expect(getCurrentPreviewScene(fakeClient(async () => ({
+      currentPreviewSceneName: "Fallback",
+      currentPreviewSceneUuid: "fallback-uuid"
+    })))).resolves.toEqual({ sceneName: "Fallback", sceneUuid: "fallback-uuid" })
+  })
+
+  it("rejects current preview scene responses without a scene name", async () => {
+    await expect(getCurrentPreviewScene(fakeClient(async () => ({})))).rejects.toThrow("current preview scene name")
   })
 
   it("pauses, resumes, and toggles record pause through fake OBS", async () => {

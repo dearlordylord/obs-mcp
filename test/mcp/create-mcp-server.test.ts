@@ -63,12 +63,25 @@ describe("MCP server protocol handlers", () => {
       "trigger_hotkey_by_name",
       "trigger_hotkey_by_key_sequence",
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
+      "create_scene",
+      "remove_scene",
+      "set_scene_name",
+      "get_scene_transition_override",
+      "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
+      "create_scene_item",
+      "remove_scene_item",
+      "duplicate_scene_item",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_transform",
+      "set_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -121,6 +134,11 @@ describe("MCP server protocol handlers", () => {
       "toggle_record_pause"
     ])
     expect(tools.tools.find((tool) => tool.name === "set_current_scene")?.inputSchema.required).toEqual(["sceneName"])
+    expect(tools.tools.find((tool) => tool.name === "create_scene")?.inputSchema.required).toEqual(["sceneName"])
+    expect(tools.tools.find((tool) => tool.name === "set_current_preview_scene")?.inputSchema)
+      .toHaveProperty("anyOf")
+    expect(tools.tools.find((tool) => tool.name === "set_scene_transition_override")?.inputSchema)
+      .toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_current_scene")?.outputSchema?.properties)
       .toHaveProperty("sceneName")
     expect(tools.tools.find((tool) => tool.name === "get_record_status")?.outputSchema?.properties)
@@ -142,6 +160,8 @@ describe("MCP server protocol handlers", () => {
     expect(sceneItemsTool?.inputSchema.type).toBe("object")
     expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
     expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
+    expect(tools.tools.find((tool) => tool.name === "get_scene_item_transform")?.outputSchema?.properties)
+      .toHaveProperty("sceneItemTransform")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_enabled")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "set_scene_item_index")?.inputSchema.type).toBe("object")
     expect(tools.tools.find((tool) => tool.name === "get_source_active")?.inputSchema.type).toBe("object")
@@ -1218,6 +1238,118 @@ describe("MCP server protocol handlers", () => {
     })
   })
 
+  it("returns structured generic output content", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetOutputList") {
+          return {
+            outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+          }
+        }
+        if (requestType === "GetOutputStatus") {
+          return {
+            outputActive: true,
+            outputReconnecting: false,
+            outputTimecode: "00:00:12.345",
+            outputDuration: 12345,
+            outputCongestion: 0,
+            outputBytes: 4096,
+            outputSkippedFrames: 1,
+            outputTotalFrames: 740
+          }
+        }
+        if (requestType === "GetOutputSettings") {
+          return { outputSettings: { path: "/opaque/recordings", format_name: "mkv", stream_key: "<redacted>" } }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+
+    await expect(client.callTool({ name: "list_outputs", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+        }
+      })
+    await expect(client.callTool({ name: "get_output_status", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputName: "adv_stream",
+          outputActive: true,
+          outputReconnecting: false,
+          outputTimecode: "00:00:12.345",
+          outputDuration: 12345,
+          outputCongestion: 0,
+          outputBytes: 4096,
+          outputSkippedFrames: 1,
+          outputTotalFrames: 740
+        }
+      })
+    await expect(client.callTool({ name: "get_output_settings", arguments: { outputName: "adv_file_output" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputName: "adv_file_output",
+          outputSettings: { path: "/opaque/recordings", format_name: "mkv" }
+        }
+      })
+    await expect(client.callTool({
+      name: "set_output_settings",
+      arguments: { outputName: "adv_file_output", outputSettings: { max_time_sec: 60 } }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        outputName: "adv_file_output",
+        outputSettings: { max_time_sec: 60 },
+        updated: true
+      }
+    })
+  })
+
+  it("returns generic output OBS error metadata", async () => {
+    const client = await connect(
+      obsClient(async () => {
+        throw new ObsRequestError("GetOutputStatus", 600, "Output not found")
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+
+    await expect(client.callTool({ name: "get_output_status", arguments: { outputName: "missing_output" } }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "GetOutputStatus",
+            obsStatusCode: 600,
+            comment: "Output not found"
+          }
+        }
+      })
+  })
+
+  it("returns structured generic output lifecycle content", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "ToggleOutput") return { outputActive: true }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["outputs"] }
+    )
+
+    await expect(client.callTool({ name: "start_output", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: { outputName: "adv_stream", outputActive: true, updated: true }
+      })
+    await expect(client.callTool({ name: "stop_output", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: { outputName: "adv_stream", outputActive: false, updated: true }
+      })
+    await expect(client.callTool({ name: "toggle_output", arguments: { outputName: "adv_stream" } }))
+      .resolves.toMatchObject({
+        structuredContent: { outputName: "adv_stream", outputActive: true, updated: true }
+      })
+  })
+
   it("rejects invalid recent event limits before reading the buffer", async () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
     await expect(client.callTool({ name: "get_recent_obs_events", arguments: { limit: 0 } }))
@@ -1520,6 +1652,27 @@ describe("MCP server protocol handlers", () => {
     })).resolves.toMatchObject({
       isError: true,
       content: [{ type: "text" }],
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+    expect(requested).toEqual([])
+  })
+
+  it("rejects preview scene canvas UUID locators before OBS requests", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(obsClient(async (requestType) => {
+      requested.push(requestType)
+      return {}
+    }))
+
+    await expect(client.callTool({
+      name: "set_current_preview_scene",
+      arguments: { sceneName: "Scene", canvasUuid: "canvas-main" }
+    })).resolves.toMatchObject({
+      isError: true,
       _meta: {
         error: {
           code: ErrorCode.InvalidParams

@@ -74,6 +74,10 @@ import {
   SaveSourceScreenshotInput,
   SaveSourceScreenshotOutput
 } from "../../src/domain/schemas/screenshots.js"
+import {
+  GetSceneItemTransformOutput,
+  SetSceneItemTransformInput
+} from "../../src/domain/schemas/scene-item-transforms.js"
 import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -82,6 +86,7 @@ import type { ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
 import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { DEFAULT_AVAILABLE_REQUESTS } from "../obs/fake-obs-fixtures.js"
 import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
 const config: ObsConfig = {
@@ -133,13 +138,6 @@ const generalToolNames = [
   "list_hotkeys",
   "trigger_hotkey_by_name",
   "trigger_hotkey_by_key_sequence"
-]
-
-const deferredInputMediaToolNames = [
-  "get_input_audio_tracks",
-  "set_input_audio_tracks",
-  "get_input_settings",
-  "set_input_settings"
 ]
 
 const filterToolNames = [
@@ -234,6 +232,38 @@ const laneOwnedRequestPolicies = [
 const laneOwnedToolNames = Array.from(
   new Set(laneOwnedRequestPolicies.flatMap((entry) => entry.toolNames))
 )
+const sceneCompositionRequestTools = [
+  ["GetGroupList", "list_groups", "scenes"],
+  ["GetCurrentPreviewScene", "get_current_preview_scene", "scenes"],
+  ["SetCurrentPreviewScene", "set_current_preview_scene", "scenes"],
+  ["CreateScene", "create_scene", "scenes"],
+  ["RemoveScene", "remove_scene", "scenes"],
+  ["SetSceneName", "set_scene_name", "scenes"],
+  ["GetSceneSceneTransitionOverride", "get_scene_transition_override", "scenes"],
+  ["SetSceneSceneTransitionOverride", "set_scene_transition_override", "scenes"],
+  ["GetSceneItemTransform", "get_scene_item_transform", "scenes"],
+  ["SetSceneItemTransform", "set_scene_item_transform", "scenes"],
+  ["CreateSceneItem", "create_scene_item", "scenes"],
+  ["RemoveSceneItem", "remove_scene_item", "scenes"],
+  ["DuplicateSceneItem", "duplicate_scene_item", "scenes"],
+  ["GetOutputList", "list_outputs", "outputs"],
+  ["GetOutputStatus", "get_output_status", "outputs"],
+  ["GetOutputSettings", "get_output_settings", "outputs"],
+  ["SetOutputSettings", "set_output_settings", "outputs"],
+  ["StartOutput", "start_output", "outputs"],
+  ["StopOutput", "stop_output", "outputs"],
+  ["ToggleOutput", "toggle_output", "outputs"]
+] as const
+
+const genericOutputToolNames = [
+  "list_outputs",
+  "get_output_status",
+  "get_output_settings",
+  "set_output_settings",
+  "start_output",
+  "stop_output",
+  "toggle_output"
+] as const
 
 const inputAvailableRequests = [
   "GetInputList",
@@ -459,12 +489,25 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(config.enabledToolsets).map((tool) => tool.name)).toEqual([
       ...generalToolNames,
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
+      "create_scene",
+      "remove_scene",
+      "set_scene_name",
+      "get_scene_transition_override",
+      "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
+      "create_scene_item",
+      "remove_scene_item",
+      "duplicate_scene_item",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_transform",
+      "set_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -523,6 +566,54 @@ describe("MCP tool registry", () => {
     }
   })
 
+  it("represents every scene composition/output lane-owned OBS request", () => {
+    for (const [requestType, toolName] of sceneCompositionRequestTools) {
+      expect(DEFAULT_AVAILABLE_REQUESTS).toContain(requestType)
+      expect(allAvailableRequests).toContain(requestType)
+      const tool = allTools.find((candidate) => candidate.name === toolName)
+      expect(tool?.requiredObsRequests).toContain(requestType)
+    }
+  })
+
+  it("keeps generic output tools separate from specialized output controls", () => {
+    const genericRequests = new Set(
+      genericOutputToolNames.flatMap((toolName) =>
+        allTools.find((tool) => tool.name === toolName)?.requiredObsRequests ?? []
+      )
+    )
+    const specializedToolNames = [
+      "get_virtual_cam_status",
+      "start_virtual_cam",
+      "stop_virtual_cam",
+      "toggle_virtual_cam",
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer",
+      "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
+      "get_stream_status",
+      "start_stream",
+      "stop_stream",
+      "toggle_stream"
+    ]
+    for (const toolName of specializedToolNames) {
+      const tool = allTools.find((candidate) => candidate.name === toolName)
+      expect(tool?.requiredObsRequests.some((requestType) => genericRequests.has(requestType))).toBe(false)
+    }
+  })
+
+  it("does not expose generic output tools outside the outputs toolset", () => {
+    const defaultToolNames = getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name)
+    const sceneToolNames = getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)
+    for (const toolName of genericOutputToolNames) {
+      expect(defaultToolNames).not.toContain(toolName)
+      expect(sceneToolNames).not.toContain(toolName)
+    }
+  })
+
   it("exposes input discovery tools when the input toolset is enabled", () => {
     expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual(inputToolNames)
   })
@@ -537,6 +628,13 @@ describe("MCP tool registry", () => {
 
   it("exposes output tools when the outputs toolset is enabled", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
+      "list_outputs",
+      "get_output_status",
+      "get_output_settings",
+      "set_output_settings",
+      "start_output",
+      "stop_output",
+      "toggle_output",
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
@@ -569,6 +667,190 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["config"], allAvailableRequests).map((tool) => tool.name)).toEqual(configToolNames)
     expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
       .toEqual(expect.not.arrayContaining(configToolNames))
+  })
+
+  it("lists outputs and gets generic output status", async () => {
+    await expect(executeTool(toolByName("list_outputs"), {}, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetOutputList")
+        expect(requestData).toBeUndefined()
+        return {
+          outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+        }
+      })
+    })).resolves.toEqual({
+      outputs: [{ outputName: "adv_stream", outputKind: "rtmp_output", outputActive: true }]
+    })
+    await expect(executeTool(toolByName("get_output_status"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetOutputStatus")
+        expect(requestData).toEqual({ outputName: "adv_stream" })
+        return {
+          outputActive: true,
+          outputReconnecting: false,
+          outputTimecode: "00:00:12.345",
+          outputDuration: 12345,
+          outputCongestion: 0,
+          outputBytes: 4096,
+          outputSkippedFrames: 1,
+          outputTotalFrames: 740
+        }
+      })
+    })).resolves.toEqual({
+      outputName: "adv_stream",
+      outputActive: true,
+      outputReconnecting: false,
+      outputTimecode: "00:00:12.345",
+      outputDuration: 12345,
+      outputCongestion: 0,
+      outputBytes: 4096,
+      outputSkippedFrames: 1,
+      outputTotalFrames: 740
+    })
+    await expect(executeTool(toolByName("get_output_status"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async () => ({ outputActive: true }))
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("gets and sets sanitized generic output settings", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("get_output_settings"), { outputName: "adv_file_output" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetOutputSettings")
+        requests.push(requestData)
+        return {
+          outputSettings: {
+            path: "/opaque/recordings",
+            format_name: "mkv",
+            stream_key: "<redacted>"
+          }
+        }
+      })
+    })).resolves.toEqual({
+      outputName: "adv_file_output",
+      outputSettings: {
+        path: "/opaque/recordings",
+        format_name: "mkv"
+      }
+    })
+    await expect(executeTool(toolByName("set_output_settings"), {
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false }
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetOutputSettings")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({
+      outputName: "adv_file_output",
+      outputSettings: { max_time_sec: 60, replay_buffer: false },
+      updated: true
+    })
+    expect(requests).toEqual([
+      { outputName: "adv_file_output" },
+      { outputName: "adv_file_output", outputSettings: { max_time_sec: 60, replay_buffer: false } }
+    ])
+  })
+
+  it("rejects unsupported generic output settings fields", async () => {
+    await expect(executeTool(toolByName("set_output_settings"), {
+      outputName: "adv_stream",
+      outputSettings: { key: "<redacted>" }
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+    await expect(executeTool(toolByName("set_output_settings"), {
+      outputName: "adv_stream",
+      outputSettings: {}
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("maps generic output settings OBS errors with metadata", async () => {
+    await expect(executeTool(toolByName("get_output_settings"), { outputName: "missing_output" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("GetOutputSettings", 600, "Output not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetOutputSettings",
+        obsStatusCode: 600,
+        comment: "Output not found"
+      }
+    })
+  })
+
+  it("starts, stops, and toggles generic outputs", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("start_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("StartOutput")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ outputName: "adv_stream", outputActive: true, updated: true })
+    await expect(executeTool(toolByName("stop_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("StopOutput")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ outputName: "adv_stream", outputActive: false, updated: true })
+    await expect(executeTool(toolByName("toggle_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("ToggleOutput")
+        requests.push(requestData)
+        return { outputActive: true }
+      })
+    })).resolves.toEqual({ outputName: "adv_stream", outputActive: true, updated: true })
+    expect(requests).toEqual([
+      { outputName: "adv_stream" },
+      { outputName: "adv_stream" },
+      { outputName: "adv_stream" }
+    ])
+  })
+
+  it("maps generic output lifecycle OBS errors with metadata", async () => {
+    await expect(executeTool(toolByName("start_output"), { outputName: "missing_output" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("StartOutput", 600, "Output not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "StartOutput",
+        obsStatusCode: 600,
+        comment: "Output not found"
+      }
+    })
+    await expect(executeTool(toolByName("stop_output"), { outputName: "adv_stream" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("StopOutput", 500, "Output not active")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "StopOutput",
+        obsStatusCode: 500,
+        comment: "Output not active"
+      }
+    })
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
@@ -614,6 +896,7 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).not.toContain(
       "get_stream_status"
     )
+    expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).not.toContain("create_scene")
   })
 
   it("filters tools by toolset category", () => {
@@ -635,12 +918,25 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
+      "create_scene",
+      "remove_scene",
+      "set_scene_name",
+      "get_scene_transition_override",
+      "set_scene_transition_override",
       "list_scene_items",
       "list_group_scene_items",
+      "create_scene_item",
+      "remove_scene_item",
+      "duplicate_scene_item",
       "get_scene_item_id",
       "get_scene_item_source",
+      "get_scene_item_transform",
+      "set_scene_item_transform",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -656,6 +952,13 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["screenshots"], allAvailableRequests).map((tool) => tool.name))
       .toEqual(screenshotToolNames)
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
+      "list_outputs",
+      "get_output_status",
+      "get_output_settings",
+      "set_output_settings",
+      "start_output",
+      "stop_output",
+      "toggle_output",
       "get_virtual_cam_status",
       "start_virtual_cam",
       "stop_virtual_cam",
@@ -677,9 +980,6 @@ describe("MCP tool registry", () => {
     }
     for (const name of screenshotToolNames) {
       expect(sceneToolNames).not.toContain(name)
-    }
-    for (const name of deferredInputMediaToolNames) {
-      expect(allTools.map((tool) => tool.name)).not.toContain(name)
     }
   })
 
@@ -1039,6 +1339,91 @@ describe("MCP tool registry", () => {
       }))
     })
     expect(output).toMatchObject({ scenes: [{ sceneName: "Intro" }] })
+  })
+
+  it("executes group and studio mode preview scene handlers", async () => {
+    await expect(executeTool(toolByName("list_groups"), {}, {
+      config,
+      client: fakeObsClient(async () => ({ groups: ["Group"] }))
+    })).resolves.toEqual({ groups: ["Group"] })
+    await expect(executeTool(toolByName("get_current_preview_scene"), {}, {
+      config,
+      client: fakeObsClient(async () => ({ sceneName: "Preview", sceneUuid: "scene-preview" }))
+    })).resolves.toEqual({ sceneName: "Preview", sceneUuid: "scene-preview" })
+    await expect(executeTool(toolByName("set_current_preview_scene"), { sceneUuid: "scene-preview" }, {
+      config,
+      client: fakeObsClient(async (_requestType, requestData) => {
+        expect(requestData).toEqual({ sceneUuid: "scene-preview" })
+        return {}
+      })
+    })).resolves.toEqual({ sceneUuid: "scene-preview", updated: true })
+  })
+
+  it("executes scene lifecycle handlers with structured request payloads", async () => {
+    await expect(executeTool(toolByName("create_scene"), { sceneName: "Break" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("CreateScene")
+        expect(requestData).toEqual({ sceneName: "Break" })
+        return { sceneUuid: "scene-break" }
+      })
+    })).resolves.toEqual({ sceneName: "Break", sceneUuid: "scene-break", created: true })
+    await expect(executeTool(toolByName("remove_scene"), { sceneName: "Break", canvasUuid: "canvas-main" }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("RemoveScene")
+        expect(requestData).toEqual({ sceneName: "Break", canvasUuid: "canvas-main" })
+        return {}
+      })
+    })).resolves.toEqual({ sceneName: "Break", canvasUuid: "canvas-main", removed: true })
+    await expect(executeTool(toolByName("set_scene_name"), {
+      sceneName: "Break",
+      canvasUuid: "canvas-main",
+      newSceneName: "Intermission"
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetSceneName")
+        expect(requestData).toEqual({ sceneName: "Break", canvasUuid: "canvas-main", newSceneName: "Intermission" })
+        return {}
+      })
+    })).resolves.toEqual({
+      sceneName: "Break",
+      canvasUuid: "canvas-main",
+      newSceneName: "Intermission",
+      renamed: true
+    })
+  })
+
+  it("executes scene transition override handlers with structured request payloads", async () => {
+    await expect(executeTool(toolByName("get_scene_transition_override"), {
+      sceneName: "Intro",
+      canvasUuid: "canvas-main"
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetSceneSceneTransitionOverride")
+        expect(requestData).toEqual({ sceneName: "Intro", canvasUuid: "canvas-main" })
+        return { transitionName: null, transitionDuration: null }
+      })
+    })).resolves.toEqual({ transitionName: null, transitionDuration: null })
+    await expect(executeTool(toolByName("set_scene_transition_override"), {
+      sceneUuid: "scene-intro",
+      transitionName: "Fade",
+      transitionDuration: 300
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetSceneSceneTransitionOverride")
+        expect(requestData).toEqual({ sceneUuid: "scene-intro", transitionName: "Fade", transitionDuration: 300 })
+        return {}
+      })
+    })).resolves.toEqual({
+      sceneUuid: "scene-intro",
+      transitionName: "Fade",
+      transitionDuration: 300,
+      updated: true
+    })
   })
 
   it("executes get_version, get_obs_stats, get_current_scene, and get_record_status handlers", async () => {
@@ -3103,6 +3488,71 @@ describe("MCP tool registry", () => {
       })
     )
       .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("create_scene"), { sceneName: "" }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("set_scene_name"), { sceneName: "Intro", newSceneName: "" }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("set_scene_transition_override"), {
+        sceneName: "Intro",
+        transitionName: ""
+      }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    await expect(
+      executeTool(toolByName("set_scene_transition_override"), {
+        sceneName: "Intro",
+        transitionDuration: 49
+      }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
+    )
+      .rejects.toBeInstanceOf(McpError)
+    expect(() =>
+      Schema.decodeUnknownSync(GetSceneItemTransformOutput)({
+        sceneItemTransform: { positionX: "0", scaleX: 1, cropLeft: 0, cropToBounds: true }
+      })
+    ).toThrow("positionX")
+    expect(() =>
+      Schema.decodeUnknownSync(GetSceneItemTransformOutput)({
+        sceneItemTransform: { positionX: 0, scaleX: 1, cropLeft: 0, cropToBounds: "true" }
+      })
+    ).toThrow("cropToBounds")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSceneItemTransformInput)({
+        sceneName: "Scene",
+        sceneItemId: 42,
+        sceneItemTransform: { positionX: 0, scaleX: "1", cropLeft: 0 }
+      })
+    ).toThrow("scaleX")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSceneItemTransformInput)({
+        sceneName: "Scene",
+        sceneItemId: 42,
+        sceneItemTransform: {}
+      })
+    ).toThrow("At least one settable scene item transform field is required")
+    expect(() =>
+      Schema.decodeUnknownSync(SetSceneItemTransformInput)({
+        sceneName: "Scene",
+        sceneItemId: 42,
+        sceneItemTransform: { width: 1280 }
+      })
+    ).toThrow("At least one settable scene item transform field is required")
   })
 
   it("rejects invalid recent event limits through schema validation", async () => {
@@ -3951,6 +4401,154 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ sourceName: "Camera", sourceUuid: "source-camera" })
   })
 
+  it("creates, removes, and duplicates scene items", async () => {
+    const requests: Array<unknown> = []
+    await expect(executeTool(toolByName("create_scene_item"), {
+      sceneName: "Scene",
+      sourceName: "Camera",
+      sceneItemEnabled: false
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("CreateSceneItem")
+        requests.push(requestData)
+        return { sceneItemId: 12 }
+      })
+    })).resolves.toEqual({
+      sceneName: "Scene",
+      sourceName: "Camera",
+      sceneItemId: 12,
+      created: true
+    })
+    await expect(executeTool(toolByName("remove_scene_item"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 12
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("RemoveSceneItem")
+        requests.push(requestData)
+        return {}
+      })
+    })).resolves.toEqual({ sceneUuid: "scene-uuid", sceneItemId: 12, removed: true })
+    await expect(executeTool(toolByName("duplicate_scene_item"), {
+      sceneName: "Scene",
+      sceneItemId: 7,
+      destinationSceneName: "Program"
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("DuplicateSceneItem")
+        requests.push(requestData)
+        return { sceneItemId: 13 }
+      })
+    })).resolves.toEqual({
+      sceneName: "Scene",
+      destinationSceneName: "Program",
+      sceneItemId: 13,
+      duplicated: true
+    })
+    expect(requests).toEqual([
+      { sceneName: "Scene", sourceName: "Camera", sceneItemEnabled: false },
+      { sceneUuid: "scene-uuid", sceneItemId: 12 },
+      { sceneName: "Scene", sceneItemId: 7, destinationSceneName: "Program" }
+    ])
+  })
+
+  it("rejects scene item lifecycle responses missing scene item IDs", async () => {
+    await expect(executeTool(toolByName("create_scene_item"), {
+      sceneName: "Scene",
+      sourceName: "Camera"
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+    await expect(executeTool(toolByName("duplicate_scene_item"), {
+      sceneName: "Scene",
+      sceneItemId: 7
+    }, {
+      config,
+      client: fakeObsClient(async () => ({}))
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("gets a scene item's transform", async () => {
+    await expect(executeTool(toolByName("get_scene_item_transform"), {
+      sceneName: "Scene",
+      sceneItemId: 42
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("GetSceneItemTransform")
+        expect(requestData).toEqual({ sceneName: "Scene", sceneItemId: 42 })
+        return {
+          sceneItemTransform: {
+            alignment: 5,
+            boundsAlignment: 5,
+            boundsHeight: 720,
+            boundsType: "OBS_BOUNDS_NONE",
+            boundsWidth: 1280,
+            cropBottom: 0,
+            cropLeft: 0,
+            cropRight: 0,
+            cropTop: 0,
+            cropToBounds: false,
+            height: 720,
+            positionX: 0,
+            positionY: 0,
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            sourceHeight: 720,
+            sourceWidth: 1280,
+            width: 1280
+          }
+        }
+      })
+    })).resolves.toMatchObject({
+      sceneItemTransform: {
+        positionX: 0,
+        scaleX: 1,
+        cropToBounds: false,
+        width: 1280
+      }
+    })
+  })
+
+  it("sets a scene item's transform", async () => {
+    await expect(executeTool(toolByName("set_scene_item_transform"), {
+      sceneUuid: "scene-uuid",
+      sceneItemId: 42,
+      sceneItemTransform: {
+        cropToBounds: true,
+        positionX: 10.5,
+        scaleX: 0.75
+      }
+    }, {
+      config,
+      client: fakeObsClient(async (requestType, requestData) => {
+        expect(requestType).toBe("SetSceneItemTransform")
+        expect(requestData).toEqual({
+          sceneUuid: "scene-uuid",
+          sceneItemId: 42,
+          sceneItemTransform: {
+            cropToBounds: true,
+            positionX: 10.5,
+            scaleX: 0.75
+          }
+        })
+        return {}
+      })
+    })).resolves.toEqual({
+      sceneItemTransform: {
+        cropToBounds: true,
+        positionX: 10.5,
+        scaleX: 0.75
+      },
+      updated: true
+    })
+  })
+
   it("gets and sets scene item enabled and locked state", async () => {
     const requests: Array<unknown> = []
     await expect(executeTool(toolByName("get_scene_item_enabled"), {
@@ -4114,6 +4712,49 @@ describe("MCP tool registry", () => {
         throw new ObsRequestError("GetSceneItemId", 601, "Source not found")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("get_scene_item_transform"), { sceneName: "Scene", sceneItemId: 404 }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("GetSceneItemTransform", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetSceneItemTransform",
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
+    await expect(executeTool(toolByName("set_scene_item_transform"), {
+      sceneName: "Scene",
+      sceneItemId: 404,
+      sceneItemTransform: { positionX: 1 }
+    }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("SetSceneItemTransform", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetSceneItemTransform",
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
+    await expect(executeTool(toolByName("remove_scene_item"), { sceneName: "Scene", sceneItemId: 404 }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("RemoveSceneItem", 601, "Scene item not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "RemoveSceneItem",
+        obsStatusCode: 601,
+        comment: "Scene item not found"
+      }
+    })
   })
 
   it("maps scene item state OBS errors to MCP errors with OBS status metadata", async () => {
@@ -4215,8 +4856,11 @@ describe("MCP tool registry", () => {
       getEnabledTools(["scenes"], [
         "GetVersion",
         "GetSceneList",
+        "GetGroupList",
         "GetCurrentProgramScene",
+        "GetCurrentPreviewScene",
         "SetCurrentProgramScene",
+        "SetCurrentPreviewScene",
         "GetSceneItemEnabled",
         "SetSceneItemEnabled",
         "GetSceneItemLocked",
@@ -4229,8 +4873,11 @@ describe("MCP tool registry", () => {
       ]).map((tool) => tool.name)
     ).toEqual([
       "list_scenes",
+      "list_groups",
       "get_current_scene",
+      "get_current_preview_scene",
       "set_current_scene",
+      "set_current_preview_scene",
       "get_scene_item_enabled",
       "set_scene_item_enabled",
       "get_scene_item_locked",
@@ -4243,6 +4890,56 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("filters scene lifecycle tools by partial OBS capabilities", () => {
+    expect(getEnabledTools(["scenes"], ["CreateScene", "RemoveScene"]).map((tool) => tool.name)).toEqual([
+      "create_scene",
+      "remove_scene"
+    ])
+    expect(getEnabledTools(["scenes"], ["SetSceneName"]).map((tool) => tool.name)).toEqual(["set_scene_name"])
+  })
+
+  it("filters scene transition override tools by partial OBS capabilities", () => {
+    expect(
+      getEnabledTools(["scenes"], ["GetSceneSceneTransitionOverride"]).map((tool) => tool.name)
+    ).toEqual(["get_scene_transition_override"])
+    expect(
+      getEnabledTools(["scenes"], ["SetSceneSceneTransitionOverride"]).map((tool) => tool.name)
+    ).toEqual(["set_scene_transition_override"])
+  })
+
+  it("filters generic output tools by partial OBS capabilities", () => {
+    expect(getEnabledTools(["outputs"], ["GetOutputList"]).map((tool) => tool.name))
+      .toEqual(["list_outputs"])
+    expect(getEnabledTools(["outputs"], ["GetOutputStatus"]).map((tool) => tool.name))
+      .toEqual(["get_output_status"])
+    expect(getEnabledTools(["outputs"], ["GetOutputSettings"]).map((tool) => tool.name))
+      .toEqual(["get_output_settings"])
+    expect(getEnabledTools(["outputs"], ["SetOutputSettings"]).map((tool) => tool.name))
+      .toEqual(["set_output_settings"])
+    expect(getEnabledTools(["outputs"], ["StartOutput"]).map((tool) => tool.name))
+      .toEqual(["start_output"])
+    expect(getEnabledTools(["outputs"], ["StopOutput"]).map((tool) => tool.name))
+      .toEqual(["stop_output"])
+    expect(getEnabledTools(["outputs"], ["ToggleOutput"]).map((tool) => tool.name))
+      .toEqual(["toggle_output"])
+  })
+
+  it("filters scene item transform by partial OBS capabilities", () => {
+    expect(getEnabledTools(["scenes"], ["GetSceneItemTransform"]).map((tool) => tool.name))
+      .toEqual(["get_scene_item_transform"])
+    expect(getEnabledTools(["scenes"], ["SetSceneItemTransform"]).map((tool) => tool.name))
+      .toEqual(["set_scene_item_transform"])
+  })
+
+  it("filters scene item lifecycle tools by partial OBS capabilities", () => {
+    expect(getEnabledTools(["scenes"], ["CreateSceneItem"]).map((tool) => tool.name))
+      .toEqual(["create_scene_item"])
+    expect(getEnabledTools(["scenes"], ["RemoveSceneItem"]).map((tool) => tool.name))
+      .toEqual(["remove_scene_item"])
+    expect(getEnabledTools(["scenes"], ["DuplicateSceneItem"]).map((tool) => tool.name))
+      .toEqual(["duplicate_scene_item"])
+  })
+
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("set_current_scene"), { sceneName: "Missing" }, {
       config,
@@ -4250,6 +4947,22 @@ describe("MCP tool registry", () => {
         throw new ObsRequestError("SetCurrentProgramScene", 608, "Parameter: sceneName")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+  })
+
+  it("preserves OBS preview unavailable errors from studio mode preview operations", async () => {
+    await expect(executeTool(toolByName("set_current_preview_scene"), { sceneName: "Preview" }, {
+      config,
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("SetCurrentPreviewScene", 207, "Studio mode is not enabled")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InternalError,
+      data: {
+        comment: "Studio mode is not enabled",
+        obsStatusCode: 207,
+        requestType: "SetCurrentPreviewScene"
+      }
+    })
   })
 
   it("maps stream operation errors to MCP errors with OBS status metadata", async () => {

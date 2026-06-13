@@ -1,6 +1,10 @@
 import * as SceneSchemas from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
+  createScene,
+  createSceneItem,
+  duplicateSceneItem,
+  getCurrentPreviewScene,
   getCurrentScene,
   getSceneItemBlendMode,
   getSceneItemEnabled,
@@ -8,18 +12,32 @@ import {
   getSceneItemIndex,
   getSceneItemLocked,
   getSceneItemSource,
+  getSceneItemTransform,
+  getSceneTransitionOverride,
   getSourceActive,
+  listGroups,
   listGroupSceneItems,
   listSceneItems,
   listScenes,
+  removeScene,
+  removeSceneItem,
+  setCurrentPreviewScene,
   setCurrentScene,
   setSceneItemBlendMode,
   setSceneItemEnabled,
   setSceneItemIndex,
-  setSceneItemLocked
+  setSceneItemLocked,
+  setSceneItemTransform,
+  setSceneName,
+  setSceneTransitionOverride
 } from "../../obs/operations/scenes.js"
 import {
+  CreateScene,
+  CreateSceneItem,
+  DuplicateSceneItem,
+  GetCurrentPreviewScene,
   GetCurrentProgramScene,
+  GetGroupList,
   GetGroupSceneItemList,
   GetSceneItemBlendMode,
   GetSceneItemEnabled,
@@ -28,13 +46,21 @@ import {
   GetSceneItemList,
   GetSceneItemLocked,
   GetSceneItemSource,
+  GetSceneItemTransform,
   GetSceneList,
+  GetSceneSceneTransitionOverride,
   GetSourceActive,
+  RemoveScene,
+  RemoveSceneItem,
+  SetCurrentPreviewScene,
   SetCurrentProgramScene,
   SetSceneItemBlendMode,
   SetSceneItemEnabled,
   SetSceneItemIndex,
-  SetSceneItemLocked
+  SetSceneItemLocked,
+  SetSceneItemTransform,
+  SetSceneName,
+  SetSceneSceneTransitionOverride
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -52,6 +78,16 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     handler: async (input, context) => listScenes(context.client, input)
   }),
   defineTool({
+    name: "list_groups",
+    title: "List OBS Groups",
+    description: "Return OBS group names. OBS groups are represented as specialized scenes.",
+    category: CATEGORY,
+    requiredObsRequests: [GetGroupList.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: SceneSchemas.ListGroupsOutput,
+    handler: async (_input, context) => listGroups(context.client)
+  }),
+  defineTool({
     name: "get_current_scene",
     title: "Get Current OBS Scene",
     description: "Return the current OBS program scene name and UUID when OBS provides one.",
@@ -62,6 +98,16 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     handler: async (_input, context) => getCurrentScene(context.client)
   }),
   defineTool({
+    name: "get_current_preview_scene",
+    title: "Get Current OBS Preview Scene",
+    description: "Return the current OBS Studio Mode preview scene name and UUID when preview is available.",
+    category: CATEGORY,
+    requiredObsRequests: [GetCurrentPreviewScene.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: SceneSchemas.CurrentSceneOutput,
+    handler: async (_input, context) => getCurrentPreviewScene(context.client)
+  }),
+  defineTool({
     name: "set_current_scene",
     title: "Set Current OBS Scene",
     description: "Switch the current OBS program scene by scene name.",
@@ -70,6 +116,67 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.SetCurrentSceneInput,
     outputSchema: SceneSchemas.SetCurrentSceneOutput,
     handler: async (input, context) => setCurrentScene(context.client, input)
+  }),
+  defineTool({
+    name: "set_current_preview_scene",
+    title: "Set Current OBS Preview Scene",
+    description:
+      "Set the OBS Studio Mode preview scene by scene name or UUID. OBS returns an error when preview is unavailable.",
+    category: CATEGORY,
+    requiredObsRequests: [SetCurrentPreviewScene.requestType],
+    inputSchema: SceneSchemas.SetCurrentPreviewSceneInput,
+    outputSchema: SceneSchemas.SetCurrentPreviewSceneOutput,
+    handler: async (input, context) => setCurrentPreviewScene(context.client, input)
+  }),
+  defineTool({
+    name: "create_scene",
+    title: "Create OBS Scene",
+    description: "Create an empty OBS scene by name and return its UUID when OBS provides one.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateScene.requestType],
+    inputSchema: SceneSchemas.CreateSceneInput,
+    outputSchema: SceneSchemas.CreateSceneOutput,
+    handler: async (input, context) => createScene(context.client, input)
+  }),
+  defineTool({
+    name: "remove_scene",
+    title: "Remove OBS Scene",
+    description: "Remove an OBS scene selected by name or UUID.",
+    category: CATEGORY,
+    requiredObsRequests: [RemoveScene.requestType],
+    inputSchema: SceneSchemas.RemoveSceneInput,
+    outputSchema: SceneSchemas.RemoveSceneOutput,
+    handler: async (input, context) => removeScene(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_name",
+    title: "Rename OBS Scene",
+    description: "Rename an OBS scene selected by name or UUID.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneName.requestType],
+    inputSchema: SceneSchemas.SetSceneNameInput,
+    outputSchema: SceneSchemas.SetSceneNameOutput,
+    handler: async (input, context) => setSceneName(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_transition_override",
+    title: "Get OBS Scene Transition Override",
+    description: "Return the per-scene transition override name and duration, or nulls when no override is set.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneSceneTransitionOverride.requestType],
+    inputSchema: SceneSchemas.GetSceneTransitionOverrideInput,
+    outputSchema: SceneSchemas.SceneTransitionOverrideOutput,
+    handler: async (input, context) => getSceneTransitionOverride(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_transition_override",
+    title: "Set OBS Scene Transition Override",
+    description: "Set, update, or clear a per-scene transition override name and duration.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneSceneTransitionOverride.requestType],
+    inputSchema: SceneSchemas.SetSceneTransitionOverrideInput,
+    outputSchema: SceneSchemas.SetSceneTransitionOverrideOutput,
+    handler: async (input, context) => setSceneTransitionOverride(context.client, input)
   }),
   defineTool({
     name: "list_scene_items",
@@ -92,6 +199,36 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     handler: async (input, context) => listGroupSceneItems(context.client, input)
   }),
   defineTool({
+    name: "create_scene_item",
+    title: "Create OBS Scene Item",
+    description: "Add an existing source to a scene and return the new scene item ID when OBS provides one.",
+    category: CATEGORY,
+    requiredObsRequests: [CreateSceneItem.requestType],
+    inputSchema: SceneSchemas.CreateSceneItemInput,
+    outputSchema: SceneSchemas.CreateSceneItemOutput,
+    handler: async (input, context) => createSceneItem(context.client, input)
+  }),
+  defineTool({
+    name: "remove_scene_item",
+    title: "Remove OBS Scene Item",
+    description: "Remove a scene item from a scene by scene item ID.",
+    category: CATEGORY,
+    requiredObsRequests: [RemoveSceneItem.requestType],
+    inputSchema: SceneSchemas.RemoveSceneItemInput,
+    outputSchema: SceneSchemas.RemoveSceneItemOutput,
+    handler: async (input, context) => removeSceneItem(context.client, input)
+  }),
+  defineTool({
+    name: "duplicate_scene_item",
+    title: "Duplicate OBS Scene Item",
+    description: "Duplicate a scene item into the same scene or a destination scene.",
+    category: CATEGORY,
+    requiredObsRequests: [DuplicateSceneItem.requestType],
+    inputSchema: SceneSchemas.DuplicateSceneItemInput,
+    outputSchema: SceneSchemas.DuplicateSceneItemOutput,
+    handler: async (input, context) => duplicateSceneItem(context.client, input)
+  }),
+  defineTool({
     name: "get_scene_item_id",
     title: "Get OBS Scene Item ID",
     description: "Find a source by name in a scene or group and return its numeric scene item ID.",
@@ -110,6 +247,26 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: SceneSchemas.GetSceneItemSourceInput,
     outputSchema: SceneSchemas.GetSceneItemSourceOutput,
     handler: async (input, context) => getSceneItemSource(context.client, input)
+  }),
+  defineTool({
+    name: "get_scene_item_transform",
+    title: "Get OBS Scene Item Transform",
+    description: "Return explicit OBS transform and crop fields for a scene item.",
+    category: CATEGORY,
+    requiredObsRequests: [GetSceneItemTransform.requestType],
+    inputSchema: SceneSchemas.GetSceneItemTransformInput,
+    outputSchema: SceneSchemas.GetSceneItemTransformOutput,
+    handler: async (input, context) => getSceneItemTransform(context.client, input)
+  }),
+  defineTool({
+    name: "set_scene_item_transform",
+    title: "Set OBS Scene Item Transform",
+    description: "Partially update explicit OBS transform and crop fields for a scene item.",
+    category: CATEGORY,
+    requiredObsRequests: [SetSceneItemTransform.requestType],
+    inputSchema: SceneSchemas.SetSceneItemTransformInput,
+    outputSchema: SceneSchemas.SetSceneItemTransformOutput,
+    handler: async (input, context) => setSceneItemTransform(context.client, input)
   }),
   defineTool({
     name: "get_scene_item_enabled",

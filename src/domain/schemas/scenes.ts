@@ -24,6 +24,12 @@ export const ListScenesOutput = Schema.Struct({
 export type ListScenesOutput = typeof ListScenesOutput.Type
 export const ListScenesOutputJsonSchema = JSONSchema.make(ListScenesOutput)
 
+export const ListGroupsOutput = Schema.Struct({
+  groups: Schema.Array(Schema.String)
+})
+export type ListGroupsOutput = typeof ListGroupsOutput.Type
+export const ListGroupsOutputJsonSchema = JSONSchema.make(ListGroupsOutput)
+
 export const CurrentSceneOutput = Schema.Struct({
   sceneName: Schema.String,
   sceneUuid: Schema.optional(Schema.String)
@@ -62,6 +68,134 @@ export type SceneUuidLocator = typeof SceneUuidLocator.Type
 
 export const SceneLocator = Schema.Union(SceneNameLocator, SceneUuidLocator)
 export type SceneLocator = typeof SceneLocator.Type
+
+const PreviewSceneNameLocator = Schema.Struct({
+  sceneName: Schema.NonEmptyString,
+  sceneUuid: ForbiddenLocatorField,
+  canvasUuid: ForbiddenLocatorField
+})
+
+export const SetCurrentPreviewSceneInput = Schema.Union(PreviewSceneNameLocator, SceneUuidLocator)
+export type SetCurrentPreviewSceneInput = typeof SetCurrentPreviewSceneInput.Type
+export const SetCurrentPreviewSceneInputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneInput)
+
+export const SetCurrentPreviewSceneOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  updated: Schema.Literal(true)
+})
+export type SetCurrentPreviewSceneOutput = typeof SetCurrentPreviewSceneOutput.Type
+export const SetCurrentPreviewSceneOutputJsonSchema = JSONSchema.make(SetCurrentPreviewSceneOutput)
+
+export const CreateSceneInput = Schema.Struct({
+  sceneName: Schema.NonEmptyString,
+  canvasUuid: Schema.optional(Schema.NonEmptyString)
+})
+export type CreateSceneInput = typeof CreateSceneInput.Type
+export const CreateSceneInputJsonSchema = JSONSchema.make(CreateSceneInput)
+
+export const CreateSceneOutput = Schema.Struct({
+  sceneName: Schema.String,
+  sceneUuid: Schema.optional(Schema.String),
+  created: Schema.Literal(true)
+})
+export type CreateSceneOutput = typeof CreateSceneOutput.Type
+export const CreateSceneOutputJsonSchema = JSONSchema.make(CreateSceneOutput)
+
+export const RemoveSceneInput = SceneLocator
+export type RemoveSceneInput = typeof RemoveSceneInput.Type
+export const RemoveSceneInputJsonSchema = JSONSchema.make(RemoveSceneInput)
+
+export const RemoveSceneOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  canvasUuid: Schema.optional(Schema.String),
+  removed: Schema.Literal(true)
+})
+export type RemoveSceneOutput = typeof RemoveSceneOutput.Type
+export const RemoveSceneOutputJsonSchema = JSONSchema.make(RemoveSceneOutput)
+
+const SetSceneNameFields = {
+  newSceneName: Schema.NonEmptyString
+} as const
+
+export const SetSceneNameInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SetSceneNameFields
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SetSceneNameFields
+  })
+)
+export type SetSceneNameInput = typeof SetSceneNameInput.Type
+export const SetSceneNameInputJsonSchema = JSONSchema.make(SetSceneNameInput)
+
+export const SetSceneNameOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  canvasUuid: Schema.optional(Schema.String),
+  newSceneName: Schema.String,
+  renamed: Schema.Literal(true)
+})
+export type SetSceneNameOutput = typeof SetSceneNameOutput.Type
+export const SetSceneNameOutputJsonSchema = JSONSchema.make(SetSceneNameOutput)
+
+const MinTransitionDuration = 50
+const MaxTransitionDuration = 20000
+const TransitionDuration = Schema.Number.pipe(
+  Schema.greaterThanOrEqualTo(MinTransitionDuration),
+  Schema.lessThanOrEqualTo(MaxTransitionDuration)
+)
+
+export const GetSceneTransitionOverrideInput = SceneLocator
+export type GetSceneTransitionOverrideInput = typeof GetSceneTransitionOverrideInput.Type
+export const GetSceneTransitionOverrideInputJsonSchema = JSONSchema.make(GetSceneTransitionOverrideInput)
+
+export const SceneTransitionOverrideOutput = Schema.Struct({
+  transitionName: Schema.NullOr(Schema.String),
+  transitionDuration: Schema.NullOr(Schema.Number)
+})
+export type SceneTransitionOverrideOutput = typeof SceneTransitionOverrideOutput.Type
+export const SceneTransitionOverrideOutputJsonSchema = JSONSchema.make(SceneTransitionOverrideOutput)
+
+const SetSceneTransitionOverrideFields = {
+  transitionName: Schema.optional(Schema.NullOr(Schema.NonEmptyString)),
+  transitionDuration: Schema.optional(Schema.NullOr(TransitionDuration))
+} as const
+
+export const SetSceneTransitionOverrideInput = Schema.Union(
+  Schema.Struct({
+    sceneName: Schema.NonEmptyString,
+    sceneUuid: ForbiddenLocatorField,
+    canvasUuid: Schema.optional(Schema.NonEmptyString),
+    ...SetSceneTransitionOverrideFields
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenLocatorField,
+    sceneUuid: Schema.NonEmptyString,
+    canvasUuid: ForbiddenLocatorField,
+    ...SetSceneTransitionOverrideFields
+  })
+)
+export type SetSceneTransitionOverrideInput = typeof SetSceneTransitionOverrideInput.Type
+export const SetSceneTransitionOverrideInputJsonSchema = JSONSchema.make(SetSceneTransitionOverrideInput)
+
+export const SetSceneTransitionOverrideOutput = Schema.Struct({
+  sceneName: Schema.optional(Schema.String),
+  sceneUuid: Schema.optional(Schema.String),
+  canvasUuid: Schema.optional(Schema.String),
+  transitionName: Schema.optional(Schema.NullOr(Schema.String)),
+  transitionDuration: Schema.optional(Schema.NullOr(Schema.Number)),
+  updated: Schema.Literal(true)
+})
+export type SetSceneTransitionOverrideOutput = typeof SetSceneTransitionOverrideOutput.Type
+export const SetSceneTransitionOverrideOutputJsonSchema = JSONSchema.make(SetSceneTransitionOverrideOutput)
 
 const SceneItemId = Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0))
 const LastMatchSearchOffset = -1

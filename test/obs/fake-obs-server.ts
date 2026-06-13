@@ -27,6 +27,12 @@ import { handleFakeObsHotkeyRequest } from "./fake-obs-hotkey-requests.js"
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
 import { FakeObsOutputState } from "./fake-obs-output-state.js"
+import {
+  type FakeObsSceneItems,
+  type FakeObsSceneItemTransforms,
+  handleFakeObsSceneItemReadRequest
+} from "./fake-obs-scene-item-requests.js"
+import { type FakeObsSceneTransitionOverrides, handleFakeObsSceneRequest } from "./fake-obs-scene-requests.js"
 import { FakeObsTransitionState } from "./fake-obs-transition-requests.js"
 
 const OP_HELLO = 0
@@ -133,6 +139,7 @@ export class FakeObsServer {
   public readonly url: string
   private readonly server: WebSocketServer
   private currentSceneName: string
+  private currentPreviewSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private configState: FakeObsConfigState = new FakeObsConfigState({
     profiles: DEFAULT_PROFILES,
@@ -146,6 +153,8 @@ export class FakeObsServer {
   private inputState: FakeObsInputState = new FakeObsInputState([])
   private sourceFilters: Array<FakeObsSourceFilter> = defaultSourceFilters()
   private readonly outputState = new FakeObsOutputState()
+  private readonly sceneItems: FakeObsSceneItems = new Map()
+  private readonly sceneItemTransforms: FakeObsSceneItemTransforms = new Map()
   private transitionState: FakeObsTransitionState = new FakeObsTransitionState([], 1)
   public lastIdentifyEventSubscriptions: unknown
 
@@ -153,6 +162,7 @@ export class FakeObsServer {
     this.server = server
     this.url = url
     this.currentSceneName = currentSceneName
+    this.currentPreviewSceneName = currentSceneName
     this.lastIdentifyEventSubscriptions = undefined
   }
 
@@ -212,11 +222,13 @@ export class FakeObsServer {
 
   private installHandlers(
     options: FakeObsServerOptions,
-    scenes: ReadonlyArray<FakeObsScene>,
+    initialScenes: ReadonlyArray<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>,
     canvases: ReadonlyArray<FakeObsCanvas>,
     hotkeys: ReadonlyArray<string>
   ): void {
+    const scenes = [...initialScenes]
+    const sceneTransitionOverrides: FakeObsSceneTransitionOverrides = new Map()
     this.server.on("connection", (socket) => {
       const salt = "salt"
       const challenge = "challenge"
@@ -263,7 +275,17 @@ export class FakeObsServer {
         }
         socket.on(
           "message",
-          (message) => this.handleRequest(socket, message.toString("utf8"), options, scenes, inputs, canvases, hotkeys)
+          (message) =>
+            this.handleRequest(
+              socket,
+              message.toString("utf8"),
+              options,
+              scenes,
+              inputs,
+              canvases,
+              hotkeys,
+              sceneTransitionOverrides
+            )
         )
       })
     })
@@ -273,10 +295,11 @@ export class FakeObsServer {
     socket: WebSocket,
     text: string,
     options: FakeObsServerOptions,
-    scenes: ReadonlyArray<FakeObsScene>,
+    scenes: Array<FakeObsScene>,
     inputs: ReadonlyArray<FakeObsInput>,
     canvases: ReadonlyArray<FakeObsCanvas>,
-    hotkeys: ReadonlyArray<string>
+    hotkeys: ReadonlyArray<string>,
+    sceneTransitionOverrides: FakeObsSceneTransitionOverrides
   ): void {
     const envelope = JSON.parse(text)
     if (envelope.op === OP_REQUEST_BATCH) {
@@ -350,6 +373,12 @@ export class FakeObsServer {
         setTimeout(write, options.delayResponsesMs)
       }
     }
+    const sendError = (code: number, comment: string): void => {
+      socket.send(JSON.stringify({
+        op: OP_REQUEST_RESPONSE,
+        d: { requestType, requestId, requestStatus: { result: false, code, comment } }
+      }))
+    }
 
     if (handleFakeObsFoundationRequest(canvases, options, requestType, send)) {
       return
@@ -365,13 +394,18 @@ export class FakeObsServer {
     }
     if (requestType === "GetSceneList") {
       const current = scenes.find((scene) => scene.sceneName === this.currentSceneName) ?? scenes[0]
+      const preview = scenes.find((scene) => scene.sceneName === this.currentPreviewSceneName) ?? scenes[0]
       send({
         currentProgramSceneName: current?.sceneName ?? null,
         currentProgramSceneUuid: current?.sceneUuid ?? null,
-        currentPreviewSceneName: null,
-        currentPreviewSceneUuid: null,
+        currentPreviewSceneName: preview?.sceneName ?? null,
+        currentPreviewSceneUuid: preview?.sceneUuid ?? null,
         scenes
       })
+      return
+    }
+    if (requestType === "GetGroupList") {
+      send({ groups: scenes.filter((scene) => scene.isGroup === true).map((scene) => scene.sceneName) })
       return
     }
     if (requestType === "GetCurrentProgramScene") {
@@ -379,9 +413,52 @@ export class FakeObsServer {
       send({ sceneName: current?.sceneName ?? "Intro", sceneUuid: current?.sceneUuid })
       return
     }
+    if (requestType === "GetCurrentPreviewScene") {
+      const preview = scenes.find((scene) => scene.sceneName === this.currentPreviewSceneName) ?? scenes[0]
+      send({ sceneName: preview?.sceneName ?? "Intro", sceneUuid: preview?.sceneUuid })
+      return
+    }
     if (requestType === "SetCurrentProgramScene") {
       this.currentSceneName = envelope.d.requestData.sceneName
       send()
+      return
+    }
+    if (requestType === "SetCurrentPreviewScene") {
+      const next = scenes.find((scene) =>
+        scene.sceneName === envelope.d.requestData.sceneName || scene.sceneUuid === envelope.d.requestData.sceneUuid
+      )
+      this.currentPreviewSceneName = next?.sceneName ?? envelope.d.requestData.sceneName
+      send()
+      return
+    }
+    const sceneRequest = handleFakeObsSceneRequest(
+      requestType,
+      envelope.d.requestData ?? {},
+      scenes,
+      this.currentSceneName,
+      this.currentPreviewSceneName,
+      sceneTransitionOverrides
+    )
+    if (sceneRequest.handled) {
+      this.currentSceneName = sceneRequest.currentSceneName ?? this.currentSceneName
+      this.currentPreviewSceneName = sceneRequest.currentPreviewSceneName ?? this.currentPreviewSceneName
+      if (sceneRequest.error === undefined) {
+        send(sceneRequest.responseData)
+      } else {
+        sendError(sceneRequest.error.code, sceneRequest.error.comment)
+      }
+      return
+    }
+    if (
+      handleFakeObsSceneItemReadRequest(
+        requestType,
+        envelope.d.requestData,
+        send,
+        this.sceneItemTransforms,
+        sendError,
+        this.sceneItems
+      )
+    ) {
       return
     }
     if (requestType === "GetSceneItemList" || requestType === "GetGroupSceneItemList") {
@@ -579,7 +656,7 @@ export class FakeObsServer {
     if (handleFakeObsInputRequest(this.inputState, requestType, envelope.d.requestData, send)) {
       return
     }
-    if (this.outputState.handleRequest(requestType, send)) {
+    if (this.outputState.handleRequest(requestType, envelope.d.requestData, send, sendError)) {
       return
     }
     if (requestType === "GetPersistentData") {
