@@ -1,11 +1,25 @@
+import { Schema } from "effect"
+
 import {
+  CreateRecordChapterInput,
+  CreateRecordChapterOutput,
   RecordPauseControlOutput,
+  SplitRecordFileOutput,
   StartRecordOutput,
   StopRecordOutput,
   ToggleRecordOutput
 } from "../../domain/schemas/record.js"
 import type { ObsClient } from "../client.js"
-import { PauseRecord, ResumeRecord, StartRecord, StopRecord, ToggleRecord, ToggleRecordPause } from "../requests.js"
+import {
+  CreateRecordChapter,
+  PauseRecord,
+  ResumeRecord,
+  SplitRecordFile,
+  StartRecord,
+  StopRecord,
+  ToggleRecord,
+  ToggleRecordPause
+} from "../requests.js"
 import { requestAndDecode, requestAndReturn } from "./shared.js"
 
 export const startRecord = async (client: ObsClient): Promise<StartRecordOutput> => {
@@ -26,6 +40,25 @@ export const stopRecord = async (client: ObsClient): Promise<StopRecordOutput> =
 
 export const toggleRecord = async (client: ObsClient): Promise<ToggleRecordOutput> => {
   return requestAndDecode(client, ToggleRecord, ToggleRecordOutput)
+}
+
+export const splitRecordFile = async (client: ObsClient): Promise<SplitRecordFileOutput> => {
+  return requestAndReturn(client, SplitRecordFile, {
+    requestType: SplitRecordFile.requestType,
+    acknowledged: true
+  }, SplitRecordFileOutput)
+}
+
+export const createRecordChapter = async (
+  client: ObsClient,
+  input: CreateRecordChapterInput
+): Promise<CreateRecordChapterOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(CreateRecordChapterInput)(input)
+  await client.request(CreateRecordChapter, decodedInput)
+  return CreateRecordChapterOutput.make({
+    requestType: CreateRecordChapter.requestType,
+    acknowledged: true
+  })
 }
 
 export const pauseRecord = async (client: ObsClient): Promise<RecordPauseControlOutput> => {

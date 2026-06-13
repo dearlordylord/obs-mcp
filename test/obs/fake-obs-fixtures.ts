@@ -69,6 +69,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "StartRecord",
   "StopRecord",
   "ToggleRecord",
+  "SplitRecordFile",
+  "CreateRecordChapter",
   "PauseRecord",
   "ResumeRecord",
   "ToggleRecordPause",

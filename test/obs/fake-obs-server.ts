@@ -353,6 +353,10 @@ export class FakeObsServer {
       send({ outputActive: this.recordActive })
       return
     }
+    if (requestType === "SplitRecordFile" || requestType === "CreateRecordChapter") {
+      send()
+      return
+    }
     if (requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause") {
       send()
       return

@@ -1,7 +1,7 @@
 import { Schema } from "effect"
 
 import { RecordStatusOutput } from "../../domain/schemas/general.js"
-import { ToggleRecordOutput } from "../../domain/schemas/record.js"
+import { CreateRecordChapterInput, ToggleRecordOutput } from "../../domain/schemas/record.js"
 import { UnknownRecord } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
@@ -28,6 +28,18 @@ export const ToggleRecord = {
   requestDataSchema: EmptyRequestData,
   responseSchema: ToggleRecordOutput
 } satisfies ObsRequestDescriptor<ToggleRecordOutput>
+
+export const SplitRecordFile = {
+  requestType: "SplitRecordFile",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const CreateRecordChapter = {
+  requestType: "CreateRecordChapter",
+  requestDataSchema: CreateRecordChapterInput,
+  responseSchema: UnknownRecord
+} satisfies ObsRequestDescriptor<Record<string, unknown>>
 
 export const PauseRecord = {
   requestType: "PauseRecord",

@@ -21,6 +21,8 @@ export const ObsRequestType = Schema.Literal(
   "StartRecord",
   "StopRecord",
   "ToggleRecord",
+  "SplitRecordFile",
+  "CreateRecordChapter",
   "PauseRecord",
   "ResumeRecord",
   "ToggleRecordPause",

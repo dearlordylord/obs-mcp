@@ -50,6 +50,8 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `start_record`
 - `stop_record`
 - `toggle_record`
+- `split_record_file`
+- `create_record_chapter`
 - `pause_record`
 - `resume_record`
 - `toggle_record_pause`

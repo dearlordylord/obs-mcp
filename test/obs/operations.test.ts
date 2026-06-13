@@ -14,8 +14,10 @@ import {
   toggleVirtualCam
 } from "../../src/obs/operations/outputs.js"
 import {
+  createRecordChapter,
   pauseRecord,
   resumeRecord,
+  splitRecordFile,
   startRecord,
   stopRecord,
   toggleRecord,
@@ -213,6 +215,29 @@ describe("OBS operations", () => {
     })
   })
 
+  it("splits record files and creates record chapters through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(splitRecordFile(client)).resolves.toEqual({
+      requestType: "SplitRecordFile",
+      acknowledged: true
+    })
+    await expect(createRecordChapter(client, {})).resolves.toEqual({
+      requestType: "CreateRecordChapter",
+      acknowledged: true
+    })
+    await expect(createRecordChapter(client, { chapterName: "Act 1" })).resolves.toEqual({
+      requestType: "CreateRecordChapter",
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) => request.requestType === "CreateRecordChapter")).toEqual([
+      { requestType: "CreateRecordChapter", requestData: {} },
+      { requestType: "CreateRecordChapter", requestData: { chapterName: "Act 1" } }
+    ])
+  })
+
   it("surfaces OBS failures for record pause controls", async () => {
     const server = await FakeObsServer.start({
       failRequests: { PauseRecord: { code: 500, comment: "Record output is not active" } }
@@ -239,6 +264,22 @@ describe("OBS operations", () => {
     )
   })
 
+  it("surfaces OBS failures for record file and chapter controls with metadata", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SplitRecordFile: { code: 703, comment: "Recording not active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(splitRecordFile(client)).rejects.toMatchObject(
+      {
+        requestType: "SplitRecordFile",
+        code: 703,
+        comment: "Recording not active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("filters record lifecycle tools when OBS does not advertise record capabilities", async () => {
     const server = await FakeObsServer.start({
       availableRequestsValue: ["GetVersion", "PauseRecord", "ResumeRecord", "ToggleRecordPause"]
@@ -250,6 +291,18 @@ describe("OBS operations", () => {
       "pause_record",
       "resume_record",
       "toggle_record_pause"
+    ])
+  })
+
+  it("filters record file and chapter tools when OBS does not advertise those capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "SplitRecordFile"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    expect(getEnabledTools(["record"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "split_record_file"
     ])
   })
 

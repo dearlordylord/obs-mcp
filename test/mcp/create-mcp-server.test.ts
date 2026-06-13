@@ -44,6 +44,8 @@ const allAvailableRequests = [
   "StartRecord",
   "StopRecord",
   "ToggleRecord",
+  "SplitRecordFile",
+  "CreateRecordChapter",
   "PauseRecord",
   "ResumeRecord",
   "ToggleRecordPause",
@@ -103,6 +105,8 @@ describe("MCP server protocol handlers", () => {
       "start_record",
       "stop_record",
       "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -116,6 +120,8 @@ describe("MCP server protocol handlers", () => {
       .toHaveProperty("requestedAction")
     expect(tools.tools.find((tool) => tool.name === "stop_record")?.outputSchema?.properties)
       .toHaveProperty("outputPath")
+    expect(tools.tools.find((tool) => tool.name === "create_record_chapter")?.inputSchema.properties)
+      .toHaveProperty("chapterName")
     expect(tools.tools.find((tool) => tool.name === "list_inputs")?.outputSchema?.properties)
       .toHaveProperty("inputs")
   })
@@ -167,18 +173,27 @@ describe("MCP server protocol handlers", () => {
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("pause_record")
     expect(tools.tools.map((tool) => tool.name)).not.toContain("start_record")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("split_record_file")
   })
 
-  it("lists record lifecycle tools only when OBS capabilities are available", async () => {
+  it("lists record lifecycle and file tools only when OBS capabilities are available", async () => {
     const client = await connect(
-      obsClient(async () => ({}), ["StartRecord", "StopRecord", "ToggleRecord"]),
+      obsClient(async () => ({}), [
+        "StartRecord",
+        "StopRecord",
+        "ToggleRecord",
+        "SplitRecordFile",
+        "CreateRecordChapter"
+      ]),
       { ...config, enabledToolsets: ["record"] }
     )
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       "start_record",
       "stop_record",
-      "toggle_record"
+      "toggle_record",
+      "split_record_file",
+      "create_record_chapter"
     ])
   })
 
@@ -371,6 +386,32 @@ describe("MCP server protocol handlers", () => {
       })
   })
 
+  it("returns structured success content for record file and chapter tools", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "split_record_file", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "SplitRecordFile",
+          acknowledged: true
+        }
+      })
+    await expect(client.callTool({ name: "create_record_chapter", arguments: { chapterName: "Act 1" } }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "CreateRecordChapter",
+          acknowledged: true
+        }
+      })
+    expect(requested).toEqual(["SplitRecordFile", "CreateRecordChapter"])
+  })
+
   it("rejects extra arguments for record pause tools before OBS mutation", async () => {
     const requested: Array<ObsRequestType> = []
     const client = await connect(
@@ -385,6 +426,7 @@ describe("MCP server protocol handlers", () => {
         "start_record",
         "stop_record",
         "toggle_record",
+        "split_record_file",
         "pause_record",
         "resume_record",
         "toggle_record_pause"
@@ -393,6 +435,20 @@ describe("MCP server protocol handlers", () => {
       await expect(client.callTool({ name, arguments: { unexpected: true } }))
         .resolves.toMatchObject({ isError: true })
     }
+    expect(requested).toEqual([])
+  })
+
+  it("rejects empty record chapter names before OBS mutation", async () => {
+    const requested: Array<ObsRequestType> = []
+    const client = await connect(
+      obsClient(async (requestType) => {
+        requested.push(requestType)
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "create_record_chapter", arguments: { chapterName: "" } }))
+      .resolves.toMatchObject({ isError: true })
     expect(requested).toEqual([])
   })
 
@@ -457,6 +513,24 @@ describe("MCP server protocol handlers", () => {
             requestType: "SetCurrentProgramScene",
             obsStatusCode: 608,
             comment: "Parameter: sceneName"
+          }
+        }
+      })
+  })
+
+  it("keeps OBS status metadata for record file tool errors", async () => {
+    const client = await connect(obsClient(async () => {
+      throw new ObsRequestError("SplitRecordFile", 703, "Recording not active")
+    }))
+    await expect(client.callTool({ name: "split_record_file", arguments: {} }))
+      .resolves.toMatchObject({
+        isError: true,
+        _meta: {
+          error: {
+            code: ErrorCode.InvalidParams,
+            requestType: "SplitRecordFile",
+            obsStatusCode: 703,
+            comment: "Recording not active"
           }
         }
       })

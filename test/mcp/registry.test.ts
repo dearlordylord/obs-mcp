@@ -4,7 +4,14 @@ import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import { InputLocatorInput, ListInputKindsInput } from "../../src/domain/schemas/inputs.js"
-import { StartRecordOutput, StopRecordOutput, ToggleRecordOutput } from "../../src/domain/schemas/record.js"
+import {
+  CreateRecordChapterInput,
+  CreateRecordChapterOutput,
+  SplitRecordFileOutput,
+  StartRecordOutput,
+  StopRecordOutput,
+  ToggleRecordOutput
+} from "../../src/domain/schemas/record.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
@@ -40,6 +47,8 @@ const allAvailableRequests = [
   "StartRecord",
   "StopRecord",
   "ToggleRecord",
+  "SplitRecordFile",
+  "CreateRecordChapter",
   "PauseRecord",
   "ResumeRecord",
   "ToggleRecordPause",
@@ -95,6 +104,8 @@ describe("MCP tool registry", () => {
       "start_record",
       "stop_record",
       "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -136,6 +147,8 @@ describe("MCP tool registry", () => {
       "start_record",
       "stop_record",
       "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record",
       "toggle_record_pause"
@@ -167,12 +180,22 @@ describe("MCP tool registry", () => {
       "get_obs_stats"
     ])
     expect(
-      getEnabledTools(["record"], ["StartRecord", "StopRecord", "ToggleRecord", "PauseRecord", "ResumeRecord"])
+      getEnabledTools(["record"], [
+        "StartRecord",
+        "StopRecord",
+        "ToggleRecord",
+        "SplitRecordFile",
+        "CreateRecordChapter",
+        "PauseRecord",
+        "ResumeRecord"
+      ])
         .map((tool) => tool.name)
     ).toEqual([
       "start_record",
       "stop_record",
       "toggle_record",
+      "split_record_file",
+      "create_record_chapter",
       "pause_record",
       "resume_record"
     ])
@@ -208,12 +231,27 @@ describe("MCP tool registry", () => {
       outputPath: "/opaque/obs-recording.mkv"
     })
     expect(Schema.decodeUnknownSync(ToggleRecordOutput)({ outputActive: true })).toEqual({ outputActive: true })
+    expect(Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "SplitRecordFile", acknowledged: true }))
+      .toEqual({ requestType: "SplitRecordFile", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(CreateRecordChapterOutput)({
+        requestType: "CreateRecordChapter",
+        acknowledged: true
+      })
+    ).toEqual({ requestType: "CreateRecordChapter", acknowledged: true })
     expect(() =>
       Schema.decodeUnknownSync(StopRecordOutput)({
         requestType: "StopRecord",
         acknowledged: true
       })
     ).toThrow()
+  })
+
+  it("validates record chapter input schemas", () => {
+    expect(Schema.decodeUnknownSync(CreateRecordChapterInput)({})).toEqual({})
+    expect(Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "Act 1" }))
+      .toEqual({ chapterName: "Act 1" })
+    expect(() => Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "" })).toThrow()
   })
 
   it("accepts no-arg tools with empty or missing args", async () => {
@@ -395,6 +433,23 @@ describe("MCP tool registry", () => {
       })
     await expect(executeTool(toolByName("toggle_record"), {}, { config, client: fakeClient }))
       .resolves.toEqual({ outputActive: true })
+  })
+
+  it("executes record file and chapter handlers with structured outputs", async () => {
+    const requests: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
+    const fakeClient = client(async (requestType, requestData) => {
+      requests.push({ requestType, requestData })
+      return {}
+    })
+    await expect(executeTool(toolByName("split_record_file"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestType: "SplitRecordFile", acknowledged: true })
+    await expect(
+      executeTool(toolByName("create_record_chapter"), { chapterName: "Act 1" }, { config, client: fakeClient })
+    ).resolves.toEqual({ requestType: "CreateRecordChapter", acknowledged: true })
+    expect(requests).toEqual([
+      { requestType: "SplitRecordFile", requestData: undefined },
+      { requestType: "CreateRecordChapter", requestData: { chapterName: "Act 1" } }
+    ])
   })
 
   it("executes stream status and lifecycle handlers", async () => {

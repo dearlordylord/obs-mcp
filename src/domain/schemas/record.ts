@@ -2,12 +2,37 @@ import { JSONSchema, Schema } from "effect"
 
 import { OutputActiveState } from "./shared.js"
 
-export const StartRecordOutput = Schema.Struct({
-  requestType: Schema.Literal("StartRecord"),
+export const RecordAcknowledgementRequestType = Schema.Literal(
+  "StartRecord",
+  "SplitRecordFile",
+  "CreateRecordChapter"
+)
+export type RecordAcknowledgementRequestType = typeof RecordAcknowledgementRequestType.Type
+
+export const RecordAcknowledgementOutput = Schema.Struct({
+  requestType: RecordAcknowledgementRequestType,
   acknowledged: Schema.Literal(true)
 })
+export type RecordAcknowledgementOutput = typeof RecordAcknowledgementOutput.Type
+export const RecordAcknowledgementOutputJsonSchema = JSONSchema.make(RecordAcknowledgementOutput)
+
+export const StartRecordOutput = RecordAcknowledgementOutput
 export type StartRecordOutput = typeof StartRecordOutput.Type
 export const StartRecordOutputJsonSchema = JSONSchema.make(StartRecordOutput)
+
+export const SplitRecordFileOutput = RecordAcknowledgementOutput
+export type SplitRecordFileOutput = typeof SplitRecordFileOutput.Type
+export const SplitRecordFileOutputJsonSchema = JSONSchema.make(SplitRecordFileOutput)
+
+export const CreateRecordChapterInput = Schema.Struct({
+  chapterName: Schema.optional(Schema.NonEmptyString)
+})
+export type CreateRecordChapterInput = typeof CreateRecordChapterInput.Type
+export const CreateRecordChapterInputJsonSchema = JSONSchema.make(CreateRecordChapterInput)
+
+export const CreateRecordChapterOutput = RecordAcknowledgementOutput
+export type CreateRecordChapterOutput = typeof CreateRecordChapterOutput.Type
+export const CreateRecordChapterOutputJsonSchema = JSONSchema.make(CreateRecordChapterOutput)
 
 export const StopRecordOutput = Schema.Struct({
   requestType: Schema.Literal("StopRecord"),
