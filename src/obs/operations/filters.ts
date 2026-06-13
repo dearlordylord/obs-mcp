@@ -1,0 +1,125 @@
+import { Schema } from "effect"
+
+import type {
+  ListSourceFilterKindsOutput,
+  ListSourceFiltersOutput,
+  SanitizedFilterSetting,
+  SanitizedFilterValueType,
+  SourceFilterDefaultSettingsOutput,
+  SourceFilterKindInput,
+  SourceFilterLocatorInput,
+  SourceFilterOutput,
+  SourceFilterSummary
+} from "../../domain/schemas/filters.js"
+import {
+  ListSourceFilterKindsOutput as ListSourceFilterKindsOutputSchema,
+  ListSourceFiltersOutput as ListSourceFiltersOutputSchema,
+  SourceFilterDefaultSettingsOutput as SourceFilterDefaultSettingsOutputSchema,
+  SourceFilterKindInput as SourceFilterKindInputSchema,
+  SourceFilterLocatorInput as SourceFilterLocatorInputSchema,
+  SourceFilterOutput as SourceFilterOutputSchema
+} from "../../domain/schemas/filters.js"
+import { SourceLocatorInput } from "../../domain/schemas/scenes.js"
+import type { ObsClient } from "../client.js"
+import {
+  GetSourceFilter,
+  GetSourceFilterDefaultSettings,
+  GetSourceFilterKindList,
+  GetSourceFilterList
+} from "../requests.js"
+
+const filterValueType = (value: unknown): SanitizedFilterValueType => {
+  if (value === null) {
+    return "null"
+  }
+  if (Array.isArray(value)) {
+    return "array"
+  }
+  if (typeof value === "string") {
+    return "string"
+  }
+  if (typeof value === "number") {
+    return "number"
+  }
+  if (typeof value === "boolean") {
+    return "boolean"
+  }
+  if (typeof value === "object") {
+    return "object"
+  }
+  return "unknown"
+}
+
+const sanitizeSettingsRecord = (settings: Readonly<Record<string, unknown>>): ReadonlyArray<SanitizedFilterSetting> =>
+  Object.entries(settings)
+    .map(([settingName, value]) => ({ settingName, valueType: filterValueType(value) }))
+    .sort((left, right) => left.settingName.localeCompare(right.settingName))
+
+const stringField = (record: Readonly<Record<string, unknown>>, key: string, fallback: string): string =>
+  typeof record[key] === "string" ? record[key] : fallback
+
+const booleanField = (record: Readonly<Record<string, unknown>>, key: string, fallback: boolean): boolean =>
+  typeof record[key] === "boolean" ? record[key] : fallback
+
+const indexField = (record: Readonly<Record<string, unknown>>, key: string, fallback: number): number =>
+  typeof record[key] === "number" && Number.isInteger(record[key]) && record[key] >= 0 ? record[key] : fallback
+
+const settingsField = (record: Readonly<Record<string, unknown>>, key: string): Readonly<Record<string, unknown>> =>
+  typeof record[key] === "object" && record[key] !== null && !Array.isArray(record[key])
+    ? Schema.decodeUnknownSync(Schema.Record({ key: Schema.String, value: Schema.Unknown }))(record[key])
+    : {}
+
+const sanitizeFilterSummary = (
+  filter: Readonly<Record<string, unknown>>,
+  indexFallback: number,
+  nameFallback: string
+): SourceFilterSummary => ({
+  filterName: stringField(filter, "filterName", nameFallback),
+  filterEnabled: booleanField(filter, "filterEnabled", false),
+  filterIndex: indexField(filter, "filterIndex", indexFallback),
+  filterKind: stringField(filter, "filterKind", "unknown_filter"),
+  filterSettings: sanitizeSettingsRecord(settingsField(filter, "filterSettings")),
+  rawSettingsDeferred: true
+})
+
+export const listSourceFilterKinds = async (client: ObsClient): Promise<ListSourceFilterKindsOutput> =>
+  Schema.decodeUnknownSync(ListSourceFilterKindsOutputSchema)(await client.request(GetSourceFilterKindList))
+
+export const listSourceFilters = async (
+  client: ObsClient,
+  input: SourceLocatorInput
+): Promise<ListSourceFiltersOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SourceLocatorInput)(input)
+  const response = await client.request(GetSourceFilterList, decodedInput)
+  return Schema.decodeUnknownSync(ListSourceFiltersOutputSchema)({
+    filters: response.filters.map((filter, index) => sanitizeFilterSummary(filter, index, `filter-${index}`))
+  })
+}
+
+export const getSourceFilterDefaultSettings = async (
+  client: ObsClient,
+  input: SourceFilterKindInput
+): Promise<SourceFilterDefaultSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SourceFilterKindInputSchema)(input)
+  const response = await client.request(GetSourceFilterDefaultSettings, decodedInput)
+  return Schema.decodeUnknownSync(SourceFilterDefaultSettingsOutputSchema)({
+    filterKind: decodedInput.filterKind,
+    defaultFilterSettings: sanitizeSettingsRecord(response.defaultFilterSettings),
+    rawSettingsDeferred: true
+  })
+}
+
+export const getSourceFilter = async (
+  client: ObsClient,
+  input: SourceFilterLocatorInput
+): Promise<SourceFilterOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SourceFilterLocatorInputSchema)(input)
+  const response = await client.request(GetSourceFilter, decodedInput)
+  return Schema.decodeUnknownSync(SourceFilterOutputSchema)(
+    sanitizeFilterSummary(
+      { filterName: decodedInput.filterName, ...response },
+      response.filterIndex,
+      decodedInput.filterName
+    )
+  )
+}

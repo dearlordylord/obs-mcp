@@ -449,6 +449,105 @@ describe("MCP server protocol handlers", () => {
     })
   })
 
+  it("lists source filter tools and calls source filter read handlers over MCP", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetSourceFilterKindList") {
+          return { sourceFilterKinds: ["color_filter_v2", "gain_filter"] }
+        }
+        if (requestType === "GetSourceFilterList") {
+          return {
+            filters: [{
+              filterName: "Color Correction",
+              filterEnabled: true,
+              filterIndex: 0,
+              filterKind: "color_filter_v2",
+              filterSettings: {
+                brightness: 0.1,
+                nested_policy: { omitted: true },
+                secret_path: "/tmp/private"
+              }
+            }]
+          }
+        }
+        if (requestType === "GetSourceFilterDefaultSettings") {
+          return {
+            defaultFilterSettings: {
+              brightness: 0,
+              enabled_by_default: true,
+              nested_policy: { omitted: true }
+            }
+          }
+        }
+        return {
+          filterEnabled: true,
+          filterIndex: 0,
+          filterKind: "color_filter_v2",
+          filterSettings: {
+            brightness: 0.1,
+            nested_policy: { omitted: true },
+            secret_path: "/tmp/private"
+          }
+        }
+      }),
+      { ...config, enabledToolsets: ["filters"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_source_filter_kinds",
+      "list_source_filters",
+      "get_source_filter_default_settings",
+      "get_source_filter"
+    ])
+    await expect(client.callTool({ name: "list_source_filter_kinds", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { sourceFilterKinds: ["color_filter_v2", "gain_filter"] } })
+    await expect(client.callTool({
+      name: "list_source_filters",
+      arguments: { sourceName: "Camera", canvasUuid: "canvas-main" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filters: [{
+          filterName: "Color Correction",
+          filterSettings: [
+            { settingName: "brightness", valueType: "number" },
+            { settingName: "nested_policy", valueType: "object" },
+            { settingName: "secret_path", valueType: "string" }
+          ],
+          rawSettingsDeferred: true
+        }]
+      }
+    })
+    await expect(client.callTool({
+      name: "get_source_filter_default_settings",
+      arguments: { filterKind: "color_filter_v2" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filterKind: "color_filter_v2",
+        defaultFilterSettings: [
+          { settingName: "brightness", valueType: "number" },
+          { settingName: "enabled_by_default", valueType: "boolean" },
+          { settingName: "nested_policy", valueType: "object" }
+        ],
+        rawSettingsDeferred: true
+      }
+    })
+    await expect(client.callTool({
+      name: "get_source_filter",
+      arguments: { sourceUuid: "source-camera", filterName: "Color Correction" }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        filterName: "Color Correction",
+        filterKind: "color_filter_v2",
+        filterSettings: [
+          { settingName: "brightness", valueType: "number" },
+          { settingName: "nested_policy", valueType: "object" },
+          { settingName: "secret_path", valueType: "string" }
+        ],
+        rawSettingsDeferred: true
+      }
+    })
+  })
+
   it("does not list output tools when the outputs toolset is disabled", async () => {
     const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()

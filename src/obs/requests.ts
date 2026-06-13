@@ -19,6 +19,10 @@ export const ObsRequestType = Schema.Literal(
   "SetSceneItemIndex",
   "SetSceneItemBlendMode",
   "GetSourceActive",
+  "GetSourceFilterKindList",
+  "GetSourceFilterList",
+  "GetSourceFilterDefaultSettings",
+  "GetSourceFilter",
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -78,6 +82,7 @@ export const ObsRequestType = Schema.Literal(
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
+export * from "./requests/filters.js"
 export * from "./requests/general.js"
 export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"

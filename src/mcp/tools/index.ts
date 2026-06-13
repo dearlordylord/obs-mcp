@@ -1,4 +1,5 @@
 import { eventTools } from "./events.js"
+import { filterTools } from "./filters.js"
 import { generalTools } from "./general.js"
 import { inputTools } from "./inputs.js"
 import { filterEnabledTools, type ToolDefinition } from "./mechanics.js"
@@ -11,6 +12,7 @@ export const allTools: ReadonlyArray<ToolDefinition> = [
   ...generalTools,
   ...eventTools,
   ...sceneTools,
+  ...filterTools,
   ...inputTools,
   ...outputTools,
   ...recordTools,

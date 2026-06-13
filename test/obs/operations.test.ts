@@ -5,6 +5,12 @@ import type { ObsConfig } from "../../src/config/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
+import {
+  getSourceFilter,
+  getSourceFilterDefaultSettings,
+  listSourceFilterKinds,
+  listSourceFilters
+} from "../../src/obs/operations/filters.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
 import {
   createInput,
@@ -1091,6 +1097,105 @@ describe("OBS operations", () => {
         requestType: "TriggerMediaInputAction",
         code: 605,
         comment: "Media action unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("reads source filter discovery and settings through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    await expect(listSourceFilterKinds(client)).resolves.toEqual({
+      sourceFilterKinds: ["color_filter_v2", "gain_filter", "mask_filter_v2"]
+    })
+    await expect(listSourceFilters(client, { sourceName: "Camera", canvasUuid: "canvas-main" })).resolves.toEqual({
+      filters: [
+        {
+          filterName: "Color Correction",
+          filterEnabled: true,
+          filterIndex: 0,
+          filterKind: "color_filter_v2",
+          filterSettings: [
+            { settingName: "brightness", valueType: "number" },
+            { settingName: "color_multiply", valueType: "number" },
+            { settingName: "nested_policy", valueType: "object" },
+            { settingName: "secret_path", valueType: "string" }
+          ],
+          rawSettingsDeferred: true
+        },
+        {
+          filterName: "Gain",
+          filterEnabled: false,
+          filterIndex: 1,
+          filterKind: "gain_filter",
+          filterSettings: [
+            { settingName: "db", valueType: "number" },
+            { settingName: "enabled_by_default", valueType: "boolean" },
+            { settingName: "labels", valueType: "array" }
+          ],
+          rawSettingsDeferred: true
+        }
+      ]
+    })
+    await expect(getSourceFilterDefaultSettings(client, { filterKind: "color_filter_v2" })).resolves.toEqual({
+      filterKind: "color_filter_v2",
+      defaultFilterSettings: [
+        { settingName: "brightness", valueType: "number" },
+        { settingName: "color_multiply", valueType: "number" },
+        { settingName: "nested_policy", valueType: "object" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(getSourceFilter(client, {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction"
+    })).resolves.toEqual({
+      filterName: "Color Correction",
+      filterEnabled: true,
+      filterIndex: 0,
+      filterKind: "color_filter_v2",
+      filterSettings: [
+        { settingName: "brightness", valueType: "number" },
+        { settingName: "nested_policy", valueType: "object" },
+        { settingName: "secret_path", valueType: "string" }
+      ],
+      rawSettingsDeferred: true
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("SourceFilter"))).toEqual([
+      { requestType: "GetSourceFilterKindList" },
+      { requestType: "GetSourceFilterList", requestData: { sourceName: "Camera", canvasUuid: "canvas-main" } },
+      { requestType: "GetSourceFilterDefaultSettings", requestData: { filterKind: "color_filter_v2" } },
+      {
+        requestType: "GetSourceFilter",
+        requestData: { sourceUuid: "source-camera", filterName: "Color Correction" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for source filter reads", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetSourceFilter: { code: 602, comment: "Filter not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["filters"] })
+    clients.push(client)
+    const getSourceFilterUnchecked = getSourceFilter as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof getSourceFilter>
+    await expect(getSourceFilterUnchecked(client, {
+      sourceName: "Camera",
+      filterName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(getSourceFilter(client, {
+      sourceName: "Camera",
+      filterName: "Missing"
+    })).rejects.toMatchObject(
+      {
+        requestType: "GetSourceFilter",
+        code: 602,
+        comment: "Filter not found"
       } satisfies Partial<ObsRequestError>
     )
   })

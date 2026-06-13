@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 import { createHash } from "node:crypto"
 import { type WebSocket, WebSocketServer } from "ws"
 
@@ -350,6 +352,63 @@ export class FakeObsServer {
       send({
         videoActive: sceneItem?.sceneItemEnabled ?? false,
         videoShowing: sceneItem !== undefined
+      })
+      return
+    }
+    if (requestType === "GetSourceFilterKindList") {
+      send({ sourceFilterKinds: ["color_filter_v2", "gain_filter", "mask_filter_v2"] })
+      return
+    }
+    if (requestType === "GetSourceFilterList") {
+      send({
+        filters: [
+          {
+            filterName: "Color Correction",
+            filterEnabled: true,
+            filterIndex: 0,
+            filterKind: "color_filter_v2",
+            filterSettings: {
+              brightness: 0.1,
+              color_multiply: 4_294_967_295,
+              secret_path: "/tmp/private",
+              nested_policy: { omitted: true }
+            }
+          },
+          {
+            filterName: "Gain",
+            filterEnabled: false,
+            filterIndex: 1,
+            filterKind: "gain_filter",
+            filterSettings: {
+              db: 3,
+              enabled_by_default: false,
+              labels: ["left", "right"]
+            }
+          }
+        ]
+      })
+      return
+    }
+    if (requestType === "GetSourceFilterDefaultSettings") {
+      send({
+        defaultFilterSettings: {
+          brightness: 0,
+          color_multiply: 4_294_967_295,
+          nested_policy: { omitted: true }
+        }
+      })
+      return
+    }
+    if (requestType === "GetSourceFilter") {
+      send({
+        filterEnabled: true,
+        filterIndex: 0,
+        filterKind: "color_filter_v2",
+        filterSettings: {
+          brightness: 0.1,
+          nested_policy: { omitted: true },
+          secret_path: "/tmp/private"
+        }
       })
       return
     }

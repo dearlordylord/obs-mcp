@@ -4,6 +4,14 @@ import { describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
 import {
+  ListSourceFilterKindsOutput,
+  ListSourceFiltersOutput,
+  SourceFilterDefaultSettingsOutput,
+  SourceFilterKindInput,
+  SourceFilterLocatorInput,
+  SourceFilterOutput
+} from "../../src/domain/schemas/filters.js"
+import {
   CreateInputInput,
   CreateInputOutput,
   InputAudioTracksOutput,
@@ -98,6 +106,20 @@ const inputToolNames = [
 ]
 
 const deferredInputMediaToolNames: ReadonlyArray<string> = []
+
+const filterToolNames = [
+  "list_source_filter_kinds",
+  "list_source_filters",
+  "get_source_filter_default_settings",
+  "get_source_filter"
+]
+
+const filterAvailableRequests = [
+  "GetSourceFilterKindList",
+  "GetSourceFilterList",
+  "GetSourceFilterDefaultSettings",
+  "GetSourceFilter"
+] satisfies ReadonlyArray<ObsRequestType>
 
 const inputAvailableRequests = [
   "GetInputList",
@@ -256,6 +278,10 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual(inputToolNames)
   })
 
+  it("exposes source filter read tools when the filter toolset is enabled", () => {
+    expect(getEnabledTools(["filters"]).map((tool) => tool.name)).toEqual(filterToolNames)
+  })
+
   it("exposes output tools when the outputs toolset is enabled", () => {
     expect(getEnabledTools(["outputs"]).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
@@ -295,6 +321,7 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_recent_obs_events"
     ])
+    expect(getEnabledTools(["filters"], allAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
       "start_record",
@@ -325,6 +352,7 @@ describe("MCP tool registry", () => {
       "get_source_active"
     ])
     expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual(inputToolNames)
+    expect(getEnabledTools(["filters"], allAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
     expect(getEnabledTools(["outputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_virtual_cam_status",
       "start_virtual_cam",
@@ -342,6 +370,9 @@ describe("MCP tool registry", () => {
     for (const name of inputToolNames) {
       expect(sceneToolNames).not.toContain(name)
     }
+    for (const name of filterToolNames) {
+      expect(sceneToolNames).not.toContain(name)
+    }
     for (const name of deferredInputMediaToolNames) {
       expect(allTools.map((tool) => tool.name)).not.toContain(name)
     }
@@ -355,6 +386,11 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["general", "record"], ["GetStats"]).map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_obs_stats"
+    ])
+    expect(getEnabledTools(["filters"], filterAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
+    expect(getEnabledTools(["filters"], ["GetSourceFilterList", "GetSourceFilter"]).map((tool) => tool.name)).toEqual([
+      "list_source_filters",
+      "get_source_filter"
     ])
     expect(
       getEnabledTools(["record"], [
@@ -617,6 +653,113 @@ describe("MCP tool registry", () => {
       })
   })
 
+  it("executes source filter read handlers with sanitized structured output", async () => {
+    const filterConfig: ObsConfig = { ...config, enabledToolsets: ["filters"] }
+    const responses: Partial<Record<ObsRequestType, unknown>> = {
+      GetSourceFilterKindList: { sourceFilterKinds: ["color_filter_v2", "gain_filter"] },
+      GetSourceFilterList: {
+        filters: [{
+          filterName: "Color Correction",
+          filterEnabled: true,
+          filterIndex: 0,
+          filterKind: "color_filter_v2",
+          filterSettings: {
+            brightness: 0.1,
+            empty_value: null,
+            nested_policy: { omitted: true },
+            secret_path: "/tmp/private",
+            unknown_value: undefined
+          }
+        }, {
+          filterName: 10,
+          filterEnabled: "yes",
+          filterIndex: -1,
+          filterKind: null,
+          filterSettings: []
+        }]
+      },
+      GetSourceFilterDefaultSettings: {
+        defaultFilterSettings: {
+          brightness: 0,
+          enabled_by_default: true,
+          nested_policy: { omitted: true }
+        }
+      },
+      GetSourceFilter: {
+        filterEnabled: true,
+        filterIndex: 0,
+        filterKind: "color_filter_v2",
+        filterSettings: {
+          brightness: 0.1,
+          empty_value: null,
+          nested_policy: { omitted: true },
+          secret_path: "/tmp/private",
+          unknown_value: undefined
+        }
+      }
+    }
+    const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
+    const settings = [
+      { settingName: "brightness", valueType: "number" },
+      { settingName: "empty_value", valueType: "null" },
+      { settingName: "nested_policy", valueType: "object" },
+      { settingName: "secret_path", valueType: "string" },
+      { settingName: "unknown_value", valueType: "unknown" }
+    ]
+    await expect(executeTool(toolByName("list_source_filter_kinds"), {}, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({ sourceFilterKinds: ["color_filter_v2", "gain_filter"] })
+    await expect(executeTool(toolByName("list_source_filters"), { sourceName: "Camera", canvasUuid: "canvas-main" }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filters: [{
+        filterName: "Color Correction",
+        filterEnabled: true,
+        filterIndex: 0,
+        filterKind: "color_filter_v2",
+        filterSettings: settings,
+        rawSettingsDeferred: true
+      }, {
+        filterName: "filter-1",
+        filterEnabled: false,
+        filterIndex: 1,
+        filterKind: "unknown_filter",
+        filterSettings: [],
+        rawSettingsDeferred: true
+      }]
+    })
+    await expect(executeTool(toolByName("get_source_filter_default_settings"), {
+      filterKind: "color_filter_v2"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filterKind: "color_filter_v2",
+      defaultFilterSettings: [
+        { settingName: "brightness", valueType: "number" },
+        { settingName: "enabled_by_default", valueType: "boolean" },
+        { settingName: "nested_policy", valueType: "object" }
+      ],
+      rawSettingsDeferred: true
+    })
+    await expect(executeTool(toolByName("get_source_filter"), {
+      sourceUuid: "source-camera",
+      filterName: "Color Correction"
+    }, {
+      config: filterConfig,
+      client: fakeClient
+    })).resolves.toEqual({
+      filterName: "Color Correction",
+      filterEnabled: true,
+      filterIndex: 0,
+      filterKind: "color_filter_v2",
+      filterSettings: settings,
+      rawSettingsDeferred: true
+    })
+  })
+
   it("executes input discovery handlers with structured output", async () => {
     const output = await executeTool(toolByName("list_inputs"), { inputKind: "wasapi_input_capture" }, {
       config: { ...config, enabledToolsets: ["inputs"] },
@@ -659,6 +802,74 @@ describe("MCP tool registry", () => {
       }
     })
     expect(output).toEqual({ inputKinds: ["wasapi_input_capture"] })
+  })
+
+  it("enforces source filter schemas and locator boundaries", () => {
+    expect(Schema.decodeUnknownSync(SourceFilterKindInput)({ filterKind: "color_filter_v2" }))
+      .toEqual({ filterKind: "color_filter_v2" })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceName: "Camera",
+        canvasUuid: "canvas-main",
+        filterName: "Color Correction"
+      })
+    ).toEqual({
+      sourceName: "Camera",
+      canvasUuid: "canvas-main",
+      filterName: "Color Correction"
+    })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceUuid: "source-camera",
+        filterName: "Color Correction"
+      })
+    ).toEqual({
+      sourceUuid: "source-camera",
+      filterName: "Color Correction"
+    })
+    expect(
+      Schema.decodeUnknownSync(ListSourceFilterKindsOutput)({
+        sourceFilterKinds: ["color_filter_v2"]
+      })
+    ).toEqual({ sourceFilterKinds: ["color_filter_v2"] })
+    const filterOutput = {
+      filterName: "Color Correction",
+      filterEnabled: true,
+      filterIndex: 0,
+      filterKind: "color_filter_v2",
+      filterSettings: [{ settingName: "brightness", valueType: "number" }],
+      rawSettingsDeferred: true
+    }
+    expect(Schema.decodeUnknownSync(ListSourceFiltersOutput)({ filters: [filterOutput] }))
+      .toEqual({ filters: [filterOutput] })
+    expect(
+      Schema.decodeUnknownSync(SourceFilterDefaultSettingsOutput)({
+        filterKind: "color_filter_v2",
+        defaultFilterSettings: [{ settingName: "brightness", valueType: "number" }],
+        rawSettingsDeferred: true
+      })
+    ).toEqual({
+      filterKind: "color_filter_v2",
+      defaultFilterSettings: [{ settingName: "brightness", valueType: "number" }],
+      rawSettingsDeferred: true
+    })
+    expect(Schema.decodeUnknownSync(SourceFilterOutput)(filterOutput)).toEqual(filterOutput)
+    expect(() => Schema.decodeUnknownSync(SourceFilterKindInput)({ filterKind: "" })).toThrow(
+      "Expected a non empty string"
+    )
+    expect(() =>
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceName: "Camera",
+        sourceUuid: "source-camera",
+        filterName: "Color Correction"
+      })
+    ).toThrow("sourceName")
+    expect(() =>
+      Schema.decodeUnknownSync(SourceFilterLocatorInput)({
+        sourceName: "Camera",
+        filterName: ""
+      })
+    ).toThrow("Expected a non empty string")
   })
 
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {

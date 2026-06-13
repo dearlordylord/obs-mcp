@@ -1,5 +1,6 @@
 export * from "./connection.js"
 export * from "./events.js"
+export * from "./filters.js"
 export * from "./general.js"
 export * from "./inputs.js"
 export * from "./outputs.js"

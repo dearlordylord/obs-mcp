@@ -49,6 +49,10 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `set_scene_item_index`
 - `set_scene_item_blend_mode`
 - `get_source_active`
+- `list_source_filter_kinds`
+- `list_source_filters`
+- `get_source_filter_default_settings`
+- `get_source_filter`
 - `list_inputs`
 - `list_input_kinds`
 - `get_special_inputs`
