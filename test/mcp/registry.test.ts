@@ -7,7 +7,10 @@ import { InputLocatorInput, ListInputKindsInput } from "../../src/domain/schemas
 import {
   CreateRecordChapterInput,
   CreateRecordChapterOutput,
-  SplitRecordFileOutput
+  SplitRecordFileOutput,
+  StartRecordOutput,
+  StopRecordOutput,
+  ToggleRecordOutput
 } from "../../src/domain/schemas/record.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -41,6 +44,9 @@ const allAvailableRequests = [
   "StopVirtualCam",
   "ToggleVirtualCam",
   "GetRecordStatus",
+  "StartRecord",
+  "StopRecord",
+  "ToggleRecord",
   "SplitRecordFile",
   "CreateRecordChapter",
   "PauseRecord",
@@ -95,6 +101,9 @@ describe("MCP tool registry", () => {
       "list_input_kinds",
       "get_special_inputs",
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "split_record_file",
       "create_record_chapter",
       "pause_record",
@@ -135,6 +144,9 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "split_record_file",
       "create_record_chapter",
       "pause_record",
@@ -169,6 +181,9 @@ describe("MCP tool registry", () => {
     ])
     expect(
       getEnabledTools(["record"], [
+        "StartRecord",
+        "StopRecord",
+        "ToggleRecord",
         "SplitRecordFile",
         "CreateRecordChapter",
         "PauseRecord",
@@ -176,6 +191,9 @@ describe("MCP tool registry", () => {
       ])
         .map((tool) => tool.name)
     ).toEqual([
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "split_record_file",
       "create_record_chapter",
       "pause_record",
@@ -198,7 +216,21 @@ describe("MCP tool registry", () => {
     }
   })
 
-  it("decodes record file and chapter output schemas", () => {
+  it("decodes record lifecycle output schemas", () => {
+    expect(Schema.decodeUnknownSync(StartRecordOutput)({ requestType: "StartRecord", acknowledged: true }))
+      .toEqual({ requestType: "StartRecord", acknowledged: true })
+    expect(
+      Schema.decodeUnknownSync(StopRecordOutput)({
+        requestType: "StopRecord",
+        acknowledged: true,
+        outputPath: "/opaque/obs-recording.mkv"
+      })
+    ).toEqual({
+      requestType: "StopRecord",
+      acknowledged: true,
+      outputPath: "/opaque/obs-recording.mkv"
+    })
+    expect(Schema.decodeUnknownSync(ToggleRecordOutput)({ outputActive: true })).toEqual({ outputActive: true })
     expect(Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "SplitRecordFile", acknowledged: true }))
       .toEqual({ requestType: "SplitRecordFile", acknowledged: true })
     expect(() =>
@@ -210,6 +242,12 @@ describe("MCP tool registry", () => {
         acknowledged: true
       })
     ).toEqual({ requestType: "CreateRecordChapter", acknowledged: true })
+    expect(() =>
+      Schema.decodeUnknownSync(StopRecordOutput)({
+        requestType: "StopRecord",
+        acknowledged: true
+      })
+    ).toThrow()
   })
 
   it("validates record chapter input schemas", () => {
@@ -376,6 +414,28 @@ describe("MCP tool registry", () => {
       .resolves.toEqual({ requestedAction: "resume", requestType: "ResumeRecord", acknowledged: true })
     await expect(executeTool(toolByName("toggle_record_pause"), {}, { config, client: fakeClient }))
       .resolves.toEqual({ requestedAction: "toggle_pause", requestType: "ToggleRecordPause", acknowledged: true })
+  })
+
+  it("executes record lifecycle handlers with structured outputs", async () => {
+    const fakeClient = client(async (requestType) => {
+      if (requestType === "StopRecord") {
+        return { outputPath: "/opaque/obs-recording.mkv" }
+      }
+      if (requestType === "ToggleRecord") {
+        return { outputActive: true }
+      }
+      return {}
+    })
+    await expect(executeTool(toolByName("start_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ requestType: "StartRecord", acknowledged: true })
+    await expect(executeTool(toolByName("stop_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({
+        requestType: "StopRecord",
+        acknowledged: true,
+        outputPath: "/opaque/obs-recording.mkv"
+      })
+    await expect(executeTool(toolByName("toggle_record"), {}, { config, client: fakeClient }))
+      .resolves.toEqual({ outputActive: true })
   })
 
   it("executes record file and chapter handlers with structured outputs", async () => {

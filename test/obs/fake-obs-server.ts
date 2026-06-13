@@ -338,6 +338,21 @@ export class FakeObsServer {
       })
       return
     }
+    if (requestType === "StartRecord") {
+      this.recordActive = true
+      send()
+      return
+    }
+    if (requestType === "StopRecord") {
+      this.recordActive = false
+      send({ outputPath: "/opaque/obs-recording.mkv" })
+      return
+    }
+    if (requestType === "ToggleRecord") {
+      this.recordActive = !this.recordActive
+      send({ outputActive: this.recordActive })
+      return
+    }
     if (requestType === "SplitRecordFile" || requestType === "CreateRecordChapter") {
       send()
       return

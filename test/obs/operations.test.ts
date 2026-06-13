@@ -18,6 +18,9 @@ import {
   pauseRecord,
   resumeRecord,
   splitRecordFile,
+  startRecord,
+  stopRecord,
+  toggleRecord,
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
@@ -194,6 +197,24 @@ describe("OBS operations", () => {
     })
   })
 
+  it("starts, stops, and toggles record lifecycle through fake OBS", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(startRecord(client)).resolves.toEqual({
+      requestType: "StartRecord",
+      acknowledged: true
+    })
+    await expect(getRecordStatus(client)).resolves.toMatchObject({ outputActive: true })
+    await expect(toggleRecord(client)).resolves.toEqual({ outputActive: false })
+    await expect(stopRecord(client)).resolves.toEqual({
+      requestType: "StopRecord",
+      acknowledged: true,
+      outputPath: "/opaque/obs-recording.mkv"
+    })
+  })
+
   it("splits record files and creates record chapters through fake OBS", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -227,6 +248,22 @@ describe("OBS operations", () => {
     await expect(pauseRecord(client)).rejects.toThrow("PauseRecord failed")
   })
 
+  it("surfaces OBS failures for record lifecycle controls with metadata", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { StartRecord: { code: 207, comment: "Output already active" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    await expect(startRecord(client)).rejects.toMatchObject(
+      {
+        requestType: "StartRecord",
+        code: 207,
+        comment: "Output already active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("surfaces OBS failures for record file and chapter controls with metadata", async () => {
     const splitServer = await FakeObsServer.start({
       failRequests: { SplitRecordFile: { code: 703, comment: "Recording not active" } }
@@ -255,6 +292,20 @@ describe("OBS operations", () => {
         comment: "Chapter markers unavailable"
       } satisfies Partial<ObsRequestError>
     )
+  })
+
+  it("filters record lifecycle tools when OBS does not advertise record capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "PauseRecord", "ResumeRecord", "ToggleRecordPause"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["record"] })
+    clients.push(client)
+    expect(getEnabledTools(["record"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "pause_record",
+      "resume_record",
+      "toggle_record_pause"
+    ])
   })
 
   it("filters record file and chapter tools when OBS does not advertise those capabilities", async () => {

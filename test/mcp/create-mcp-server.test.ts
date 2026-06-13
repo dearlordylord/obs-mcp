@@ -41,6 +41,9 @@ const allAvailableRequests = [
   "StopVirtualCam",
   "ToggleVirtualCam",
   "GetRecordStatus",
+  "StartRecord",
+  "StopRecord",
+  "ToggleRecord",
   "SplitRecordFile",
   "CreateRecordChapter",
   "PauseRecord",
@@ -99,6 +102,9 @@ describe("MCP server protocol handlers", () => {
       "list_input_kinds",
       "get_special_inputs",
       "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "split_record_file",
       "create_record_chapter",
       "pause_record",
@@ -112,6 +118,8 @@ describe("MCP server protocol handlers", () => {
       .toHaveProperty("outputActive")
     expect(tools.tools.find((tool) => tool.name === "pause_record")?.outputSchema?.properties)
       .toHaveProperty("requestedAction")
+    expect(tools.tools.find((tool) => tool.name === "stop_record")?.outputSchema?.properties)
+      .toHaveProperty("outputPath")
     expect(tools.tools.find((tool) => tool.name === "create_record_chapter")?.inputSchema.properties)
       .toHaveProperty("chapterName")
     expect(tools.tools.find((tool) => tool.name === "list_inputs")?.outputSchema?.properties)
@@ -164,12 +172,16 @@ describe("MCP server protocol handlers", () => {
     const client = await connect(obs, { ...config, enabledToolsets: ["scenes"] })
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).not.toContain("pause_record")
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("start_record")
     expect(tools.tools.map((tool) => tool.name)).not.toContain("split_record_file")
   })
 
-  it("lists record file and chapter tools only when OBS capabilities are available", async () => {
+  it("lists record lifecycle and file tools only when OBS capabilities are available", async () => {
     const client = await connect(
       obsClient(async () => ({}), [
+        "StartRecord",
+        "StopRecord",
+        "ToggleRecord",
         "SplitRecordFile",
         "CreateRecordChapter"
       ]),
@@ -177,6 +189,9 @@ describe("MCP server protocol handlers", () => {
     )
     const tools = await client.listTools()
     expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "start_record",
+      "stop_record",
+      "toggle_record",
       "split_record_file",
       "create_record_chapter"
     ])
@@ -335,6 +350,42 @@ describe("MCP server protocol handlers", () => {
       })
   })
 
+  it("returns structured success content for record lifecycle tools", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "StopRecord") {
+          return { outputPath: "/opaque/obs-recording.mkv" }
+        }
+        if (requestType === "ToggleRecord") {
+          return { outputActive: true }
+        }
+        return {}
+      }),
+      { ...config, enabledToolsets: ["record"] }
+    )
+    await expect(client.callTool({ name: "start_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "StartRecord",
+          acknowledged: true
+        }
+      })
+    await expect(client.callTool({ name: "stop_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          requestType: "StopRecord",
+          acknowledged: true,
+          outputPath: "/opaque/obs-recording.mkv"
+        }
+      })
+    await expect(client.callTool({ name: "toggle_record", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          outputActive: true
+        }
+      })
+  })
+
   it("returns structured success content for record file and chapter tools", async () => {
     const requested: Array<ObsRequestType> = []
     const client = await connect(
@@ -372,6 +423,9 @@ describe("MCP server protocol handlers", () => {
     )
     for (
       const name of [
+        "start_record",
+        "stop_record",
+        "toggle_record",
         "split_record_file",
         "pause_record",
         "resume_record",
