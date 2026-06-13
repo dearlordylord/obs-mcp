@@ -97,7 +97,9 @@ Read-only integration tests:
 pnpm test:integration
 ```
 
-Mutation tests are separate because they can switch the current OBS scene:
+Mutation tests are separate because they send state-changing OBS requests. They require both
+`OBS_INTEGRATION_TESTS=1` and `OBS_INTEGRATION_MUTATION_TESTS=1`; `pnpm test:integration` sets
+`OBS_INTEGRATION_TESTS=1` for you. Lifecycle mutation smoke checks do not start recording or streaming.
 
 ```sh
 OBS_INTEGRATION_MUTATION_TESTS=1 pnpm test:integration
