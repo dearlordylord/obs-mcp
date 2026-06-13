@@ -113,8 +113,19 @@ describe.skipIf(!integrationEnabled)("real OBS websocket integration", () => {
     if (
       !virtualCam.outputActive && requestAvailable(obs, "StartVirtualCam") && requestAvailable(obs, "StopVirtualCam")
     ) {
-      await expect(startVirtualCam(obs)).resolves.toEqual({ outputActive: true, switched: true })
-      await expect(stopVirtualCam(obs)).resolves.toEqual({ outputActive: false, switched: true })
+      let startedVirtualCam = false
+      try {
+        const started = await startVirtualCam(obs)
+        startedVirtualCam = true
+        expect(started).toEqual({ outputActive: true, switched: true })
+        const stopped = await stopVirtualCam(obs)
+        startedVirtualCam = false
+        expect(stopped).toEqual({ outputActive: false, switched: true })
+      } finally {
+        if (startedVirtualCam) {
+          await stopVirtualCam(obs).catch(() => undefined)
+        }
+      }
     }
 
     const replayBuffer = await getReplayBufferStatus(obs)
@@ -123,8 +134,19 @@ describe.skipIf(!integrationEnabled)("real OBS websocket integration", () => {
       && requestAvailable(obs, "StartReplayBuffer")
       && requestAvailable(obs, "StopReplayBuffer")
     ) {
-      await expect(startReplayBuffer(obs)).resolves.toEqual({ outputActive: true })
-      await expect(stopReplayBuffer(obs)).resolves.toEqual({ outputActive: false })
+      let startedReplayBuffer = false
+      try {
+        const started = await startReplayBuffer(obs)
+        startedReplayBuffer = true
+        expect(started).toEqual({ outputActive: true })
+        const stopped = await stopReplayBuffer(obs)
+        startedReplayBuffer = false
+        expect(stopped).toEqual({ outputActive: false })
+      } finally {
+        if (startedReplayBuffer) {
+          await stopReplayBuffer(obs).catch(() => undefined)
+        }
+      }
     }
   })
 })
