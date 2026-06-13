@@ -189,7 +189,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetPersistentData",
   "SetPersistentData",
   "CallVendorRequest",
-  "BroadcastCustomEvent"
+  "BroadcastCustomEvent",
+  "Sleep"
 ]
 
 export const sceneItemsFor = (

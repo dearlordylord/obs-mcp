@@ -64,7 +64,8 @@ export const ObsRequestType = Schema.Literal(
   "GetPersistentData",
   "SetPersistentData",
   "CallVendorRequest",
-  "BroadcastCustomEvent"
+  "BroadcastCustomEvent",
+  "Sleep"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 

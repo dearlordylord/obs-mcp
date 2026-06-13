@@ -8,6 +8,8 @@ export const OP_IDENTIFIED = 2
 export const OP_EVENT = 5
 export const OP_REQUEST = 6
 export const OP_REQUEST_RESPONSE = 7
+export const OP_REQUEST_BATCH = 8
+export const OP_REQUEST_BATCH_RESPONSE = 9
 
 export const EventSubscription = {
   None: 0,
@@ -159,6 +161,20 @@ export const RequestResponseEnvelope = Schema.Struct({
 })
 export type RequestResponseEnvelope = typeof RequestResponseEnvelope.Type
 
+export const RequestBatchResponseEnvelope = Schema.Struct({
+  op: Schema.Literal(OP_REQUEST_BATCH_RESPONSE),
+  d: Schema.Struct({
+    requestId: Schema.String,
+    results: Schema.Array(Schema.Struct({
+      requestType: Schema.String,
+      requestId: Schema.optional(Schema.String),
+      requestStatus: RequestStatus,
+      responseData: Schema.optional(UnknownRecord)
+    }))
+  })
+})
+export type RequestBatchResponseEnvelope = typeof RequestBatchResponseEnvelope.Type
+
 export const EventEnvelope = Schema.Struct({
   op: Schema.Literal(OP_EVENT),
   d: Schema.Struct({
@@ -178,6 +194,7 @@ const ObsEnvelope = Schema.Union(
   HelloEnvelope,
   IdentifiedEnvelope,
   RequestResponseEnvelope,
+  RequestBatchResponseEnvelope,
   RawEventEnvelope
 )
 type ObsEnvelope = typeof ObsEnvelope.Type

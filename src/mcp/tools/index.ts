@@ -1,3 +1,4 @@
+import { batchTools } from "./batch.js"
 import { eventTools } from "./events.js"
 import { generalTools } from "./general.js"
 import { inputTools } from "./inputs.js"
@@ -10,6 +11,7 @@ import { streamTools } from "./stream.js"
 import { vendorTools } from "./vendor.js"
 
 export const allTools: ReadonlyArray<ToolDefinition> = [
+  ...batchTools,
   ...generalTools,
   ...eventTools,
   ...sceneTools,

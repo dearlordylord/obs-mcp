@@ -169,6 +169,7 @@ const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsCli
   negotiatedRpcVersion: 1,
   availableRequests: allAvailableRequests,
   request: async (descriptor) => Schema.decodeUnknownSync(descriptor.responseSchema)({}),
+  requestBatch: async () => [],
   getBufferedEvents: () => events,
   close: async () => undefined
 })

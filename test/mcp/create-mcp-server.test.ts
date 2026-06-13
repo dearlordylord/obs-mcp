@@ -157,6 +157,23 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual(["get_recent_obs_events"])
   })
 
+  it("lists only the deliberate batch tool for the batch toolset and advertised OBS capabilities", async () => {
+    const client = await connect(
+      obsClient(async () => ({}), ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"]),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual(["run_obs_request_batch"])
+    expect(tools.tools.map((tool) => tool.name)).not.toContain("sleep")
+
+    const partialClient = await connect(
+      obsClient(async () => ({}), ["GetCurrentProgramScene", "SetCurrentProgramScene"]),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+    const partialTools = await partialClient.listTools()
+    expect(partialTools.tools.map((tool) => tool.name)).toEqual([])
+  })
+
   it("lists persistent data tools only for admin_raw and advertised OBS capabilities", async () => {
     const adminClient = await connect(
       obsClient(async () => ({}), ["GetPersistentData", "SetPersistentData"]),
@@ -512,6 +529,135 @@ describe("MCP server protocol handlers", () => {
           }
         }
       })
+  })
+
+  it("returns structured request batch results and rejects invalid Sleep batches before OBS", async () => {
+    const batches: Array<Parameters<ObsClient["requestBatch"]>[0]> = []
+    const client = await connect(
+      fakeObsClient(
+        async () => ({}),
+        ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"],
+        { capacity: 0, droppedEvents: 0, events: [] },
+        async (batch) => {
+          batches.push(batch)
+          return [
+            {
+              requestType: "SetCurrentProgramScene",
+              requestId: "batch-0",
+              requestStatus: { result: true, code: 100 },
+              responseData: {}
+            },
+            {
+              requestType: "Sleep",
+              requestId: "batch-1",
+              requestStatus: { result: true, code: 100 },
+              responseData: {}
+            },
+            {
+              requestType: "GetCurrentProgramScene",
+              requestId: "batch-2",
+              requestStatus: { result: true, code: 100 },
+              responseData: { sceneName: "Main", sceneUuid: "scene-main" }
+            }
+          ]
+        }
+      ),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+
+    await expect(client.callTool({
+      name: "run_obs_request_batch",
+      arguments: {
+        requests: [
+          { kind: "set_current_scene", sceneName: "Main" },
+          { kind: "sleep", sleepMillis: 5 },
+          { kind: "get_current_scene" }
+        ]
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        executionType: "serial_realtime",
+        requestedRequests: 3,
+        returnedResults: 3,
+        results: [
+          { kind: "set_current_scene", requestType: "SetCurrentProgramScene", responseData: { sceneName: "Main" } },
+          { kind: "sleep", requestType: "Sleep" },
+          { kind: "get_current_scene", requestType: "GetCurrentProgramScene", responseData: { sceneName: "Main" } }
+        ]
+      }
+    })
+    expect(batches).toEqual([{
+      executionType: 0,
+      haltOnFailure: false,
+      requests: [
+        { requestType: "SetCurrentProgramScene", requestId: "batch-0", requestData: { sceneName: "Main" } },
+        { requestType: "Sleep", requestId: "batch-1", requestData: { sleepMillis: 5 } },
+        { requestType: "GetCurrentProgramScene", requestId: "batch-2" }
+      ]
+    }])
+
+    await expect(client.callTool({
+      name: "run_obs_request_batch",
+      arguments: {
+        executionType: "serial_realtime",
+        requests: [{ kind: "sleep", sleepFrames: 1 }]
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: { error: { code: ErrorCode.InvalidParams } }
+    })
+    expect(batches).toHaveLength(1)
+  })
+
+  it("returns MCP errors for duplicate or missing request batch results", async () => {
+    const duplicateClient = await connect(
+      fakeObsClient(
+        async () => ({}),
+        ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"],
+        { capacity: 0, droppedEvents: 0, events: [] },
+        async () => [
+          {
+            requestType: "GetCurrentProgramScene",
+            requestId: "batch-0",
+            requestStatus: { result: true, code: 100 },
+            responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+          },
+          {
+            requestType: "GetCurrentProgramScene",
+            requestId: "batch-0",
+            requestStatus: { result: true, code: 100 },
+            responseData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+          }
+        ]
+      ),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+
+    await expect(duplicateClient.callTool({
+      name: "run_obs_request_batch",
+      arguments: { requests: [{ kind: "get_current_scene" }] }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: { error: { message: expect.stringContaining("duplicate batch result") } }
+    })
+
+    const missingClient = await connect(
+      fakeObsClient(
+        async () => ({}),
+        ["GetCurrentProgramScene", "SetCurrentProgramScene", "Sleep"],
+        { capacity: 0, droppedEvents: 0, events: [] },
+        async () => []
+      ),
+      { ...config, enabledToolsets: ["batch"] }
+    )
+
+    await expect(missingClient.callTool({
+      name: "run_obs_request_batch",
+      arguments: { requests: [{ kind: "get_current_scene" }] }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: { error: { message: expect.stringContaining("did not return batch result") } }
+    })
   })
 
   it("returns structured persistent data results without echoing set slot values", async () => {

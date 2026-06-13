@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- fake OBS websocket protocol harness covers many request handlers in one place. */
 import { createHash } from "node:crypto"
 import { type WebSocket, WebSocketServer } from "ws"
 
@@ -18,6 +19,8 @@ const OP_HELLO = 0
 const OP_IDENTIFIED = 2
 const OP_EVENT = 5
 const OP_REQUEST_RESPONSE = 7
+const OP_REQUEST_BATCH = 8
+const OP_REQUEST_BATCH_RESPONSE = 9
 const REQUEST_STATUS_SUCCESS = 100
 const AUTH_FAILURE_CLOSE_CODE = 4009
 const BINARY_FRAME_HEX = "010203"
@@ -50,6 +53,9 @@ interface FakeObsServerOptions {
   readonly eventBeforeResponseFor?: string
   readonly envelopeBeforeResponse?: Record<string, unknown>
   readonly envelopeBeforeResponseFor?: string
+  readonly reverseBatchResults?: boolean
+  readonly mismatchFirstBatchResultType?: boolean
+  readonly sendUnrelatedBatchResponseBeforeReal?: boolean
 }
 
 const sha256Base64 = (input: string): string => createHash("sha256").update(input).digest("base64")
@@ -58,6 +64,11 @@ const authString = (password: string, salt: string, challenge: string): string =
   const secret = sha256Base64(`${password}${salt}`)
   return sha256Base64(`${secret}${challenge}`)
 }
+
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value))
+    : undefined
 
 export class FakeObsServer {
   public readonly url: string
@@ -177,6 +188,10 @@ export class FakeObsServer {
     inputs: ReadonlyArray<FakeObsInput>
   ): void {
     const envelope = JSON.parse(text)
+    if (envelope.op === OP_REQUEST_BATCH) {
+      this.handleBatchRequest(socket, envelope, options, scenes)
+      return
+    }
     const requestType = envelope.d.requestType
     const requestId = envelope.d.requestId
     this.receivedRequests = [
@@ -411,5 +426,70 @@ export class FakeObsServer {
       return
     }
     send()
+  }
+
+  private handleBatchRequest(
+    socket: WebSocket,
+    envelope: {
+      readonly d: {
+        readonly requestId: string
+        readonly requests: ReadonlyArray<Record<string, unknown>>
+        readonly haltOnFailure?: boolean
+      }
+    },
+    options: FakeObsServerOptions,
+    scenes: ReadonlyArray<FakeObsScene>
+  ): void {
+    if (options.skipResponsesFor?.includes("RequestBatch") === true) {
+      return
+    }
+    const results: Array<Record<string, unknown>> = []
+    for (const request of envelope.d.requests) {
+      const requestType = String(request["requestType"])
+      const requestData = asRecord(request["requestData"])
+      this.receivedRequests = [
+        ...this.receivedRequests,
+        { requestType, ...(requestData === undefined ? {} : { requestData }) }
+      ]
+      const failure = options.failRequests?.[requestType]
+      if (failure !== undefined) {
+        results.push({
+          requestType,
+          requestId: request["requestId"],
+          requestStatus: { result: false, code: failure.code, comment: failure.comment }
+        })
+        if (envelope.d.haltOnFailure === true) {
+          break
+        }
+        continue
+      }
+      if (requestType === "SetCurrentProgramScene") {
+        this.currentSceneName = String(requestData?.["sceneName"])
+      }
+      const current = scenes.find((scene) => scene.sceneName === this.currentSceneName) ?? scenes[0]
+      const responseData = requestType === "GetCurrentProgramScene"
+        ? { sceneName: current?.sceneName ?? "Intro", sceneUuid: current?.sceneUuid }
+        : {}
+      results.push({
+        requestType,
+        requestId: request["requestId"],
+        requestStatus: { result: true, code: REQUEST_STATUS_SUCCESS },
+        responseData
+      })
+    }
+    const orderedResults = options.reverseBatchResults === true ? [...results].reverse() : results
+    const responseResults = options.mismatchFirstBatchResultType === true && orderedResults[0] !== undefined
+      ? [{ ...orderedResults[0], requestType: "Sleep" }, ...orderedResults.slice(1)]
+      : orderedResults
+    if (options.sendUnrelatedBatchResponseBeforeReal === true) {
+      socket.send(JSON.stringify({
+        op: OP_REQUEST_BATCH_RESPONSE,
+        d: { requestId: "unrelated", results: [] }
+      }))
+    }
+    socket.send(JSON.stringify({
+      op: OP_REQUEST_BATCH_RESPONSE,
+      d: { requestId: envelope.d.requestId, results: responseResults }
+    }))
   }
 }

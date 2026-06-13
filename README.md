@@ -21,7 +21,7 @@ Environment variables:
 - `OBS_WEBSOCKET_PASSWORD`: optional OBS websocket password.
 - `OBS_WEBSOCKET_CONNECTION_TIMEOUT`: connection and request timeout in milliseconds. Defaults to `30000`.
 - `OBS_EVENT_BUFFER_CAPACITY`: optional maximum number of recent safe OBS events retained for `get_recent_obs_events`. Defaults to the built-in bounded buffer size.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `admin_raw`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, `stream`, and `vendor`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `TOOLSETS`: optional comma-separated category filter. Available categories are `admin_raw`, `batch`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, `stream`, and `vendor`; the default enables `general`, `record`, `scenes`, and `inputs`.
 - `OBS_INTEGRATION_TESTS`: set to `1` to run real OBS websocket integration tests.
 - `OBS_INTEGRATION_MUTATION_TESTS`: set to `1` to enable integration tests that send state-changing OBS requests.
 
@@ -33,9 +33,12 @@ Set `TOOLSETS=admin_raw` to expose OBS websocket persistent data tools. This is 
 
 Set `TOOLSETS=vendor` to expose OBS websocket vendor/custom event tools. This is disabled by default; plugin-defined vendor requests and custom event broadcasts carry security and provenance risk, accept only JSON-safe object payloads, and remain excluded from `get_recent_obs_events`.
 
+Set `TOOLSETS=batch` to expose `run_obs_request_batch`, a schema-limited OBS request batch tool. `Sleep` is supported only as a batch item with official serial execution semantics; there is no standalone sleep tool or arbitrary raw batch tool.
+
 ## Tools
 
 <!-- tools:start -->
+- `run_obs_request_batch`
 - `get_obs_context`
 - `get_version`
 - `get_obs_stats`
