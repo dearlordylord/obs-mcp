@@ -10,7 +10,9 @@ import {
   type FakeObsScene,
   sceneItemsFor
 } from "./fake-obs-fixtures.js"
+import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
+import { FakeObsOutputState } from "./fake-obs-output-state.js"
 
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
@@ -63,10 +65,7 @@ export class FakeObsServer {
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
   private inputState: FakeObsInputState = new FakeObsInputState([])
-  private recordActive = false
-  private replayBufferActive = false
-  private streamActive = false
-  private virtualCamActive = false
+  private readonly outputState = new FakeObsOutputState()
   public lastIdentifyEventSubscriptions: unknown
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
@@ -372,155 +371,10 @@ export class FakeObsServer {
       send({ desktop1: "Desktop Audio", desktop2: null, mic1: "Mic/Aux", mic2: null, mic3: null, mic4: null })
       return
     }
-    if (requestType === "GetInputMute") {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      send({ inputMuted: this.inputState.getMute(locator) })
+    if (handleFakeObsInputRequest(this.inputState, requestType, envelope.d.requestData, send)) {
       return
     }
-    if (requestType === "SetInputMute") {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      this.inputState.setMute(locator, envelope.d.requestData.inputMuted)
-      send()
-      return
-    }
-    if (requestType === "ToggleInputMute") {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      send({ inputMuted: this.inputState.toggleMute(locator) })
-      return
-    }
-    if (requestType === "GetInputVolume") {
-      send({ ...this.inputState.getVolume(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid) })
-      return
-    }
-    if (requestType === "SetInputVolume") {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      this.inputState.setVolume(locator, envelope.d.requestData)
-      send()
-      return
-    }
-    if (
-      requestType === "GetInputAudioBalance"
-      || requestType === "GetInputAudioMonitorType"
-      || requestType === "GetInputAudioSyncOffset"
-    ) {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      send(this.inputState.audioResponseFor(requestType, locator))
-      return
-    }
-    if (
-      requestType === "SetInputAudioBalance"
-      || requestType === "SetInputAudioMonitorType"
-      || requestType === "SetInputAudioSyncOffset"
-    ) {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      this.inputState.setAudioFromRequest(requestType, locator, envelope.d.requestData)
-      send()
-      return
-    }
-    if (requestType === "GetMediaInputStatus") {
-      send({ ...this.inputState.getMediaStatus(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid) })
-      return
-    }
-    if (requestType === "SetMediaInputCursor" || requestType === "OffsetMediaInputCursor") {
-      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
-      this.inputState.applyMediaCursorRequest(requestType, locator, envelope.d.requestData)
-      send()
-      return
-    }
-    if (requestType === "TriggerMediaInputAction") {
-      this.inputState.triggerMediaAction(
-        envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid,
-        envelope.d.requestData.mediaAction
-      )
-      send()
-      return
-    }
-    if (requestType === "GetVirtualCamStatus") {
-      send({ outputActive: this.virtualCamActive })
-      return
-    }
-    if (requestType === "StartVirtualCam" || requestType === "StopVirtualCam") {
-      this.virtualCamActive = requestType === "StartVirtualCam"
-      send()
-      return
-    }
-    if (requestType === "ToggleVirtualCam") {
-      this.virtualCamActive = !this.virtualCamActive
-      send({ outputActive: this.virtualCamActive })
-      return
-    }
-    if (requestType === "GetReplayBufferStatus") {
-      send({ outputActive: this.replayBufferActive })
-      return
-    }
-    if (requestType === "StartReplayBuffer" || requestType === "StopReplayBuffer") {
-      this.replayBufferActive = requestType === "StartReplayBuffer"
-      send()
-      return
-    }
-    if (requestType === "ToggleReplayBuffer") {
-      this.replayBufferActive = !this.replayBufferActive
-      send({ outputActive: this.replayBufferActive })
-      return
-    }
-    if (
-      requestType === "SaveReplayBuffer" || requestType === "SplitRecordFile" || requestType === "CreateRecordChapter"
-      || requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause"
-      || requestType === "SendStreamCaption"
-    ) {
-      send()
-      return
-    }
-    if (requestType === "GetLastReplayBufferReplay") {
-      send({ savedReplayPath: "/opaque/replay-buffer.mp4" })
-      return
-    }
-    if (requestType === "GetRecordStatus") {
-      send({
-        outputActive: this.recordActive,
-        outputPaused: false,
-        outputTimecode: this.recordActive ? "00:00:12.345" : "00:00:00.000",
-        outputDuration: this.recordActive ? 12345 : 0,
-        outputBytes: this.recordActive ? 67890 : 0
-      })
-      return
-    }
-    if (requestType === "StartRecord") {
-      this.recordActive = true
-      send()
-      return
-    }
-    if (requestType === "StopRecord") {
-      this.recordActive = false
-      send({ outputPath: "/opaque/obs-recording.mkv" })
-      return
-    }
-    if (requestType === "ToggleRecord") {
-      this.recordActive = !this.recordActive
-      send({ outputActive: this.recordActive })
-      return
-    }
-    if (requestType === "GetStreamStatus") {
-      send({
-        outputActive: this.streamActive,
-        outputReconnecting: false,
-        outputTimecode: this.streamActive ? "00:00:12.345" : "00:00:00.000",
-        outputDuration: this.streamActive ? 12345 : 0,
-        outputCongestion: 0,
-        outputBytes: this.streamActive ? 4096 : 0,
-        outputSkippedFrames: 0,
-        outputTotalFrames: this.streamActive ? 740 : 0
-      })
-      return
-    }
-    if (requestType === "StartStream" || requestType === "StopStream") {
-      this.streamActive = requestType === "StartStream"
-      send()
-      return
-    }
-    if (requestType === "ToggleStream") {
-      this.streamActive = !this.streamActive
-      send({ outputActive: this.streamActive })
+    if (this.outputState.handleRequest(requestType, send)) {
       return
     }
     send()

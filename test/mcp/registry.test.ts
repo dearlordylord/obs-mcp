@@ -744,6 +744,102 @@ describe("MCP tool registry", () => {
     expect(output).toMatchObject({ desktop1: "Desktop Audio", mic1: "Mic/Aux" })
   })
 
+  it("executes input and media control handlers with structured output", async () => {
+    const inputConfig: ObsConfig = { ...config, enabledToolsets: ["inputs"] }
+    const responses: Partial<Record<ObsRequestType, unknown>> = {
+      GetInputMute: { inputMuted: false },
+      ToggleInputMute: { inputMuted: true },
+      GetInputVolume: { inputVolumeMul: 1, inputVolumeDb: 0 },
+      GetInputAudioBalance: { inputAudioBalance: 0.5 },
+      GetInputAudioMonitorType: { monitorType: "OBS_MONITORING_TYPE_NONE" },
+      GetInputAudioSyncOffset: { inputAudioSyncOffset: 0 },
+      GetMediaInputStatus: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
+    }
+    const fakeClient = fakeObsClient(async (requestType) => responses[requestType] ?? {})
+    const cases = [
+      {
+        toolName: "get_input_mute",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputMuted: false }
+      },
+      {
+        toolName: "set_input_mute",
+        input: { inputName: "Mic/Aux", inputMuted: true },
+        expected: { inputMuted: true }
+      },
+      {
+        toolName: "toggle_input_mute",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputMuted: true }
+      },
+      {
+        toolName: "get_input_volume",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputVolumeMul: 1, inputVolumeDb: 0 }
+      },
+      {
+        toolName: "set_input_volume",
+        input: { inputName: "Mic/Aux", inputVolumeMul: 0.5 },
+        expected: { inputVolumeMul: 0.5, acknowledged: true }
+      },
+      {
+        toolName: "get_input_audio_balance",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputAudioBalance: 0.5 }
+      },
+      {
+        toolName: "set_input_audio_balance",
+        input: { inputName: "Mic/Aux", inputAudioBalance: 0.75 },
+        expected: { inputAudioBalance: 0.75, acknowledged: true }
+      },
+      {
+        toolName: "get_input_audio_monitor_type",
+        input: { inputName: "Mic/Aux" },
+        expected: { monitorType: "OBS_MONITORING_TYPE_NONE" }
+      },
+      {
+        toolName: "set_input_audio_monitor_type",
+        input: { inputName: "Mic/Aux", monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY" },
+        expected: { monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY", acknowledged: true }
+      },
+      {
+        toolName: "get_input_audio_sync_offset",
+        input: { inputName: "Mic/Aux" },
+        expected: { inputAudioSyncOffset: 0 }
+      },
+      {
+        toolName: "set_input_audio_sync_offset",
+        input: { inputName: "Mic/Aux", inputAudioSyncOffset: -250 },
+        expected: { inputAudioSyncOffset: -250, acknowledged: true }
+      },
+      {
+        toolName: "get_media_input_status",
+        input: { inputName: "Media Source" },
+        expected: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
+      },
+      {
+        toolName: "set_media_input_cursor",
+        input: { inputName: "Media Source", mediaCursor: 2500 },
+        expected: { mediaCursor: 2500, acknowledged: true }
+      },
+      {
+        toolName: "offset_media_input_cursor",
+        input: { inputName: "Media Source", mediaCursorOffset: -500 },
+        expected: { mediaCursorOffset: -500, acknowledged: true }
+      },
+      {
+        toolName: "trigger_media_input_action",
+        input: { inputName: "Media Source", mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY" },
+        expected: { mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY", acknowledged: true }
+      }
+    ]
+
+    for (const { expected, input, toolName } of cases) {
+      await expect(executeTool(toolByName(toolName), input, { config: inputConfig, client: fakeClient }))
+        .resolves.toEqual(expected)
+    }
+  })
+
   it("executes record pause handlers with structured action outputs", async () => {
     const fakeClient = fakeObsClient(async () => ({}))
     await expect(executeTool(toolByName("pause_record"), {}, { config, client: fakeClient }))

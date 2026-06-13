@@ -1,36 +1,4 @@
-import {
-  CurrentSceneOutput,
-  GetSceneItemBlendModeInput,
-  GetSceneItemBlendModeOutput,
-  GetSceneItemEnabledInput,
-  GetSceneItemEnabledOutput,
-  GetSceneItemIdInput,
-  GetSceneItemIdOutput,
-  GetSceneItemIndexInput,
-  GetSceneItemIndexOutput,
-  GetSceneItemLockedInput,
-  GetSceneItemLockedOutput,
-  GetSceneItemSourceInput,
-  GetSceneItemSourceOutput,
-  GetSourceActiveInput,
-  GetSourceActiveOutput,
-  ListGroupSceneItemsInput,
-  ListGroupSceneItemsOutput,
-  ListSceneItemsInput,
-  ListSceneItemsOutput,
-  ListScenesInput,
-  ListScenesOutput,
-  SetCurrentSceneInput,
-  SetCurrentSceneOutput,
-  SetSceneItemBlendModeInput,
-  SetSceneItemBlendModeOutput,
-  SetSceneItemEnabledInput,
-  SetSceneItemEnabledOutput,
-  SetSceneItemIndexInput,
-  SetSceneItemIndexOutput,
-  SetSceneItemLockedInput,
-  SetSceneItemLockedOutput
-} from "../../domain/schemas/index.js"
+import * as SceneSchemas from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
   getCurrentScene,
@@ -79,8 +47,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return current program and preview scenes plus ordered scene summaries.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneList.requestType],
-    inputSchema: ListScenesInput,
-    outputSchema: ListScenesOutput,
+    inputSchema: SceneSchemas.ListScenesInput,
+    outputSchema: SceneSchemas.ListScenesOutput,
     handler: async (input, context) => listScenes(context.client, input)
   }),
   defineTool({
@@ -90,7 +58,7 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     category: CATEGORY,
     requiredObsRequests: [GetCurrentProgramScene.requestType],
     inputSchema: EmptyInput,
-    outputSchema: CurrentSceneOutput,
+    outputSchema: SceneSchemas.CurrentSceneOutput,
     handler: async (_input, context) => getCurrentScene(context.client)
   }),
   defineTool({
@@ -99,8 +67,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Switch the current OBS program scene by scene name.",
     category: CATEGORY,
     requiredObsRequests: [SetCurrentProgramScene.requestType],
-    inputSchema: SetCurrentSceneInput,
-    outputSchema: SetCurrentSceneOutput,
+    inputSchema: SceneSchemas.SetCurrentSceneInput,
+    outputSchema: SceneSchemas.SetCurrentSceneOutput,
     handler: async (input, context) => setCurrentScene(context.client, input)
   }),
   defineTool({
@@ -109,8 +77,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return ordered scene item summaries for a scene selected by name or UUID.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneItemList.requestType],
-    inputSchema: ListSceneItemsInput,
-    outputSchema: ListSceneItemsOutput,
+    inputSchema: SceneSchemas.ListSceneItemsInput,
+    outputSchema: SceneSchemas.ListSceneItemsOutput,
     handler: async (input, context) => listSceneItems(context.client, input)
   }),
   defineTool({
@@ -119,8 +87,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return ordered scene item summaries for a group selected by name or UUID.",
     category: CATEGORY,
     requiredObsRequests: [GetGroupSceneItemList.requestType],
-    inputSchema: ListGroupSceneItemsInput,
-    outputSchema: ListGroupSceneItemsOutput,
+    inputSchema: SceneSchemas.ListGroupSceneItemsInput,
+    outputSchema: SceneSchemas.ListGroupSceneItemsOutput,
     handler: async (input, context) => listGroupSceneItems(context.client, input)
   }),
   defineTool({
@@ -129,8 +97,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Find a source by name in a scene or group and return its numeric scene item ID.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneItemId.requestType],
-    inputSchema: GetSceneItemIdInput,
-    outputSchema: GetSceneItemIdOutput,
+    inputSchema: SceneSchemas.GetSceneItemIdInput,
+    outputSchema: SceneSchemas.GetSceneItemIdOutput,
     handler: async (input, context) => getSceneItemId(context.client, input)
   }),
   defineTool({
@@ -139,8 +107,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return the source name and UUID associated with a scene item ID.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneItemSource.requestType],
-    inputSchema: GetSceneItemSourceInput,
-    outputSchema: GetSceneItemSourceOutput,
+    inputSchema: SceneSchemas.GetSceneItemSourceInput,
+    outputSchema: SceneSchemas.GetSceneItemSourceOutput,
     handler: async (input, context) => getSceneItemSource(context.client, input)
   }),
   defineTool({
@@ -149,8 +117,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return whether a scene item is enabled.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneItemEnabled.requestType],
-    inputSchema: GetSceneItemEnabledInput,
-    outputSchema: GetSceneItemEnabledOutput,
+    inputSchema: SceneSchemas.GetSceneItemEnabledInput,
+    outputSchema: SceneSchemas.GetSceneItemEnabledOutput,
     handler: async (input, context) => getSceneItemEnabled(context.client, input)
   }),
   defineTool({
@@ -159,8 +127,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Set whether a scene item is enabled.",
     category: CATEGORY,
     requiredObsRequests: [SetSceneItemEnabled.requestType],
-    inputSchema: SetSceneItemEnabledInput,
-    outputSchema: SetSceneItemEnabledOutput,
+    inputSchema: SceneSchemas.SetSceneItemEnabledInput,
+    outputSchema: SceneSchemas.SetSceneItemEnabledOutput,
     handler: async (input, context) => setSceneItemEnabled(context.client, input)
   }),
   defineTool({
@@ -169,8 +137,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return whether a scene item is locked.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneItemLocked.requestType],
-    inputSchema: GetSceneItemLockedInput,
-    outputSchema: GetSceneItemLockedOutput,
+    inputSchema: SceneSchemas.GetSceneItemLockedInput,
+    outputSchema: SceneSchemas.GetSceneItemLockedOutput,
     handler: async (input, context) => getSceneItemLocked(context.client, input)
   }),
   defineTool({
@@ -179,8 +147,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Set whether a scene item is locked.",
     category: CATEGORY,
     requiredObsRequests: [SetSceneItemLocked.requestType],
-    inputSchema: SetSceneItemLockedInput,
-    outputSchema: SetSceneItemLockedOutput,
+    inputSchema: SceneSchemas.SetSceneItemLockedInput,
+    outputSchema: SceneSchemas.SetSceneItemLockedOutput,
     handler: async (input, context) => setSceneItemLocked(context.client, input)
   }),
   defineTool({
@@ -189,8 +157,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return a scene item's index position in its scene.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneItemIndex.requestType],
-    inputSchema: GetSceneItemIndexInput,
-    outputSchema: GetSceneItemIndexOutput,
+    inputSchema: SceneSchemas.GetSceneItemIndexInput,
+    outputSchema: SceneSchemas.GetSceneItemIndexOutput,
     handler: async (input, context) => getSceneItemIndex(context.client, input)
   }),
   defineTool({
@@ -199,8 +167,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return a scene item's OBS blend mode.",
     category: CATEGORY,
     requiredObsRequests: [GetSceneItemBlendMode.requestType],
-    inputSchema: GetSceneItemBlendModeInput,
-    outputSchema: GetSceneItemBlendModeOutput,
+    inputSchema: SceneSchemas.GetSceneItemBlendModeInput,
+    outputSchema: SceneSchemas.GetSceneItemBlendModeOutput,
     handler: async (input, context) => getSceneItemBlendMode(context.client, input)
   }),
   defineTool({
@@ -209,8 +177,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Set a scene item's index position in its scene.",
     category: CATEGORY,
     requiredObsRequests: [SetSceneItemIndex.requestType],
-    inputSchema: SetSceneItemIndexInput,
-    outputSchema: SetSceneItemIndexOutput,
+    inputSchema: SceneSchemas.SetSceneItemIndexInput,
+    outputSchema: SceneSchemas.SetSceneItemIndexOutput,
     handler: async (input, context) => setSceneItemIndex(context.client, input)
   }),
   defineTool({
@@ -219,8 +187,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Set a scene item's OBS blend mode.",
     category: CATEGORY,
     requiredObsRequests: [SetSceneItemBlendMode.requestType],
-    inputSchema: SetSceneItemBlendModeInput,
-    outputSchema: SetSceneItemBlendModeOutput,
+    inputSchema: SceneSchemas.SetSceneItemBlendModeInput,
+    outputSchema: SceneSchemas.SetSceneItemBlendModeOutput,
     handler: async (input, context) => setSceneItemBlendMode(context.client, input)
   }),
   defineTool({
@@ -229,8 +197,8 @@ export const sceneTools: ReadonlyArray<ToolDefinition> = [
     description: "Return whether a source is active in program and showing in OBS UI.",
     category: CATEGORY,
     requiredObsRequests: [GetSourceActive.requestType],
-    inputSchema: GetSourceActiveInput,
-    outputSchema: GetSourceActiveOutput,
+    inputSchema: SceneSchemas.GetSourceActiveInput,
+    outputSchema: SceneSchemas.GetSourceActiveOutput,
     handler: async (input, context) => getSourceActive(context.client, input)
   })
 ]
