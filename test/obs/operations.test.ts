@@ -375,6 +375,10 @@ describe("OBS operations", () => {
     expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ baseWidth: 1920 })).toThrow()
     expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputHeight: 720 })).toThrow()
     expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ fpsNumerator: 60 })).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ baseWidth: 4097, baseHeight: 1080 }))
+      .toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputWidth: 1920, outputHeight: 4097 }))
+      .toThrow()
   })
 
   it("surfaces OBS config read and mutation request failures", async () => {

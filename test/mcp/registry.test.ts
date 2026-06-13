@@ -913,6 +913,13 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["config"] },
       client: fakeClient
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_video_settings"), {
+      baseWidth: 4097,
+      baseHeight: 1080
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
   })
 
   it("executes transition inventory handlers with structured output", async () => {

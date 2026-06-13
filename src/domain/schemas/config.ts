@@ -70,15 +70,17 @@ export const SetRecordDirectoryOutput = Schema.Struct({
 export type SetRecordDirectoryOutput = typeof SetRecordDirectoryOutput.Type
 export const SetRecordDirectoryOutputJsonSchema = JSONSchema.make(SetRecordDirectoryOutput)
 
-const VideoSettingInteger = Schema.Number.pipe(Schema.int(), Schema.positive())
+const MaxVideoDimension = 4096
+const VideoDimension = Schema.Number.pipe(Schema.int(), Schema.positive(), Schema.lessThanOrEqualTo(MaxVideoDimension))
+const VideoFpsInteger = Schema.Number.pipe(Schema.int(), Schema.positive())
 
 export const VideoSettingsOutput = Schema.Struct({
-  baseWidth: VideoSettingInteger,
-  baseHeight: VideoSettingInteger,
-  outputWidth: VideoSettingInteger,
-  outputHeight: VideoSettingInteger,
-  fpsNumerator: VideoSettingInteger,
-  fpsDenominator: VideoSettingInteger
+  baseWidth: VideoDimension,
+  baseHeight: VideoDimension,
+  outputWidth: VideoDimension,
+  outputHeight: VideoDimension,
+  fpsNumerator: VideoFpsInteger,
+  fpsDenominator: VideoFpsInteger
 })
 export type VideoSettingsOutput = typeof VideoSettingsOutput.Type
 export const VideoSettingsOutputJsonSchema = JSONSchema.make(VideoSettingsOutput)
@@ -90,12 +92,12 @@ const hasMatchingOptionalPair = <A>(
 ): boolean => (input[firstField] === undefined) === (input[secondField] === undefined)
 
 const SetVideoSettingsFields = Schema.Struct({
-  baseWidth: Schema.optional(VideoSettingInteger),
-  baseHeight: Schema.optional(VideoSettingInteger),
-  outputWidth: Schema.optional(VideoSettingInteger),
-  outputHeight: Schema.optional(VideoSettingInteger),
-  fpsNumerator: Schema.optional(VideoSettingInteger),
-  fpsDenominator: Schema.optional(VideoSettingInteger)
+  baseWidth: Schema.optional(VideoDimension),
+  baseHeight: Schema.optional(VideoDimension),
+  outputWidth: Schema.optional(VideoDimension),
+  outputHeight: Schema.optional(VideoDimension),
+  fpsNumerator: Schema.optional(VideoFpsInteger),
+  fpsDenominator: Schema.optional(VideoFpsInteger)
 })
 
 type PairedVideoSettings = {
