@@ -1,9 +1,11 @@
 import { Schema } from "effect"
 
 import type {
+  OffsetMediaInputCursorOutput,
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeOutput,
-  SetInputAudioSyncOffsetOutput
+  SetInputAudioSyncOffsetOutput,
+  SetMediaInputCursorOutput
 } from "../../domain/schemas/inputs.js"
 import {
   InputAudioBalanceOutput,
@@ -17,12 +19,14 @@ import {
   ListInputsInput,
   ListInputsOutput,
   MediaInputStatusOutput,
+  OffsetMediaInputCursorInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
+  SetMediaInputCursorInput,
   SpecialInputsOutput
 } from "../../domain/schemas/inputs.js"
 import type { ObsClient } from "../client.js"
@@ -36,11 +40,13 @@ import {
   GetInputVolume,
   GetMediaInputStatus,
   GetSpecialInputs,
+  OffsetMediaInputCursor,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
   SetInputMute,
   SetInputVolume,
+  SetMediaInputCursor,
   ToggleInputMute
 } from "../requests.js"
 
@@ -162,4 +168,22 @@ export const getMediaInputStatus = async (
   const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
   const response = await client.request(GetMediaInputStatus, decodedInput)
   return Schema.decodeUnknownSync(MediaInputStatusOutput)(response)
+}
+
+export const setMediaInputCursor = async (
+  client: ObsClient,
+  input: SetMediaInputCursorInput
+): Promise<SetMediaInputCursorOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetMediaInputCursorInput)(input)
+  await client.request(SetMediaInputCursor, decodedInput)
+  return { mediaCursor: decodedInput.mediaCursor, acknowledged: true }
+}
+
+export const offsetMediaInputCursor = async (
+  client: ObsClient,
+  input: OffsetMediaInputCursorInput
+): Promise<OffsetMediaInputCursorOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(OffsetMediaInputCursorInput)(input)
+  await client.request(OffsetMediaInputCursor, decodedInput)
+  return { mediaCursorOffset: decodedInput.mediaCursorOffset, acknowledged: true }
 }

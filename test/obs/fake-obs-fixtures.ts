@@ -138,6 +138,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
   "GetMediaInputStatus",
+  "SetMediaInputCursor",
+  "OffsetMediaInputCursor",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",

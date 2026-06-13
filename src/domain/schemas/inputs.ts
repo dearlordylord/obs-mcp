@@ -163,6 +163,40 @@ export const MediaInputStatusOutput = Schema.Struct({
 export type MediaInputStatusOutput = typeof MediaInputStatusOutput.Type
 export const MediaInputStatusOutputJsonSchema = JSONSchema.make(MediaInputStatusOutput)
 
+export const MediaCursor = Schema.Number.pipe(Schema.greaterThanOrEqualTo(0))
+
+export const SetMediaInputCursorInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    mediaCursor: MediaCursor
+  })
+)
+export type SetMediaInputCursorInput = typeof SetMediaInputCursorInput.Type
+export const SetMediaInputCursorInputJsonSchema = JSONSchema.make(SetMediaInputCursorInput)
+
+export const OffsetMediaInputCursorInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    mediaCursorOffset: Schema.Number
+  })
+)
+export type OffsetMediaInputCursorInput = typeof OffsetMediaInputCursorInput.Type
+export const OffsetMediaInputCursorInputJsonSchema = JSONSchema.make(OffsetMediaInputCursorInput)
+
+export const SetMediaInputCursorOutput = Schema.Struct({
+  mediaCursor: MediaCursor,
+  acknowledged: Schema.Literal(true)
+})
+export type SetMediaInputCursorOutput = typeof SetMediaInputCursorOutput.Type
+export const SetMediaInputCursorOutputJsonSchema = JSONSchema.make(SetMediaInputCursorOutput)
+
+export const OffsetMediaInputCursorOutput = Schema.Struct({
+  mediaCursorOffset: Schema.Number,
+  acknowledged: Schema.Literal(true)
+})
+export type OffsetMediaInputCursorOutput = typeof OffsetMediaInputCursorOutput.Type
+export const OffsetMediaInputCursorOutputJsonSchema = JSONSchema.make(OffsetMediaInputCursorOutput)
+
 export const ListInputsInput = Schema.Struct({
   inputKind: Schema.optional(Schema.NonEmptyString)
 })

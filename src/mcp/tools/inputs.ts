@@ -10,6 +10,8 @@ import {
   ListInputsInput,
   ListInputsOutput,
   MediaInputStatusOutput,
+  OffsetMediaInputCursorInput,
+  OffsetMediaInputCursorOutput,
   SetInputAudioBalanceInput,
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeInput,
@@ -19,6 +21,8 @@ import {
   SetInputMuteInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
+  SetMediaInputCursorInput,
+  SetMediaInputCursorOutput,
   SpecialInputsOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
@@ -32,11 +36,13 @@ import {
   getSpecialInputs,
   listInputKinds,
   listInputs,
+  offsetMediaInputCursor,
   setInputAudioBalance,
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
   setInputMute,
   setInputVolume,
+  setMediaInputCursor,
   toggleInputMute
 } from "../../obs/operations/inputs.js"
 import {
@@ -49,11 +55,13 @@ import {
   GetInputVolume,
   GetMediaInputStatus,
   GetSpecialInputs,
+  OffsetMediaInputCursor,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
   SetInputMute,
   SetInputVolume,
+  SetMediaInputCursor,
   ToggleInputMute
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
@@ -210,5 +218,25 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: InputLocatorInput,
     outputSchema: MediaInputStatusOutput,
     handler: async (input, context) => getMediaInputStatus(context.client, input)
+  }),
+  defineTool({
+    name: "set_media_input_cursor",
+    title: "Set OBS Media Input Cursor",
+    description: "Set a media input cursor in milliseconds. OBS does not perform duration bounds checking.",
+    category: CATEGORY,
+    requiredObsRequests: [SetMediaInputCursor.requestType],
+    inputSchema: SetMediaInputCursorInput,
+    outputSchema: SetMediaInputCursorOutput,
+    handler: async (input, context) => setMediaInputCursor(context.client, input)
+  }),
+  defineTool({
+    name: "offset_media_input_cursor",
+    title: "Offset OBS Media Input Cursor",
+    description: "Offset a media input cursor in milliseconds. OBS does not perform duration bounds checking.",
+    category: CATEGORY,
+    requiredObsRequests: [OffsetMediaInputCursor.requestType],
+    inputSchema: OffsetMediaInputCursorInput,
+    outputSchema: OffsetMediaInputCursorOutput,
+    handler: async (input, context) => offsetMediaInputCursor(context.client, input)
   })
 ]

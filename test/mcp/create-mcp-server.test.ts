@@ -48,6 +48,8 @@ const allAvailableRequests = [
   "GetInputAudioSyncOffset",
   "SetInputAudioSyncOffset",
   "GetMediaInputStatus",
+  "SetMediaInputCursor",
+  "OffsetMediaInputCursor",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -120,6 +122,8 @@ describe("MCP server protocol handlers", () => {
       "get_input_audio_sync_offset",
       "set_input_audio_sync_offset",
       "get_media_input_status",
+      "set_media_input_cursor",
+      "offset_media_input_cursor",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -252,6 +256,9 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "GetMediaInputStatus") {
           return { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
         }
+        if (requestType === "SetMediaInputCursor" || requestType === "OffsetMediaInputCursor") {
+          return {}
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -279,7 +286,9 @@ describe("MCP server protocol handlers", () => {
       "set_input_audio_monitor_type",
       "get_input_audio_sync_offset",
       "set_input_audio_sync_offset",
-      "get_media_input_status"
+      "get_media_input_status",
+      "set_media_input_cursor",
+      "offset_media_input_cursor"
     ])
     await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
       .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
@@ -328,6 +337,14 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({
         structuredContent: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
       })
+    await expect(client.callTool({
+      name: "set_media_input_cursor",
+      arguments: { inputName: "Media Source", mediaCursor: 2500 }
+    })).resolves.toMatchObject({ structuredContent: { mediaCursor: 2500, acknowledged: true } })
+    await expect(client.callTool({
+      name: "offset_media_input_cursor",
+      arguments: { inputUuid: "input-media-source", mediaCursorOffset: -500 }
+    })).resolves.toMatchObject({ structuredContent: { mediaCursorOffset: -500, acknowledged: true } })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

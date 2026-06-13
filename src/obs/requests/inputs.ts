@@ -12,11 +12,13 @@ import {
   ListInputsInput,
   ListInputsOutput,
   MediaInputStatusOutput,
+  OffsetMediaInputCursorInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
   SetInputMuteInput,
   SetInputVolumeInput,
+  SetMediaInputCursorInput,
   SpecialInputsOutput
 } from "../../domain/schemas/inputs.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
@@ -112,3 +114,15 @@ export const GetMediaInputStatus = {
   requestDataSchema: InputLocatorInput,
   responseSchema: MediaInputStatusOutput
 } satisfies ObsRequestDescriptor<MediaInputStatusOutput>
+
+export const SetMediaInputCursor = {
+  requestType: "SetMediaInputCursor",
+  requestDataSchema: SetMediaInputCursorInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const OffsetMediaInputCursor = {
+  requestType: "OffsetMediaInputCursor",
+  requestDataSchema: OffsetMediaInputCursorInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>

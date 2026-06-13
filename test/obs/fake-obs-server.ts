@@ -354,6 +354,12 @@ export class FakeObsServer {
       send({ ...this.inputState.getMediaStatus(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid) })
       return
     }
+    if (requestType === "SetMediaInputCursor" || requestType === "OffsetMediaInputCursor") {
+      const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
+      this.inputState.applyMediaCursorRequest(requestType, locator, envelope.d.requestData)
+      send()
+      return
+    }
     if (requestType === "GetVirtualCamStatus") {
       send({ outputActive: this.virtualCamActive })
       return

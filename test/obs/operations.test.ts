@@ -16,11 +16,13 @@ import {
   getSpecialInputs,
   listInputKinds,
   listInputs,
+  offsetMediaInputCursor,
   setInputAudioBalance,
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
   setInputMute,
   setInputVolume,
+  setMediaInputCursor,
   toggleInputMute
 } from "../../src/obs/operations/inputs.js"
 import {
@@ -410,6 +412,58 @@ describe("OBS operations", () => {
     )
   })
 
+  it("sets and offsets media input cursor over the OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      inputs: [{
+        inputName: "Media Source",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source",
+        mediaState: "OBS_MEDIA_STATE_PLAYING",
+        mediaDuration: 10000,
+        mediaCursor: 1000
+      }]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setMediaInputCursor(client, { inputName: "Media Source", mediaCursor: 2500 })).resolves.toEqual({
+      mediaCursor: 2500,
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputUuid: "input-media-source" })).resolves.toMatchObject({
+      mediaCursor: 2500
+    })
+    await expect(offsetMediaInputCursor(client, {
+      inputUuid: "input-media-source",
+      mediaCursorOffset: -3000
+    })).resolves.toEqual({
+      mediaCursorOffset: -3000,
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputName: "Media Source" })).resolves.toMatchObject({
+      mediaCursor: -500
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("MediaInputCursor"))).toEqual([
+      { requestType: "SetMediaInputCursor", requestData: { inputName: "Media Source", mediaCursor: 2500 } },
+      {
+        requestType: "OffsetMediaInputCursor",
+        requestData: { inputUuid: "input-media-source", mediaCursorOffset: -3000 }
+      }
+    ])
+  })
+
+  it("validates media cursor shapes before sending OBS requests", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setMediaInputCursor(client, { inputName: "Media Source", mediaCursor: -1 }))
+      .rejects.toThrow("Expected a non-negative number")
+    await expect(offsetMediaInputCursor(client, { inputName: "Media Source", mediaCursorOffset: -1 }))
+      .resolves.toEqual({ mediaCursorOffset: -1, acknowledged: true })
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -646,6 +700,27 @@ describe("OBS operations", () => {
       "set_input_audio_monitor_type",
       "get_input_audio_sync_offset",
       "set_input_audio_sync_offset"
+    ])
+  })
+
+  it("filters media cursor tools when OBS does not advertise media cursor capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetMediaInputStatus"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_media_input_status"
     ])
   })
 })

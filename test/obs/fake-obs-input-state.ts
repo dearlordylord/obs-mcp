@@ -15,10 +15,16 @@ interface FakeObsInputAudioRequestData {
   readonly inputAudioSyncOffset?: number
 }
 
+interface FakeObsMediaCursorRequestData {
+  readonly mediaCursor?: number
+  readonly mediaCursorOffset?: number
+}
+
 export class FakeObsInputState {
   private readonly inputMuteByKey: Map<string, boolean>
   private readonly inputVolumeByKey: Map<string, FakeObsInputVolume> = new Map()
   private readonly inputAudioStateByKey: Map<string, FakeObsInputAudioState> = new Map()
+  private readonly mediaStatusByKey: Map<string, FakeObsMediaInputStatus> = new Map()
 
   public constructor(private readonly inputs: ReadonlyArray<FakeObsInput>) {
     this.inputMuteByKey = new Map(inputs.flatMap((input) => {
@@ -99,11 +105,35 @@ export class FakeObsInputState {
 
   public getMediaStatus(locator: string): FakeObsMediaInputStatus {
     const input = this.inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
-    return {
+    return this.mediaStatusByKey.get(locator) ?? {
       mediaState: input?.mediaState ?? DEFAULT_MEDIA_INPUT_STATUS.mediaState,
       mediaDuration: input?.mediaDuration ?? DEFAULT_MEDIA_INPUT_STATUS.mediaDuration,
       mediaCursor: input?.mediaCursor ?? DEFAULT_MEDIA_INPUT_STATUS.mediaCursor
     }
+  }
+
+  public setMediaCursor(locator: string, mediaCursor: number): void {
+    const status = { ...this.getMediaStatus(locator), mediaCursor }
+    for (const key of this.keysFor(locator)) {
+      this.mediaStatusByKey.set(key, status)
+    }
+  }
+
+  public offsetMediaCursor(locator: string, mediaCursorOffset: number): void {
+    const current = this.getMediaStatus(locator).mediaCursor ?? 0
+    this.setMediaCursor(locator, current + mediaCursorOffset)
+  }
+
+  public applyMediaCursorRequest(
+    requestType: string,
+    locator: string,
+    requestData: FakeObsMediaCursorRequestData
+  ): void {
+    if (requestType === "SetMediaInputCursor") {
+      this.setMediaCursor(locator, requestData.mediaCursor ?? 0)
+      return
+    }
+    this.offsetMediaCursor(locator, requestData.mediaCursorOffset ?? 0)
   }
 
   private keysFor(locator: string): ReadonlyArray<string> {
