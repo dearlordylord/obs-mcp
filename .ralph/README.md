@@ -18,7 +18,7 @@ pnpm check
 RALPH_AGENT_MODE=codex \
 RALPH_MAX_TASKS_PER_LANE=1 \
 RALPH_MAX_REVIEW_ATTEMPTS=12 \
-RALPH_LANE_CONCURRENCY=2 \
+RALPH_LANE_CONCURRENCY=4 \
 RALPH_PLANNER_EFFORT=low \
 RALPH_IMPLEMENTER_EFFORT=medium \
 RALPH_REVIEWER_EFFORT=xhigh \
@@ -29,7 +29,7 @@ pnpm run run
 Run a subset:
 
 ```bash
-RALPH_LANES=outputs-lifecycle,inputs-media pnpm run run
+RALPH_LANES=studio-admin-transitions,inputs-filters-sources pnpm run run
 ```
 
 ## Live Concurrency
@@ -40,7 +40,7 @@ runtime file to change concurrency without restarting:
 
 ```json
 {
-  "laneConcurrency": 3
+  "laneConcurrency": 4
 }
 ```
 
@@ -58,13 +58,18 @@ Lane specs live in `run.ts`. Tracked task plans live in `plans/` so future
 Ralph runs resume from explicit product intent instead of replanning from
 scratch.
 
-- `outputs-lifecycle`: record lifecycle/file controls, replay buffer, and stream
-  captions on top of the merged status/record/stream/virtualcam foundation.
-- `inputs-media`: input mute/volume, advanced primitive audio controls, and media
-  input controls on top of the merged input discovery foundation.
-- `scenes-events`: scene-item enabled/locked controls and bounded low-volume
-  event capture on top of the merged scene-item identity/event protocol
-  foundation.
+- `studio-admin-transitions`: canvases, hotkeys, transitions, studio/UI
+  side-effects, profiles, scene collections, video settings, stream service
+  settings, and record-directory administration.
+- `inputs-filters-sources`: remaining input lifecycle/settings/audio/deinterlace
+  tools, source filters, and source screenshot policy.
+- `scenes-composition-outputs`: remaining scene lifecycle/preview/group tools,
+  scene-item composition tools, and generic output tools.
+- `events-raw-batches`: typed event/resource policy plus disabled-by-default
+  raw, vendor, custom-event, persistent-data, batch, and `Sleep` surfaces.
+
+Completed historical lanes remain in `plans/` for audit:
+`outputs-lifecycle`, `inputs-media`, and `scenes-events`.
 
 ## Source Of Truth
 

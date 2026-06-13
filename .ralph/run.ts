@@ -165,27 +165,35 @@ const ensureSandcastleRuntimeAnchor = (): Effect.Effect<void, Error> =>
 
 const laneSpecs: ReadonlyArray<RalphLaneSpec> = [
   {
-    laneId: makeRalphLaneId("outputs-lifecycle"),
-    branch: makeRalphBranchName("ralph/outputs-lifecycle"),
-    planFile: makeRalphPlanFile("outputs-lifecycle.md"),
+    laneId: makeRalphLaneId("studio-admin-transitions"),
+    branch: makeRalphBranchName("ralph/studio-admin-transitions"),
+    planFile: makeRalphPlanFile("studio-admin-transitions.md"),
     prompt: makeRalphPromptText(
-      "Deep production lane for OBS output lifecycle work after the merged foundation. Complete record lifecycle and record file/chapter controls, replay buffer controls, and stream captions. Reuse existing general/record/stream/outputs module boundaries, request descriptor style, Effect Schema input/output types, operations, MCP registry metadata, capability gating through GetVersion.availableRequests, fake OBS websocket coverage, MCP handler tests, structured outputs, and OBS error metadata. Treat any outputPath or savedReplayPath as opaque OBS metadata only: no filesystem reads, writes, normalization, existence checks, path policy, screenshots, generic output settings, raw requests, batches, HTTP transport, or broad event work."
+      "Deep production lane for the remaining studio/admin/control surface from the official matrix. Cover canvases, non-raw general hotkeys, transitions, UI/studio mode/projectors, and config/profile/scene-collection/video/stream-service/record-directory requests. Reuse the existing foundation: Effect Schema input/output types, request descriptors, operations, MCP registry metadata, capability gating through GetVersion.availableRequests, fake OBS websocket coverage, MCP handler tests, structured outputs, and OBS error metadata. Split read-only inventory from global mutable state. UI/projector/dialog and global config mutations must be behind explicit toolsets and clear risk labels. Do not implement raw/vendor/persistent-data requests, arbitrary Object passthroughs without typed wrappers, screenshots, batch execution, HTTP transport, or events in this lane."
     )
   },
   {
-    laneId: makeRalphLaneId("inputs-media"),
-    branch: makeRalphBranchName("ralph/inputs-media"),
-    planFile: makeRalphPlanFile("inputs-media.md"),
+    laneId: makeRalphLaneId("inputs-filters-sources"),
+    branch: makeRalphBranchName("ralph/inputs-filters-sources"),
+    planFile: makeRalphPlanFile("inputs-filters-sources.md"),
     prompt: makeRalphPromptText(
-      "Deep production lane for input and media controls after the merged input discovery foundation. Add core mute/volume controls, advanced primitive input audio controls, and compact media input controls. Reuse the established input locator schema requiring exactly one of inputName or inputUuid, require exactly one of inputVolumeMul or inputVolumeDb for set_input_volume, and allow nullable mediaDuration/mediaCursor for media status. Preserve schemas, request descriptors, operations, MCP registry metadata, capability gating, fake OBS websocket coverage, MCP handler tests, structured outputs, and OBS error metadata. Do not add Object-shaped input settings, properties buttons, input lifecycle mutations, screenshots, events, raw passthroughs, or playlist/file-setting behavior."
+      "Deep production lane for the remaining input/settings, filter, and source screenshot surface from the official matrix. Cover input lifecycle/name/settings/audio-tracks/deinterlace/properties-button requests, source filter discovery/read/mutations, and screenshot requests. Reuse the established input/source locator rules and schema-first request/operation/MCP patterns. Object-shaped OBS settings must be wrapped by explicit typed schemas or intentionally narrow validated records; never expose arbitrary raw passthroughs by default. Screenshot tools require payload/path policy, size limits, and disabled-by-default source toolsets. Preserve capability gating, fake OBS websocket coverage, MCP handler tests, structured outputs, and OBS error metadata. Do not implement events, raw/vendor requests, batch execution, HTTP transport, or config/admin mutations in this lane."
     )
   },
   {
-    laneId: makeRalphLaneId("scenes-events"),
-    branch: makeRalphBranchName("ralph/scenes-events"),
-    planFile: makeRalphPlanFile("scenes-events.md"),
+    laneId: makeRalphLaneId("scenes-composition-outputs"),
+    branch: makeRalphBranchName("ralph/scenes-composition-outputs"),
+    planFile: makeRalphPlanFile("scenes-composition-outputs.md"),
     prompt: makeRalphPromptText(
-      "Deep production lane for scene-item controls and low-volume event capture after the merged scene identity and event protocol foundation. Add scene-item enabled/locked read/mutation tools, then bounded low-volume event capture if the typed primitives are stable. Reuse scene/scene-item locator conventions: exactly one of sceneName or sceneUuid, canvasUuid only with sceneName, numeric sceneItemId for item identity. Preserve capability gating, structured outputs, OBS error metadata, fake websocket coverage, and MCP handler tests. Event work must preserve stdio stdout purity, keep high-volume subscriptions disabled by default, exclude InputVolumeMeters/InputActiveStateChanged/InputShowStateChanged/SceneItemTransformChanged plus Vendors/VendorEvent/CustomEvent, and avoid broad streaming/raw vendor surfaces."
+      "Deep production lane for the remaining scene composition and generic output surface from the official matrix. Cover group/preview scene reads and preview switching, scene lifecycle/rename, per-scene transition overrides, scene-item create/remove/duplicate/transform, and generic output list/status/lifecycle/settings requests. Reuse scene locator conventions: exactly one of sceneName or sceneUuid, canvasUuid only where OBS supports it, and numeric sceneItemId for item identity. Generic output settings must be typed/narrow and capability-gated; do not duplicate record/stream/virtualcam/replay tools already implemented. Preserve schemas, operations, request descriptors, MCP metadata, fake OBS websocket tests, handler tests, structured outputs, and OBS error metadata. Do not implement filters, screenshots, events, raw/vendor requests, batch execution, or config/admin mutations in this lane."
+    )
+  },
+  {
+    laneId: makeRalphLaneId("events-raw-batches"),
+    branch: makeRalphBranchName("ralph/events-raw-batches"),
+    planFile: makeRalphPlanFile("events-raw-batches.md"),
+    prompt: makeRalphPromptText(
+      "Deep production lane for event/resources policy plus explicitly gated raw/vendor/batch surfaces from the official matrix. Cover the remaining event rows through typed low-volume resource/tool surfaces where safe, high-volume event coalescing/throttling policy, custom/vendor event isolation, BroadcastCustomEvent, CallVendorRequest, GetPersistentData, SetPersistentData, and Sleep/request-batch semantics. Preserve stdio stdout purity, bounded buffers, schema-first typed outputs, capability/toolset gating, and OBS error metadata. Raw/vendor/custom-event/persistent-data/batch tools must be disabled by default behind explicit toolsets and must never leak arbitrary vendor data through default LLM-facing tools. Do not implement normal request-category tools owned by the other three lanes."
     )
   }
 ]
