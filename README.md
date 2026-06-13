@@ -28,6 +28,8 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 
 ## Tools
 
+Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side effects. They are opt-in via `TOOLSETS=ui` and do not capture screenshots, manage OS windows, or perform filesystem actions.
+
 <!-- tools:start -->
 - `get_obs_context`
 - `get_version`

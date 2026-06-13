@@ -101,6 +101,9 @@ export const OpenSourceProjectorInput = Schema.Struct({
   Schema.filter((input) => (input.sourceName === undefined) !== (input.sourceUuid === undefined), {
     message: () => "Exactly one of sourceName or sourceUuid is required"
   }),
+  Schema.filter((input) => input.canvasUuid === undefined || input.sourceName !== undefined, {
+    message: () => "canvasUuid can only be provided with sourceName"
+  }),
   Schema.filter((input) => !(input.monitorIndex !== undefined && input.projectorGeometry !== undefined), {
     message: () => "monitorIndex and projectorGeometry are mutually exclusive"
   })

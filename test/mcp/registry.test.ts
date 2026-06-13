@@ -866,6 +866,13 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["ui"] },
       client: clientWithData(async () => ({}))
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("open_source_projector"), {
+      sourceUuid: "source-camera",
+      canvasUuid: "canvas-program"
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
     await expect(executeTool(toolByName("open_video_mix_projector"), {
       videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
       monitorIndex: 0,
