@@ -30,16 +30,35 @@ const config: ObsConfig = {
   enabledToolsets: ["general", "record", "scenes", "inputs"]
 }
 
-const allAvailableRequests = [
-  "GetVersion",
-  "GetStats",
-  "GetSceneList",
-  "GetCurrentProgramScene",
-  "SetCurrentProgramScene",
-  "GetSceneItemList",
-  "GetGroupSceneItemList",
-  "GetSceneItemId",
-  "GetSceneItemSource",
+const inputToolNames = [
+  "list_inputs",
+  "list_input_kinds",
+  "get_special_inputs",
+  "get_input_mute",
+  "set_input_mute",
+  "toggle_input_mute",
+  "get_input_volume",
+  "set_input_volume",
+  "get_input_audio_balance",
+  "set_input_audio_balance",
+  "get_input_audio_monitor_type",
+  "set_input_audio_monitor_type",
+  "get_input_audio_sync_offset",
+  "set_input_audio_sync_offset",
+  "get_media_input_status",
+  "set_media_input_cursor",
+  "offset_media_input_cursor",
+  "trigger_media_input_action"
+]
+
+const deferredInputMediaToolNames = [
+  "get_input_audio_tracks",
+  "set_input_audio_tracks",
+  "get_input_settings",
+  "set_input_settings"
+]
+
+const inputAvailableRequests = [
   "GetInputList",
   "GetInputKindList",
   "GetSpecialInputs",
@@ -57,7 +76,20 @@ const allAvailableRequests = [
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
-  "TriggerMediaInputAction",
+  "TriggerMediaInputAction"
+] satisfies ReadonlyArray<ObsRequestType>
+
+const allAvailableRequests = [
+  "GetVersion",
+  "GetStats",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetSceneItemList",
+  "GetGroupSceneItemList",
+  "GetSceneItemId",
+  "GetSceneItemSource",
+  ...inputAvailableRequests,
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -111,24 +143,7 @@ describe("MCP tool registry", () => {
       "list_group_scene_items",
       "get_scene_item_id",
       "get_scene_item_source",
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute",
-      "get_input_volume",
-      "set_input_volume",
-      "get_input_audio_balance",
-      "set_input_audio_balance",
-      "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type",
-      "get_input_audio_sync_offset",
-      "set_input_audio_sync_offset",
-      "get_media_input_status",
-      "set_media_input_cursor",
-      "offset_media_input_cursor",
-      "trigger_media_input_action",
+      ...inputToolNames,
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -137,26 +152,7 @@ describe("MCP tool registry", () => {
   })
 
   it("exposes input discovery tools when the input toolset is enabled", () => {
-    expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute",
-      "get_input_volume",
-      "set_input_volume",
-      "get_input_audio_balance",
-      "set_input_audio_balance",
-      "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type",
-      "get_input_audio_sync_offset",
-      "set_input_audio_sync_offset",
-      "get_media_input_status",
-      "set_media_input_cursor",
-      "offset_media_input_cursor",
-      "trigger_media_input_action"
-    ])
+    expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual(inputToolNames)
   })
 
   it("exposes virtual camera tools when the outputs toolset is enabled", () => {
@@ -196,34 +192,15 @@ describe("MCP tool registry", () => {
       "get_scene_item_id",
       "get_scene_item_source"
     ])
-    expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute",
-      "get_input_volume",
-      "set_input_volume",
-      "get_input_audio_balance",
-      "set_input_audio_balance",
-      "get_input_audio_monitor_type",
-      "set_input_audio_monitor_type",
-      "get_input_audio_sync_offset",
-      "set_input_audio_sync_offset",
-      "get_media_input_status",
-      "set_media_input_cursor",
-      "offset_media_input_cursor",
-      "trigger_media_input_action"
-    ])
+    expect(getEnabledTools(["inputs"], allAvailableRequests).map((tool) => tool.name)).toEqual(inputToolNames)
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_mute")
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_volume")
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_audio_balance")
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_audio_sync_offset")
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_media_input_status")
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("set_media_input_cursor")
-    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("trigger_media_input_action")
+    const sceneToolNames = getEnabledTools(["scenes"]).map((tool) => tool.name)
+    for (const name of inputToolNames) {
+      expect(sceneToolNames).not.toContain(name)
+    }
+    for (const name of deferredInputMediaToolNames) {
+      expect(allTools.map((tool) => tool.name)).not.toContain(name)
+    }
   })
 
   it("filters tools by negotiated OBS capabilities", () => {
@@ -246,49 +223,54 @@ describe("MCP tool registry", () => {
   })
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
-    expect(getEnabledTools(["inputs"], ["GetInputList"]).map((tool) => tool.name)).toEqual(["list_inputs"])
-    expect(
-      getEnabledTools(["inputs"], [
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetInputMute"
-      ]).map((tool) => tool.name)
-    ).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute"
-    ])
-    expect(
-      getEnabledTools(["inputs"], [
-        "GetInputList",
-        "GetInputKindList",
-        "GetSpecialInputs",
-        "GetInputMute",
-        "SetInputMute",
-        "ToggleInputMute",
-        "GetInputVolume",
-        "GetInputAudioBalance",
-        "GetInputAudioSyncOffset",
-        "GetMediaInputStatus",
-        "SetMediaInputCursor",
-        "TriggerMediaInputAction"
-      ]).map((tool) => tool.name)
-    ).toEqual([
-      "list_inputs",
-      "list_input_kinds",
-      "get_special_inputs",
-      "get_input_mute",
-      "set_input_mute",
-      "toggle_input_mute",
-      "get_input_volume",
-      "get_input_audio_balance",
-      "get_input_audio_sync_offset",
-      "get_media_input_status",
-      "set_media_input_cursor",
-      "trigger_media_input_action"
-    ])
+    const cases = [
+      {
+        availableRequests: ["GetInputList"],
+        expectedTools: ["list_inputs"]
+      },
+      {
+        availableRequests: ["GetInputList", "GetInputKindList", "GetSpecialInputs", "GetInputMute"],
+        expectedTools: ["list_inputs", "list_input_kinds", "get_special_inputs", "get_input_mute"]
+      },
+      {
+        availableRequests: [
+          "GetInputList",
+          "GetInputKindList",
+          "GetSpecialInputs",
+          "GetInputMute",
+          "SetInputMute",
+          "ToggleInputMute",
+          "GetInputVolume",
+          "GetInputAudioBalance",
+          "GetInputAudioSyncOffset",
+          "GetMediaInputStatus",
+          "SetMediaInputCursor",
+          "TriggerMediaInputAction"
+        ],
+        expectedTools: [
+          "list_inputs",
+          "list_input_kinds",
+          "get_special_inputs",
+          "get_input_mute",
+          "set_input_mute",
+          "toggle_input_mute",
+          "get_input_volume",
+          "get_input_audio_balance",
+          "get_input_audio_sync_offset",
+          "get_media_input_status",
+          "set_media_input_cursor",
+          "trigger_media_input_action"
+        ]
+      },
+      {
+        availableRequests: inputAvailableRequests,
+        expectedTools: inputToolNames
+      }
+    ]
+
+    for (const { availableRequests, expectedTools } of cases) {
+      expect(getEnabledTools(["inputs"], availableRequests).map((tool) => tool.name)).toEqual(expectedTools)
+    }
   })
 
   it("keeps protocol schemas owned by each registered tool definition", () => {
@@ -422,182 +404,162 @@ describe("MCP tool registry", () => {
   })
 
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {
-    expect(Schema.decodeUnknownSync(InputLocatorInput)({ inputName: "Mic/Aux" })).toEqual({ inputName: "Mic/Aux" })
-    expect(Schema.decodeUnknownSync(InputLocatorInput)({ inputUuid: "input-mic-aux" })).toEqual({
-      inputUuid: "input-mic-aux"
-    })
-    expect(Schema.decodeUnknownSync(SetInputMuteInput)({ inputUuid: "input-mic-aux", inputMuted: true })).toEqual({
-      inputUuid: "input-mic-aux",
-      inputMuted: true
-    })
-    expect(Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux", inputVolumeMul: 0 })).toEqual({
-      inputName: "Mic/Aux",
-      inputVolumeMul: 0
-    })
-    expect(Schema.decodeUnknownSync(SetInputVolumeInput)({ inputUuid: "input-mic-aux", inputVolumeDb: -100 }))
-      .toEqual({
-        inputUuid: "input-mic-aux",
-        inputVolumeDb: -100
-      })
-    expect(
-      Schema.decodeUnknownSync(SetInputAudioBalanceInput)({
-        inputName: "Mic/Aux",
-        inputAudioBalance: 1
-      })
-    ).toEqual({
-      inputName: "Mic/Aux",
-      inputAudioBalance: 1
-    })
-    expect(
-      Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput)({
-        inputUuid: "input-mic-aux",
-        monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
-      })
-    ).toEqual({
-      inputUuid: "input-mic-aux",
-      monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
-    })
-    expect(
-      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
-        inputName: "Mic/Aux",
-        inputAudioSyncOffset: -950
-      })
-    ).toEqual({
-      inputName: "Mic/Aux",
-      inputAudioSyncOffset: -950
-    })
-    expect(
-      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
-        inputName: "Mic/Aux",
-        inputAudioSyncOffset: 0
-      })
-    ).toEqual({
-      inputName: "Mic/Aux",
-      inputAudioSyncOffset: 0
-    })
-    expect(
-      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
-        inputUuid: "input-mic-aux",
-        inputAudioSyncOffset: 20000
-      })
-    ).toEqual({
-      inputUuid: "input-mic-aux",
-      inputAudioSyncOffset: 20000
-    })
-    expect(
-      Schema.decodeUnknownSync(MediaInputStatusOutput)({
-        mediaState: "OBS_MEDIA_STATE_STOPPED",
-        mediaDuration: null,
-        mediaCursor: null
-      })
-    ).toEqual({
-      mediaState: "OBS_MEDIA_STATE_STOPPED",
-      mediaDuration: null,
-      mediaCursor: null
-    })
-    expect(
-      Schema.decodeUnknownSync(MediaInputStatusOutput)({
-        mediaState: "OBS_MEDIA_STATE_PLAYING",
-        mediaDuration: 120000,
-        mediaCursor: 4500
-      })
-    ).toEqual({
-      mediaState: "OBS_MEDIA_STATE_PLAYING",
-      mediaDuration: 120000,
-      mediaCursor: 4500
-    })
-    expect(
-      Schema.decodeUnknownSync(SetMediaInputCursorInput)({
-        inputName: "Media Source",
-        mediaCursor: 0
-      })
-    ).toEqual({
-      inputName: "Media Source",
-      mediaCursor: 0
-    })
-    expect(
-      Schema.decodeUnknownSync(OffsetMediaInputCursorInput)({
-        inputUuid: "input-media-source",
-        mediaCursorOffset: -500
-      })
-    ).toEqual({
-      inputUuid: "input-media-source",
-      mediaCursorOffset: -500
-    })
-    expect(
-      Schema.decodeUnknownSync(TriggerMediaInputActionInput)({
-        inputName: "Media Source",
-        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
-      })
-    ).toEqual({
-      inputName: "Media Source",
-      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
-    })
+    const validCases = [
+      { decode: Schema.decodeUnknownSync(InputLocatorInput), input: { inputName: "Mic/Aux" } },
+      { decode: Schema.decodeUnknownSync(InputLocatorInput), input: { inputUuid: "input-mic-aux" } },
+      {
+        decode: Schema.decodeUnknownSync(SetInputMuteInput),
+        input: { inputUuid: "input-mic-aux", inputMuted: true }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputVolumeInput),
+        input: { inputName: "Mic/Aux", inputVolumeMul: 0 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputVolumeInput),
+        input: { inputUuid: "input-mic-aux", inputVolumeDb: -100 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioBalanceInput),
+        input: { inputName: "Mic/Aux", inputAudioBalance: 1 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput),
+        input: { inputUuid: "input-mic-aux", monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY" }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
+        input: { inputName: "Mic/Aux", inputAudioSyncOffset: -950 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
+        input: { inputName: "Mic/Aux", inputAudioSyncOffset: 0 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
+        input: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 20000 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
+        input: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
+      },
+      {
+        decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
+        input: { mediaState: "OBS_MEDIA_STATE_PLAYING", mediaDuration: 120000, mediaCursor: 4500 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
+        input: { inputName: "Media Source", mediaCursor: 0 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput),
+        input: { inputUuid: "input-media-source", mediaCursorOffset: -500 }
+      },
+      {
+        decode: Schema.decodeUnknownSync(TriggerMediaInputActionInput),
+        input: { inputName: "Media Source", mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY" }
+      }
+    ]
+
+    for (const { decode, input } of validCases) {
+      expect(decode(input)).toEqual(input)
+    }
     expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
-    expect(() => Schema.decodeUnknownSync(InputLocatorInput)({})).toThrow("Exactly one")
     const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
-    expect(() => Schema.decodeUnknownSync(InputLocatorInput)(duplicateLocator)).toThrow("Exactly one")
-    expect(() => Schema.decodeUnknownSync(SetInputMuteInput)({ ...duplicateLocator, inputMuted: false }))
-      .toThrow("Exactly one")
-    expect(() => Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux" })).toThrow("Exactly one")
-    expect(() =>
-      Schema.decodeUnknownSync(SetInputVolumeInput)({
-        inputName: "Mic/Aux",
-        inputVolumeMul: 1,
-        inputVolumeDb: 0
-      })
-    ).toThrow("Exactly one")
-    expect(() => Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux", inputVolumeMul: 21 }))
-      .toThrow("Expected a number less than or equal to 20")
-    expect(() => Schema.decodeUnknownSync(SetInputVolumeInput)({ inputName: "Mic/Aux", inputVolumeDb: -101 }))
-      .toThrow("Expected a number greater than or equal to -100")
-    expect(() => Schema.decodeUnknownSync(SetInputAudioBalanceInput)({ inputName: "Mic/Aux", inputAudioBalance: -0.1 }))
-      .toThrow("Expected a non-negative number")
-    expect(() => Schema.decodeUnknownSync(SetInputAudioBalanceInput)({ inputName: "Mic/Aux", inputAudioBalance: 1.1 }))
-      .toThrow("Expected a number less than or equal to 1")
-    expect(() =>
-      Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput)({
-        inputName: "Mic/Aux",
-        monitorType: "invalid"
-      })
-    ).toThrow("Expected")
-    expect(() =>
-      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
-        inputName: "Mic/Aux",
-        inputAudioSyncOffset: 1.5
-      })
-    ).toThrow("Expected an integer")
-    expect(() =>
-      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
-        inputName: "Mic/Aux",
-        inputAudioSyncOffset: -951
-      })
-    ).toThrow("Expected a number greater than or equal to -950")
-    expect(() =>
-      Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput)({
-        inputName: "Mic/Aux",
-        inputAudioSyncOffset: 20001
-      })
-    ).toThrow("Expected a number less than or equal to 20000")
-    expect(() =>
-      Schema.decodeUnknownSync(MediaInputStatusOutput)({
-        mediaState: "invalid",
-        mediaDuration: null,
-        mediaCursor: null
-      })
-    ).toThrow("Expected")
-    expect(() =>
-      Schema.decodeUnknownSync(SetMediaInputCursorInput)({
-        inputName: "Media Source",
-        mediaCursor: -1
-      })
-    ).toThrow("Expected a non-negative number")
-    expect(() =>
-      Schema.decodeUnknownSync(TriggerMediaInputActionInput)({
-        inputName: "Media Source",
-        mediaAction: "invalid"
-      })
-    ).toThrow("Expected")
+    const locatorCases = [
+      { decode: Schema.decodeUnknownSync(InputLocatorInput), extra: {} },
+      { decode: Schema.decodeUnknownSync(SetInputMuteInput), extra: { inputMuted: false } },
+      { decode: Schema.decodeUnknownSync(SetInputVolumeInput), extra: { inputVolumeMul: 1 } },
+      { decode: Schema.decodeUnknownSync(SetInputAudioBalanceInput), extra: { inputAudioBalance: 0.5 } },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput),
+        extra: { monitorType: "OBS_MONITORING_TYPE_NONE" }
+      },
+      { decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput), extra: { inputAudioSyncOffset: 0 } },
+      { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
+      { decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput), extra: { mediaCursorOffset: 1 } },
+      {
+        decode: Schema.decodeUnknownSync(TriggerMediaInputActionInput),
+        extra: { mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY" }
+      }
+    ]
+
+    for (const { decode, extra } of locatorCases) {
+      expect(() => decode(extra)).toThrow("Exactly one")
+      expect(() => decode({ ...duplicateLocator, ...extra })).toThrow("Exactly one")
+    }
+
+    const invalidCases = [
+      {
+        decode: Schema.decodeUnknownSync(SetInputVolumeInput),
+        input: { inputName: "Mic/Aux" },
+        message: "Exactly one"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputVolumeInput),
+        input: { inputName: "Mic/Aux", inputVolumeMul: 1, inputVolumeDb: 0 },
+        message: "Exactly one"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputVolumeInput),
+        input: { inputName: "Mic/Aux", inputVolumeMul: 21 },
+        message: "Expected a number less than or equal to 20"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputVolumeInput),
+        input: { inputName: "Mic/Aux", inputVolumeDb: -101 },
+        message: "Expected a number greater than or equal to -100"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioBalanceInput),
+        input: { inputName: "Mic/Aux", inputAudioBalance: -0.1 },
+        message: "Expected a non-negative number"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioBalanceInput),
+        input: { inputName: "Mic/Aux", inputAudioBalance: 1.1 },
+        message: "Expected a number less than or equal to 1"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioMonitorTypeInput),
+        input: { inputName: "Mic/Aux", monitorType: "invalid" },
+        message: "Expected"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
+        input: { inputName: "Mic/Aux", inputAudioSyncOffset: 1.5 },
+        message: "Expected an integer"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
+        input: { inputName: "Mic/Aux", inputAudioSyncOffset: -951 },
+        message: "Expected a number greater than or equal to -950"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputAudioSyncOffsetInput),
+        input: { inputName: "Mic/Aux", inputAudioSyncOffset: 20001 },
+        message: "Expected a number less than or equal to 20000"
+      },
+      {
+        decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
+        input: { mediaState: "invalid", mediaDuration: null, mediaCursor: null },
+        message: "Expected"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
+        input: { inputName: "Media Source", mediaCursor: -1 },
+        message: "Expected a non-negative number"
+      },
+      {
+        decode: Schema.decodeUnknownSync(TriggerMediaInputActionInput),
+        input: { inputName: "Media Source", mediaAction: "invalid" },
+        message: "Expected"
+      }
+    ]
+
+    for (const { decode, input, message } of invalidCases) {
+      expect(() => decode(input)).toThrow(message)
+    }
   })
 
   it("executes input mute handlers with structured output", async () => {
