@@ -56,6 +56,9 @@ describe("MCP server protocol handlers", () => {
       "get_obs_context",
       "get_version",
       "get_obs_stats",
+      "list_hotkeys",
+      "trigger_hotkey_by_name",
+      "trigger_hotkey_by_key_sequence",
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
@@ -144,8 +147,35 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       "get_obs_context",
       "get_version",
-      "get_obs_stats"
+      "get_obs_stats",
+      "list_hotkeys",
+      "trigger_hotkey_by_name",
+      "trigger_hotkey_by_key_sequence"
     ])
+  })
+
+  it("lists and calls hotkey tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => requestType === "GetHotkeyList" ? { hotkeys: ["OBSBasic.StartRecording"] } : {}),
+      {
+        ...config,
+        enabledToolsets: ["general"]
+      }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toContain("list_hotkeys")
+    await expect(client.callTool({ name: "list_hotkeys", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { hotkeys: ["OBSBasic.StartRecording"] } })
+    await expect(client.callTool({
+      name: "trigger_hotkey_by_name",
+      arguments: { hotkeyName: "OBSBasic.StartRecording" }
+    })).resolves.toMatchObject({ structuredContent: { hotkeyName: "OBSBasic.StartRecording", triggered: true } })
+    await expect(client.callTool({
+      name: "trigger_hotkey_by_key_sequence",
+      arguments: { keyId: "OBS_KEY_F10", keyModifiers: { control: true } }
+    })).resolves.toMatchObject({
+      structuredContent: { keyId: "OBS_KEY_F10", keyModifiers: { control: true }, triggered: true }
+    })
   })
 
   it("lists recent event tools only for the events toolset", async () => {
@@ -305,6 +335,309 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { inputKinds: ["wasapi_input_capture"] } })
     await expect(client.callTool({ name: "get_special_inputs", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { desktop2: null, mic2: null } })
+  })
+
+  it("lists and calls canvas and studio-mode read tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetCanvasList") {
+          return {
+            canvases: [{
+              canvasName: "Program",
+              canvasUuid: "canvas-program",
+              canvasIndex: 0,
+              width: 1920,
+              height: 1080
+            }]
+          }
+        }
+        if (requestType === "GetMonitorList") {
+          return {
+            monitors: [{ monitorIndex: 0, monitorName: "Primary", monitorWidth: 1920, monitorHeight: 1080 }]
+          }
+        }
+        if (requestType === "GetStudioModeEnabled") {
+          return { studioModeEnabled: true }
+        }
+        return {}
+      }, [
+        "GetCanvasList",
+        "GetStudioModeEnabled",
+        "OpenInputPropertiesDialog",
+        "OpenInputFiltersDialog",
+        "OpenInputInteractDialog",
+        "GetMonitorList",
+        "OpenVideoMixProjector",
+        "OpenSourceProjector"
+      ]),
+      { ...config, enabledToolsets: ["canvases", "ui"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_canvases",
+      "get_studio_mode_enabled",
+      "open_input_properties_dialog",
+      "open_input_filters_dialog",
+      "open_input_interact_dialog",
+      "list_monitors",
+      "open_video_mix_projector",
+      "open_source_projector"
+    ])
+    expect(tools.tools.find((tool) => tool.name === "list_canvases")?.outputSchema?.properties)
+      .toHaveProperty("canvases")
+    await expect(client.callTool({ name: "list_canvases", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          canvases: [{ canvasIndex: 0, canvasName: "Program", canvasUuid: "canvas-program" }]
+        }
+      })
+    await expect(client.callTool({ name: "get_studio_mode_enabled", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { studioModeEnabled: true } })
+    await expect(client.callTool({ name: "list_monitors", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { monitors: [{ monitorIndex: 0, monitorName: "Primary" }] } })
+    await expect(client.callTool({ name: "open_input_properties_dialog", arguments: { inputName: "Camera" } }))
+      .resolves.toMatchObject({ structuredContent: { requestType: "OpenInputPropertiesDialog" } })
+    await expect(client.callTool({
+      name: "open_video_mix_projector",
+      arguments: { videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW", monitorIndex: -1 }
+    })).resolves.toMatchObject({ structuredContent: { requestType: "OpenVideoMixProjector" } })
+    await expect(client.callTool({
+      name: "open_source_projector",
+      arguments: { sourceName: "Camera", projectorGeometry: "AdnQyw==" }
+    })).resolves.toMatchObject({ structuredContent: { requestType: "OpenSourceProjector" } })
+  })
+
+  it("lists and calls config inventory and mutation tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetProfileList") {
+          return { currentProfileName: "Production", profiles: ["Untitled", "Production"] }
+        }
+        if (requestType === "GetSceneCollectionList") {
+          return { currentSceneCollectionName: "Main Scenes", sceneCollections: ["Main Scenes"] }
+        }
+        if (requestType === "GetProfileParameter") {
+          return { parameterValue: null, defaultParameterValue: "2500" }
+        }
+        if (requestType === "GetRecordDirectory") {
+          return { recordDirectory: "/opaque/obs-recordings" }
+        }
+        if (requestType === "GetVideoSettings") {
+          return {
+            baseWidth: 1920,
+            baseHeight: 1080,
+            outputWidth: 1280,
+            outputHeight: 720,
+            fpsNumerator: 30000,
+            fpsDenominator: 1001
+          }
+        }
+        if (requestType === "GetStreamServiceSettings") {
+          return {
+            streamServiceType: "rtmp_custom",
+            streamServiceSettings: {
+              server: "rtmp://example.invalid/live",
+              key: "redacted-mcp-server-key"
+            }
+          }
+        }
+        return {}
+      }, [
+        "GetProfileList",
+        "GetSceneCollectionList",
+        "GetProfileParameter",
+        "GetRecordDirectory",
+        "SetRecordDirectory",
+        "GetVideoSettings",
+        "SetVideoSettings",
+        "GetStreamServiceSettings",
+        "SetStreamServiceSettings",
+        "SetCurrentProfile",
+        "CreateProfile",
+        "RemoveProfile",
+        "SetCurrentSceneCollection",
+        "CreateSceneCollection",
+        "SetProfileParameter"
+      ]),
+      { ...config, enabledToolsets: ["config"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_profiles",
+      "list_scene_collections",
+      "get_profile_parameter",
+      "get_record_directory",
+      "set_record_directory",
+      "get_video_settings",
+      "set_video_settings",
+      "get_stream_service_settings",
+      "set_stream_service_settings",
+      "set_current_profile",
+      "create_profile",
+      "remove_profile",
+      "set_current_scene_collection",
+      "create_scene_collection",
+      "set_profile_parameter"
+    ])
+    await expect(client.callTool({ name: "list_profiles", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { currentProfileName: "Production" } })
+    await expect(client.callTool({ name: "list_scene_collections", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { sceneCollections: ["Main Scenes"] } })
+    await expect(client.callTool({
+      name: "get_profile_parameter",
+      arguments: { parameterCategory: "SimpleOutput", parameterName: "VBitrate" }
+    })).resolves.toMatchObject({
+      structuredContent: { parameterValue: null, defaultParameterValue: "2500" }
+    })
+    await expect(client.callTool({ name: "get_record_directory", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { recordDirectory: "/opaque/obs-recordings" } })
+    await expect(client.callTool({
+      name: "set_record_directory",
+      arguments: { recordDirectory: "opaque://recordings/show" }
+    })).resolves.toMatchObject({ structuredContent: { recordDirectory: "opaque://recordings/show" } })
+    await expect(client.callTool({ name: "get_video_settings", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { outputWidth: 1280, fpsDenominator: 1001 } })
+    await expect(client.callTool({
+      name: "set_video_settings",
+      arguments: { outputWidth: 1920, outputHeight: 1080 }
+    })).resolves.toMatchObject({ structuredContent: { outputWidth: 1920, outputHeight: 1080 } })
+    await expect(client.callTool({ name: "get_stream_service_settings", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          streamServiceSettings: { server: "rtmp://example.invalid/live", keyConfigured: true }
+        }
+      })
+    await expect(client.callTool({
+      name: "set_stream_service_settings",
+      arguments: {
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: { server: "rtmp://example.invalid/show", key: "redacted-mcp-set-key" }
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        streamServiceSettings: { server: "rtmp://example.invalid/show", keyConfigured: true }
+      }
+    })
+    await expect(client.callTool({ name: "set_current_profile", arguments: { profileName: "Production" } }))
+      .resolves.toMatchObject({ structuredContent: { profileName: "Production", switched: true } })
+    await expect(client.callTool({ name: "create_profile", arguments: { profileName: "Show" } }))
+      .resolves.toMatchObject({ structuredContent: { profileName: "Show", created: true, switched: true } })
+    await expect(client.callTool({
+      name: "set_current_scene_collection",
+      arguments: { sceneCollectionName: "Main Scenes" }
+    })).resolves.toMatchObject({ structuredContent: { sceneCollectionName: "Main Scenes", switched: true } })
+    await expect(client.callTool({
+      name: "set_profile_parameter",
+      arguments: { parameterCategory: "SimpleOutput", parameterName: "VBitrate", parameterValue: null }
+    })).resolves.toMatchObject({ structuredContent: { parameterValue: null, acknowledged: true } })
+  })
+
+  it("lists and calls transition inventory tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetTransitionKindList") {
+          return { transitionKinds: ["fade_transition", "cut_transition"] }
+        }
+        if (requestType === "GetSceneTransitionList") {
+          return {
+            currentSceneTransitionName: "Fade",
+            currentSceneTransitionUuid: "transition-fade",
+            currentSceneTransitionKind: "fade_transition",
+            transitions: [{
+              transitionName: "Fade",
+              transitionUuid: "transition-fade",
+              transitionKind: "fade_transition",
+              transitionFixed: false,
+              transitionDuration: 300,
+              transitionSettings: { color: "black" }
+            }]
+          }
+        }
+        if (requestType === "GetCurrentSceneTransition") {
+          return {
+            transitionName: "Fade",
+            transitionUuid: "transition-fade",
+            transitionKind: "fade_transition",
+            transitionFixed: false,
+            transitionDuration: 300,
+            transitionConfigurable: true,
+            transitionSettings: { color: "black" }
+          }
+        }
+        if (
+          requestType === "SetCurrentSceneTransition"
+          || requestType === "SetCurrentSceneTransitionDuration"
+          || requestType === "SetCurrentSceneTransitionSettings"
+          || requestType === "TriggerStudioModeTransition"
+          || requestType === "SetTBarPosition"
+        ) {
+          return {}
+        }
+        return { transitionCursor: 1 }
+      }, [
+        "GetTransitionKindList",
+        "GetSceneTransitionList",
+        "GetCurrentSceneTransition",
+        "GetCurrentSceneTransitionCursor",
+        "SetCurrentSceneTransition",
+        "SetCurrentSceneTransitionDuration",
+        "SetCurrentSceneTransitionSettings",
+        "TriggerStudioModeTransition",
+        "SetTBarPosition"
+      ]),
+      { ...config, enabledToolsets: ["transitions"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_transition_kinds",
+      "list_scene_transitions",
+      "get_current_scene_transition",
+      "get_current_scene_transition_cursor",
+      "set_current_scene_transition",
+      "set_current_scene_transition_duration",
+      "set_current_scene_transition_settings",
+      "trigger_studio_mode_transition",
+      "set_tbar_position"
+    ])
+    await expect(client.callTool({ name: "list_transition_kinds", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { transitionKinds: ["fade_transition", "cut_transition"] } })
+    await expect(client.callTool({ name: "list_scene_transitions", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          currentSceneTransitionName: "Fade",
+          transitions: [{
+            transitionName: "Fade",
+            transitionKind: "fade_transition",
+            transitionDuration: 300
+          }]
+        }
+      })
+    await expect(client.callTool({ name: "get_current_scene_transition", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: {
+          transitionName: "Fade",
+          transitionKind: "fade_transition",
+          transitionConfigurable: true
+        }
+      })
+    await expect(client.callTool({ name: "get_current_scene_transition_cursor", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { transitionCursor: 1 } })
+    await expect(client.callTool({ name: "set_current_scene_transition", arguments: { transitionName: "Fade" } }))
+      .resolves.toMatchObject({ structuredContent: { transitionName: "Fade", switched: true } })
+    await expect(client.callTool({
+      name: "set_current_scene_transition_duration",
+      arguments: { transitionDuration: 500 }
+    })).resolves.toMatchObject({ structuredContent: { transitionDuration: 500, acknowledged: true } })
+    await expect(client.callTool({
+      name: "set_current_scene_transition_settings",
+      arguments: { transitionSettings: { path: "left" } }
+    })).resolves.toMatchObject({ structuredContent: { overlay: true, settingsFieldCount: 1, acknowledged: true } })
+    await expect(client.callTool({ name: "trigger_studio_mode_transition", arguments: {} }))
+      .resolves.toMatchObject({
+        structuredContent: { requestType: "TriggerStudioModeTransition", acknowledged: true }
+      })
+    await expect(client.callTool({ name: "set_tbar_position", arguments: { position: 0.75 } }))
+      .resolves.toMatchObject({ structuredContent: { position: 0.75, release: true, acknowledged: true } })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

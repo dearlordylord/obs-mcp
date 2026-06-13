@@ -2,10 +2,42 @@ import { Option, Schema } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
+import {
+  ProfileNameInput,
+  ProfileParameterInput,
+  SetProfileParameterInput,
+  SetStreamServiceSettingsInput,
+  SetVideoSettingsInput
+} from "../../src/domain/schemas/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
-import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
+import { listCanvases } from "../../src/obs/operations/canvases.js"
+import {
+  createProfile,
+  createSceneCollection,
+  getProfileParameter,
+  getRecordDirectory,
+  getStreamServiceSettings,
+  getVideoSettings,
+  listProfiles,
+  listSceneCollections,
+  removeProfile,
+  setCurrentProfile,
+  setCurrentSceneCollection,
+  setProfileParameter,
+  setRecordDirectory,
+  setStreamServiceSettings,
+  setVideoSettings
+} from "../../src/obs/operations/config.js"
+import {
+  getObsStats,
+  getRecordStatus,
+  getVersion,
+  listHotkeys,
+  triggerHotkeyByKeySequence,
+  triggerHotkeyByName
+} from "../../src/obs/operations/general.js"
 import {
   getInputAudioBalance,
   getInputAudioMonitorType,
@@ -56,6 +88,26 @@ import {
   stopStream,
   toggleStream
 } from "../../src/obs/operations/stream.js"
+import {
+  getCurrentSceneTransition,
+  getCurrentSceneTransitionCursor,
+  listSceneTransitions,
+  listTransitionKinds,
+  setCurrentSceneTransition,
+  setCurrentSceneTransitionDuration,
+  setCurrentSceneTransitionSettings,
+  setTBarPosition,
+  triggerStudioModeTransition
+} from "../../src/obs/operations/transitions.js"
+import {
+  getStudioModeEnabled,
+  listMonitors,
+  openInputFiltersDialog,
+  openInputInteractDialog,
+  openInputPropertiesDialog,
+  openSourceProjector,
+  openVideoMixProjector
+} from "../../src/obs/operations/ui.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -109,6 +161,640 @@ describe("OBS operations", () => {
       outputDuration: 0,
       outputBytes: 0
     })
+  })
+
+  it("lists and triggers hotkeys through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      hotkeys: ["OBSBasic.StartStreaming", "OBSBasic.StopStreaming"]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listHotkeys(client)).resolves.toEqual({
+      hotkeys: ["OBSBasic.StartStreaming", "OBSBasic.StopStreaming"]
+    })
+    await expect(triggerHotkeyByName(client, {
+      hotkeyName: "OBSBasic.StartStreaming",
+      contextName: "OBSBasic"
+    })).resolves.toEqual({
+      hotkeyName: "OBSBasic.StartStreaming",
+      contextName: "OBSBasic",
+      triggered: true
+    })
+    await expect(triggerHotkeyByKeySequence(client, {
+      keyId: "OBS_KEY_F9",
+      keyModifiers: { control: true, shift: true }
+    })).resolves.toEqual({
+      keyId: "OBS_KEY_F9",
+      keyModifiers: { control: true, shift: true },
+      triggered: true
+    })
+    await expect(triggerHotkeyByKeySequence(client, { keyId: "OBS_KEY_F10" })).resolves.toEqual({
+      keyId: "OBS_KEY_F10",
+      triggered: true
+    })
+    await expect(triggerHotkeyByKeySequence(client, { keyModifiers: { alt: true } })).resolves.toEqual({
+      keyModifiers: { alt: true },
+      triggered: true
+    })
+    expect(server.requests.filter((request) => request.requestType.startsWith("TriggerHotkey"))).toEqual([
+      {
+        requestType: "TriggerHotkeyByName",
+        requestData: { hotkeyName: "OBSBasic.StartStreaming", contextName: "OBSBasic" }
+      },
+      {
+        requestType: "TriggerHotkeyByKeySequence",
+        requestData: { keyId: "OBS_KEY_F9", keyModifiers: { control: true, shift: true } }
+      },
+      {
+        requestType: "TriggerHotkeyByKeySequence",
+        requestData: { keyId: "OBS_KEY_F10" }
+      },
+      {
+        requestType: "TriggerHotkeyByKeySequence",
+        requestData: { keyModifiers: { alt: true } }
+      }
+    ])
+  })
+
+  it("reads config inventory through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      profiles: ["Untitled", "Production"],
+      currentProfileName: "Production",
+      sceneCollections: ["Main Scenes", "Backup Scenes"],
+      currentSceneCollectionName: "Main Scenes",
+      profileParameters: [{
+        parameterCategory: "Output",
+        parameterName: "Mode",
+        parameterValue: "Advanced",
+        defaultParameterValue: "Simple"
+      }],
+      recordDirectory: "/opaque/obs-recordings"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listProfiles(client)).resolves.toEqual({
+      currentProfileName: "Production",
+      profiles: ["Untitled", "Production"]
+    })
+    await expect(listSceneCollections(client)).resolves.toEqual({
+      currentSceneCollectionName: "Main Scenes",
+      sceneCollections: ["Main Scenes", "Backup Scenes"]
+    })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "Output",
+      parameterName: "Mode"
+    })).resolves.toEqual({
+      parameterValue: "Advanced",
+      defaultParameterValue: "Simple"
+    })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "Missing",
+      parameterName: "Unset"
+    })).resolves.toEqual({
+      parameterValue: null,
+      defaultParameterValue: null
+    })
+    await expect(getRecordDirectory(client)).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
+    await expect(getVideoSettings(client)).resolves.toEqual({
+      baseWidth: 1920,
+      baseHeight: 1080,
+      outputWidth: 1280,
+      outputHeight: 720,
+      fpsNumerator: 30000,
+      fpsDenominator: 1001
+    })
+    await expect(getStreamServiceSettings(client)).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        keyConfigured: true
+      }
+    })
+  })
+
+  it("mutates config state through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      profiles: ["Untitled", "Production"],
+      currentProfileName: "Untitled",
+      sceneCollections: ["Main Scenes"],
+      currentSceneCollectionName: "Main Scenes",
+      profileParameters: [{
+        parameterCategory: "SimpleOutput",
+        parameterName: "VBitrate",
+        parameterValue: "2500",
+        defaultParameterValue: "2500"
+      }]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(createProfile(client, { profileName: "Show" })).resolves.toEqual({
+      profileName: "Show",
+      created: true,
+      switched: true
+    })
+    await expect(listProfiles(client)).resolves.toEqual({
+      currentProfileName: "Show",
+      profiles: ["Untitled", "Production", "Show"]
+    })
+    await expect(setCurrentProfile(client, { profileName: "Production" })).resolves.toEqual({
+      profileName: "Production",
+      switched: true
+    })
+    await expect(removeProfile(client, { profileName: "Production" })).resolves.toEqual({
+      profileName: "Production",
+      removed: true
+    })
+    await expect(listProfiles(client)).resolves.toEqual({
+      currentProfileName: "Untitled",
+      profiles: ["Untitled", "Show"]
+    })
+
+    await expect(createSceneCollection(client, { sceneCollectionName: "Event Scenes" })).resolves.toEqual({
+      sceneCollectionName: "Event Scenes",
+      created: true,
+      switched: true
+    })
+    await expect(setCurrentSceneCollection(client, { sceneCollectionName: "Main Scenes" })).resolves.toEqual({
+      sceneCollectionName: "Main Scenes",
+      switched: true
+    })
+    await expect(listSceneCollections(client)).resolves.toEqual({
+      currentSceneCollectionName: "Main Scenes",
+      sceneCollections: ["Main Scenes", "Event Scenes"]
+    })
+
+    await expect(setProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: "6000"
+    })).resolves.toEqual({
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: "6000",
+      acknowledged: true
+    })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate"
+    })).resolves.toEqual({ parameterValue: "6000", defaultParameterValue: "2500" })
+    await expect(setProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: null
+    })).resolves.toMatchObject({ parameterValue: null })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate"
+    })).resolves.toEqual({ parameterValue: null, defaultParameterValue: "2500" })
+
+    await expect(setRecordDirectory(client, { recordDirectory: "opaque://recordings/show" })).resolves.toEqual({
+      recordDirectory: "opaque://recordings/show",
+      acknowledged: true
+    })
+    await expect(getRecordDirectory(client)).resolves.toEqual({ recordDirectory: "opaque://recordings/show" })
+    await expect(setVideoSettings(client, {
+      baseWidth: 2560,
+      baseHeight: 1440,
+      fpsNumerator: 60,
+      fpsDenominator: 1
+    })).resolves.toEqual({
+      baseWidth: 2560,
+      baseHeight: 1440,
+      fpsNumerator: 60,
+      fpsDenominator: 1,
+      acknowledged: true
+    })
+    await expect(getVideoSettings(client)).resolves.toEqual({
+      baseWidth: 2560,
+      baseHeight: 1440,
+      outputWidth: 1280,
+      outputHeight: 720,
+      fpsNumerator: 60,
+      fpsDenominator: 1
+    })
+
+    await expect(setStreamServiceSettings(client, {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        key: "redacted-test-key"
+      }
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        keyConfigured: true
+      },
+      acknowledged: true
+    })
+    await expect(getStreamServiceSettings(client)).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        keyConfigured: true
+      }
+    })
+    await expect(setStreamServiceSettings(client, {
+      streamServiceType: "rtmp_common",
+      streamServiceSettings: {
+        fields: {
+          service: "Example",
+          bwtest: true,
+          key: "redacted-generic-key"
+        }
+      }
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_common",
+      streamServiceSettings: {
+        fields: {
+          service: "Example",
+          bwtest: true
+        }
+      },
+      acknowledged: true
+    })
+    await expect(getStreamServiceSettings(client)).resolves.toEqual({
+      streamServiceType: "rtmp_common",
+      streamServiceSettings: {
+        fields: {
+          service: "Example",
+          bwtest: true
+        }
+      }
+    })
+  })
+
+  it("validates config read and mutation schemas", () => {
+    expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "", parameterName: "Mode" }))
+      .toThrow()
+    expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "Output", parameterName: "" }))
+      .toThrow()
+    expect(() => Schema.decodeUnknownSync(ProfileNameInput)({ profileName: "" })).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SetProfileParameterInput)({
+        parameterCategory: "Output",
+        parameterName: "Mode"
+      })
+    ).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ baseWidth: 1920 })).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputHeight: 720 })).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ fpsNumerator: 60 })).toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ baseWidth: 4097, baseHeight: 1080 }))
+      .toThrow()
+    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputWidth: 1920, outputHeight: 4097 }))
+      .toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SetStreamServiceSettingsInput)({
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: { fields: { server: "rtmp://example.invalid/live" } }
+      })
+    ).toThrow()
+    expect(() =>
+      Schema.decodeUnknownSync(SetStreamServiceSettingsInput)({
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: { server: "rtmp://example.invalid/live", key: "" }
+      })
+    ).toThrow()
+  })
+
+  it("surfaces OBS config read and mutation request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        GetProfileParameter: { code: 601, comment: "Parameter category not found" },
+        SetCurrentProfile: { code: 601, comment: "Profile not found" },
+        SetVideoSettings: { code: 500, comment: "Video output is active" },
+        SetStreamServiceSettings: { code: 500, comment: "Stream output is active" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["config"] })
+    clients.push(client)
+    await expect(getProfileParameter(client, {
+      parameterCategory: "Missing",
+      parameterName: "Value"
+    })).rejects.toMatchObject(
+      {
+        requestType: "GetProfileParameter",
+        code: 601,
+        comment: "Parameter category not found"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setCurrentProfile(client, { profileName: "Missing" })).rejects.toMatchObject(
+      {
+        requestType: "SetCurrentProfile",
+        code: 601,
+        comment: "Profile not found"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setVideoSettings(client, {
+      baseWidth: 1920,
+      baseHeight: 1080
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetVideoSettings",
+        code: 500,
+        comment: "Video output is active"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(setStreamServiceSettings(client, {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        key: "redacted-failure-key"
+      }
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetStreamServiceSettings",
+        code: 500,
+        comment: "Stream output is active"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("surfaces OBS hotkey trigger request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { TriggerHotkeyByName: { code: 404, comment: "Hotkey not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["general"] })
+    clients.push(client)
+    await expect(triggerHotkeyByName(client, { hotkeyName: "Missing" })).rejects.toMatchObject(
+      {
+        requestType: "TriggerHotkeyByName",
+        code: 404,
+        comment: "Hotkey not found"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("lists canvases with stable summaries and reads studio mode state", async () => {
+    const server = await FakeObsServer.start({
+      canvases: [
+        {
+          canvasName: "Program",
+          canvasUuid: "canvas-program",
+          canvasIndex: 2,
+          width: 1920,
+          height: 1080
+        },
+        {
+          width: 1080,
+          height: 1920
+        }
+      ],
+      studioModeEnabled: true
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listCanvases(client)).resolves.toEqual({
+      canvases: [
+        { canvasIndex: 2, canvasName: "Program", canvasUuid: "canvas-program" },
+        { canvasIndex: 1 }
+      ]
+    })
+    await expect(getStudioModeEnabled(client)).resolves.toEqual({ studioModeEnabled: true })
+    await expect(openInputPropertiesDialog(client, { inputName: "Camera" })).resolves.toEqual({
+      requestType: "OpenInputPropertiesDialog",
+      acknowledged: true
+    })
+    await expect(openInputFiltersDialog(client, { inputUuid: "input-camera" })).resolves.toEqual({
+      requestType: "OpenInputFiltersDialog",
+      acknowledged: true
+    })
+    await expect(openInputInteractDialog(client, { inputName: "Browser" })).resolves.toEqual({
+      requestType: "OpenInputInteractDialog",
+      acknowledged: true
+    })
+    await expect(listMonitors(client)).resolves.toEqual({
+      monitors: [{
+        monitorIndex: 0,
+        monitorName: "Primary",
+        monitorWidth: 1920,
+        monitorHeight: 1080,
+        monitorPositionX: 0,
+        monitorPositionY: 0
+      }]
+    })
+    await expect(openVideoMixProjector(client, {
+      videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
+      monitorIndex: 0
+    })).resolves.toEqual({ requestType: "OpenVideoMixProjector", acknowledged: true })
+    await expect(openSourceProjector(client, {
+      sourceName: "Camera",
+      monitorIndex: -1
+    })).resolves.toEqual({ requestType: "OpenSourceProjector", acknowledged: true })
+    await expect(openSourceProjector(client, {
+      sourceUuid: "source-camera",
+      projectorGeometry: "AdnQyw=="
+    })).resolves.toEqual({ requestType: "OpenSourceProjector", acknowledged: true })
+    expect(server.requests.filter((request) => request.requestType.startsWith("Open"))).toEqual([
+      { requestType: "OpenInputPropertiesDialog", requestData: { inputName: "Camera" } },
+      { requestType: "OpenInputFiltersDialog", requestData: { inputUuid: "input-camera" } },
+      { requestType: "OpenInputInteractDialog", requestData: { inputName: "Browser" } },
+      {
+        requestType: "OpenVideoMixProjector",
+        requestData: { videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM", monitorIndex: 0 }
+      },
+      { requestType: "OpenSourceProjector", requestData: { sourceName: "Camera", monitorIndex: -1 } },
+      {
+        requestType: "OpenSourceProjector",
+        requestData: { sourceUuid: "source-camera", projectorGeometry: "AdnQyw==" }
+      }
+    ])
+  })
+
+  it("reads transition inventory without exposing settings objects", async () => {
+    const server = await FakeObsServer.start({
+      transitions: [
+        {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 350,
+          transitionConfigurable: true,
+          transitionSettings: { color: "black" }
+        },
+        {
+          transitionName: "Cut",
+          transitionUuid: "transition-cut",
+          transitionKind: "cut_transition",
+          transitionFixed: true,
+          transitionDuration: null,
+          transitionConfigurable: false,
+          transitionSettings: null
+        }
+      ],
+      transitionCursor: 0.5
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listTransitionKinds(client)).resolves.toEqual({
+      transitionKinds: ["fade_transition", "cut_transition"]
+    })
+    await expect(listSceneTransitions(client)).resolves.toEqual({
+      currentSceneTransitionName: "Fade",
+      currentSceneTransitionUuid: "transition-fade",
+      currentSceneTransitionKind: "fade_transition",
+      transitions: [
+        {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 350
+        },
+        {
+          transitionName: "Cut",
+          transitionUuid: "transition-cut",
+          transitionKind: "cut_transition",
+          transitionFixed: true,
+          transitionDuration: null
+        }
+      ]
+    })
+    await expect(getCurrentSceneTransition(client)).resolves.toEqual({
+      transitionName: "Fade",
+      transitionUuid: "transition-fade",
+      transitionKind: "fade_transition",
+      transitionFixed: false,
+      transitionDuration: 350,
+      transitionConfigurable: true
+    })
+    await expect(getCurrentSceneTransitionCursor(client)).resolves.toEqual({ transitionCursor: 0.5 })
+  })
+
+  it("sanitizes malformed scene transition rows into stable summaries", async () => {
+    const client = fakeClient(async (requestType) => {
+      expect(requestType).toBe("GetSceneTransitionList")
+      return {
+        currentSceneTransitionName: null,
+        currentSceneTransitionUuid: null,
+        currentSceneTransitionKind: null,
+        transitions: [
+          {
+            transitionName: 42,
+            transitionUuid: "transition-partial",
+            transitionKind: false,
+            transitionFixed: "nope",
+            transitionDuration: "300",
+            transitionSettings: { color: "black" }
+          },
+          {
+            transitionName: "Stinger",
+            transitionKind: "stinger_transition"
+          },
+          {
+            transitionName: "Cut",
+            transitionDuration: null
+          }
+        ]
+      }
+    })
+    await expect(listSceneTransitions(client)).resolves.toEqual({
+      currentSceneTransitionName: null,
+      currentSceneTransitionUuid: null,
+      currentSceneTransitionKind: null,
+      transitions: [
+        { transitionUuid: "transition-partial" },
+        { transitionName: "Stinger", transitionKind: "stinger_transition" },
+        { transitionName: "Cut", transitionDuration: null }
+      ]
+    })
+  })
+
+  it("mutates transition state through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      transitions: [
+        {
+          transitionName: "Cut",
+          transitionUuid: "transition-cut",
+          transitionKind: "cut_transition",
+          transitionFixed: true,
+          transitionDuration: null,
+          transitionConfigurable: false,
+          transitionSettings: null
+        },
+        {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 300,
+          transitionConfigurable: true,
+          transitionSettings: { color: "black" }
+        }
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(setCurrentSceneTransition(client, { transitionName: "Fade" })).resolves.toEqual({
+      transitionName: "Fade",
+      switched: true
+    })
+    await expect(setCurrentSceneTransitionDuration(client, { transitionDuration: 750 })).resolves.toEqual({
+      transitionDuration: 750,
+      acknowledged: true
+    })
+    await expect(setCurrentSceneTransitionSettings(client, {
+      transitionSettings: { path: "left", speed: 0.5, invert: false, label: null },
+      overlay: false
+    })).resolves.toEqual({ overlay: false, settingsFieldCount: 4, acknowledged: true })
+    await expect(triggerStudioModeTransition(client)).resolves.toEqual({
+      requestType: "TriggerStudioModeTransition",
+      acknowledged: true
+    })
+    await expect(setTBarPosition(client, { position: 0.25, release: false })).resolves.toEqual({
+      position: 0.25,
+      release: false,
+      acknowledged: true
+    })
+    await expect(getCurrentSceneTransition(client)).resolves.toMatchObject({
+      transitionName: "Fade",
+      transitionDuration: 750
+    })
+    await expect(getCurrentSceneTransitionCursor(client)).resolves.toEqual({ transitionCursor: 0.25 })
+    expect(
+      server.requests.filter((request) =>
+        request.requestType.startsWith("Set") || request.requestType.startsWith("Trigger")
+      )
+    )
+      .toEqual([
+        { requestType: "SetCurrentSceneTransition", requestData: { transitionName: "Fade" } },
+        { requestType: "SetCurrentSceneTransitionDuration", requestData: { transitionDuration: 750 } },
+        {
+          requestType: "SetCurrentSceneTransitionSettings",
+          requestData: {
+            transitionSettings: { path: "left", speed: 0.5, invert: false, label: null },
+            overlay: false
+          }
+        },
+        { requestType: "TriggerStudioModeTransition" },
+        { requestType: "SetTBarPosition", requestData: { position: 0.25, release: false } }
+      ])
+  })
+
+  it("surfaces OBS transition mutation request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetCurrentSceneTransition: { code: 404, comment: "Transition not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["transitions"] })
+    clients.push(client)
+    await expect(setCurrentSceneTransition(client, { transitionName: "Missing" })).rejects.toMatchObject(
+      {
+        requestType: "SetCurrentSceneTransition",
+        code: 404,
+        comment: "Transition not found"
+      } satisfies Partial<ObsRequestError>
+    )
   })
 
   it("lists scenes and can filter groups", async () => {

@@ -34,6 +34,31 @@ export interface FakeObsInput {
   readonly mediaCursor?: number | null
 }
 
+export interface FakeObsCanvas {
+  readonly canvasName?: string
+  readonly canvasUuid?: string
+  readonly canvasIndex?: number
+  readonly width?: number
+  readonly height?: number
+}
+
+export interface FakeObsTransition {
+  readonly transitionName: string
+  readonly transitionUuid?: string
+  readonly transitionKind: string
+  readonly transitionFixed?: boolean
+  readonly transitionDuration?: number | null
+  readonly transitionConfigurable?: boolean
+  readonly transitionSettings?: Readonly<Record<string, unknown>> | null
+}
+
+export interface FakeObsProfileParameter {
+  readonly parameterCategory: string
+  readonly parameterName: string
+  readonly parameterValue: string | null
+  readonly defaultParameterValue: string | null
+}
+
 export interface FakeObsInputVolume {
   readonly inputVolumeMul: number
   readonly inputVolumeDb: number
@@ -125,9 +150,99 @@ export const DEFAULT_INPUTS: ReadonlyArray<FakeObsInput> = [
   }
 ]
 
+export const DEFAULT_CANVASES: ReadonlyArray<FakeObsCanvas> = [
+  {
+    canvasName: "Main Canvas",
+    canvasUuid: "canvas-main",
+    canvasIndex: 0,
+    width: 1920,
+    height: 1080
+  },
+  {
+    canvasName: "Vertical Canvas",
+    canvasUuid: "canvas-vertical",
+    canvasIndex: 1,
+    width: 1080,
+    height: 1920
+  }
+]
+
+export const DEFAULT_TRANSITIONS: ReadonlyArray<FakeObsTransition> = [
+  {
+    transitionName: "Cut",
+    transitionUuid: "transition-cut",
+    transitionKind: "cut_transition",
+    transitionFixed: true,
+    transitionDuration: null,
+    transitionConfigurable: false,
+    transitionSettings: null
+  },
+  {
+    transitionName: "Fade",
+    transitionUuid: "transition-fade",
+    transitionKind: "fade_transition",
+    transitionFixed: false,
+    transitionDuration: 300,
+    transitionConfigurable: true,
+    transitionSettings: { color: "black" }
+  }
+]
+
+export const DEFAULT_HOTKEYS: ReadonlyArray<string> = [
+  "OBSBasic.StartRecording",
+  "OBSBasic.StopRecording",
+  "OBSBasic.Transition"
+]
+
+export const DEFAULT_PROFILES: ReadonlyArray<string> = ["Untitled", "Production"]
+export const DEFAULT_SCENE_COLLECTIONS: ReadonlyArray<string> = ["Main Scenes", "Backup Scenes"]
+export const DEFAULT_PROFILE_PARAMETERS: ReadonlyArray<FakeObsProfileParameter> = [
+  {
+    parameterCategory: "Output",
+    parameterName: "Mode",
+    parameterValue: "Advanced",
+    defaultParameterValue: "Simple"
+  },
+  {
+    parameterCategory: "SimpleOutput",
+    parameterName: "VBitrate",
+    parameterValue: null,
+    defaultParameterValue: "2500"
+  }
+]
+export const DEFAULT_RECORD_DIRECTORY = "/opaque/obs-recordings"
+
 export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetVersion",
   "GetStats",
+  "GetHotkeyList",
+  "TriggerHotkeyByName",
+  "TriggerHotkeyByKeySequence",
+  "GetProfileList",
+  "GetSceneCollectionList",
+  "GetProfileParameter",
+  "GetRecordDirectory",
+  "SetRecordDirectory",
+  "GetVideoSettings",
+  "SetVideoSettings",
+  "GetStreamServiceSettings",
+  "SetStreamServiceSettings",
+  "SetCurrentProfile",
+  "CreateProfile",
+  "RemoveProfile",
+  "SetCurrentSceneCollection",
+  "CreateSceneCollection",
+  "SetProfileParameter",
+  "GetCanvasList",
+  "GetTransitionKindList",
+  "GetSceneTransitionList",
+  "GetCurrentSceneTransition",
+  "GetCurrentSceneTransitionCursor",
+  "SetCurrentSceneTransition",
+  "SetCurrentSceneTransitionDuration",
+  "SetCurrentSceneTransitionSettings",
+  "TriggerStudioModeTransition",
+  "SetTBarPosition",
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
@@ -185,7 +300,14 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "StartStream",
   "StopStream",
   "ToggleStream",
-  "SendStreamCaption"
+  "SendStreamCaption",
+  "GetStudioModeEnabled",
+  "OpenInputPropertiesDialog",
+  "OpenInputFiltersDialog",
+  "OpenInputInteractDialog",
+  "GetMonitorList",
+  "OpenVideoMixProjector",
+  "OpenSourceProjector"
 ]
 
 export const sceneItemsFor = (

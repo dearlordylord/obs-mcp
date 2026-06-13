@@ -3,6 +3,34 @@ import { Schema } from "effect"
 export const ObsRequestType = Schema.Literal(
   "GetVersion",
   "GetStats",
+  "GetHotkeyList",
+  "TriggerHotkeyByName",
+  "TriggerHotkeyByKeySequence",
+  "GetProfileList",
+  "GetSceneCollectionList",
+  "GetProfileParameter",
+  "GetRecordDirectory",
+  "SetRecordDirectory",
+  "GetVideoSettings",
+  "SetVideoSettings",
+  "GetStreamServiceSettings",
+  "SetStreamServiceSettings",
+  "SetCurrentProfile",
+  "CreateProfile",
+  "RemoveProfile",
+  "SetCurrentSceneCollection",
+  "CreateSceneCollection",
+  "SetProfileParameter",
+  "GetCanvasList",
+  "GetTransitionKindList",
+  "GetSceneTransitionList",
+  "GetCurrentSceneTransition",
+  "GetCurrentSceneTransitionCursor",
+  "SetCurrentSceneTransition",
+  "SetCurrentSceneTransitionDuration",
+  "SetCurrentSceneTransitionSettings",
+  "TriggerStudioModeTransition",
+  "SetTBarPosition",
   "GetSceneList",
   "GetCurrentProgramScene",
   "SetCurrentProgramScene",
@@ -60,10 +88,19 @@ export const ObsRequestType = Schema.Literal(
   "StartStream",
   "StopStream",
   "ToggleStream",
-  "SendStreamCaption"
+  "SendStreamCaption",
+  "GetStudioModeEnabled",
+  "OpenInputPropertiesDialog",
+  "OpenInputFiltersDialog",
+  "OpenInputInteractDialog",
+  "GetMonitorList",
+  "OpenVideoMixProjector",
+  "OpenSourceProjector"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
+export * from "./requests/canvases.js"
+export * from "./requests/config.js"
 export * from "./requests/general.js"
 export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"
@@ -71,3 +108,5 @@ export * from "./requests/record.js"
 export * from "./requests/scenes.js"
 export type { ObsRequestDescriptor } from "./requests/shared.js"
 export * from "./requests/stream.js"
+export * from "./requests/transitions.js"
+export * from "./requests/ui.js"

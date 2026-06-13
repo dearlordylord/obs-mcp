@@ -20,7 +20,7 @@ Environment variables:
 - `OBS_WEBSOCKET_URL`: OBS websocket URL. Defaults to `ws://localhost:4455`. Bare `host:port` values are normalized to `ws://host:port`.
 - `OBS_WEBSOCKET_PASSWORD`: optional OBS websocket password.
 - `OBS_WEBSOCKET_CONNECTION_TIMEOUT`: connection and request timeout in milliseconds. Defaults to `30000`.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `TOOLSETS`: optional comma-separated category filter. Available categories are `canvases`, `config`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, `stream`, `transitions`, and `ui`; the default enables `general`, `record`, `scenes`, and `inputs`.
 - `OBS_INTEGRATION_TESTS`: set to `1` to run real OBS websocket integration tests.
 - `OBS_INTEGRATION_MUTATION_TESTS`: set to `1` to enable integration tests that send state-changing OBS requests.
 
@@ -28,11 +28,34 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 
 ## Tools
 
+Tools in the `config` toolset can read or change global OBS configuration such as profiles, scene collections, video settings, record directories, and stream service settings. They are opt-in via `TOOLSETS=config`.
+
+Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side effects. They are opt-in via `TOOLSETS=ui` and do not capture screenshots, manage OS windows, or perform filesystem actions.
+
 <!-- tools:start -->
 - `get_obs_context`
 - `get_version`
 - `get_obs_stats`
+- `list_hotkeys`
+- `trigger_hotkey_by_name`
+- `trigger_hotkey_by_key_sequence`
 - `get_recent_obs_events`
+- `list_canvases`
+- `list_profiles`
+- `list_scene_collections`
+- `get_profile_parameter`
+- `get_record_directory`
+- `set_record_directory`
+- `get_video_settings`
+- `set_video_settings`
+- `get_stream_service_settings`
+- `set_stream_service_settings`
+- `set_current_profile`
+- `create_profile`
+- `remove_profile`
+- `set_current_scene_collection`
+- `create_scene_collection`
+- `set_profile_parameter`
 - `list_scenes`
 - `get_current_scene`
 - `set_current_scene`
@@ -91,6 +114,22 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `stop_stream`
 - `toggle_stream`
 - `send_stream_caption`
+- `list_transition_kinds`
+- `list_scene_transitions`
+- `get_current_scene_transition`
+- `get_current_scene_transition_cursor`
+- `set_current_scene_transition`
+- `set_current_scene_transition_duration`
+- `set_current_scene_transition_settings`
+- `trigger_studio_mode_transition`
+- `set_tbar_position`
+- `get_studio_mode_enabled`
+- `open_input_properties_dialog`
+- `open_input_filters_dialog`
+- `open_input_interact_dialog`
+- `list_monitors`
+- `open_video_mix_projector`
+- `open_source_projector`
 <!-- tools:end -->
 
 Tool results use MCP structured content rather than textified JSON.

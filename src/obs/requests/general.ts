@@ -1,8 +1,15 @@
 import { Schema } from "effect"
 
-import { ObsStatsOutput } from "../../domain/schemas/general.js"
+import {
+  HotkeyListOutput,
+  ObsStatsOutput,
+  TriggerHotkeyByKeySequenceInput,
+  TriggerHotkeyByNameInput
+} from "../../domain/schemas/general.js"
 import { StringArray } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
+
+const EmptyResponseData = Schema.Struct({})
 
 const GetVersionResponse = Schema.Struct({
   obsVersion: Schema.String,
@@ -26,3 +33,21 @@ export const GetStats = {
   requestDataSchema: EmptyRequestData,
   responseSchema: ObsStatsOutput
 } satisfies ObsRequestDescriptor<ObsStatsOutput>
+
+export const GetHotkeyList = {
+  requestType: "GetHotkeyList",
+  requestDataSchema: EmptyRequestData,
+  responseSchema: HotkeyListOutput
+} satisfies ObsRequestDescriptor<HotkeyListOutput>
+
+export const TriggerHotkeyByName = {
+  requestType: "TriggerHotkeyByName",
+  requestDataSchema: TriggerHotkeyByNameInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const TriggerHotkeyByKeySequence = {
+  requestType: "TriggerHotkeyByKeySequence",
+  requestDataSchema: TriggerHotkeyByKeySequenceInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>

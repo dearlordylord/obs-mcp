@@ -62,6 +62,15 @@ const inputToolNames = [
   "trigger_media_input_action"
 ]
 
+const generalToolNames = [
+  "get_obs_context",
+  "get_version",
+  "get_obs_stats",
+  "list_hotkeys",
+  "trigger_hotkey_by_name",
+  "trigger_hotkey_by_key_sequence"
+]
+
 const deferredInputMediaToolNames = [
   "get_input_audio_tracks",
   "set_input_audio_tracks",
@@ -89,6 +98,89 @@ const inputAvailableRequests = [
   "OffsetMediaInputCursor",
   "TriggerMediaInputAction"
 ] satisfies ReadonlyArray<ObsRequestType>
+
+const canvasToolNames = ["list_canvases"]
+const configToolNames = [
+  "list_profiles",
+  "list_scene_collections",
+  "get_profile_parameter",
+  "get_record_directory",
+  "set_record_directory",
+  "get_video_settings",
+  "set_video_settings",
+  "get_stream_service_settings",
+  "set_stream_service_settings",
+  "set_current_profile",
+  "create_profile",
+  "remove_profile",
+  "set_current_scene_collection",
+  "create_scene_collection",
+  "set_profile_parameter"
+]
+const uiToolNames = [
+  "get_studio_mode_enabled",
+  "open_input_properties_dialog",
+  "open_input_filters_dialog",
+  "open_input_interact_dialog",
+  "list_monitors",
+  "open_video_mix_projector",
+  "open_source_projector"
+]
+const transitionToolNames = [
+  "list_transition_kinds",
+  "list_scene_transitions",
+  "get_current_scene_transition",
+  "get_current_scene_transition_cursor",
+  "set_current_scene_transition",
+  "set_current_scene_transition_duration",
+  "set_current_scene_transition_settings",
+  "trigger_studio_mode_transition",
+  "set_tbar_position"
+]
+
+const laneOwnedRequestTools = [
+  ["GetCanvasList", "list_canvases", "canvases"],
+  ["GetStudioModeEnabled", "get_studio_mode_enabled", "ui"],
+  ["GetTransitionKindList", "list_transition_kinds", "transitions"],
+  ["GetSceneTransitionList", "list_scene_transitions", "transitions"],
+  ["GetCurrentSceneTransition", "get_current_scene_transition", "transitions"],
+  ["GetCurrentSceneTransitionCursor", "get_current_scene_transition_cursor", "transitions"],
+  ["SetCurrentSceneTransition", "set_current_scene_transition", "transitions"],
+  ["SetCurrentSceneTransitionDuration", "set_current_scene_transition_duration", "transitions"],
+  ["SetCurrentSceneTransitionSettings", "set_current_scene_transition_settings", "transitions"],
+  ["TriggerStudioModeTransition", "trigger_studio_mode_transition", "transitions"],
+  ["SetTBarPosition", "set_tbar_position", "transitions"],
+  ["GetHotkeyList", "list_hotkeys", "general"],
+  ["TriggerHotkeyByName", "trigger_hotkey_by_name", "general"],
+  ["TriggerHotkeyByKeySequence", "trigger_hotkey_by_key_sequence", "general"],
+  ["GetProfileList", "list_profiles", "config"],
+  ["GetSceneCollectionList", "list_scene_collections", "config"],
+  ["GetProfileParameter", "get_profile_parameter", "config"],
+  ["GetRecordDirectory", "get_record_directory", "config"],
+  ["SetRecordDirectory", "set_record_directory", "config"],
+  ["GetVideoSettings", "get_video_settings", "config"],
+  ["SetVideoSettings", "set_video_settings", "config"],
+  ["GetStreamServiceSettings", "get_stream_service_settings", "config"],
+  ["SetStreamServiceSettings", "set_stream_service_settings", "config"],
+  ["SetCurrentProfile", "set_current_profile", "config"],
+  ["CreateProfile", "create_profile", "config"],
+  ["RemoveProfile", "remove_profile", "config"],
+  ["SetCurrentSceneCollection", "set_current_scene_collection", "config"],
+  ["CreateSceneCollection", "create_scene_collection", "config"],
+  ["SetProfileParameter", "set_profile_parameter", "config"],
+  ["OpenInputPropertiesDialog", "open_input_properties_dialog", "ui"],
+  ["OpenInputFiltersDialog", "open_input_filters_dialog", "ui"],
+  ["OpenInputInteractDialog", "open_input_interact_dialog", "ui"],
+  ["GetMonitorList", "list_monitors", "ui"],
+  ["OpenVideoMixProjector", "open_video_mix_projector", "ui"],
+  ["OpenSourceProjector", "open_source_projector", "ui"]
+] satisfies ReadonlyArray<readonly [ObsRequestType, string, string]>
+
+const deferredLaneOwnedRequests = [{
+  requestType: "SetStudioModeEnabled",
+  reason:
+    "Deferred intentionally: studio mode writes are not exposed as a public tool in this lane; transition triggering remains in the transitions toolset."
+}] as const
 
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
   fakeObsClient(handler, allAvailableRequests)
@@ -176,9 +268,7 @@ const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsCli
 describe("MCP tool registry", () => {
   it("exposes exactly the enabled tools by default", () => {
     expect(getEnabledTools(config.enabledToolsets).map((tool) => tool.name)).toEqual([
-      "get_obs_context",
-      "get_version",
-      "get_obs_stats",
+      ...generalToolNames,
       "list_scenes",
       "get_current_scene",
       "set_current_scene",
@@ -208,6 +298,42 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("represents every studio-admin lane request with exactly one public tool or deferred note", () => {
+    for (const [requestType, toolName] of laneOwnedRequestTools) {
+      expect(allTools.filter((tool) => tool.requiredObsRequests.includes(requestType)).map((tool) => tool.name))
+        .toEqual([toolName])
+    }
+    for (const { reason, requestType } of deferredLaneOwnedRequests) {
+      expect(reason.length).toBeGreaterThan(0)
+      expect(allTools.filter((tool) => tool.requiredObsRequests.includes(requestType)).map((tool) => tool.name))
+        .toEqual([])
+    }
+    const laneRequestNames = [
+      ...laneOwnedRequestTools.map(([requestType]) => requestType),
+      ...deferredLaneOwnedRequests.map(({ requestType }) => requestType)
+    ]
+    expect(new Set(laneRequestNames).size).toBe(laneRequestNames.length)
+    expect(new Set(laneOwnedRequestTools.map(([, toolName]) => toolName)).size).toBe(laneOwnedRequestTools.length)
+    expect(allTools.map((tool) => tool.name)).not.toContain("send_raw_obs_request")
+    expect(allTools.map((tool) => tool.name)).not.toContain("set_studio_mode_enabled")
+  })
+
+  it("capability-gates every studio-admin lane tool by its represented OBS request", () => {
+    for (const [requestType, toolName, category] of laneOwnedRequestTools) {
+      expect(getEnabledTools([category], [requestType]).map((tool) => tool.name)).toContain(toolName)
+      expect(getEnabledTools([category], []).map((tool) => tool.name)).not.toContain(toolName)
+    }
+  })
+
+  it("keeps opt-in studio-admin categories hidden from the default toolsets", () => {
+    const defaultToolNames = getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name)
+    for (const [, toolName, category] of laneOwnedRequestTools) {
+      if (category !== "general") {
+        expect(defaultToolNames).not.toContain(toolName)
+      }
+    }
+  })
+
   it("exposes input discovery tools when the input toolset is enabled", () => {
     expect(getEnabledTools(["inputs"]).map((tool) => tool.name)).toEqual(inputToolNames)
   })
@@ -227,6 +353,27 @@ describe("MCP tool registry", () => {
     ])
   })
 
+  it("exposes canvas and studio-mode read tools only for their toolsets", () => {
+    expect(getEnabledTools(["canvases"], allAvailableRequests).map((tool) => tool.name)).toEqual(canvasToolNames)
+    expect(getEnabledTools(["ui"], allAvailableRequests).map((tool) => tool.name)).toEqual(uiToolNames)
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(expect.not.arrayContaining([...canvasToolNames, ...uiToolNames]))
+  })
+
+  it("exposes transition inventory tools only for the transitions toolset", () => {
+    expect(getEnabledTools(["transitions"], allAvailableRequests).map((tool) => tool.name)).toEqual(
+      transitionToolNames
+    )
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(expect.not.arrayContaining(transitionToolNames))
+  })
+
+  it("exposes config inventory tools only for the config toolset", () => {
+    expect(getEnabledTools(["config"], allAvailableRequests).map((tool) => tool.name)).toEqual(configToolNames)
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(expect.not.arrayContaining(configToolNames))
+  })
+
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
     expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_recent_obs_events"
@@ -243,11 +390,7 @@ describe("MCP tool registry", () => {
   })
 
   it("filters tools by toolset category", () => {
-    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name)).toEqual([
-      "get_obs_context",
-      "get_version",
-      "get_obs_stats"
-    ])
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name)).toEqual(generalToolNames)
     expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_recent_obs_events"
     ])
@@ -312,6 +455,13 @@ describe("MCP tool registry", () => {
       "get_obs_context",
       "get_obs_stats"
     ])
+    expect(
+      getEnabledTools(["general"], [
+        "GetHotkeyList",
+        "TriggerHotkeyByName",
+        "TriggerHotkeyByKeySequence"
+      ]).map((tool) => tool.name)
+    ).toEqual(["get_obs_context", "list_hotkeys", "trigger_hotkey_by_name", "trigger_hotkey_by_key_sequence"])
     expect(
       getEnabledTools(["record"], [
         "StartRecord",
@@ -393,6 +543,77 @@ describe("MCP tool registry", () => {
     for (const { availableRequests, expectedTools } of cases) {
       expect(getEnabledTools(["inputs"], availableRequests).map((tool) => tool.name)).toEqual(expectedTools)
     }
+  })
+
+  it("filters canvas and UI tools by negotiated OBS capabilities", () => {
+    expect(getEnabledTools(["canvases"], ["GetCanvasList"]).map((tool) => tool.name)).toEqual(canvasToolNames)
+    expect(getEnabledTools(["canvases"], []).map((tool) => tool.name)).toEqual([])
+    expect(
+      getEnabledTools(["ui"], [
+        "GetStudioModeEnabled",
+        "OpenInputPropertiesDialog",
+        "GetMonitorList",
+        "OpenSourceProjector"
+      ]).map((tool) => tool.name)
+    ).toEqual([
+      "get_studio_mode_enabled",
+      "open_input_properties_dialog",
+      "list_monitors",
+      "open_source_projector"
+    ])
+    expect(getEnabledTools(["ui"], []).map((tool) => tool.name)).toEqual([])
+  })
+
+  it("filters transition inventory tools by negotiated OBS capabilities", () => {
+    expect(
+      getEnabledTools(["transitions"], [
+        "GetTransitionKindList",
+        "GetCurrentSceneTransition",
+        "SetCurrentSceneTransitionDuration",
+        "TriggerStudioModeTransition"
+      ]).map((tool) => tool.name)
+    ).toEqual([
+      "list_transition_kinds",
+      "get_current_scene_transition",
+      "set_current_scene_transition_duration",
+      "trigger_studio_mode_transition"
+    ])
+    expect(getEnabledTools(["transitions"], []).map((tool) => tool.name)).toEqual([])
+  })
+
+  it("filters config inventory tools by negotiated OBS capabilities", () => {
+    expect(
+      getEnabledTools(["config"], [
+        "GetProfileList",
+        "GetProfileParameter",
+        "SetRecordDirectory",
+        "GetVideoSettings",
+        "SetVideoSettings",
+        "GetStreamServiceSettings",
+        "SetStreamServiceSettings",
+        "SetCurrentProfile",
+        "CreateProfile",
+        "RemoveProfile",
+        "SetCurrentSceneCollection",
+        "CreateSceneCollection",
+        "SetProfileParameter"
+      ]).map((tool) => tool.name)
+    ).toEqual([
+      "list_profiles",
+      "get_profile_parameter",
+      "set_record_directory",
+      "get_video_settings",
+      "set_video_settings",
+      "get_stream_service_settings",
+      "set_stream_service_settings",
+      "set_current_profile",
+      "create_profile",
+      "remove_profile",
+      "set_current_scene_collection",
+      "create_scene_collection",
+      "set_profile_parameter"
+    ])
+    expect(getEnabledTools(["config"], []).map((tool) => tool.name)).toEqual([])
   })
 
   describe("lifecycle tool filtering", () => {
@@ -551,6 +772,46 @@ describe("MCP tool registry", () => {
       })
   })
 
+  it("executes hotkey handlers with structured output and validates bounded key sequences", async () => {
+    const seenRequests: Array<readonly [string, unknown]> = []
+    const fakeClient = clientWithData(async (requestType, requestData) => {
+      seenRequests.push([requestType, requestData])
+      return requestType === "GetHotkeyList"
+        ? { hotkeys: ["OBSBasic.StartRecording"] }
+        : {}
+    })
+    await expect(executeTool(toolByName("list_hotkeys"), {}, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).resolves.toEqual({ hotkeys: ["OBSBasic.StartRecording"] })
+    await expect(executeTool(toolByName("trigger_hotkey_by_name"), {
+      hotkeyName: "OBSBasic.StartRecording"
+    }, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).resolves.toEqual({ hotkeyName: "OBSBasic.StartRecording", triggered: true })
+    await expect(executeTool(toolByName("trigger_hotkey_by_key_sequence"), {
+      keyId: "OBS_KEY_F10",
+      keyModifiers: { alt: true, command: false }
+    }, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      keyId: "OBS_KEY_F10",
+      keyModifiers: { alt: true, command: false },
+      triggered: true
+    })
+    await expect(executeTool(toolByName("trigger_hotkey_by_key_sequence"), {}, {
+      config: { ...config, enabledToolsets: ["general"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    expect(seenRequests).toEqual([
+      ["GetHotkeyList", undefined],
+      ["TriggerHotkeyByName", { hotkeyName: "OBSBasic.StartRecording" }],
+      ["TriggerHotkeyByKeySequence", { keyId: "OBS_KEY_F10", keyModifiers: { alt: true, command: false } }]
+    ])
+  })
+
   it("executes input discovery handlers with structured output", async () => {
     const output = await executeTool(toolByName("list_inputs"), { inputKind: "wasapi_input_capture" }, {
       config: { ...config, enabledToolsets: ["inputs"] },
@@ -577,6 +838,552 @@ describe("MCP tool registry", () => {
         inputKind: "wasapi_input_capture",
         unversionedInputKind: "wasapi_input_capture"
       }]
+    })
+  })
+
+  it("executes canvas and studio-mode read handlers with structured output", async () => {
+    await expect(executeTool(toolByName("list_canvases"), {}, {
+      config: { ...config, enabledToolsets: ["canvases"] },
+      client: clientWithData(async (requestType) => {
+        expect(requestType).toBe("GetCanvasList")
+        return {
+          canvases: [{
+            canvasName: "Program",
+            canvasUuid: "canvas-program",
+            canvasIndex: 0,
+            width: 1920
+          }]
+        }
+      })
+    })).resolves.toEqual({
+      canvases: [{ canvasIndex: 0, canvasName: "Program", canvasUuid: "canvas-program" }]
+    })
+
+    await expect(executeTool(toolByName("get_studio_mode_enabled"), {}, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType) => {
+        expect(requestType).toBe("GetStudioModeEnabled")
+        return { studioModeEnabled: true }
+      })
+    })).resolves.toEqual({ studioModeEnabled: true })
+    await expect(executeTool(toolByName("list_monitors"), {}, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType) => {
+        expect(requestType).toBe("GetMonitorList")
+        return {
+          monitors: [{
+            monitorIndex: 0,
+            monitorName: "Primary",
+            monitorWidth: 1920,
+            monitorHeight: 1080,
+            ignoredOpaqueField: { nested: true }
+          }, {
+            monitorIndex: 1
+          }, {
+            monitorName: "Malformed"
+          }]
+        }
+      })
+    })).resolves.toEqual({
+      monitors: [
+        { monitorIndex: 0, monitorName: "Primary", monitorWidth: 1920, monitorHeight: 1080 },
+        { monitorIndex: 1 }
+      ]
+    })
+    await expect(executeTool(toolByName("open_input_properties_dialog"), { inputName: "Camera" }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenInputPropertiesDialog")
+        expect(requestData).toEqual({ inputName: "Camera" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenInputPropertiesDialog", acknowledged: true })
+    await expect(executeTool(toolByName("open_input_filters_dialog"), { inputUuid: "input-camera" }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenInputFiltersDialog")
+        expect(requestData).toEqual({ inputUuid: "input-camera" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenInputFiltersDialog", acknowledged: true })
+    await expect(executeTool(toolByName("open_input_interact_dialog"), { inputName: "Browser" }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenInputInteractDialog")
+        expect(requestData).toEqual({ inputName: "Browser" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenInputInteractDialog", acknowledged: true })
+    await expect(executeTool(toolByName("open_video_mix_projector"), {
+      videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW",
+      monitorIndex: -1
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenVideoMixProjector")
+        expect(requestData).toEqual({
+          videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_MULTIVIEW",
+          monitorIndex: -1
+        })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenVideoMixProjector", acknowledged: true })
+    await expect(executeTool(toolByName("open_source_projector"), {
+      sourceUuid: "source-camera",
+      projectorGeometry: "AdnQyw=="
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("OpenSourceProjector")
+        expect(requestData).toEqual({ sourceUuid: "source-camera", projectorGeometry: "AdnQyw==" })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "OpenSourceProjector", acknowledged: true })
+    await expect(executeTool(toolByName("open_source_projector"), {
+      sourceName: "Camera",
+      sourceUuid: "source-camera"
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("open_source_projector"), {
+      sourceUuid: "source-camera",
+      canvasUuid: "canvas-program"
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("open_video_mix_projector"), {
+      videoMixType: "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
+      monitorIndex: 0,
+      projectorGeometry: "AdnQyw=="
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async () => ({}))
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+  })
+
+  it("executes config inventory and mutation handlers with structured output", async () => {
+    const seenRequests: Array<readonly [ObsRequestType, unknown]> = []
+    const fakeClient = clientWithData(async (requestType, requestData) => {
+      seenRequests.push([requestType, requestData])
+      if (requestType === "GetProfileList") {
+        return { currentProfileName: "Production", profiles: ["Untitled", "Production"] }
+      }
+      if (requestType === "GetSceneCollectionList") {
+        return { currentSceneCollectionName: "Main Scenes", sceneCollections: ["Main Scenes"] }
+      }
+      if (requestType === "GetProfileParameter") {
+        return { parameterValue: null, defaultParameterValue: "2500" }
+      }
+      if (requestType === "GetRecordDirectory") {
+        return { recordDirectory: "/opaque/obs-recordings" }
+      }
+      if (requestType === "GetVideoSettings") {
+        return {
+          baseWidth: 1920,
+          baseHeight: 1080,
+          outputWidth: 1280,
+          outputHeight: 720,
+          fpsNumerator: 30000,
+          fpsDenominator: 1001
+        }
+      }
+      if (requestType === "GetStreamServiceSettings") {
+        return {
+          streamServiceType: "rtmp_custom",
+          streamServiceSettings: {
+            server: "rtmp://example.invalid/live",
+            key: "redacted-registry-key"
+          }
+        }
+      }
+      return { recordDirectory: "/opaque/obs-recordings" }
+    })
+
+    await expect(executeTool(toolByName("list_profiles"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ currentProfileName: "Production", profiles: ["Untitled", "Production"] })
+    await expect(executeTool(toolByName("list_scene_collections"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ currentSceneCollectionName: "Main Scenes", sceneCollections: ["Main Scenes"] })
+    await expect(executeTool(toolByName("get_profile_parameter"), {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ parameterValue: null, defaultParameterValue: "2500" })
+    await expect(executeTool(toolByName("get_record_directory"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
+    await expect(executeTool(toolByName("set_record_directory"), {
+      recordDirectory: "opaque://recordings/show"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ recordDirectory: "opaque://recordings/show", acknowledged: true })
+    await expect(executeTool(toolByName("get_video_settings"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      baseWidth: 1920,
+      baseHeight: 1080,
+      outputWidth: 1280,
+      outputHeight: 720,
+      fpsNumerator: 30000,
+      fpsDenominator: 1001
+    })
+    await expect(executeTool(toolByName("set_video_settings"), {
+      baseWidth: 1920,
+      baseHeight: 1080,
+      fpsNumerator: 60,
+      fpsDenominator: 1
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      baseWidth: 1920,
+      baseHeight: 1080,
+      fpsNumerator: 60,
+      fpsDenominator: 1,
+      acknowledged: true
+    })
+    await expect(executeTool(toolByName("get_stream_service_settings"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        keyConfigured: true
+      }
+    })
+    await expect(executeTool(toolByName("set_stream_service_settings"), {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        key: "redacted-registry-set-key"
+      }
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/show",
+        keyConfigured: true
+      },
+      acknowledged: true
+    })
+    await expect(executeTool(toolByName("set_current_profile"), { profileName: "Production" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ profileName: "Production", switched: true })
+    await expect(executeTool(toolByName("create_profile"), { profileName: "Show" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ profileName: "Show", created: true, switched: true })
+    await expect(executeTool(toolByName("remove_profile"), { profileName: "Show" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ profileName: "Show", removed: true })
+    await expect(executeTool(toolByName("set_current_scene_collection"), {
+      sceneCollectionName: "Main Scenes"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ sceneCollectionName: "Main Scenes", switched: true })
+    await expect(executeTool(toolByName("create_scene_collection"), {
+      sceneCollectionName: "Event Scenes"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ sceneCollectionName: "Event Scenes", created: true, switched: true })
+    await expect(executeTool(toolByName("set_profile_parameter"), {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: null
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate",
+      parameterValue: null,
+      acknowledged: true
+    })
+    expect(seenRequests).toEqual(expect.arrayContaining([
+      ["SetCurrentProfile", { profileName: "Production" }],
+      ["CreateProfile", { profileName: "Show" }],
+      ["RemoveProfile", { profileName: "Show" }],
+      ["SetCurrentSceneCollection", { sceneCollectionName: "Main Scenes" }],
+      ["CreateSceneCollection", { sceneCollectionName: "Event Scenes" }],
+      ["SetProfileParameter", {
+        parameterCategory: "SimpleOutput",
+        parameterName: "VBitrate",
+        parameterValue: null
+      }],
+      ["SetRecordDirectory", { recordDirectory: "opaque://recordings/show" }],
+      ["SetVideoSettings", {
+        baseWidth: 1920,
+        baseHeight: 1080,
+        fpsNumerator: 60,
+        fpsDenominator: 1
+      }],
+      ["SetStreamServiceSettings", {
+        streamServiceType: "rtmp_custom",
+        streamServiceSettings: {
+          server: "rtmp://example.invalid/show",
+          key: "redacted-registry-set-key"
+        }
+      }]
+    ]))
+    await expect(executeTool(toolByName("get_profile_parameter"), {
+      parameterCategory: "",
+      parameterName: "VBitrate"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_current_profile"), { profileName: "" }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_video_settings"), { baseWidth: 1920 }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_video_settings"), {
+      baseWidth: 4097,
+      baseHeight: 1080
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(executeTool(toolByName("set_stream_service_settings"), {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: { fields: { server: "rtmp://example.invalid/live" } }
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+  })
+
+  it("maps UI side-effect OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("open_input_properties_dialog"), {
+      inputName: "Missing Camera"
+    }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: client(async () => {
+        throw new ObsRequestError("OpenInputPropertiesDialog", 600, "Input not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "OpenInputPropertiesDialog",
+        obsStatusCode: 600,
+        comment: "Input not found"
+      }
+    })
+  })
+
+  it("executes transition inventory handlers with structured output", async () => {
+    const fakeClient = clientWithData(async (requestType) => {
+      if (requestType === "GetTransitionKindList") {
+        return { transitionKinds: ["fade_transition"] }
+      }
+      if (requestType === "GetSceneTransitionList") {
+        return {
+          currentSceneTransitionName: "Fade",
+          currentSceneTransitionUuid: "transition-fade",
+          currentSceneTransitionKind: "fade_transition",
+          transitions: [{
+            transitionName: "Fade",
+            transitionUuid: "transition-fade",
+            transitionKind: "fade_transition",
+            transitionFixed: false,
+            transitionDuration: 300,
+            transitionSettings: { color: "black" }
+          }]
+        }
+      }
+      if (requestType === "GetCurrentSceneTransition") {
+        return {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionKind: "fade_transition",
+          transitionFixed: false,
+          transitionDuration: 300,
+          transitionConfigurable: true,
+          transitionSettings: { color: "black" }
+        }
+      }
+      return { transitionCursor: 1 }
+    })
+
+    await expect(executeTool(toolByName("list_transition_kinds"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionKinds: ["fade_transition"] })
+    await expect(executeTool(toolByName("list_scene_transitions"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      currentSceneTransitionName: "Fade",
+      currentSceneTransitionUuid: "transition-fade",
+      currentSceneTransitionKind: "fade_transition",
+      transitions: [{
+        transitionName: "Fade",
+        transitionUuid: "transition-fade",
+        transitionKind: "fade_transition",
+        transitionFixed: false,
+        transitionDuration: 300
+      }]
+    })
+    await expect(executeTool(toolByName("get_current_scene_transition"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      transitionName: "Fade",
+      transitionUuid: "transition-fade",
+      transitionKind: "fade_transition",
+      transitionFixed: false,
+      transitionDuration: 300,
+      transitionConfigurable: true
+    })
+    await expect(executeTool(toolByName("get_current_scene_transition_cursor"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionCursor: 1 })
+  })
+
+  it("executes transition mutation handlers with structured output", async () => {
+    const seenRequests: Array<readonly [string, unknown]> = []
+    const fakeClient = clientWithData(async (requestType, requestData) => {
+      seenRequests.push([requestType, requestData])
+      return {}
+    })
+
+    await expect(executeTool(toolByName("set_current_scene_transition"), { transitionName: "Fade" }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionName: "Fade", switched: true })
+    await expect(executeTool(toolByName("set_current_scene_transition_duration"), { transitionDuration: 500 }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ transitionDuration: 500, acknowledged: true })
+    await expect(executeTool(toolByName("set_current_scene_transition_settings"), {
+      transitionSettings: { path: "left", speed: 0.5 },
+      overlay: false
+    }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ overlay: false, settingsFieldCount: 2, acknowledged: true })
+    await expect(executeTool(toolByName("trigger_studio_mode_transition"), {}, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ requestType: "TriggerStudioModeTransition", acknowledged: true })
+    await expect(executeTool(toolByName("set_tbar_position"), { position: 0.75 }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: fakeClient
+    })).resolves.toEqual({ position: 0.75, release: true, acknowledged: true })
+    expect(seenRequests).toEqual([
+      ["SetCurrentSceneTransition", { transitionName: "Fade" }],
+      ["SetCurrentSceneTransitionDuration", { transitionDuration: 500 }],
+      ["SetCurrentSceneTransitionSettings", { transitionSettings: { path: "left", speed: 0.5 }, overlay: false }],
+      ["TriggerStudioModeTransition", undefined],
+      ["SetTBarPosition", { position: 0.75, release: true }]
+    ])
+  })
+
+  it("maps transition mutation OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("set_current_scene_transition"), {
+      transitionName: "Missing"
+    }, {
+      config: { ...config, enabledToolsets: ["transitions"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetCurrentSceneTransition", 404, "Transition not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetCurrentSceneTransition",
+        obsStatusCode: 404,
+        comment: "Transition not found"
+      }
+    })
+  })
+
+  it("maps config read and mutation OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("get_profile_parameter"), {
+      parameterCategory: "Missing",
+      parameterName: "Value"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("GetProfileParameter", 601, "Parameter category not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetProfileParameter",
+        obsStatusCode: 601,
+        comment: "Parameter category not found"
+      }
+    })
+    await expect(executeTool(toolByName("set_current_profile"), {
+      profileName: "Missing"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetCurrentProfile", 601, "Profile not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetCurrentProfile",
+        obsStatusCode: 601,
+        comment: "Profile not found"
+      }
+    })
+    await expect(executeTool(toolByName("set_video_settings"), {
+      baseWidth: 1920,
+      baseHeight: 1080
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetVideoSettings", 500, "Video output is active")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetVideoSettings",
+        obsStatusCode: 500,
+        comment: "Video output is active"
+      }
+    })
+    await expect(executeTool(toolByName("set_stream_service_settings"), {
+      streamServiceType: "rtmp_custom",
+      streamServiceSettings: {
+        server: "rtmp://example.invalid/live",
+        key: "redacted-error-key"
+      }
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("SetStreamServiceSettings", 500, "Stream output is active")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetStreamServiceSettings",
+        obsStatusCode: 500,
+        comment: "Stream output is active"
+      }
     })
   })
 

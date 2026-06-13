@@ -1,8 +1,29 @@
 import { getSanitizedObsContext } from "../../config/obs-runtime-context.js"
-import { ObsContextOutput, ObsStatsOutput, VersionOutput } from "../../domain/schemas/index.js"
+import {
+  HotkeyListOutput,
+  ObsContextOutput,
+  ObsStatsOutput,
+  TriggerHotkeyByKeySequenceInput,
+  TriggerHotkeyByKeySequenceOutput,
+  TriggerHotkeyByNameInput,
+  TriggerHotkeyByNameOutput,
+  VersionOutput
+} from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
-import { getObsStats, getVersion } from "../../obs/operations/general.js"
-import { GetStats, GetVersion } from "../../obs/requests.js"
+import {
+  getObsStats,
+  getVersion,
+  listHotkeys,
+  triggerHotkeyByKeySequence,
+  triggerHotkeyByName
+} from "../../obs/operations/general.js"
+import {
+  GetHotkeyList,
+  GetStats,
+  GetVersion,
+  TriggerHotkeyByKeySequence,
+  TriggerHotkeyByName
+} from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
 const CATEGORY = "general" as const
@@ -38,5 +59,38 @@ export const generalTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: ObsStatsOutput,
     handler: async (_input, context) => getObsStats(context.client)
+  }),
+  defineTool({
+    name: "list_hotkeys",
+    title: "List OBS Hotkeys",
+    description:
+      "Return OBS hotkey names. OBS hotkeys are best-effort; dedicated OBS requests are usually more reliable when available.",
+    category: CATEGORY,
+    requiredObsRequests: [GetHotkeyList.requestType],
+    inputSchema: EmptyInput,
+    outputSchema: HotkeyListOutput,
+    handler: async (_input, context) => listHotkeys(context.client)
+  }),
+  defineTool({
+    name: "trigger_hotkey_by_name",
+    title: "Trigger OBS Hotkey By Name",
+    description:
+      "Trigger an OBS hotkey by name. OBS hotkeys are best-effort; prefer dedicated OBS requests for reliable actions when available.",
+    category: CATEGORY,
+    requiredObsRequests: [TriggerHotkeyByName.requestType],
+    inputSchema: TriggerHotkeyByNameInput,
+    outputSchema: TriggerHotkeyByNameOutput,
+    handler: async (input, context) => triggerHotkeyByName(context.client, input)
+  }),
+  defineTool({
+    name: "trigger_hotkey_by_key_sequence",
+    title: "Trigger OBS Hotkey By Key Sequence",
+    description:
+      "Trigger an OBS hotkey by bounded key sequence. OBS hotkeys are best-effort; prefer dedicated OBS requests for reliable actions when available.",
+    category: CATEGORY,
+    requiredObsRequests: [TriggerHotkeyByKeySequence.requestType],
+    inputSchema: TriggerHotkeyByKeySequenceInput,
+    outputSchema: TriggerHotkeyByKeySequenceOutput,
+    handler: async (input, context) => triggerHotkeyByKeySequence(context.client, input)
   })
 ]
