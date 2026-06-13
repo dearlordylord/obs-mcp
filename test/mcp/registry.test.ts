@@ -16,9 +16,9 @@ import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
-import type { ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
 const config: ObsConfig = {
   url: "ws://localhost:4455/",
@@ -26,63 +26,6 @@ const config: ObsConfig = {
   connectionTimeoutMs: 300,
   enabledToolsets: ["general", "record", "scenes", "inputs"]
 }
-
-const allAvailableRequests = [
-  "GetVersion",
-  "GetStats",
-  "GetSceneList",
-  "GetCurrentProgramScene",
-  "SetCurrentProgramScene",
-  "GetSceneItemList",
-  "GetGroupSceneItemList",
-  "GetSceneItemId",
-  "GetSceneItemSource",
-  "GetInputList",
-  "GetInputKindList",
-  "GetSpecialInputs",
-  "GetVirtualCamStatus",
-  "StartVirtualCam",
-  "StopVirtualCam",
-  "ToggleVirtualCam",
-  "GetReplayBufferStatus",
-  "StartReplayBuffer",
-  "StopReplayBuffer",
-  "ToggleReplayBuffer",
-  "SaveReplayBuffer",
-  "GetLastReplayBufferReplay",
-  "GetRecordStatus",
-  "StartRecord",
-  "StopRecord",
-  "ToggleRecord",
-  "SplitRecordFile",
-  "CreateRecordChapter",
-  "PauseRecord",
-  "ResumeRecord",
-  "ToggleRecordPause",
-  "GetStreamStatus",
-  "StartStream",
-  "StopStream",
-  "ToggleStream",
-  "SendStreamCaption"
-]
-
-const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient => ({
-  negotiatedRpcVersion: 1,
-  availableRequests: allAvailableRequests,
-  request: async (descriptor, requestData) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
-  close: async () => undefined
-})
-
-const clientWithData = (
-  handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>
-): ObsClient => ({
-  negotiatedRpcVersion: 1,
-  availableRequests: allAvailableRequests,
-  request: async (descriptor, requestData) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
-  close: async () => undefined
-})
 
 const toolByName = (name: string): ToolDefinition => {
   const tool = allTools.find((entry) => entry.name === name)
@@ -382,7 +325,7 @@ describe("MCP tool registry", () => {
   it("accepts no-arg tools with empty or missing args", async () => {
     const output = await executeTool(toolByName("get_obs_context"), undefined, {
       config,
-      client: client(async () => ({}))
+      client: fakeObsClient(async () => ({}))
     })
     expect(output).toMatchObject({ transport: "stdio" })
   })
@@ -390,7 +333,7 @@ describe("MCP tool registry", () => {
   it("uses default list_scenes args", async () => {
     const output = await executeTool(toolByName("list_scenes"), {}, {
       config,
-      client: client(async () => ({
+      client: fakeObsClient(async () => ({
         currentProgramSceneName: "Intro",
         currentProgramSceneUuid: "scene-intro",
         currentPreviewSceneName: null,
@@ -406,7 +349,7 @@ describe("MCP tool registry", () => {
     const statsTool = toolByName("get_obs_stats")
     const currentTool = toolByName("get_current_scene")
     const recordTool = toolByName("get_record_status")
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       if (requestType === "GetVersion") {
         return {
           obsVersion: "31.0.0",
@@ -462,7 +405,7 @@ describe("MCP tool registry", () => {
     const output = await executeTool(toolByName("list_inputs"), { inputKind: "wasapi_input_capture" }, {
       config: { ...config, enabledToolsets: ["inputs"] },
       client: {
-        ...client(async () => ({ inputs: [] })),
+        ...fakeObsClient(async () => ({ inputs: [] })),
         request: async (descriptor, requestData) => {
           expect(descriptor.requestType).toBe("GetInputList")
           expect(requestData).toEqual({ inputKind: "wasapi_input_capture" })
@@ -491,7 +434,7 @@ describe("MCP tool registry", () => {
     const output = await executeTool(toolByName("list_input_kinds"), { unversioned: true }, {
       config: { ...config, enabledToolsets: ["inputs"] },
       client: {
-        ...client(async () => ({ inputKinds: ["wasapi_input_capture"] })),
+        ...fakeObsClient(async () => ({ inputKinds: ["wasapi_input_capture"] })),
         request: async (descriptor, requestData) => {
           expect(descriptor.requestType).toBe("GetInputKindList")
           expect(requestData).toEqual({ unversioned: true })
@@ -516,7 +459,7 @@ describe("MCP tool registry", () => {
   it("executes get_special_inputs handler", async () => {
     const output = await executeTool(toolByName("get_special_inputs"), {}, {
       config: { ...config, enabledToolsets: ["inputs"] },
-      client: client(async () => ({
+      client: fakeObsClient(async () => ({
         desktop1: "Desktop Audio",
         desktop2: null,
         mic1: "Mic/Aux",
@@ -529,7 +472,7 @@ describe("MCP tool registry", () => {
   })
 
   it("executes record pause handlers with structured action outputs", async () => {
-    const fakeClient = client(async () => ({}))
+    const fakeClient = fakeObsClient(async () => ({}))
     await expect(executeTool(toolByName("pause_record"), {}, { config, client: fakeClient }))
       .resolves.toEqual({ requestedAction: "pause", requestType: "PauseRecord", acknowledged: true })
     await expect(executeTool(toolByName("resume_record"), {}, { config, client: fakeClient }))
@@ -539,7 +482,7 @@ describe("MCP tool registry", () => {
   })
 
   it("executes record lifecycle handlers with structured outputs", async () => {
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       if (requestType === "StopRecord") {
         return { outputPath: "/opaque/obs-recording.mkv" }
       }
@@ -562,7 +505,7 @@ describe("MCP tool registry", () => {
 
   it("executes record file and chapter handlers with structured outputs", async () => {
     const requests: Array<{ readonly requestType: ObsRequestType; readonly requestData: unknown }> = []
-    const fakeClient = client(async (requestType, requestData) => {
+    const fakeClient = fakeObsClient(async (requestType, requestData) => {
       requests.push({ requestType, requestData })
       return {}
     })
@@ -579,7 +522,7 @@ describe("MCP tool registry", () => {
 
   it("executes stream status and lifecycle handlers", async () => {
     const streamConfig: ObsConfig = { ...config, enabledToolsets: ["stream"] }
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       if (requestType === "GetStreamStatus") {
         return {
           outputActive: false,
@@ -615,7 +558,7 @@ describe("MCP tool registry", () => {
 
   it("executes virtual camera handlers", async () => {
     const seen: Array<ObsRequestType> = []
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       seen.push(requestType)
       if (requestType === "GetVirtualCamStatus") {
         return { outputActive: false }
@@ -638,7 +581,7 @@ describe("MCP tool registry", () => {
 
   it("executes replay buffer lifecycle handlers", async () => {
     const seen: Array<ObsRequestType> = []
-    const fakeClient = client(async (requestType) => {
+    const fakeClient = fakeObsClient(async (requestType) => {
       seen.push(requestType)
       if (requestType === "GetReplayBufferStatus") {
         return { outputActive: false }
@@ -675,7 +618,10 @@ describe("MCP tool registry", () => {
 
   it("rejects invalid scene params through schema validation", async () => {
     await expect(
-      executeTool(toolByName("set_current_scene"), { sceneName: "" }, { config, client: client(async () => ({})) })
+      executeTool(toolByName("set_current_scene"), { sceneName: "" }, {
+        config,
+        client: fakeObsClient(async () => ({}))
+      })
     )
       .rejects.toBeInstanceOf(McpError)
   })
@@ -684,21 +630,21 @@ describe("MCP tool registry", () => {
     await expect(
       executeTool(toolByName("list_scene_items"), { sceneName: "Scene", sceneUuid: "scene-uuid" }, {
         config,
-        client: client(async () => ({}))
+        client: fakeObsClient(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
 
     await expect(
       executeTool(toolByName("list_scene_items"), { sceneUuid: "scene-uuid", canvasUuid: "canvas-uuid" }, {
         config,
-        client: client(async () => ({}))
+        client: fakeObsClient(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
 
     await expect(
       executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Camera", searchOffset: -2 }, {
         config,
-        client: client(async () => ({}))
+        client: fakeObsClient(async () => ({}))
       })
     ).rejects.toBeInstanceOf(McpError)
   })
@@ -710,7 +656,7 @@ describe("MCP tool registry", () => {
       canvasUuid: "canvas-uuid"
     }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         requests.push(requestData)
         return {
           sceneItems: [
@@ -762,7 +708,7 @@ describe("MCP tool registry", () => {
     const requests: Array<unknown> = []
     await expect(executeTool(toolByName("list_scene_items"), { sceneUuid: "scene-uuid" }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         requests.push(requestData)
         return { sceneItems: [] }
       })
@@ -774,7 +720,7 @@ describe("MCP tool registry", () => {
     const requests: Array<unknown> = []
     await expect(executeTool(toolByName("list_group_scene_items"), { sceneName: "Group" }, {
       config,
-      client: clientWithData(async (requestType, requestData) => {
+      client: fakeObsClient(async (requestType, requestData) => {
         requests.push({ requestType, requestData })
         return {
           sceneItems: [{ sceneItemId: 3, sceneItemIndex: 0, sourceName: "Nested", sourceUuid: "source-nested" }]
@@ -794,7 +740,7 @@ describe("MCP tool registry", () => {
       searchOffset: -1
     }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         requests.push(requestData)
         return { sceneItemId: 42 }
       })
@@ -808,7 +754,7 @@ describe("MCP tool registry", () => {
       sceneItemId: 42
     }, {
       config,
-      client: clientWithData(async (_requestType, requestData) => {
+      client: fakeObsClient(async (_requestType, requestData) => {
         expect(requestData).toEqual({ sceneUuid: "scene-uuid", sceneItemId: 42 })
         return { sourceName: "Camera", sourceUuid: "source-camera" }
       })
@@ -818,7 +764,7 @@ describe("MCP tool registry", () => {
   it("maps OBS missing scene item errors to MCP errors", async () => {
     await expect(executeTool(toolByName("get_scene_item_id"), { sceneName: "Scene", sourceName: "Missing" }, {
       config,
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("GetSceneItemId", 601, "Source not found")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
@@ -838,7 +784,7 @@ describe("MCP tool registry", () => {
   it("maps scene operation errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("set_current_scene"), { sceneName: "Missing" }, {
       config,
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("SetCurrentProgramScene", 608, "Parameter: sceneName")
       })
     })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
@@ -847,7 +793,7 @@ describe("MCP tool registry", () => {
   it("maps stream operation errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("start_stream"), {}, {
       config: { ...config, enabledToolsets: ["stream"] },
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("StartStream", 207, "Output already active")
       })
     })).rejects.toMatchObject({
@@ -859,7 +805,7 @@ describe("MCP tool registry", () => {
   it("maps virtual camera operation errors to MCP errors with OBS status metadata", async () => {
     await expect(executeTool(toolByName("start_virtual_cam"), {}, {
       config: { ...config, enabledToolsets: ["outputs"] },
-      client: client(async () => {
+      client: fakeObsClient(async () => {
         throw new ObsRequestError("StartVirtualCam", 500, "virtual camera unavailable")
       })
     })).rejects.toMatchObject({

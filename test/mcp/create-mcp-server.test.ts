@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js"
 import { ErrorCode } from "@modelcontextprotocol/sdk/types.js"
-import { Option, Schema } from "effect"
+import { Option } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
@@ -10,6 +10,7 @@ import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { FakeObsServer } from "../obs/fake-obs-server.js"
+import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
 const config: ObsConfig = {
   url: "ws://localhost:4455/",
@@ -23,55 +24,10 @@ const obsClients: Array<ObsClient> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 const fakeObsServers: Array<FakeObsServer> = []
 
-const allAvailableRequests = [
-  "GetVersion",
-  "GetStats",
-  "GetSceneList",
-  "GetCurrentProgramScene",
-  "SetCurrentProgramScene",
-  "GetSceneItemList",
-  "GetGroupSceneItemList",
-  "GetSceneItemId",
-  "GetSceneItemSource",
-  "GetInputList",
-  "GetInputKindList",
-  "GetSpecialInputs",
-  "GetVirtualCamStatus",
-  "StartVirtualCam",
-  "StopVirtualCam",
-  "ToggleVirtualCam",
-  "GetReplayBufferStatus",
-  "StartReplayBuffer",
-  "StopReplayBuffer",
-  "ToggleReplayBuffer",
-  "SaveReplayBuffer",
-  "GetLastReplayBufferReplay",
-  "GetRecordStatus",
-  "StartRecord",
-  "StopRecord",
-  "ToggleRecord",
-  "SplitRecordFile",
-  "CreateRecordChapter",
-  "PauseRecord",
-  "ResumeRecord",
-  "ToggleRecordPause",
-  "GetStreamStatus",
-  "StartStream",
-  "StopStream",
-  "ToggleStream",
-  "SendStreamCaption"
-]
-
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
   availableRequests: ReadonlyArray<string> = allAvailableRequests
-): ObsClient => ({
-  negotiatedRpcVersion: 1,
-  availableRequests,
-  request: async (descriptor) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType)),
-  close: async () => undefined
-})
+): ObsClient => fakeObsClient(handler, availableRequests)
 
 const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promise<Client> => {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
