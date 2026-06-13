@@ -29,7 +29,8 @@ const JsonSchemaProperties = Schema.Record({ key: Schema.String, value: Schema.O
 /* v8 ignore start -- defensive normalization for Effect-generated JSON Schemas; list/call handlers are covered. */
 const jsonObjectSchema = (schema: unknown): ProtocolObjectSchemaSource => {
   const record = Schema.decodeUnknownSync(JsonSchema)(schema)
-  if (record["type"] !== "object") {
+  const isObjectUnion = Array.isArray(record["anyOf"])
+  if (record["type"] !== "object" && !isObjectUnion) {
     /* v8 ignore next */
     throw new McpError(ErrorCode.InternalError, "Tool schema must be a JSON object schema")
   }

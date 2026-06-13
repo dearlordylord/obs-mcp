@@ -5,6 +5,14 @@ import { getSanitizedObsContext } from "../../config/obs-runtime-context.js"
 import {
   CurrentSceneOutput,
   EmptyInput,
+  GetSceneItemIdInput,
+  GetSceneItemIdOutput,
+  GetSceneItemSourceInput,
+  GetSceneItemSourceOutput,
+  ListGroupSceneItemsInput,
+  ListGroupSceneItemsOutput,
+  ListSceneItemsInput,
+  ListSceneItemsOutput,
   ListScenesInput,
   ListScenesOutput,
   ObsContextOutput,
@@ -14,8 +22,25 @@ import {
 } from "../../domain/schemas/index.js"
 import type { ObsClient } from "../../obs/client.js"
 import { getVersion } from "../../obs/operations/general.js"
-import { getCurrentScene, listScenes, setCurrentScene } from "../../obs/operations/scenes.js"
-import { GetCurrentProgramScene, GetSceneList, GetVersion, SetCurrentProgramScene } from "../../obs/requests.js"
+import {
+  getCurrentScene,
+  getSceneItemId,
+  getSceneItemSource,
+  listGroupSceneItems,
+  listSceneItems,
+  listScenes,
+  setCurrentScene
+} from "../../obs/operations/scenes.js"
+import {
+  GetCurrentProgramScene,
+  GetGroupSceneItemList,
+  GetSceneItemId,
+  GetSceneItemList,
+  GetSceneItemSource,
+  GetSceneList,
+  GetVersion,
+  SetCurrentProgramScene
+} from "../../obs/requests.js"
 import { toMcpError } from "../error-mapping.js"
 
 interface ToolContext {
@@ -107,6 +132,50 @@ export const allTools = [
     outputSchema: SetCurrentSceneOutput,
     handler: async (input, context) =>
       setCurrentScene(context.client, Schema.decodeUnknownSync(SetCurrentSceneInput)(input))
+  }),
+  defineTool({
+    name: "list_scene_items",
+    title: "List OBS Scene Items",
+    description: "Return ordered scene item summaries for a scene selected by name or UUID.",
+    category: "scenes",
+    requiredObsRequests: [GetSceneItemList.requestType],
+    inputSchema: ListSceneItemsInput,
+    outputSchema: ListSceneItemsOutput,
+    handler: async (input, context) =>
+      listSceneItems(context.client, Schema.decodeUnknownSync(ListSceneItemsInput)(input))
+  }),
+  defineTool({
+    name: "list_group_scene_items",
+    title: "List OBS Group Scene Items",
+    description: "Return ordered scene item summaries for a group selected by name or UUID.",
+    category: "scenes",
+    requiredObsRequests: [GetGroupSceneItemList.requestType],
+    inputSchema: ListGroupSceneItemsInput,
+    outputSchema: ListGroupSceneItemsOutput,
+    handler: async (input, context) =>
+      listGroupSceneItems(context.client, Schema.decodeUnknownSync(ListGroupSceneItemsInput)(input))
+  }),
+  defineTool({
+    name: "get_scene_item_id",
+    title: "Get OBS Scene Item ID",
+    description: "Find a source by name in a scene or group and return its numeric scene item ID.",
+    category: "scenes",
+    requiredObsRequests: [GetSceneItemId.requestType],
+    inputSchema: GetSceneItemIdInput,
+    outputSchema: GetSceneItemIdOutput,
+    handler: async (input, context) =>
+      getSceneItemId(context.client, Schema.decodeUnknownSync(GetSceneItemIdInput)(input))
+  }),
+  defineTool({
+    name: "get_scene_item_source",
+    title: "Get OBS Scene Item Source",
+    description: "Return the source name and UUID associated with a scene item ID.",
+    category: "scenes",
+    requiredObsRequests: [GetSceneItemSource.requestType],
+    inputSchema: GetSceneItemSourceInput,
+    outputSchema: GetSceneItemSourceOutput,
+    handler: async (input, context) =>
+      getSceneItemSource(context.client, Schema.decodeUnknownSync(GetSceneItemSourceInput)(input))
   })
 ] as const
 

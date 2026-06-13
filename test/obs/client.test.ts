@@ -4,7 +4,14 @@ import { afterEach, describe, expect, it } from "vitest"
 import type { ObsConfig } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
-import { GetCurrentProgramScene, SetCurrentProgramScene } from "../../src/obs/requests.js"
+import {
+  GetCurrentProgramScene,
+  GetGroupSceneItemList,
+  GetSceneItemId,
+  GetSceneItemList,
+  GetSceneItemSource,
+  SetCurrentProgramScene
+} from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
 const servers: Array<FakeObsServer> = []
@@ -172,5 +179,51 @@ describe("OBS websocket client", () => {
     await expect(client.request(SetCurrentProgramScene, { sceneName: "Missing" })).rejects.toBeInstanceOf(
       ObsRequestError
     )
+  })
+
+  it("sends and decodes scene-item discovery requests", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetSceneItemList, { sceneName: "Main", canvasUuid: "canvas-main" }))
+      .resolves.toEqual({
+        sceneItems: [
+          {
+            sceneItemId: 7,
+            sceneItemIndex: 0,
+            sourceName: "Camera",
+            sourceUuid: "source-camera",
+            sourceType: "OBS_SOURCE_TYPE_INPUT",
+            inputKind: "dshow_input",
+            isGroup: null
+          },
+          {
+            sceneItemId: 9,
+            sceneItemIndex: 1,
+            sourceName: "Lower Third",
+            sourceUuid: "source-lower-third",
+            sourceType: "OBS_SOURCE_TYPE_SCENE",
+            inputKind: null,
+            isGroup: true
+          }
+        ]
+      })
+    await expect(client.request(GetGroupSceneItemList, { sceneUuid: "scene-group" }))
+      .resolves.toEqual({
+        sceneItems: [{ sceneItemId: 3, sceneItemIndex: 0, sourceName: "Nested", sourceUuid: "source-nested" }]
+      })
+    await expect(client.request(GetSceneItemId, { sceneName: "Main", sourceName: "Camera", searchOffset: 0 }))
+      .resolves.toEqual({ sceneItemId: 7 })
+    await expect(client.request(GetSceneItemSource, { sceneUuid: "scene-main", sceneItemId: 7 }))
+      .resolves.toEqual({ sourceName: "Camera", sourceUuid: "source-camera" })
+
+    expect(server.requests.slice(-4)).toEqual([
+      { requestType: "GetSceneItemList", requestData: { sceneName: "Main", canvasUuid: "canvas-main" } },
+      { requestType: "GetGroupSceneItemList", requestData: { sceneUuid: "scene-group" } },
+      { requestType: "GetSceneItemId", requestData: { sceneName: "Main", sourceName: "Camera", searchOffset: 0 } },
+      { requestType: "GetSceneItemSource", requestData: { sceneUuid: "scene-main", sceneItemId: 7 } }
+    ])
   })
 })

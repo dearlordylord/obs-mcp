@@ -1,13 +1,27 @@
 import { Schema } from "effect"
 
-import { ListScenesOutput } from "../domain/schemas/scenes.js"
+import {
+  GetSceneItemIdInput,
+  GetSceneItemIdOutput,
+  GetSceneItemSourceInput,
+  GetSceneItemSourceOutput,
+  ListGroupSceneItemsInput,
+  ListGroupSceneItemsOutput,
+  ListSceneItemsInput,
+  ListSceneItemsOutput,
+  ListScenesOutput
+} from "../domain/schemas/scenes.js"
 import { StringArray, UnknownRecord } from "../domain/schemas/shared.js"
 
 export const ObsRequestType = Schema.Literal(
   "GetVersion",
   "GetSceneList",
   "GetCurrentProgramScene",
-  "SetCurrentProgramScene"
+  "SetCurrentProgramScene",
+  "GetSceneItemList",
+  "GetGroupSceneItemList",
+  "GetSceneItemId",
+  "GetSceneItemSource"
 )
 export type ObsRequestType = typeof ObsRequestType.Type
 
@@ -65,3 +79,27 @@ export const SetCurrentProgramScene = {
   requestDataSchema: SetCurrentProgramSceneRequest,
   responseSchema: UnknownRecord
 } satisfies ObsRequestDescriptor<Record<string, unknown>>
+
+export const GetSceneItemList = {
+  requestType: "GetSceneItemList",
+  requestDataSchema: ListSceneItemsInput,
+  responseSchema: ListSceneItemsOutput
+} satisfies ObsRequestDescriptor<ListSceneItemsOutput>
+
+export const GetGroupSceneItemList = {
+  requestType: "GetGroupSceneItemList",
+  requestDataSchema: ListGroupSceneItemsInput,
+  responseSchema: ListGroupSceneItemsOutput
+} satisfies ObsRequestDescriptor<ListGroupSceneItemsOutput>
+
+export const GetSceneItemId = {
+  requestType: "GetSceneItemId",
+  requestDataSchema: GetSceneItemIdInput,
+  responseSchema: GetSceneItemIdOutput
+} satisfies ObsRequestDescriptor<GetSceneItemIdOutput>
+
+export const GetSceneItemSource = {
+  requestType: "GetSceneItemSource",
+  requestDataSchema: GetSceneItemSourceInput,
+  responseSchema: GetSceneItemSourceOutput
+} satisfies ObsRequestDescriptor<GetSceneItemSourceOutput>

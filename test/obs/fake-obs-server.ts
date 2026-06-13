@@ -16,6 +16,21 @@ interface FakeObsScene {
   readonly isGroup?: boolean
 }
 
+interface FakeObsSceneItem {
+  readonly sceneItemId: number
+  readonly sceneItemIndex: number
+  readonly sourceName: string
+  readonly sourceUuid: string
+  readonly sourceType?: string
+  readonly inputKind?: string | null
+  readonly isGroup?: boolean | null
+}
+
+interface FakeObsReceivedRequest {
+  readonly requestType: string
+  readonly requestData?: unknown
+}
+
 interface FakeObsServerOptions {
   readonly password?: string
   readonly malformedHello?: boolean
@@ -49,11 +64,13 @@ export class FakeObsServer {
   public readonly url: string
   private readonly server: WebSocketServer
   private currentSceneName: string
+  private receivedRequests: ReadonlyArray<FakeObsReceivedRequest>
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
     this.server = server
     this.url = url
     this.currentSceneName = currentSceneName
+    this.receivedRequests = []
   }
 
   public static async start(options: FakeObsServerOptions = {}): Promise<FakeObsServer> {
@@ -87,6 +104,10 @@ export class FakeObsServer {
 
   public get connectedClientCount(): number {
     return this.server.clients.size
+  }
+
+  public get requests(): ReadonlyArray<FakeObsReceivedRequest> {
+    return this.receivedRequests
   }
 
   private installHandlers(options: FakeObsServerOptions, scenes: ReadonlyArray<FakeObsScene>): void {
@@ -144,6 +165,10 @@ export class FakeObsServer {
     const envelope = JSON.parse(text)
     const requestType = envelope.d.requestType
     const requestId = envelope.d.requestId
+    this.receivedRequests = [
+      ...this.receivedRequests,
+      { requestType, ...(envelope.d.requestData === undefined ? {} : { requestData: envelope.d.requestData }) }
+    ]
     if (options.skipResponsesFor?.includes(requestType) === true) {
       return
     }
@@ -206,7 +231,11 @@ export class FakeObsServer {
           "GetVersion",
           "GetSceneList",
           "GetCurrentProgramScene",
-          "SetCurrentProgramScene"
+          "SetCurrentProgramScene",
+          "GetSceneItemList",
+          "GetGroupSceneItemList",
+          "GetSceneItemId",
+          "GetSceneItemSource"
         ],
         supportedImageFormats: ["png", "jpg"],
         platform: "ubuntu",
@@ -238,6 +267,54 @@ export class FakeObsServer {
       send()
       return
     }
+    if (requestType === "GetSceneItemList" || requestType === "GetGroupSceneItemList") {
+      send({ sceneItems: this.sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
+      return
+    }
+    if (requestType === "GetSceneItemId") {
+      const sceneItem = this.sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sourceName === envelope.d.requestData.sourceName)
+      send({ sceneItemId: sceneItem?.sceneItemId ?? 0 })
+      return
+    }
+    if (requestType === "GetSceneItemSource") {
+      const sceneItem = this.sceneItemsFor(envelope.d.requestData, false)
+        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
+      send({
+        sourceName: sceneItem?.sourceName ?? "Camera",
+        sourceUuid: sceneItem?.sourceUuid ?? "source-camera"
+      })
+      return
+    }
     send()
+  }
+
+  private sceneItemsFor(
+    requestData: { readonly sceneName?: string; readonly sceneUuid?: string },
+    group: boolean
+  ): ReadonlyArray<FakeObsSceneItem> {
+    if (group || requestData.sceneName === "Group" || requestData.sceneUuid === "scene-group") {
+      return [{ sceneItemId: 3, sceneItemIndex: 0, sourceName: "Nested", sourceUuid: "source-nested" }]
+    }
+    return [
+      {
+        sceneItemId: 7,
+        sceneItemIndex: 0,
+        sourceName: "Camera",
+        sourceUuid: "source-camera",
+        sourceType: "OBS_SOURCE_TYPE_INPUT",
+        inputKind: "dshow_input",
+        isGroup: null
+      },
+      {
+        sceneItemId: 9,
+        sceneItemIndex: 1,
+        sourceName: "Lower Third",
+        sourceUuid: "source-lower-third",
+        sourceType: "OBS_SOURCE_TYPE_SCENE",
+        inputKind: null,
+        isGroup: true
+      }
+    ]
   }
 }

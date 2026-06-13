@@ -20,7 +20,16 @@ const config: ObsConfig = {
 const clients: Array<Client> = []
 const servers: Array<ReturnType<typeof createObsMcpServer>> = []
 
-const allAvailableRequests = ["GetVersion", "GetSceneList", "GetCurrentProgramScene", "SetCurrentProgramScene"]
+const allAvailableRequests = [
+  "GetVersion",
+  "GetSceneList",
+  "GetCurrentProgramScene",
+  "SetCurrentProgramScene",
+  "GetSceneItemList",
+  "GetGroupSceneItemList",
+  "GetSceneItemId",
+  "GetSceneItemSource"
+]
 
 const obsClient = (
   handler: (requestType: ObsRequestType) => Promise<unknown>,
@@ -57,11 +66,24 @@ describe("MCP server protocol handlers", () => {
       "get_version",
       "list_scenes",
       "get_current_scene",
-      "set_current_scene"
+      "set_current_scene",
+      "list_scene_items",
+      "list_group_scene_items",
+      "get_scene_item_id",
+      "get_scene_item_source"
     ])
     expect(tools.tools.find((tool) => tool.name === "set_current_scene")?.inputSchema.required).toEqual(["sceneName"])
     expect(tools.tools.find((tool) => tool.name === "get_current_scene")?.outputSchema?.properties)
       .toHaveProperty("sceneName")
+  })
+
+  it("lists scene-item tools with MCP-compatible object schemas", async () => {
+    const client = await connect(obsClient(async () => ({})))
+    const tools = await client.listTools()
+    const sceneItemsTool = tools.tools.find((tool) => tool.name === "list_scene_items")
+    expect(sceneItemsTool?.inputSchema.type).toBe("object")
+    expect(sceneItemsTool?.inputSchema).toHaveProperty("anyOf")
+    expect(tools.tools.find((tool) => tool.name === "get_scene_item_id")?.inputSchema.type).toBe("object")
   })
 
   it("lists only context and available capability-backed tools", async () => {
