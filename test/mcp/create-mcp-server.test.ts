@@ -369,6 +369,43 @@ describe("MCP server protocol handlers", () => {
       .resolves.toMatchObject({ structuredContent: { studioModeEnabled: true } })
   })
 
+  it("lists and calls config inventory tools through in-memory MCP handlers", async () => {
+    const client = await connect(
+      obsClient(async (requestType) => {
+        if (requestType === "GetProfileList") {
+          return { currentProfileName: "Production", profiles: ["Untitled", "Production"] }
+        }
+        if (requestType === "GetSceneCollectionList") {
+          return { currentSceneCollectionName: "Main Scenes", sceneCollections: ["Main Scenes"] }
+        }
+        if (requestType === "GetProfileParameter") {
+          return { parameterValue: null, defaultParameterValue: "2500" }
+        }
+        return { recordDirectory: "/opaque/obs-recordings" }
+      }, ["GetProfileList", "GetSceneCollectionList", "GetProfileParameter", "GetRecordDirectory"]),
+      { ...config, enabledToolsets: ["config"] }
+    )
+    const tools = await client.listTools()
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "list_profiles",
+      "list_scene_collections",
+      "get_profile_parameter",
+      "get_record_directory"
+    ])
+    await expect(client.callTool({ name: "list_profiles", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { currentProfileName: "Production" } })
+    await expect(client.callTool({ name: "list_scene_collections", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { sceneCollections: ["Main Scenes"] } })
+    await expect(client.callTool({
+      name: "get_profile_parameter",
+      arguments: { parameterCategory: "SimpleOutput", parameterName: "VBitrate" }
+    })).resolves.toMatchObject({
+      structuredContent: { parameterValue: null, defaultParameterValue: "2500" }
+    })
+    await expect(client.callTool({ name: "get_record_directory", arguments: {} }))
+      .resolves.toMatchObject({ structuredContent: { recordDirectory: "/opaque/obs-recordings" } })
+  })
+
   it("lists and calls transition inventory tools through in-memory MCP handlers", async () => {
     const client = await connect(
       obsClient(async (requestType) => {

@@ -1,20 +1,26 @@
 import { createHash } from "node:crypto"
 import { type WebSocket, WebSocketServer } from "ws"
 
+import { FakeObsConfigState } from "./fake-obs-config-requests.js"
 import {
-  DEFAULT_AVAILABLE_REQUESTS,
   DEFAULT_CANVASES,
   DEFAULT_HOTKEYS,
   DEFAULT_INPUTS,
+  DEFAULT_PROFILE_PARAMETERS,
+  DEFAULT_PROFILES,
+  DEFAULT_RECORD_DIRECTORY,
+  DEFAULT_SCENE_COLLECTIONS,
   DEFAULT_SCENES,
   DEFAULT_TRANSITIONS,
   type FakeObsCanvas,
   type FakeObsInput,
+  type FakeObsProfileParameter,
   type FakeObsReceivedRequest,
   type FakeObsScene,
   type FakeObsTransition,
   sceneItemsFor
 } from "./fake-obs-fixtures.js"
+import { handleFakeObsFoundationRequest } from "./fake-obs-foundation-requests.js"
 import { handleFakeObsHotkeyRequest } from "./fake-obs-hotkey-requests.js"
 import { handleFakeObsInputRequest } from "./fake-obs-input-requests.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
@@ -52,6 +58,12 @@ interface FakeObsServerOptions {
   readonly inputs?: ReadonlyArray<FakeObsInput>
   readonly canvases?: ReadonlyArray<FakeObsCanvas>
   readonly hotkeys?: ReadonlyArray<string>
+  readonly profiles?: ReadonlyArray<string>
+  readonly currentProfileName?: string
+  readonly sceneCollections?: ReadonlyArray<string>
+  readonly currentSceneCollectionName?: string
+  readonly profileParameters?: ReadonlyArray<FakeObsProfileParameter>
+  readonly recordDirectory?: string
   readonly transitions?: ReadonlyArray<FakeObsTransition>
   readonly transitionCursor?: number
   readonly studioModeEnabled?: boolean
@@ -76,6 +88,14 @@ export class FakeObsServer {
   private readonly server: WebSocketServer
   private currentSceneName: string
   private receivedRequests: ReadonlyArray<FakeObsReceivedRequest> = []
+  private configState: FakeObsConfigState = new FakeObsConfigState({
+    profiles: DEFAULT_PROFILES,
+    currentProfileName: DEFAULT_PROFILES[0] ?? "Untitled",
+    sceneCollections: DEFAULT_SCENE_COLLECTIONS,
+    currentSceneCollectionName: DEFAULT_SCENE_COLLECTIONS[0] ?? "Main Scenes",
+    profileParameters: DEFAULT_PROFILE_PARAMETERS,
+    recordDirectory: DEFAULT_RECORD_DIRECTORY
+  })
   private inputState: FakeObsInputState = new FakeObsInputState([])
   private readonly outputState = new FakeObsOutputState()
   private transitionState: FakeObsTransitionState = new FakeObsTransitionState([], 1)
@@ -102,8 +122,18 @@ export class FakeObsServer {
     const inputs = options.inputs ?? DEFAULT_INPUTS
     const canvases = options.canvases ?? DEFAULT_CANVASES
     const hotkeys = options.hotkeys ?? DEFAULT_HOTKEYS
+    const profiles = options.profiles ?? DEFAULT_PROFILES
+    const sceneCollections = options.sceneCollections ?? DEFAULT_SCENE_COLLECTIONS
     const transitions = options.transitions ?? DEFAULT_TRANSITIONS
     const fake = new FakeObsServer(server, `ws://127.0.0.1:${address.port}`, scenes[0]?.sceneName ?? "Intro")
+    fake.configState = new FakeObsConfigState({
+      profiles,
+      currentProfileName: options.currentProfileName ?? profiles[0] ?? "Untitled",
+      sceneCollections,
+      currentSceneCollectionName: options.currentSceneCollectionName ?? sceneCollections[0] ?? "Main Scenes",
+      profileParameters: options.profileParameters ?? DEFAULT_PROFILE_PARAMETERS,
+      recordDirectory: options.recordDirectory ?? DEFAULT_RECORD_DIRECTORY
+    })
     fake.inputState = new FakeObsInputState(inputs)
     fake.transitionState = new FakeObsTransitionState(transitions, options.transitionCursor ?? 1)
     fake.installHandlers(options, scenes, inputs, canvases, hotkeys)
@@ -264,46 +294,16 @@ export class FakeObsServer {
       }
     }
 
-    if (requestType === "GetVersion") {
-      send({
-        obsVersion: "31.0.0",
-        obsWebSocketVersion: "5.6.0",
-        rpcVersion: 1,
-        availableRequests: options.availableRequestsValue ?? DEFAULT_AVAILABLE_REQUESTS,
-        supportedImageFormats: ["png", "jpg"],
-        platform: "ubuntu",
-        platformDescription: "Ubuntu 24.04"
-      })
-      return
-    }
-    if (requestType === "GetStats") {
-      send({
-        cpuUsage: 3.5,
-        memoryUsage: 512.25,
-        availableDiskSpace: 1024.5,
-        activeFps: 60,
-        averageFrameRenderTime: 1.75,
-        renderSkippedFrames: 2,
-        renderTotalFrames: 1000,
-        outputSkippedFrames: 3,
-        outputTotalFrames: 900,
-        webSocketSessionIncomingMessages: 10,
-        webSocketSessionOutgoingMessages: 11
-      })
+    if (handleFakeObsFoundationRequest(canvases, options, requestType, send)) {
       return
     }
     if (handleFakeObsHotkeyRequest(hotkeys, requestType, send)) {
       return
     }
-    if (requestType === "GetCanvasList") {
-      send({ canvases })
+    if (this.configState.handleRequest(requestType, envelope.d.requestData, send)) {
       return
     }
     if (this.transitionState.handleRequest(requestType, envelope.d.requestData, send)) {
-      return
-    }
-    if (requestType === "GetStudioModeEnabled") {
-      send({ studioModeEnabled: options.studioModeEnabled ?? false })
       return
     }
     if (requestType === "GetSceneList") {

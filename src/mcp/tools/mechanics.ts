@@ -13,6 +13,7 @@ export interface ToolContext {
 export type RuntimeSchema = Schema.Schema.AnyNoContext
 export type ToolCategory =
   | "canvases"
+  | "config"
   | "events"
   | "general"
   | "inputs"

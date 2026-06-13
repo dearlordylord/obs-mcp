@@ -37,6 +37,10 @@ The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
 - `trigger_hotkey_by_key_sequence`
 - `get_recent_obs_events`
 - `list_canvases`
+- `list_profiles`
+- `list_scene_collections`
+- `get_profile_parameter`
+- `get_record_directory`
 - `list_scenes`
 - `get_current_scene`
 - `set_current_scene`

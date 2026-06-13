@@ -4,6 +4,7 @@ export const protocolReferencePath = ".references/protocol/obs-websocket/docs/ge
 
 const Toolset = Schema.Literal(
   "canvases",
+  "config",
   "events",
   "general",
   "inputs",
@@ -40,6 +41,7 @@ const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
 
   const allowed = new Set<string>([
     "canvases",
+    "config",
     "events",
     "general",
     "inputs",

@@ -52,6 +52,13 @@ export interface FakeObsTransition {
   readonly transitionSettings?: Readonly<Record<string, unknown>> | null
 }
 
+export interface FakeObsProfileParameter {
+  readonly parameterCategory: string
+  readonly parameterName: string
+  readonly parameterValue: string | null
+  readonly defaultParameterValue: string | null
+}
+
 export interface FakeObsInputVolume {
   readonly inputVolumeMul: number
   readonly inputVolumeDb: number
@@ -187,12 +194,34 @@ export const DEFAULT_HOTKEYS: ReadonlyArray<string> = [
   "OBSBasic.Transition"
 ]
 
+export const DEFAULT_PROFILES: ReadonlyArray<string> = ["Untitled", "Production"]
+export const DEFAULT_SCENE_COLLECTIONS: ReadonlyArray<string> = ["Main Scenes", "Backup Scenes"]
+export const DEFAULT_PROFILE_PARAMETERS: ReadonlyArray<FakeObsProfileParameter> = [
+  {
+    parameterCategory: "Output",
+    parameterName: "Mode",
+    parameterValue: "Advanced",
+    defaultParameterValue: "Simple"
+  },
+  {
+    parameterCategory: "SimpleOutput",
+    parameterName: "VBitrate",
+    parameterValue: null,
+    defaultParameterValue: "2500"
+  }
+]
+export const DEFAULT_RECORD_DIRECTORY = "/opaque/obs-recordings"
+
 export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetVersion",
   "GetStats",
   "GetHotkeyList",
   "TriggerHotkeyByName",
   "TriggerHotkeyByKeySequence",
+  "GetProfileList",
+  "GetSceneCollectionList",
+  "GetProfileParameter",
+  "GetRecordDirectory",
   "GetCanvasList",
   "GetTransitionKindList",
   "GetSceneTransitionList",

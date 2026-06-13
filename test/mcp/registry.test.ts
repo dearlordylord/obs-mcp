@@ -100,6 +100,7 @@ const inputAvailableRequests = [
 ] satisfies ReadonlyArray<ObsRequestType>
 
 const canvasToolNames = ["list_canvases"]
+const configToolNames = ["list_profiles", "list_scene_collections", "get_profile_parameter", "get_record_directory"]
 const uiToolNames = ["get_studio_mode_enabled"]
 const transitionToolNames = [
   "list_transition_kinds",
@@ -261,6 +262,12 @@ describe("MCP tool registry", () => {
     )
     expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
       .toEqual(expect.not.arrayContaining(transitionToolNames))
+  })
+
+  it("exposes config inventory tools only for the config toolset", () => {
+    expect(getEnabledTools(["config"], allAvailableRequests).map((tool) => tool.name)).toEqual(configToolNames)
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .toEqual(expect.not.arrayContaining(configToolNames))
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
@@ -456,6 +463,16 @@ describe("MCP tool registry", () => {
       "trigger_studio_mode_transition"
     ])
     expect(getEnabledTools(["transitions"], []).map((tool) => tool.name)).toEqual([])
+  })
+
+  it("filters config inventory tools by negotiated OBS capabilities", () => {
+    expect(
+      getEnabledTools(["config"], [
+        "GetProfileList",
+        "GetProfileParameter"
+      ]).map((tool) => tool.name)
+    ).toEqual(["list_profiles", "get_profile_parameter"])
+    expect(getEnabledTools(["config"], []).map((tool) => tool.name)).toEqual([])
   })
 
   describe("lifecycle tool filtering", () => {
@@ -710,6 +727,48 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({ studioModeEnabled: true })
   })
 
+  it("executes config inventory handlers with structured output", async () => {
+    const fakeClient = clientWithData(async (requestType) => {
+      if (requestType === "GetProfileList") {
+        return { currentProfileName: "Production", profiles: ["Untitled", "Production"] }
+      }
+      if (requestType === "GetSceneCollectionList") {
+        return { currentSceneCollectionName: "Main Scenes", sceneCollections: ["Main Scenes"] }
+      }
+      if (requestType === "GetProfileParameter") {
+        return { parameterValue: null, defaultParameterValue: "2500" }
+      }
+      return { recordDirectory: "/opaque/obs-recordings" }
+    })
+
+    await expect(executeTool(toolByName("list_profiles"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ currentProfileName: "Production", profiles: ["Untitled", "Production"] })
+    await expect(executeTool(toolByName("list_scene_collections"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ currentSceneCollectionName: "Main Scenes", sceneCollections: ["Main Scenes"] })
+    await expect(executeTool(toolByName("get_profile_parameter"), {
+      parameterCategory: "SimpleOutput",
+      parameterName: "VBitrate"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ parameterValue: null, defaultParameterValue: "2500" })
+    await expect(executeTool(toolByName("get_record_directory"), {}, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
+    await expect(executeTool(toolByName("get_profile_parameter"), {
+      parameterCategory: "",
+      parameterName: "VBitrate"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: fakeClient
+    })).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+  })
+
   it("executes transition inventory handlers with structured output", async () => {
     const fakeClient = clientWithData(async (requestType) => {
       if (requestType === "GetTransitionKindList") {
@@ -833,6 +892,25 @@ describe("MCP tool registry", () => {
         requestType: "SetCurrentSceneTransition",
         obsStatusCode: 404,
         comment: "Transition not found"
+      }
+    })
+  })
+
+  it("maps config read OBS errors to MCP errors with OBS status metadata", async () => {
+    await expect(executeTool(toolByName("get_profile_parameter"), {
+      parameterCategory: "Missing",
+      parameterName: "Value"
+    }, {
+      config: { ...config, enabledToolsets: ["config"] },
+      client: client(async () => {
+        throw new ObsRequestError("GetProfileParameter", 601, "Parameter category not found")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "GetProfileParameter",
+        obsStatusCode: 601,
+        comment: "Parameter category not found"
       }
     })
   })

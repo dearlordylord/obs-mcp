@@ -1,4 +1,5 @@
 import { canvasTools } from "./canvases.js"
+import { configTools } from "./config.js"
 import { eventTools } from "./events.js"
 import { generalTools } from "./general.js"
 import { inputTools } from "./inputs.js"
@@ -14,6 +15,7 @@ export const allTools: ReadonlyArray<ToolDefinition> = [
   ...generalTools,
   ...eventTools,
   ...canvasTools,
+  ...configTools,
   ...sceneTools,
   ...inputTools,
   ...outputTools,

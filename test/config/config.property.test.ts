@@ -20,6 +20,7 @@ describe("OBS config properties", () => {
       const enabledToolsets: ReadonlyArray<string> = config.enabledToolsets
       const knownToolsets = new Set([
         "canvases",
+        "config",
         "events",
         "general",
         "inputs",

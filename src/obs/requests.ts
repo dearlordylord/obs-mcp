@@ -6,6 +6,10 @@ export const ObsRequestType = Schema.Literal(
   "GetHotkeyList",
   "TriggerHotkeyByName",
   "TriggerHotkeyByKeySequence",
+  "GetProfileList",
+  "GetSceneCollectionList",
+  "GetProfileParameter",
+  "GetRecordDirectory",
   "GetCanvasList",
   "GetTransitionKindList",
   "GetSceneTransitionList",
@@ -79,6 +83,7 @@ export const ObsRequestType = Schema.Literal(
 export type ObsRequestType = typeof ObsRequestType.Type
 
 export * from "./requests/canvases.js"
+export * from "./requests/config.js"
 export * from "./requests/general.js"
 export * from "./requests/inputs.js"
 export * from "./requests/outputs.js"

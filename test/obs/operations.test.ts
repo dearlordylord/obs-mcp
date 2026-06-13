@@ -2,10 +2,17 @@ import { Option, Schema } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
+import { ProfileParameterInput } from "../../src/domain/schemas/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { listCanvases } from "../../src/obs/operations/canvases.js"
+import {
+  getProfileParameter,
+  getRecordDirectory,
+  listProfiles,
+  listSceneCollections
+} from "../../src/obs/operations/config.js"
 import {
   getObsStats,
   getRecordStatus,
@@ -183,6 +190,74 @@ describe("OBS operations", () => {
         requestData: { keyModifiers: { alt: true } }
       }
     ])
+  })
+
+  it("reads config inventory through the fake OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      profiles: ["Untitled", "Production"],
+      currentProfileName: "Production",
+      sceneCollections: ["Main Scenes", "Backup Scenes"],
+      currentSceneCollectionName: "Main Scenes",
+      profileParameters: [{
+        parameterCategory: "Output",
+        parameterName: "Mode",
+        parameterValue: "Advanced",
+        defaultParameterValue: "Simple"
+      }],
+      recordDirectory: "/opaque/obs-recordings"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(listProfiles(client)).resolves.toEqual({
+      currentProfileName: "Production",
+      profiles: ["Untitled", "Production"]
+    })
+    await expect(listSceneCollections(client)).resolves.toEqual({
+      currentSceneCollectionName: "Main Scenes",
+      sceneCollections: ["Main Scenes", "Backup Scenes"]
+    })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "Output",
+      parameterName: "Mode"
+    })).resolves.toEqual({
+      parameterValue: "Advanced",
+      defaultParameterValue: "Simple"
+    })
+    await expect(getProfileParameter(client, {
+      parameterCategory: "Missing",
+      parameterName: "Unset"
+    })).resolves.toEqual({
+      parameterValue: null,
+      defaultParameterValue: null
+    })
+    await expect(getRecordDirectory(client)).resolves.toEqual({ recordDirectory: "/opaque/obs-recordings" })
+  })
+
+  it("validates config read schemas", () => {
+    expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "", parameterName: "Mode" }))
+      .toThrow()
+    expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "Output", parameterName: "" }))
+      .toThrow()
+  })
+
+  it("surfaces OBS config read request failures", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetProfileParameter: { code: 601, comment: "Parameter category not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["config"] })
+    clients.push(client)
+    await expect(getProfileParameter(client, {
+      parameterCategory: "Missing",
+      parameterName: "Value"
+    })).rejects.toMatchObject(
+      {
+        requestType: "GetProfileParameter",
+        code: 601,
+        comment: "Parameter category not found"
+      } satisfies Partial<ObsRequestError>
+    )
   })
 
   it("surfaces OBS hotkey trigger request failures", async () => {
