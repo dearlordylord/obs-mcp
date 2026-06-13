@@ -314,13 +314,8 @@ export class FakeObsServer {
       send({ outputActive: this.virtualCamActive })
       return
     }
-    if (requestType === "StartVirtualCam") {
-      this.virtualCamActive = true
-      send()
-      return
-    }
-    if (requestType === "StopVirtualCam") {
-      this.virtualCamActive = false
+    if (requestType === "StartVirtualCam" || requestType === "StopVirtualCam") {
+      this.virtualCamActive = requestType === "StartVirtualCam"
       send()
       return
     }
@@ -333,13 +328,8 @@ export class FakeObsServer {
       send({ outputActive: this.replayBufferActive })
       return
     }
-    if (requestType === "StartReplayBuffer") {
-      this.replayBufferActive = true
-      send()
-      return
-    }
-    if (requestType === "StopReplayBuffer") {
-      this.replayBufferActive = false
+    if (requestType === "StartReplayBuffer" || requestType === "StopReplayBuffer") {
+      this.replayBufferActive = requestType === "StartReplayBuffer"
       send()
       return
     }
@@ -348,7 +338,11 @@ export class FakeObsServer {
       send({ outputActive: this.replayBufferActive })
       return
     }
-    if (requestType === "SaveReplayBuffer") {
+    if (
+      requestType === "SaveReplayBuffer" || requestType === "SplitRecordFile" || requestType === "CreateRecordChapter"
+      || requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause"
+      || requestType === "SendStreamCaption"
+    ) {
       send()
       return
     }
@@ -381,14 +375,6 @@ export class FakeObsServer {
       send({ outputActive: this.recordActive })
       return
     }
-    if (requestType === "SplitRecordFile" || requestType === "CreateRecordChapter") {
-      send()
-      return
-    }
-    if (requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause") {
-      send()
-      return
-    }
     if (requestType === "GetStreamStatus") {
       send({
         outputActive: this.streamActive,
@@ -402,23 +388,14 @@ export class FakeObsServer {
       })
       return
     }
-    if (requestType === "StartStream") {
-      this.streamActive = true
-      send()
-      return
-    }
-    if (requestType === "StopStream") {
-      this.streamActive = false
+    if (requestType === "StartStream" || requestType === "StopStream") {
+      this.streamActive = requestType === "StartStream"
       send()
       return
     }
     if (requestType === "ToggleStream") {
       this.streamActive = !this.streamActive
       send({ outputActive: this.streamActive })
-      return
-    }
-    if (requestType === "SendStreamCaption") {
-      send()
       return
     }
     send()

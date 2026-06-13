@@ -21,18 +21,18 @@ import {
   ToggleReplayBuffer,
   ToggleVirtualCam
 } from "../requests.js"
-import { requestAndDecode, requestAndReturn } from "./shared.js"
+import { acknowledged, outputActive, outputActiveSwitch, requestAndDecode, requestAndReturn } from "./shared.js"
 
 export const getVirtualCamStatus = async (client: ObsClient): Promise<VirtualCamStatusOutput> => {
   return requestAndDecode(client, GetVirtualCamStatus, VirtualCamStatusOutput)
 }
 
 export const startVirtualCam = async (client: ObsClient): Promise<VirtualCamSwitchOutput> => {
-  return requestAndReturn(client, StartVirtualCam, { outputActive: true, switched: true }, VirtualCamSwitchOutput)
+  return requestAndReturn(client, StartVirtualCam, outputActiveSwitch(true), VirtualCamSwitchOutput)
 }
 
 export const stopVirtualCam = async (client: ObsClient): Promise<VirtualCamSwitchOutput> => {
-  return requestAndReturn(client, StopVirtualCam, { outputActive: false, switched: true }, VirtualCamSwitchOutput)
+  return requestAndReturn(client, StopVirtualCam, outputActiveSwitch(false), VirtualCamSwitchOutput)
 }
 
 export const toggleVirtualCam = async (client: ObsClient): Promise<VirtualCamSwitchOutput> => {
@@ -45,11 +45,11 @@ export const getReplayBufferStatus = async (client: ObsClient): Promise<ReplayBu
 }
 
 export const startReplayBuffer = async (client: ObsClient): Promise<ReplayBufferSwitchOutput> => {
-  return requestAndReturn(client, StartReplayBuffer, { outputActive: true }, ReplayBufferSwitchOutput)
+  return requestAndReturn(client, StartReplayBuffer, outputActive(true), ReplayBufferSwitchOutput)
 }
 
 export const stopReplayBuffer = async (client: ObsClient): Promise<ReplayBufferSwitchOutput> => {
-  return requestAndReturn(client, StopReplayBuffer, { outputActive: false }, ReplayBufferSwitchOutput)
+  return requestAndReturn(client, StopReplayBuffer, outputActive(false), ReplayBufferSwitchOutput)
 }
 
 export const toggleReplayBuffer = async (client: ObsClient): Promise<ReplayBufferSwitchOutput> => {
@@ -57,10 +57,7 @@ export const toggleReplayBuffer = async (client: ObsClient): Promise<ReplayBuffe
 }
 
 export const saveReplayBuffer = async (client: ObsClient): Promise<SaveReplayBufferOutput> => {
-  return requestAndReturn(client, SaveReplayBuffer, {
-    requestType: SaveReplayBuffer.requestType,
-    acknowledged: true
-  }, SaveReplayBufferOutput)
+  return requestAndReturn(client, SaveReplayBuffer, acknowledged(SaveReplayBuffer.requestType), SaveReplayBufferOutput)
 }
 
 export const getLastReplayBufferReplay = async (client: ObsClient): Promise<LastReplayBufferReplayOutput> => {

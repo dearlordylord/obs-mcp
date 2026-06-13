@@ -20,13 +20,10 @@ import {
   ToggleRecord,
   ToggleRecordPause
 } from "../requests.js"
-import { requestAndDecode, requestAndReturn } from "./shared.js"
+import { acknowledged, requestAndDecode, requestAndReturn } from "./shared.js"
 
 export const startRecord = async (client: ObsClient): Promise<StartRecordOutput> => {
-  return requestAndReturn(client, StartRecord, {
-    requestType: StartRecord.requestType,
-    acknowledged: true
-  }, StartRecordOutput)
+  return requestAndReturn(client, StartRecord, acknowledged(StartRecord.requestType), StartRecordOutput)
 }
 
 export const stopRecord = async (client: ObsClient): Promise<StopRecordOutput> => {
@@ -43,10 +40,7 @@ export const toggleRecord = async (client: ObsClient): Promise<ToggleRecordOutpu
 }
 
 export const splitRecordFile = async (client: ObsClient): Promise<SplitRecordFileOutput> => {
-  return requestAndReturn(client, SplitRecordFile, {
-    requestType: SplitRecordFile.requestType,
-    acknowledged: true
-  }, SplitRecordFileOutput)
+  return requestAndReturn(client, SplitRecordFile, acknowledged(SplitRecordFile.requestType), SplitRecordFileOutput)
 }
 
 export const createRecordChapter = async (
@@ -55,10 +49,7 @@ export const createRecordChapter = async (
 ): Promise<CreateRecordChapterOutput> => {
   const decodedInput = Schema.decodeUnknownSync(CreateRecordChapterInput, { onExcessProperty: "error" })(input)
   await client.request(CreateRecordChapter, decodedInput)
-  return CreateRecordChapterOutput.make({
-    requestType: CreateRecordChapter.requestType,
-    acknowledged: true
-  })
+  return CreateRecordChapterOutput.make(acknowledged(CreateRecordChapter.requestType))
 }
 
 export const pauseRecord = async (client: ObsClient): Promise<RecordPauseControlOutput> => {
