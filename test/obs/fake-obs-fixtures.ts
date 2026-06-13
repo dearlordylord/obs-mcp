@@ -215,6 +215,8 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetInputDefaultSettings",
   "GetInputSettings",
   "GetInputPropertiesListPropertyItems",
+  "SetInputSettings",
+  "PressInputPropertiesButton",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",

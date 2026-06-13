@@ -95,6 +95,8 @@ describe("MCP server protocol handlers", () => {
       "get_input_default_settings",
       "get_input_settings",
       "get_input_properties_list_property_items",
+      "set_input_settings",
+      "press_input_properties_button",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -339,6 +341,8 @@ describe("MCP server protocol handlers", () => {
       "get_input_default_settings",
       "get_input_settings",
       "get_input_properties_list_property_items",
+      "set_input_settings",
+      "press_input_properties_button",
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
@@ -390,6 +394,26 @@ describe("MCP server protocol handlers", () => {
         }],
         rawPropertyItemsDeferred: true
       }
+    })
+    await expect(client.callTool({
+      name: "set_input_settings",
+      arguments: {
+        inputName: "Media Source",
+        inputSettings: { looping: true, speedPercent: 125 },
+        overlay: false
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        inputSettings: { looping: true, speedPercent: 125 },
+        overlay: false,
+        acknowledged: true
+      }
+    })
+    await expect(client.callTool({
+      name: "press_input_properties_button",
+      arguments: { inputName: "Browser", propertyName: "refreshnocache" }
+    })).resolves.toMatchObject({
+      structuredContent: { propertyName: "refreshnocache", acknowledged: true }
     })
   })
 

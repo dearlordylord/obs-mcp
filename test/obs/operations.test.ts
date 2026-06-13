@@ -23,6 +23,7 @@ import {
   listInputKinds,
   listInputs,
   offsetMediaInputCursor,
+  pressInputPropertiesButton,
   setInputAudioBalance,
   setInputAudioMonitorType,
   setInputAudioSyncOffset,
@@ -30,6 +31,7 @@ import {
   setInputDeinterlaceFieldOrder,
   setInputDeinterlaceMode,
   setInputMute,
+  setInputSettings,
   setInputVolume,
   setMediaInputCursor,
   toggleInputMute,
@@ -659,6 +661,125 @@ describe("OBS operations", () => {
         requestType: "GetInputSettings",
         code: 607,
         comment: "Input settings unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("applies guarded input settings and presses property buttons over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputSettings(client, {
+      inputName: "Media Source",
+      inputSettings: {
+        looping: true,
+        restartOnActivate: false,
+        speedPercent: 125,
+        reconnectDelaySec: 10
+      },
+      overlay: false
+    })).resolves.toEqual({
+      inputSettings: {
+        looping: true,
+        restartOnActivate: false,
+        speedPercent: 125,
+        reconnectDelaySec: 10
+      },
+      overlay: false,
+      acknowledged: true
+    })
+    await expect(pressInputPropertiesButton(client, {
+      inputUuid: "input-mic-aux",
+      propertyName: "refreshnocache"
+    })).resolves.toEqual({
+      propertyName: "refreshnocache",
+      acknowledged: true
+    })
+    await expect(setInputSettings(client, {
+      inputUuid: "input-mic-aux",
+      inputSettings: { looping: false }
+    })).resolves.toEqual({
+      inputSettings: { looping: false },
+      overlay: true,
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) =>
+      request.requestType === "SetInputSettings"
+      || request.requestType === "PressInputPropertiesButton"
+    )).toEqual([
+      {
+        requestType: "SetInputSettings",
+        requestData: {
+          inputName: "Media Source",
+          inputSettings: {
+            looping: true,
+            reconnect_delay_sec: 10,
+            restart_on_activate: false,
+            speed_percent: 125
+          },
+          overlay: false
+        }
+      },
+      {
+        requestType: "PressInputPropertiesButton",
+        requestData: { inputUuid: "input-mic-aux", propertyName: "refreshnocache" }
+      },
+      {
+        requestType: "SetInputSettings",
+        requestData: {
+          inputUuid: "input-mic-aux",
+          inputSettings: { looping: false },
+          overlay: true
+        }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for guarded input settings mutations", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: {
+        SetInputSettings: { code: 608, comment: "Settings rejected" },
+        PressInputPropertiesButton: { code: 609, comment: "Button unavailable" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    const setInputSettingsUnchecked = setInputSettings as (
+      client: ObsClient,
+      input: unknown
+    ) => ReturnType<typeof setInputSettings>
+    await expect(setInputSettingsUnchecked(client, {
+      inputName: "Media Source",
+      inputSettings: {}
+    })).rejects.toThrow("At least one allowlisted input setting is required")
+    await expect(setInputSettingsUnchecked(client, {
+      inputName: "Media Source",
+      inputSettings: { url: "https://example.invalid" }
+    })).rejects.toThrow("At least one allowlisted input setting is required")
+    await expect(pressInputPropertiesButton(client, {
+      inputName: "Browser",
+      propertyName: ""
+    })).rejects.toThrow("Expected a non empty string")
+    await expect(setInputSettings(client, {
+      inputName: "Media Source",
+      inputSettings: { looping: true }
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputSettings",
+        code: 608,
+        comment: "Settings rejected"
+      } satisfies Partial<ObsRequestError>
+    )
+    await expect(pressInputPropertiesButton(client, {
+      inputName: "Browser",
+      propertyName: "refreshnocache"
+    })).rejects.toMatchObject(
+      {
+        requestType: "PressInputPropertiesButton",
+        code: 609,
+        comment: "Button unavailable"
       } satisfies Partial<ObsRequestError>
     )
   })

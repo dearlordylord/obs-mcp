@@ -16,6 +16,7 @@ import {
   ListInputKindsInput,
   MediaInputStatusOutput,
   OffsetMediaInputCursorInput,
+  PressInputPropertiesButtonInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
@@ -23,6 +24,7 @@ import {
   SetInputDeinterlaceFieldOrderInput,
   SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputSettingsInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
   TriggerMediaInputActionInput
@@ -76,15 +78,15 @@ const inputToolNames = [
   "get_input_default_settings",
   "get_input_settings",
   "get_input_properties_list_property_items",
+  "set_input_settings",
+  "press_input_properties_button",
   "get_media_input_status",
   "set_media_input_cursor",
   "offset_media_input_cursor",
   "trigger_media_input_action"
 ]
 
-const deferredInputMediaToolNames = [
-  "set_input_settings"
-]
+const deferredInputMediaToolNames: ReadonlyArray<string> = []
 
 const inputAvailableRequests = [
   "GetInputList",
@@ -110,6 +112,8 @@ const inputAvailableRequests = [
   "GetInputDefaultSettings",
   "GetInputSettings",
   "GetInputPropertiesListPropertyItems",
+  "SetInputSettings",
+  "PressInputPropertiesButton",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
@@ -397,6 +401,8 @@ describe("MCP tool registry", () => {
           "GetInputDefaultSettings",
           "GetInputSettings",
           "GetInputPropertiesListPropertyItems",
+          "SetInputSettings",
+          "PressInputPropertiesButton",
           "GetMediaInputStatus",
           "SetMediaInputCursor",
           "TriggerMediaInputAction"
@@ -417,6 +423,8 @@ describe("MCP tool registry", () => {
           "get_input_default_settings",
           "get_input_settings",
           "get_input_properties_list_property_items",
+          "set_input_settings",
+          "press_input_properties_button",
           "get_media_input_status",
           "set_media_input_cursor",
           "trigger_media_input_action"
@@ -755,6 +763,26 @@ describe("MCP tool registry", () => {
         }
       },
       {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: {
+          inputName: "Media Source",
+          inputSettings: {
+            isLocalFile: true,
+            looping: false,
+            restartOnActivate: true,
+            closeWhenInactive: false,
+            clearOnMediaEnd: true,
+            hwDecode: false,
+            speedPercent: 100,
+            reconnectDelaySec: 5
+          }
+        }
+      },
+      {
+        decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput),
+        input: { inputUuid: "input-browser", propertyName: "refreshnocache" }
+      },
+      {
         decode: Schema.decodeUnknownSync(MediaInputStatusOutput),
         input: { mediaState: "OBS_MEDIA_STATE_STOPPED", mediaDuration: null, mediaCursor: null }
       },
@@ -813,6 +841,8 @@ describe("MCP tool registry", () => {
         extra: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
       },
       { decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput), extra: { propertyName: "device_id" } },
+      { decode: Schema.decodeUnknownSync(SetInputSettingsInput), extra: { inputSettings: { looping: true } } },
+      { decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput), extra: { propertyName: "refreshnocache" } },
       { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
       { decode: Schema.decodeUnknownSync(OffsetMediaInputCursorInput), extra: { mediaCursorOffset: 1 } },
       {
@@ -919,6 +949,26 @@ describe("MCP tool registry", () => {
           rawSettingsDeferred: true
         },
         message: "Expected"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: { inputName: "Media Source", inputSettings: {} },
+        message: "At least one allowlisted input setting is required"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: { inputName: "Media Source", inputSettings: { speedPercent: 0 } },
+        message: "Expected a number greater than or equal to 1"
+      },
+      {
+        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
+        input: { inputName: "Media Source", inputSettings: { reconnectDelaySec: 301 } },
+        message: "Expected a number less than or equal to 300"
+      },
+      {
+        decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput),
+        input: { inputName: "Browser", propertyName: "" },
+        message: "Expected a non empty string"
       },
       {
         decode: Schema.decodeUnknownSync(SetMediaInputCursorInput),
@@ -1152,6 +1202,32 @@ describe("MCP tool registry", () => {
           }],
           rawPropertyItemsDeferred: true
         }
+      },
+      {
+        toolName: "set_input_settings",
+        input: {
+          inputName: "Media Source",
+          inputSettings: {
+            looping: true,
+            restartOnActivate: false,
+            speedPercent: 125
+          },
+          overlay: false
+        },
+        expected: {
+          inputSettings: {
+            looping: true,
+            restartOnActivate: false,
+            speedPercent: 125
+          },
+          overlay: false,
+          acknowledged: true
+        }
+      },
+      {
+        toolName: "press_input_properties_button",
+        input: { inputName: "Browser", propertyName: "refreshnocache" },
+        expected: { propertyName: "refreshnocache", acknowledged: true }
       },
       {
         toolName: "get_media_input_status",

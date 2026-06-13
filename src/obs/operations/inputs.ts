@@ -3,6 +3,7 @@ import { Schema } from "effect"
 import type {
   ObsInputAudioTracks,
   OffsetMediaInputCursorOutput,
+  PressInputPropertiesButtonOutput,
   SanitizedInputPropertyItem,
   SanitizedInputSetting,
   SanitizedInputValueType,
@@ -12,6 +13,7 @@ import type {
   SetInputAudioTracksOutput,
   SetInputDeinterlaceFieldOrderOutput,
   SetInputDeinterlaceModeOutput,
+  SetInputSettingsOutput,
   SetMediaInputCursorOutput,
   TriggerMediaInputActionOutput
 } from "../../domain/schemas/inputs.js"
@@ -36,6 +38,7 @@ import {
   ListInputsOutput,
   MediaInputStatusOutput,
   OffsetMediaInputCursorInput,
+  PressInputPropertiesButtonInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
@@ -43,6 +46,7 @@ import {
   SetInputDeinterlaceFieldOrderInput,
   SetInputDeinterlaceModeInput,
   SetInputMuteInput,
+  SetInputSettingsInput,
   SetInputVolumeInput,
   SetInputVolumeOutput,
   SetMediaInputCursorInput,
@@ -67,6 +71,7 @@ import {
   GetMediaInputStatus,
   GetSpecialInputs,
   OffsetMediaInputCursor,
+  PressInputPropertiesButton,
   SetInputAudioBalance,
   SetInputAudioMonitorType,
   SetInputAudioSyncOffset,
@@ -74,6 +79,7 @@ import {
   SetInputDeinterlaceFieldOrder,
   SetInputDeinterlaceMode,
   SetInputMute,
+  SetInputSettings,
   SetInputVolume,
   SetMediaInputCursor,
   ToggleInputMute,
@@ -372,6 +378,46 @@ export const getInputPropertiesListPropertyItems = async (
     propertyItems: response.propertyItems.map(sanitizePropertyItem),
     rawPropertyItemsDeferred: true
   })
+}
+
+const inputSettingsPatchToObsSettings = (
+  settings: SetInputSettingsInput["inputSettings"]
+): Readonly<Record<string, unknown>> =>
+  Object.fromEntries(
+    [
+      ["is_local_file", settings.isLocalFile],
+      ["looping", settings.looping],
+      ["restart_on_activate", settings.restartOnActivate],
+      ["close_when_inactive", settings.closeWhenInactive],
+      ["clear_on_media_end", settings.clearOnMediaEnd],
+      ["hw_decode", settings.hwDecode],
+      ["speed_percent", settings.speedPercent],
+      ["reconnect_delay_sec", settings.reconnectDelaySec]
+    ].filter(([, value]) => value !== undefined)
+  )
+
+export const setInputSettings = async (
+  client: ObsClient,
+  input: SetInputSettingsInput
+): Promise<SetInputSettingsOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetInputSettingsInput)(input)
+  const overlay = decodedInput.overlay ?? true
+  await client.request(SetInputSettings, {
+    ...(decodedInput.inputName === undefined ? {} : { inputName: decodedInput.inputName }),
+    ...(decodedInput.inputUuid === undefined ? {} : { inputUuid: decodedInput.inputUuid }),
+    inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings),
+    overlay
+  })
+  return { inputSettings: decodedInput.inputSettings, overlay, acknowledged: true }
+}
+
+export const pressInputPropertiesButton = async (
+  client: ObsClient,
+  input: PressInputPropertiesButtonInput
+): Promise<PressInputPropertiesButtonOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(PressInputPropertiesButtonInput)(input)
+  await client.request(PressInputPropertiesButton, decodedInput)
+  return { propertyName: decodedInput.propertyName, acknowledged: true }
 }
 
 export const getMediaInputStatus = async (

@@ -42,6 +42,8 @@ export const ObsRequestType = Schema.Literal(
   "GetInputDefaultSettings",
   "GetInputSettings",
   "GetInputPropertiesListPropertyItems",
+  "SetInputSettings",
+  "PressInputPropertiesButton",
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",

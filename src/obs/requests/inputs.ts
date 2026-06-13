@@ -20,7 +20,9 @@ import {
   ObsInputDefaultSettingsOutput,
   ObsInputPropertiesListPropertyItemsOutput,
   ObsInputSettingsOutput,
+  ObsSetInputSettingsInput,
   OffsetMediaInputCursorInput,
+  PressInputPropertiesButtonInput,
   SetInputAudioBalanceInput,
   SetInputAudioMonitorTypeInput,
   SetInputAudioSyncOffsetInput,
@@ -174,6 +176,18 @@ export const GetInputPropertiesListPropertyItems = {
   requestDataSchema: InputPropertiesListPropertyItemsInput,
   responseSchema: ObsInputPropertiesListPropertyItemsOutput
 } satisfies ObsRequestDescriptor<ObsInputPropertiesListPropertyItemsOutput>
+
+export const SetInputSettings = {
+  requestType: "SetInputSettings",
+  requestDataSchema: ObsSetInputSettingsInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const PressInputPropertiesButton = {
+  requestType: "PressInputPropertiesButton",
+  requestDataSchema: PressInputPropertiesButtonInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 
 export const GetMediaInputStatus = {
   requestType: "GetMediaInputStatus",

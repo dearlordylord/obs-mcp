@@ -14,6 +14,8 @@ interface FakeObsInputRequestContext {
   readonly inputUuid?: string
   readonly inputKind?: string
   readonly propertyName?: string
+  readonly inputSettings?: Record<string, unknown>
+  readonly overlay?: boolean
   readonly inputMuted?: boolean
   readonly inputVolumeMul?: number
   readonly inputVolumeDb?: number
@@ -120,6 +122,10 @@ export const handleFakeObsInputRequest = (
         { metadata: { omitted: true } }
       ]
     })
+    return true
+  }
+  if (requestType === "SetInputSettings" || requestType === "PressInputPropertiesButton") {
+    send()
     return true
   }
   if (requestType === "GetMediaInputStatus") {

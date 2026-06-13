@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 import { JSONSchema, Schema } from "effect"
 
 import { UnknownRecord } from "./shared.js"
@@ -346,6 +348,70 @@ export const ObsInputPropertiesListPropertyItemsOutput = Schema.Struct({
   propertyItems: Schema.Array(UnknownRecord)
 })
 export type ObsInputPropertiesListPropertyItemsOutput = typeof ObsInputPropertiesListPropertyItemsOutput.Type
+
+export const InputSettingsPatch = Schema.Struct({
+  isLocalFile: Schema.optional(Schema.Boolean),
+  looping: Schema.optional(Schema.Boolean),
+  restartOnActivate: Schema.optional(Schema.Boolean),
+  closeWhenInactive: Schema.optional(Schema.Boolean),
+  clearOnMediaEnd: Schema.optional(Schema.Boolean),
+  hwDecode: Schema.optional(Schema.Boolean),
+  speedPercent: Schema.optional(
+    Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(200))
+  ),
+  reconnectDelaySec: Schema.optional(
+    Schema.Number.pipe(Schema.int(), Schema.greaterThanOrEqualTo(0), Schema.lessThanOrEqualTo(300))
+  )
+}).pipe(
+  Schema.filter((settings) => Object.values(settings).some((value) => value !== undefined), {
+    message: () => "At least one allowlisted input setting is required"
+  })
+)
+export type InputSettingsPatch = typeof InputSettingsPatch.Type
+export const InputSettingsPatchJsonSchema = JSONSchema.make(InputSettingsPatch)
+
+export const SetInputSettingsInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputSettings: InputSettingsPatch,
+    overlay: Schema.optional(Schema.Boolean)
+  })
+)
+export type SetInputSettingsInput = typeof SetInputSettingsInput.Type
+export const SetInputSettingsInputJsonSchema = JSONSchema.make(SetInputSettingsInput)
+
+export const SetInputSettingsOutput = Schema.Struct({
+  inputSettings: InputSettingsPatch,
+  overlay: Schema.Boolean,
+  acknowledged: Schema.Literal(true)
+})
+export type SetInputSettingsOutput = typeof SetInputSettingsOutput.Type
+export const SetInputSettingsOutputJsonSchema = JSONSchema.make(SetInputSettingsOutput)
+
+export const ObsSetInputSettingsInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    inputSettings: UnknownRecord,
+    overlay: Schema.optionalWith(Schema.Boolean, { default: () => true })
+  })
+)
+export type ObsSetInputSettingsInput = typeof ObsSetInputSettingsInput.Type
+
+export const PressInputPropertiesButtonInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    propertyName: Schema.NonEmptyString
+  })
+)
+export type PressInputPropertiesButtonInput = typeof PressInputPropertiesButtonInput.Type
+export const PressInputPropertiesButtonInputJsonSchema = JSONSchema.make(PressInputPropertiesButtonInput)
+
+export const PressInputPropertiesButtonOutput = Schema.Struct({
+  propertyName: Schema.String,
+  acknowledged: Schema.Literal(true)
+})
+export type PressInputPropertiesButtonOutput = typeof PressInputPropertiesButtonOutput.Type
+export const PressInputPropertiesButtonOutputJsonSchema = JSONSchema.make(PressInputPropertiesButtonOutput)
 
 export const MediaInputState = Schema.Literal(
   "OBS_MEDIA_STATE_NONE",
