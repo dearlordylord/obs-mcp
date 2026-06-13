@@ -50,6 +50,7 @@ const allAvailableRequests = [
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
+  "TriggerMediaInputAction",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -124,6 +125,7 @@ describe("MCP server protocol handlers", () => {
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
+      "trigger_media_input_action",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -259,6 +261,9 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "SetMediaInputCursor" || requestType === "OffsetMediaInputCursor") {
           return {}
         }
+        if (requestType === "TriggerMediaInputAction") {
+          return {}
+        }
         return {
           desktop1: "Desktop Audio",
           desktop2: null,
@@ -288,7 +293,8 @@ describe("MCP server protocol handlers", () => {
       "set_input_audio_sync_offset",
       "get_media_input_status",
       "set_media_input_cursor",
-      "offset_media_input_cursor"
+      "offset_media_input_cursor",
+      "trigger_media_input_action"
     ])
     await expect(client.callTool({ name: "list_inputs", arguments: { inputKind: "wasapi_input_capture" } }))
       .resolves.toMatchObject({ structuredContent: { inputs: [{ inputName: "Mic/Aux" }] } })
@@ -345,6 +351,18 @@ describe("MCP server protocol handlers", () => {
       name: "offset_media_input_cursor",
       arguments: { inputUuid: "input-media-source", mediaCursorOffset: -500 }
     })).resolves.toMatchObject({ structuredContent: { mediaCursorOffset: -500, acknowledged: true } })
+    await expect(client.callTool({
+      name: "trigger_media_input_action",
+      arguments: {
+        inputName: "Media Source",
+        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE",
+        acknowledged: true
+      }
+    })
   })
 
   it("does not list output tools when the outputs toolset is disabled", async () => {

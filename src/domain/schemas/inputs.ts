@@ -197,6 +197,33 @@ export const OffsetMediaInputCursorOutput = Schema.Struct({
 export type OffsetMediaInputCursorOutput = typeof OffsetMediaInputCursorOutput.Type
 export const OffsetMediaInputCursorOutputJsonSchema = JSONSchema.make(OffsetMediaInputCursorOutput)
 
+export const ObsMediaInputAction = Schema.Literal(
+  "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NONE",
+  "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY",
+  "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE",
+  "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP",
+  "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+  "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NEXT",
+  "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PREVIOUS"
+)
+export type ObsMediaInputAction = typeof ObsMediaInputAction.Type
+
+export const TriggerMediaInputActionInput = Schema.extend(
+  InputLocatorInput,
+  Schema.Struct({
+    mediaAction: ObsMediaInputAction
+  })
+)
+export type TriggerMediaInputActionInput = typeof TriggerMediaInputActionInput.Type
+export const TriggerMediaInputActionInputJsonSchema = JSONSchema.make(TriggerMediaInputActionInput)
+
+export const TriggerMediaInputActionOutput = Schema.Struct({
+  mediaAction: ObsMediaInputAction,
+  acknowledged: Schema.Literal(true)
+})
+export type TriggerMediaInputActionOutput = typeof TriggerMediaInputActionOutput.Type
+export const TriggerMediaInputActionOutputJsonSchema = JSONSchema.make(TriggerMediaInputActionOutput)
+
 export const ListInputsInput = Schema.Struct({
   inputKind: Schema.optional(Schema.NonEmptyString)
 })

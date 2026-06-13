@@ -6,6 +6,7 @@ import {
   type FakeObsInput,
   type FakeObsInputAudioState,
   type FakeObsInputVolume,
+  type FakeObsMediaInputAction,
   type FakeObsMediaInputStatus
 } from "./fake-obs-fixtures.js"
 
@@ -136,10 +137,32 @@ export class FakeObsInputState {
     this.offsetMediaCursor(locator, requestData.mediaCursorOffset ?? 0)
   }
 
+  public triggerMediaAction(locator: string, mediaAction: FakeObsMediaInputAction): void {
+    const status = this.getMediaStatus(locator)
+    if (mediaAction === "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY") {
+      this.setMediaStatus(locator, { ...status, mediaState: "OBS_MEDIA_STATE_PLAYING" })
+    }
+    if (mediaAction === "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE") {
+      this.setMediaStatus(locator, { ...status, mediaState: "OBS_MEDIA_STATE_PAUSED" })
+    }
+    if (mediaAction === "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP") {
+      this.setMediaStatus(locator, { ...status, mediaState: "OBS_MEDIA_STATE_STOPPED" })
+    }
+    if (mediaAction === "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART") {
+      this.setMediaStatus(locator, { ...status, mediaState: "OBS_MEDIA_STATE_PLAYING", mediaCursor: 0 })
+    }
+  }
+
   private keysFor(locator: string): ReadonlyArray<string> {
     const input = this.inputs.find((entry) => entry.inputName === locator || entry.inputUuid === locator)
     return input === undefined
       ? [locator]
       : [input.inputName, ...(input.inputUuid === undefined ? [] : [input.inputUuid])]
+  }
+
+  private setMediaStatus(locator: string, status: FakeObsMediaInputStatus): void {
+    for (const key of this.keysFor(locator)) {
+      this.mediaStatusByKey.set(key, status)
+    }
   }
 }

@@ -13,7 +13,8 @@ import {
   SetInputAudioSyncOffsetInput,
   SetInputMuteInput,
   SetInputVolumeInput,
-  SetMediaInputCursorInput
+  SetMediaInputCursorInput,
+  TriggerMediaInputActionInput
 } from "../../src/domain/schemas/inputs.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
@@ -56,6 +57,7 @@ const allAvailableRequests = [
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
+  "TriggerMediaInputAction",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",
@@ -126,6 +128,7 @@ describe("MCP tool registry", () => {
       "get_media_input_status",
       "set_media_input_cursor",
       "offset_media_input_cursor",
+      "trigger_media_input_action",
       "get_record_status",
       "pause_record",
       "resume_record",
@@ -151,7 +154,8 @@ describe("MCP tool registry", () => {
       "set_input_audio_sync_offset",
       "get_media_input_status",
       "set_media_input_cursor",
-      "offset_media_input_cursor"
+      "offset_media_input_cursor",
+      "trigger_media_input_action"
     ])
   })
 
@@ -209,7 +213,8 @@ describe("MCP tool registry", () => {
       "set_input_audio_sync_offset",
       "get_media_input_status",
       "set_media_input_cursor",
-      "offset_media_input_cursor"
+      "offset_media_input_cursor",
+      "trigger_media_input_action"
     ])
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("pause_record")
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_mute")
@@ -218,6 +223,7 @@ describe("MCP tool registry", () => {
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_input_audio_sync_offset")
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("get_media_input_status")
     expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("set_media_input_cursor")
+    expect(getEnabledTools(["scenes"]).map((tool) => tool.name)).not.toContain("trigger_media_input_action")
   })
 
   it("filters tools by negotiated OBS capabilities", () => {
@@ -266,7 +272,8 @@ describe("MCP tool registry", () => {
         "GetInputAudioBalance",
         "GetInputAudioSyncOffset",
         "GetMediaInputStatus",
-        "SetMediaInputCursor"
+        "SetMediaInputCursor",
+        "TriggerMediaInputAction"
       ]).map((tool) => tool.name)
     ).toEqual([
       "list_inputs",
@@ -279,7 +286,8 @@ describe("MCP tool registry", () => {
       "get_input_audio_balance",
       "get_input_audio_sync_offset",
       "get_media_input_status",
-      "set_media_input_cursor"
+      "set_media_input_cursor",
+      "trigger_media_input_action"
     ])
   })
 
@@ -516,6 +524,15 @@ describe("MCP tool registry", () => {
       inputUuid: "input-media-source",
       mediaCursorOffset: -500
     })
+    expect(
+      Schema.decodeUnknownSync(TriggerMediaInputActionInput)({
+        inputName: "Media Source",
+        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+      })
+    ).toEqual({
+      inputName: "Media Source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+    })
     expect(Schema.decodeUnknownSync(ListInputKindsInput)({})).toEqual({ unversioned: false })
     expect(() => Schema.decodeUnknownSync(InputLocatorInput)({})).toThrow("Exactly one")
     const duplicateLocator = { inputName: "Mic/Aux", inputUuid: "input-mic-aux" }
@@ -575,6 +592,12 @@ describe("MCP tool registry", () => {
         mediaCursor: -1
       })
     ).toThrow("Expected a non-negative number")
+    expect(() =>
+      Schema.decodeUnknownSync(TriggerMediaInputActionInput)({
+        inputName: "Media Source",
+        mediaAction: "invalid"
+      })
+    ).toThrow("Expected")
   })
 
   it("executes input mute handlers with structured output", async () => {
@@ -751,11 +774,28 @@ describe("MCP tool registry", () => {
       config: { ...config, enabledToolsets: ["inputs"] },
       client: fakeClient
     })).resolves.toEqual({ mediaCursorOffset: -500, acknowledged: true })
+    await expect(executeTool(toolByName("trigger_media_input_action"), {
+      inputName: "Media Source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+    }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeClient
+    })).resolves.toEqual({
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE",
+      acknowledged: true
+    })
     expect(seen).toEqual([
       { requestType: "SetMediaInputCursor", requestData: { inputName: "Media Source", mediaCursor: 2500 } },
       {
         requestType: "OffsetMediaInputCursor",
         requestData: { inputUuid: "input-media-source", mediaCursorOffset: -500 }
+      },
+      {
+        requestType: "TriggerMediaInputAction",
+        requestData: {
+          inputName: "Media Source",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+        }
       }
     ])
   })

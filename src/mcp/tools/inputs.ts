@@ -23,7 +23,9 @@ import {
   SetInputVolumeOutput,
   SetMediaInputCursorInput,
   SetMediaInputCursorOutput,
-  SpecialInputsOutput
+  SpecialInputsOutput,
+  TriggerMediaInputActionInput,
+  TriggerMediaInputActionOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
 import {
@@ -43,7 +45,8 @@ import {
   setInputMute,
   setInputVolume,
   setMediaInputCursor,
-  toggleInputMute
+  toggleInputMute,
+  triggerMediaInputAction
 } from "../../obs/operations/inputs.js"
 import {
   GetInputAudioBalance,
@@ -62,7 +65,8 @@ import {
   SetInputMute,
   SetInputVolume,
   SetMediaInputCursor,
-  ToggleInputMute
+  ToggleInputMute,
+  TriggerMediaInputAction
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -238,5 +242,15 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: OffsetMediaInputCursorInput,
     outputSchema: OffsetMediaInputCursorOutput,
     handler: async (input, context) => offsetMediaInputCursor(context.client, input)
+  }),
+  defineTool({
+    name: "trigger_media_input_action",
+    title: "Trigger OBS Media Input Action",
+    description: "Trigger an official OBS media input action.",
+    category: CATEGORY,
+    requiredObsRequests: [TriggerMediaInputAction.requestType],
+    inputSchema: TriggerMediaInputActionInput,
+    outputSchema: TriggerMediaInputActionOutput,
+    handler: async (input, context) => triggerMediaInputAction(context.client, input)
   })
 ]

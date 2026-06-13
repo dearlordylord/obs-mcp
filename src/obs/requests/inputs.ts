@@ -19,7 +19,8 @@ import {
   SetInputMuteInput,
   SetInputVolumeInput,
   SetMediaInputCursorInput,
-  SpecialInputsOutput
+  SpecialInputsOutput,
+  TriggerMediaInputActionInput
 } from "../../domain/schemas/inputs.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
@@ -124,5 +125,11 @@ export const SetMediaInputCursor = {
 export const OffsetMediaInputCursor = {
   requestType: "OffsetMediaInputCursor",
   requestDataSchema: OffsetMediaInputCursorInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
+
+export const TriggerMediaInputAction = {
+  requestType: "TriggerMediaInputAction",
+  requestDataSchema: TriggerMediaInputActionInput,
   responseSchema: EmptyResponseData
 } satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>

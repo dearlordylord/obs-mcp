@@ -23,7 +23,8 @@ import {
   setInputMute,
   setInputVolume,
   setMediaInputCursor,
-  toggleInputMute
+  toggleInputMute,
+  triggerMediaInputAction
 } from "../../src/obs/operations/inputs.js"
 import {
   getVirtualCamStatus,
@@ -464,6 +465,73 @@ describe("OBS operations", () => {
       .resolves.toEqual({ mediaCursorOffset: -1, acknowledged: true })
   })
 
+  it("triggers media input actions over the OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      inputs: [{
+        inputName: "Media Source",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source",
+        mediaState: "OBS_MEDIA_STATE_PAUSED",
+        mediaDuration: 10000,
+        mediaCursor: 5000
+      }]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(triggerMediaInputAction(client, {
+      inputName: "Media Source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+    })).resolves.toEqual({
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY",
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputUuid: "input-media-source" })).resolves.toMatchObject({
+      mediaState: "OBS_MEDIA_STATE_PLAYING"
+    })
+    await expect(triggerMediaInputAction(client, {
+      inputUuid: "input-media-source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART"
+    })).resolves.toEqual({
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputName: "Media Source" })).resolves.toMatchObject({
+      mediaState: "OBS_MEDIA_STATE_PLAYING",
+      mediaCursor: 0
+    })
+    expect(server.requests.filter((request) => request.requestType === "TriggerMediaInputAction")).toEqual([
+      {
+        requestType: "TriggerMediaInputAction",
+        requestData: { inputName: "Media Source", mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY" }
+      },
+      {
+        requestType: "TriggerMediaInputAction",
+        requestData: { inputUuid: "input-media-source", mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for media input actions", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { TriggerMediaInputAction: { code: 605, comment: "Media action unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(triggerMediaInputAction(client, {
+      inputName: "Media Source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+    })).rejects.toMatchObject(
+      {
+        requestType: "TriggerMediaInputAction",
+        code: 605,
+        comment: "Media action unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -721,6 +789,31 @@ describe("OBS operations", () => {
       "list_input_kinds",
       "get_special_inputs",
       "get_media_input_status"
+    ])
+  })
+
+  it("filters media action tool when OBS does not advertise media action capability", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetMediaInputStatus",
+        "SetMediaInputCursor",
+        "OffsetMediaInputCursor"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_media_input_status",
+      "set_media_input_cursor",
+      "offset_media_input_cursor"
     ])
   })
 })

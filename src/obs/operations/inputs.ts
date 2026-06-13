@@ -5,7 +5,8 @@ import type {
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeOutput,
   SetInputAudioSyncOffsetOutput,
-  SetMediaInputCursorOutput
+  SetMediaInputCursorOutput,
+  TriggerMediaInputActionOutput
 } from "../../domain/schemas/inputs.js"
 import {
   InputAudioBalanceOutput,
@@ -27,7 +28,8 @@ import {
   SetInputVolumeInput,
   SetInputVolumeOutput,
   SetMediaInputCursorInput,
-  SpecialInputsOutput
+  SpecialInputsOutput,
+  TriggerMediaInputActionInput
 } from "../../domain/schemas/inputs.js"
 import type { ObsClient } from "../client.js"
 import {
@@ -47,7 +49,8 @@ import {
   SetInputMute,
   SetInputVolume,
   SetMediaInputCursor,
-  ToggleInputMute
+  ToggleInputMute,
+  TriggerMediaInputAction
 } from "../requests.js"
 
 export const listInputs = async (client: ObsClient, input: ListInputsInput): Promise<ListInputsOutput> => {
@@ -186,4 +189,13 @@ export const offsetMediaInputCursor = async (
   const decodedInput = Schema.decodeUnknownSync(OffsetMediaInputCursorInput)(input)
   await client.request(OffsetMediaInputCursor, decodedInput)
   return { mediaCursorOffset: decodedInput.mediaCursorOffset, acknowledged: true }
+}
+
+export const triggerMediaInputAction = async (
+  client: ObsClient,
+  input: TriggerMediaInputActionInput
+): Promise<TriggerMediaInputActionOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(TriggerMediaInputActionInput)(input)
+  await client.request(TriggerMediaInputAction, decodedInput)
+  return { mediaAction: decodedInput.mediaAction, acknowledged: true }
 }

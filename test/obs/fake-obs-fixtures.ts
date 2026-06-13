@@ -81,6 +81,15 @@ export interface FakeObsMediaInputStatus {
   readonly mediaCursor: number | null
 }
 
+export type FakeObsMediaInputAction =
+  | "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NONE"
+  | "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+  | "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+  | "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+  | "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART"
+  | "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NEXT"
+  | "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PREVIOUS"
+
 export const DEFAULT_MEDIA_INPUT_STATUS: FakeObsMediaInputStatus = {
   mediaState: "OBS_MEDIA_STATE_STOPPED",
   mediaDuration: null,
@@ -140,6 +149,7 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "GetMediaInputStatus",
   "SetMediaInputCursor",
   "OffsetMediaInputCursor",
+  "TriggerMediaInputAction",
   "GetVirtualCamStatus",
   "StartVirtualCam",
   "StopVirtualCam",

@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto"
 import { type WebSocket, WebSocketServer } from "ws"
-
 import {
   DEFAULT_AVAILABLE_REQUESTS,
   DEFAULT_INPUTS,
@@ -11,7 +10,6 @@ import {
   sceneItemsFor
 } from "./fake-obs-fixtures.js"
 import { FakeObsInputState } from "./fake-obs-input-state.js"
-
 const OP_HELLO = 0
 const OP_IDENTIFIED = 2
 const OP_EVENT = 5
@@ -20,7 +18,6 @@ const REQUEST_STATUS_SUCCESS = 100
 const AUTH_FAILURE_CLOSE_CODE = 4009
 const BINARY_FRAME_HEX = "010203"
 const BINARY_FRAME = Buffer.from(BINARY_FRAME_HEX, "hex")
-
 interface FakeObsServerOptions {
   readonly password?: string
   readonly malformedHello?: boolean
@@ -52,7 +49,6 @@ const authString = (password: string, salt: string, challenge: string): string =
   const secret = sha256Base64(`${password}${salt}`)
   return sha256Base64(`${secret}${challenge}`)
 }
-
 export class FakeObsServer {
   public readonly url: string
   private readonly server: WebSocketServer
@@ -62,14 +58,12 @@ export class FakeObsServer {
   private streamActive = false
   private virtualCamActive = false
   public lastIdentifyEventSubscriptions: unknown
-
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
     this.server = server
     this.url = url
     this.currentSceneName = currentSceneName
     this.lastIdentifyEventSubscriptions = undefined
   }
-
   public static async start(options: FakeObsServerOptions = {}): Promise<FakeObsServer> {
     const server = new WebSocketServer({ port: 0 })
     const address = await new Promise<{ port: number }>((resolve) => {
@@ -351,14 +345,21 @@ export class FakeObsServer {
       return
     }
     if (requestType === "GetMediaInputStatus") {
-      send({ ...this.inputState.getMediaStatus(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid) })
-      return
+      return send({
+        ...this.inputState.getMediaStatus(envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid)
+      })
     }
     if (requestType === "SetMediaInputCursor" || requestType === "OffsetMediaInputCursor") {
       const locator = envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid
       this.inputState.applyMediaCursorRequest(requestType, locator, envelope.d.requestData)
-      send()
-      return
+      return send()
+    }
+    if (requestType === "TriggerMediaInputAction") {
+      this.inputState.triggerMediaAction(
+        envelope.d.requestData.inputName ?? envelope.d.requestData.inputUuid,
+        envelope.d.requestData.mediaAction
+      )
+      return send()
     }
     if (requestType === "GetVirtualCamStatus") {
       send({ outputActive: this.virtualCamActive })
@@ -390,11 +391,10 @@ export class FakeObsServer {
       return
     }
     if (requestType === "PauseRecord" || requestType === "ResumeRecord" || requestType === "ToggleRecordPause") {
-      send()
-      return
+      return send()
     }
     if (requestType === "GetStreamStatus") {
-      send({
+      return send({
         outputActive: this.streamActive,
         outputReconnecting: false,
         outputTimecode: this.streamActive ? "00:00:12.345" : "00:00:00.000",
@@ -404,22 +404,18 @@ export class FakeObsServer {
         outputSkippedFrames: 0,
         outputTotalFrames: this.streamActive ? 740 : 0
       })
-      return
     }
     if (requestType === "StartStream") {
       this.streamActive = true
-      send()
-      return
+      return send()
     }
     if (requestType === "StopStream") {
       this.streamActive = false
-      send()
-      return
+      return send()
     }
     if (requestType === "ToggleStream") {
       this.streamActive = !this.streamActive
-      send({ outputActive: this.streamActive })
-      return
+      return send({ outputActive: this.streamActive })
     }
     send()
   }
