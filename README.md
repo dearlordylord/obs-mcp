@@ -35,6 +35,8 @@ Set `TOOLSETS=vendor` to expose OBS websocket vendor/custom event tools. This is
 
 Set `TOOLSETS=batch` to expose `run_obs_request_batch`, a schema-limited OBS request batch tool. `Sleep` is supported only as a batch item with official serial execution semantics; there is no standalone sleep tool or arbitrary raw batch tool.
 
+By default, raw/vendor/custom, persistent-data, high-volume event, and batch surfaces are not exposed. Diagnostics are written to stderr; stdout is reserved for MCP JSON-RPC.
+
 ## Tools
 
 <!-- tools:start -->

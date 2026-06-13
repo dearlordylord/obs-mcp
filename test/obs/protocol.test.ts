@@ -25,9 +25,13 @@ interface MatrixEventRow {
   }
 }
 
+interface MatrixRequestRow {
+  readonly name: string
+}
+
 const matrix = JSON.parse(
   readFileSync(new URL("../../plans/obs-websocket-surface-matrix.json", import.meta.url), "utf8")
-) as { readonly events: ReadonlyArray<MatrixEventRow> }
+) as { readonly events: ReadonlyArray<MatrixEventRow>; readonly requests: ReadonlyArray<MatrixRequestRow> }
 
 const EVENT_LEDGER = {
   CanvasCreated: "typed-safe",
@@ -92,6 +96,15 @@ const EVENT_LEDGER = {
   CustomEvent: "raw-only"
 } satisfies Record<string, EventLedgerStatus>
 const EVENT_LEDGER_BY_NAME: Record<string, EventLedgerStatus> = EVENT_LEDGER
+
+const RAW_BATCH_SURFACE_LEDGER = {
+  GetPersistentData: { status: "admin-raw", tool: "get_persistent_data" },
+  SetPersistentData: { status: "admin-raw", tool: "set_persistent_data" },
+  CallVendorRequest: { status: "vendor", tool: "call_vendor_request" },
+  BroadcastCustomEvent: { status: "vendor", tool: "broadcast_custom_event" },
+  RequestBatch: { status: "batch-op", tool: "run_obs_request_batch" },
+  Sleep: { status: "batch-only", tool: "run_obs_request_batch" }
+} as const
 
 const TYPED_EVENT_FIXTURES = {
   CanvasCreated: { canvasName: "Canvas A", canvasUuid: "canvas-a" },
@@ -297,6 +310,30 @@ describe("OBS event protocol foundation", () => {
         eventData: undefined
       }])
     }
+  })
+
+  it("documents final raw, vendor, persistent, and batch protocol surface policy", () => {
+    const requestNames = new Set(matrix.requests.map((request) => request.name))
+    for (
+      const requestName of [
+        "GetPersistentData",
+        "SetPersistentData",
+        "CallVendorRequest",
+        "BroadcastCustomEvent",
+        "Sleep"
+      ]
+    ) {
+      expect(requestNames.has(requestName), requestName).toBe(true)
+    }
+
+    expect(RAW_BATCH_SURFACE_LEDGER).toEqual({
+      GetPersistentData: { status: "admin-raw", tool: "get_persistent_data" },
+      SetPersistentData: { status: "admin-raw", tool: "set_persistent_data" },
+      CallVendorRequest: { status: "vendor", tool: "call_vendor_request" },
+      BroadcastCustomEvent: { status: "vendor", tool: "broadcast_custom_event" },
+      RequestBatch: { status: "batch-op", tool: "run_obs_request_batch" },
+      Sleep: { status: "batch-only", tool: "run_obs_request_batch" }
+    })
   })
 
   it("decodes typed low-volume event payloads", () => {

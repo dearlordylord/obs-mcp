@@ -165,6 +165,23 @@ const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): Ar
 const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
   tools.map(([requestName]) => requestName)
 
+const gatedToolsets = [
+  { toolset: "events", tools: ["get_recent_obs_events"] },
+  { toolset: "admin_raw", tools: ["get_persistent_data", "set_persistent_data"] },
+  { toolset: "vendor", tools: ["call_vendor_request", "broadcast_custom_event"] },
+  { toolset: "batch", tools: ["run_obs_request_batch"] }
+] as const
+
+const gatedToolNames = gatedToolsets.flatMap(({ tools }) => tools)
+const neverPublicToolNames = [
+  "sleep",
+  "get_input_volume_meters",
+  "get_high_volume_obs_events",
+  "stream_obs_events",
+  "call_raw_obs_request",
+  "run_raw_obs_request_batch"
+]
+
 const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsClient => ({
   negotiatedRpcVersion: 1,
   availableRequests: allAvailableRequests,
@@ -234,6 +251,22 @@ describe("MCP tool registry", () => {
     ])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name))
       .not.toContain("get_recent_obs_events")
+  })
+
+  it("keeps raw, vendor, custom, high-volume, and batch tools out of default toolsets", () => {
+    const defaultToolNames = getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name)
+    for (const toolName of gatedToolNames) {
+      expect(defaultToolNames).not.toContain(toolName)
+    }
+    for (const toolName of neverPublicToolNames) {
+      expect(allTools.map((tool) => tool.name)).not.toContain(toolName)
+    }
+  })
+
+  it.each(gatedToolsets)("exposes $toolset tools only through explicit TOOLSETS opt-in", ({ tools, toolset }) => {
+    expect(getEnabledTools([toolset], allAvailableRequests).map((tool) => tool.name)).toEqual([...tools])
+    expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name))
+      .not.toEqual(expect.arrayContaining([...tools]))
   })
 
   it("exposes persistent data tools only when the admin_raw toolset and OBS capabilities are enabled", () => {
