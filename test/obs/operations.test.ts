@@ -6,7 +6,26 @@ import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import type { ObsRequestError } from "../../src/obs/errors.js"
 import { getObsStats, getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
-import { getSpecialInputs, listInputKinds, listInputs } from "../../src/obs/operations/inputs.js"
+import {
+  getInputAudioBalance,
+  getInputAudioMonitorType,
+  getInputAudioSyncOffset,
+  getInputMute,
+  getInputVolume,
+  getMediaInputStatus,
+  getSpecialInputs,
+  listInputKinds,
+  listInputs,
+  offsetMediaInputCursor,
+  setInputAudioBalance,
+  setInputAudioMonitorType,
+  setInputAudioSyncOffset,
+  setInputMute,
+  setInputVolume,
+  setMediaInputCursor,
+  toggleInputMute,
+  triggerMediaInputAction
+} from "../../src/obs/operations/inputs.js"
 import {
   getVirtualCamStatus,
   startVirtualCam,
@@ -143,6 +162,376 @@ describe("OBS operations", () => {
     })
   })
 
+  it("controls input mute over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputMute(client, { inputName: "Mic/Aux" })).resolves.toEqual({ inputMuted: false })
+    await expect(setInputMute(client, { inputName: "Mic/Aux", inputMuted: true })).resolves.toEqual({
+      inputMuted: true
+    })
+    await expect(getInputMute(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({ inputMuted: true })
+    await expect(toggleInputMute(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({ inputMuted: false })
+    expect(server.requests.filter((request) => request.requestType.includes("InputMute"))).toEqual([
+      { requestType: "GetInputMute", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputMute", requestData: { inputName: "Mic/Aux", inputMuted: true } },
+      { requestType: "GetInputMute", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "ToggleInputMute", requestData: { inputUuid: "input-mic-aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input mute controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputMute: { code: 600, comment: "Input not found" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputMute(client, { inputName: "Missing", inputMuted: true })).rejects.toMatchObject(
+      {
+        requestType: "SetInputMute",
+        code: 600,
+        comment: "Input not found"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("controls input volume over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputVolume(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputVolumeMul: 1,
+      inputVolumeDb: 0
+    })
+    await expect(setInputVolume(client, { inputName: "Mic/Aux", inputVolumeMul: 0.5 })).resolves.toEqual({
+      inputVolumeMul: 0.5,
+      acknowledged: true
+    })
+    const volume = await getInputVolume(client, { inputUuid: "input-mic-aux" })
+    expect(volume.inputVolumeMul).toBe(0.5)
+    expect(volume.inputVolumeDb).toBeCloseTo(-6.0206, 4)
+    await expect(setInputVolume(client, { inputUuid: "input-mic-aux", inputVolumeDb: -6 })).resolves.toEqual({
+      inputVolumeDb: -6,
+      acknowledged: true
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputVolume"))).toEqual([
+      { requestType: "GetInputVolume", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputVolume", requestData: { inputName: "Mic/Aux", inputVolumeMul: 0.5 } },
+      { requestType: "GetInputVolume", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "SetInputVolume", requestData: { inputUuid: "input-mic-aux", inputVolumeDb: -6 } }
+    ])
+  })
+
+  it("surfaces OBS failures for input volume controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputVolume: { code: 601, comment: "Volume out of range" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputVolume(client, { inputName: "Mic/Aux", inputVolumeMul: 21 })).rejects.toThrow(
+      "Expected a number less than or equal to 20"
+    )
+    await expect(setInputVolume(client, { inputName: "Mic/Aux", inputVolumeMul: 1 })).rejects.toMatchObject(
+      {
+        requestType: "SetInputVolume",
+        code: 601,
+        comment: "Volume out of range"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("controls input audio balance and monitor type over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputAudioBalance(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputAudioBalance: 0.5
+    })
+    await expect(setInputAudioBalance(client, { inputName: "Mic/Aux", inputAudioBalance: 0.75 })).resolves.toEqual({
+      inputAudioBalance: 0.75,
+      acknowledged: true
+    })
+    await expect(getInputAudioBalance(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputAudioBalance: 0.75
+    })
+    await expect(getInputAudioMonitorType(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      monitorType: "OBS_MONITORING_TYPE_NONE"
+    })
+    await expect(setInputAudioMonitorType(client, {
+      inputUuid: "input-mic-aux",
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+    })).resolves.toEqual({
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
+      acknowledged: true
+    })
+    await expect(getInputAudioMonitorType(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("InputAudio"))).toEqual([
+      { requestType: "GetInputAudioBalance", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputAudioBalance", requestData: { inputName: "Mic/Aux", inputAudioBalance: 0.75 } },
+      { requestType: "GetInputAudioBalance", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "GetInputAudioMonitorType", requestData: { inputName: "Mic/Aux" } },
+      {
+        requestType: "SetInputAudioMonitorType",
+        requestData: {
+          inputUuid: "input-mic-aux",
+          monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+        }
+      },
+      { requestType: "GetInputAudioMonitorType", requestData: { inputName: "Mic/Aux" } }
+    ])
+  })
+
+  it("surfaces OBS failures for input audio controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputAudioMonitorType: { code: 602, comment: "Monitor unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputAudioBalance(client, { inputName: "Mic/Aux", inputAudioBalance: 2 })).rejects.toThrow(
+      "Expected a number less than or equal to 1"
+    )
+    await expect(setInputAudioMonitorType(client, {
+      inputName: "Mic/Aux",
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+    })).rejects.toMatchObject(
+      {
+        requestType: "SetInputAudioMonitorType",
+        code: 602,
+        comment: "Monitor unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("controls input audio sync offset over the OBS protocol", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getInputAudioSyncOffset(client, { inputName: "Mic/Aux" })).resolves.toEqual({
+      inputAudioSyncOffset: 0
+    })
+    await expect(setInputAudioSyncOffset(client, { inputName: "Mic/Aux", inputAudioSyncOffset: -250 }))
+      .resolves.toEqual({
+        inputAudioSyncOffset: -250,
+        acknowledged: true
+      })
+    await expect(getInputAudioSyncOffset(client, { inputUuid: "input-mic-aux" })).resolves.toEqual({
+      inputAudioSyncOffset: -250
+    })
+    await expect(setInputAudioSyncOffset(client, { inputUuid: "input-mic-aux", inputAudioSyncOffset: 125 }))
+      .resolves.toEqual({
+        inputAudioSyncOffset: 125,
+        acknowledged: true
+      })
+    expect(server.requests.filter((request) => request.requestType.includes("InputAudioSyncOffset"))).toEqual([
+      { requestType: "GetInputAudioSyncOffset", requestData: { inputName: "Mic/Aux" } },
+      { requestType: "SetInputAudioSyncOffset", requestData: { inputName: "Mic/Aux", inputAudioSyncOffset: -250 } },
+      { requestType: "GetInputAudioSyncOffset", requestData: { inputUuid: "input-mic-aux" } },
+      { requestType: "SetInputAudioSyncOffset", requestData: { inputUuid: "input-mic-aux", inputAudioSyncOffset: 125 } }
+    ])
+  })
+
+  it("surfaces OBS failures for input audio sync offset controls", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { SetInputAudioSyncOffset: { code: 603, comment: "Sync offset rejected" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setInputAudioSyncOffset(client, { inputName: "Mic/Aux", inputAudioSyncOffset: 1.5 }))
+      .rejects.toThrow("Expected an integer")
+    await expect(setInputAudioSyncOffset(client, { inputName: "Mic/Aux", inputAudioSyncOffset: 20000 }))
+      .rejects.toMatchObject(
+        {
+          requestType: "SetInputAudioSyncOffset",
+          code: 603,
+          comment: "Sync offset rejected"
+        } satisfies Partial<ObsRequestError>
+      )
+  })
+
+  it("gets nullable and playing media input status over the OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      inputs: [
+        {
+          inputName: "Media Source",
+          inputUuid: "input-media-source",
+          inputKind: "ffmpeg_source",
+          unversionedInputKind: "ffmpeg_source",
+          mediaState: "OBS_MEDIA_STATE_PLAYING",
+          mediaDuration: 120000,
+          mediaCursor: 4500
+        },
+        {
+          inputName: "Stopped Media",
+          inputUuid: "input-stopped-media",
+          inputKind: "vlc_source",
+          unversionedInputKind: "vlc_source"
+        }
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getMediaInputStatus(client, { inputName: "Media Source" })).resolves.toEqual({
+      mediaState: "OBS_MEDIA_STATE_PLAYING",
+      mediaDuration: 120000,
+      mediaCursor: 4500
+    })
+    await expect(getMediaInputStatus(client, { inputUuid: "input-stopped-media" })).resolves.toEqual({
+      mediaState: "OBS_MEDIA_STATE_STOPPED",
+      mediaDuration: null,
+      mediaCursor: null
+    })
+    expect(server.requests.filter((request) => request.requestType === "GetMediaInputStatus")).toEqual([
+      { requestType: "GetMediaInputStatus", requestData: { inputName: "Media Source" } },
+      { requestType: "GetMediaInputStatus", requestData: { inputUuid: "input-stopped-media" } }
+    ])
+  })
+
+  it("surfaces OBS failures for media input status", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { GetMediaInputStatus: { code: 604, comment: "Media input unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(getMediaInputStatus(client, { inputName: "Missing Media" })).rejects.toMatchObject(
+      {
+        requestType: "GetMediaInputStatus",
+        code: 604,
+        comment: "Media input unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
+  it("sets and offsets media input cursor over the OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      inputs: [{
+        inputName: "Media Source",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source",
+        mediaState: "OBS_MEDIA_STATE_PLAYING",
+        mediaDuration: 10000,
+        mediaCursor: 1000
+      }]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setMediaInputCursor(client, { inputName: "Media Source", mediaCursor: 2500 })).resolves.toEqual({
+      mediaCursor: 2500,
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputUuid: "input-media-source" })).resolves.toMatchObject({
+      mediaCursor: 2500
+    })
+    await expect(offsetMediaInputCursor(client, {
+      inputUuid: "input-media-source",
+      mediaCursorOffset: -3000
+    })).resolves.toEqual({
+      mediaCursorOffset: -3000,
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputName: "Media Source" })).resolves.toMatchObject({
+      mediaCursor: -500
+    })
+    expect(server.requests.filter((request) => request.requestType.includes("MediaInputCursor"))).toEqual([
+      { requestType: "SetMediaInputCursor", requestData: { inputName: "Media Source", mediaCursor: 2500 } },
+      {
+        requestType: "OffsetMediaInputCursor",
+        requestData: { inputUuid: "input-media-source", mediaCursorOffset: -3000 }
+      }
+    ])
+  })
+
+  it("validates media cursor shapes before sending OBS requests", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(setMediaInputCursor(client, { inputName: "Media Source", mediaCursor: -1 }))
+      .rejects.toThrow("Expected a non-negative number")
+    await expect(offsetMediaInputCursor(client, { inputName: "Media Source", mediaCursorOffset: -1 }))
+      .resolves.toEqual({ mediaCursorOffset: -1, acknowledged: true })
+  })
+
+  it("triggers media input actions over the OBS protocol", async () => {
+    const server = await FakeObsServer.start({
+      inputs: [{
+        inputName: "Media Source",
+        inputUuid: "input-media-source",
+        inputKind: "ffmpeg_source",
+        unversionedInputKind: "ffmpeg_source",
+        mediaState: "OBS_MEDIA_STATE_PAUSED",
+        mediaDuration: 10000,
+        mediaCursor: 5000
+      }]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(triggerMediaInputAction(client, {
+      inputName: "Media Source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+    })).resolves.toEqual({
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY",
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputUuid: "input-media-source" })).resolves.toMatchObject({
+      mediaState: "OBS_MEDIA_STATE_PLAYING"
+    })
+    await expect(triggerMediaInputAction(client, {
+      inputUuid: "input-media-source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART"
+    })).resolves.toEqual({
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+      acknowledged: true
+    })
+    await expect(getMediaInputStatus(client, { inputName: "Media Source" })).resolves.toMatchObject({
+      mediaState: "OBS_MEDIA_STATE_PLAYING",
+      mediaCursor: 0
+    })
+    expect(server.requests.filter((request) => request.requestType === "TriggerMediaInputAction")).toEqual([
+      {
+        requestType: "TriggerMediaInputAction",
+        requestData: { inputName: "Media Source", mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY" }
+      },
+      {
+        requestType: "TriggerMediaInputAction",
+        requestData: { inputUuid: "input-media-source", mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART" }
+      }
+    ])
+  })
+
+  it("surfaces OBS failures for media input actions", async () => {
+    const server = await FakeObsServer.start({
+      failRequests: { TriggerMediaInputAction: { code: 605, comment: "Media action unavailable" } }
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    await expect(triggerMediaInputAction(client, {
+      inputName: "Media Source",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+    })).rejects.toMatchObject(
+      {
+        requestType: "TriggerMediaInputAction",
+        code: 605,
+        comment: "Media action unavailable"
+      } satisfies Partial<ObsRequestError>
+    )
+  })
+
   it("controls the virtual camera over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -234,5 +623,197 @@ describe("OBS operations", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     expect(getEnabledTools(["stream"], client.availableRequests)).toEqual([])
+  })
+
+  it("filters input mute tools when OBS does not advertise input mute capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: ["GetVersion", "GetInputList", "GetInputKindList", "GetSpecialInputs"]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs"
+    ])
+  })
+
+  it("filters input volume tools when OBS does not advertise input volume capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute"
+    ])
+  })
+
+  it("filters advanced input audio tools when OBS does not advertise advanced input audio capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute",
+        "GetInputVolume",
+        "SetInputVolume"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume"
+    ])
+  })
+
+  it("filters input audio sync offset tools when OBS does not advertise sync offset capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute",
+        "GetInputVolume",
+        "SetInputVolume",
+        "GetInputAudioBalance",
+        "SetInputAudioBalance",
+        "GetInputAudioMonitorType",
+        "SetInputAudioMonitorType"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume",
+      "get_input_audio_balance",
+      "set_input_audio_balance",
+      "get_input_audio_monitor_type",
+      "set_input_audio_monitor_type"
+    ])
+  })
+
+  it("filters media input status when OBS does not advertise media input capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetInputMute",
+        "SetInputMute",
+        "ToggleInputMute",
+        "GetInputVolume",
+        "SetInputVolume",
+        "GetInputAudioBalance",
+        "SetInputAudioBalance",
+        "GetInputAudioMonitorType",
+        "SetInputAudioMonitorType",
+        "GetInputAudioSyncOffset",
+        "SetInputAudioSyncOffset"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_input_mute",
+      "set_input_mute",
+      "toggle_input_mute",
+      "get_input_volume",
+      "set_input_volume",
+      "get_input_audio_balance",
+      "set_input_audio_balance",
+      "get_input_audio_monitor_type",
+      "set_input_audio_monitor_type",
+      "get_input_audio_sync_offset",
+      "set_input_audio_sync_offset"
+    ])
+  })
+
+  it("filters media cursor tools when OBS does not advertise media cursor capabilities", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetMediaInputStatus"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_media_input_status"
+    ])
+  })
+
+  it("filters media action tool when OBS does not advertise media action capability", async () => {
+    const server = await FakeObsServer.start({
+      availableRequestsValue: [
+        "GetVersion",
+        "GetInputList",
+        "GetInputKindList",
+        "GetSpecialInputs",
+        "GetMediaInputStatus",
+        "SetMediaInputCursor",
+        "OffsetMediaInputCursor"
+      ]
+    })
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+    expect(getEnabledTools(["inputs"], client.availableRequests).map((tool) => tool.name)).toEqual([
+      "list_inputs",
+      "list_input_kinds",
+      "get_special_inputs",
+      "get_media_input_status",
+      "set_media_input_cursor",
+      "offset_media_input_cursor"
+    ])
   })
 })

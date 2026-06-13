@@ -76,3 +76,7 @@ Status: `done`
 ### Load
 
 After tasks 1-7 land, consolidate input/media test fixtures and table-driven validation. Shared fixtures should cover input locator one-of behavior, available-request capability gating, fake clients, and disabled toolset assertions. Keep audio tracks and Object-shaped input settings explicitly deferred in docs/tests so Ralph does not accidentally widen the surface through an untyped Object passthrough. Verification: run focused input/media tests, `pnpm lint`, `pnpm typecheck`, then `pnpm check-all`.
+
+### Deferred
+
+- Input audio tracks and Object-shaped input settings remain out of scope for this lane until they have typed Effect Schema boundaries and dedicated operation/test coverage. They must not be exposed as raw OBS passthrough tools.
