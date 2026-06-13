@@ -7,7 +7,12 @@ import {
 } from "../../domain/schemas/events.js"
 import type { ObsClient } from "../client.js"
 import type { BufferedObsEvent } from "../events.js"
-import { EventSubscription, HIGH_VOLUME_EVENT_SUBSCRIPTIONS } from "../protocol.js"
+import {
+  eventMatchesOfficialSubscription,
+  EventSubscription,
+  HIGH_VOLUME_EVENT_SUBSCRIPTIONS,
+  officialEventSubscriptionFor
+} from "../protocol.js"
 
 const CATEGORY_INTENTS: ReadonlyArray<{
   readonly category: Exclude<ObsEventCategory, "unknown">
@@ -42,6 +47,10 @@ const categoryForIntent = (eventIntent: number): ObsEventCategory =>
 const isPublicSafeEvent = (event: BufferedObsEvent): boolean =>
   (event.eventIntent & EventSubscription.Vendors) === 0
   && (event.eventIntent & HIGH_VOLUME_EVENT_INTENT_MASK) === 0
+  && (
+    officialEventSubscriptionFor(event.eventType) === undefined
+    || eventMatchesOfficialSubscription(event.eventType, event.eventIntent)
+  )
   && !UNSAFE_PUBLIC_EVENT_TYPES.has(event.eventType)
 
 const matchesCategories = (

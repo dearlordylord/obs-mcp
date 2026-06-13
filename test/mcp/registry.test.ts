@@ -1375,6 +1375,48 @@ describe("MCP tool registry", () => {
     })
   })
 
+  it("does not return input or media events with mismatched event intents", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 3,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.General,
+            eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+          },
+          {
+            sequence: 2,
+            eventType: "MediaInputPlaybackStarted",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Media", inputUuid: "input-media" }
+          },
+          {
+            sequence: 3,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 3,
+      droppedEvents: 0,
+      returnedEvents: 1,
+      order: "oldest_first",
+      events: [{
+        sequence: 3,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        category: "inputs",
+        eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+      }]
+    })
+  })
+
   it("does not return vendor, custom, or high-volume events from the public events tool", async () => {
     await expect(executeTool(toolByName("get_recent_obs_events"), { order: "oldest_first" }, {
       config: { ...config, enabledToolsets: ["events"] },

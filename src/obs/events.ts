@@ -1,6 +1,6 @@
 import { decodeTypedObsEventData, type TypedObsEventData } from "../domain/schemas/events.js"
 import type { EventEnvelope } from "./protocol.js"
-import { shouldSurfaceSafeEvent } from "./protocol.js"
+import { eventMatchesOfficialSubscription, shouldSurfaceSafeEvent } from "./protocol.js"
 
 const DEFAULT_OBS_EVENT_BUFFER_CAPACITY = 100
 
@@ -37,7 +37,7 @@ export const createObsEventBuffer = (options: ObsEventBufferOptions = {}): ObsEv
 
   return {
     record: (event) => {
-      if (!shouldSurfaceSafeEvent(event)) {
+      if (!shouldSurfaceSafeEvent(event) || !eventMatchesOfficialSubscription(event.d.eventType, event.d.eventIntent)) {
         return
       }
       let eventData: TypedObsEventData | undefined

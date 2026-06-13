@@ -515,6 +515,30 @@ describe("OBS websocket client", () => {
     expect(client.getBufferedEvents().events).toEqual([])
   })
 
+  it("drops typed input and media events with mismatched event intents", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.General,
+          eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+        },
+        {
+          eventType: "MediaInputPlaybackStarted",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Media", inputUuid: "input-media" }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([])
+  })
+
   it("drops no-payload events with unexpected raw event data", async () => {
     const server = await FakeObsServer.start({
       eventBeforeResponse: {

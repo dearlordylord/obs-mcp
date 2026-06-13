@@ -8,6 +8,7 @@ import { createObsEventBuffer } from "../../src/obs/events.js"
 import {
   decodeEventEnvelope,
   decodeJsonTextEnvelope,
+  eventMatchesOfficialSubscription,
   EventSubscription,
   HIGH_VOLUME_EVENT_SUBSCRIPTIONS,
   OP_REQUEST_RESPONSE,
@@ -403,6 +404,14 @@ describe("OBS event protocol foundation", () => {
         mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_UNKNOWN"
       })
     ).toThrow()
+  })
+
+  it("matches event types to their official event subscriptions", () => {
+    expect(eventMatchesOfficialSubscription("InputNameChanged", EventSubscription.Inputs)).toBe(true)
+    expect(eventMatchesOfficialSubscription("MediaInputPlaybackStarted", EventSubscription.MediaInputs)).toBe(true)
+    expect(eventMatchesOfficialSubscription("InputNameChanged", EventSubscription.General)).toBe(false)
+    expect(eventMatchesOfficialSubscription("MediaInputPlaybackStarted", EventSubscription.Inputs)).toBe(false)
+    expect(eventMatchesOfficialSubscription("MysteryEvent", EventSubscription.General)).toBe(false)
   })
 
   it("omits payloads for safe event types without task-owned schemas", () => {
