@@ -7,12 +7,17 @@ import { UnknownRecord } from "../domain/schemas/shared.js"
 import { calculateObsAuthentication } from "./auth.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "./errors.js"
 import {
+  decodeEventEnvelope,
   decodeJsonTextEnvelope,
+  type EventEnvelope,
+  OP_EVENT,
   OP_IDENTIFIED,
   OP_IDENTIFY,
   OP_REQUEST,
   OP_REQUEST_RESPONSE,
-  type RequestResponseEnvelope
+  type RequestResponseEnvelope,
+  SAFE_EVENT_SUBSCRIPTION_MASK,
+  shouldSurfaceSafeEvent
 } from "./protocol.js"
 import { GetVersion, type ObsRequestDescriptor } from "./requests.js"
 
@@ -134,7 +139,7 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
     const password = Option.getOrUndefined(config.password)
     const identifyData: Record<string, unknown> = {
       rpcVersion: SUPPORTED_RPC_VERSION,
-      eventSubscriptions: 0
+      eventSubscriptions: SAFE_EVENT_SUBSCRIPTION_MASK
     }
     if (hello.d.authentication !== undefined) {
       if (password === undefined || password.length === 0) {
@@ -174,6 +179,12 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
     pendingRequest.resolve(response.d.responseData ?? {})
   }
 
+  const handleEvent = (event: EventEnvelope): void => {
+    if (!shouldSurfaceSafeEvent(event)) {
+      return
+    }
+  }
+
   ws.on("message", (data, isBinary) => {
     if (isBinary) {
       rejectAll(new ObsProtocolError("OBS sent a binary frame; JSON text frames are required"))
@@ -181,9 +192,14 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
       return
     }
     try {
-      const envelope = decodeJsonTextEnvelope(data.toString("utf8"))
+      const text = data.toString("utf8")
+      const envelope = decodeJsonTextEnvelope(text)
       if (envelope.op === OP_REQUEST_RESPONSE) {
         handleResponse(envelope)
+        return
+      }
+      if (envelope.op === OP_EVENT) {
+        handleEvent(decodeEventEnvelope(text))
       }
     } catch (error) {
       /* v8 ignore next */
@@ -237,9 +253,7 @@ export const createObsClient = async (config: ObsConfig): Promise<ObsClient> => 
   }
 
   const getVersion = await request(GetVersion)
-  const availableRequests = Array.isArray(getVersion["availableRequests"])
-    ? getVersion["availableRequests"].filter((entry): entry is string => typeof entry === "string")
-    : []
+  const availableRequests = Schema.decodeUnknownSync(Schema.Array(Schema.String))(getVersion["availableRequests"])
 
   return {
     negotiatedRpcVersion,

@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import type { ObsConfig } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
+import { EventSubscription, SAFE_EVENT_SUBSCRIPTION_MASK } from "../../src/obs/protocol.js"
 import { GetCurrentProgramScene, SetCurrentProgramScene } from "../../src/obs/requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -30,6 +31,7 @@ describe("OBS websocket client", () => {
     clients.push(client)
     expect(client.negotiatedRpcVersion).toBe(1)
     expect(client.availableRequests).toContain("GetSceneList")
+    expect(server.lastIdentifyEventSubscriptions).toBe(SAFE_EVENT_SUBSCRIPTION_MASK)
   })
 
   it("connects through an authenticated handshake", async () => {
@@ -108,6 +110,60 @@ describe("OBS websocket client", () => {
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+  })
+
+  it("ignores high-volume event frames by default", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "InputVolumeMeters",
+        eventIntent: EventSubscription.InputVolumeMeters,
+        eventData: { inputs: [] }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+  })
+
+  it("accepts safe low-volume event frames without surfacing a stream", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      }
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+  })
+
+  it("ignores non-event protocol envelopes after the handshake", async () => {
+    const server = await FakeObsServer.start({
+      envelopeBeforeResponse: { op: 2, d: { negotiatedRpcVersion: 1 } },
+      envelopeBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+  })
+
+  it("rejects pending requests on malformed event frames", async () => {
+    const server = await FakeObsServer.start({
+      eventBeforeResponse: {
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: "Scenes",
+        eventData: { sceneName: "Intro", sceneUuid: "scene-intro" }
+      },
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+    await expect(client.request(GetCurrentProgramScene)).rejects.toThrow()
   })
 
   it("rejects malformed GetVersion availableRequests", async () => {
