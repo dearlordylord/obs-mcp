@@ -92,6 +92,67 @@ const toolByName = (name: string): ToolDefinition => {
   return tool
 }
 
+const lifecycleToolGroups = [
+  {
+    name: "record",
+    toolset: "record",
+    disabledToolset: "stream",
+    tools: [
+      ["GetRecordStatus", "get_record_status"],
+      ["StartRecord", "start_record"],
+      ["StopRecord", "stop_record"],
+      ["ToggleRecord", "toggle_record"],
+      ["SplitRecordFile", "split_record_file"],
+      ["CreateRecordChapter", "create_record_chapter"],
+      ["PauseRecord", "pause_record"],
+      ["ResumeRecord", "resume_record"],
+      ["ToggleRecordPause", "toggle_record_pause"]
+    ]
+  },
+  {
+    name: "stream",
+    toolset: "stream",
+    disabledToolset: "record",
+    tools: [
+      ["GetStreamStatus", "get_stream_status"],
+      ["StartStream", "start_stream"],
+      ["StopStream", "stop_stream"],
+      ["ToggleStream", "toggle_stream"],
+      ["SendStreamCaption", "send_stream_caption"]
+    ]
+  },
+  {
+    name: "virtual camera",
+    toolset: "outputs",
+    disabledToolset: "stream",
+    tools: [
+      ["GetVirtualCamStatus", "get_virtual_cam_status"],
+      ["StartVirtualCam", "start_virtual_cam"],
+      ["StopVirtualCam", "stop_virtual_cam"],
+      ["ToggleVirtualCam", "toggle_virtual_cam"]
+    ]
+  },
+  {
+    name: "replay buffer",
+    toolset: "outputs",
+    disabledToolset: "stream",
+    tools: [
+      ["GetReplayBufferStatus", "get_replay_buffer_status"],
+      ["StartReplayBuffer", "start_replay_buffer"],
+      ["StopReplayBuffer", "stop_replay_buffer"],
+      ["ToggleReplayBuffer", "toggle_replay_buffer"],
+      ["SaveReplayBuffer", "save_replay_buffer"],
+      ["GetLastReplayBufferReplay", "get_last_replay_buffer_replay"]
+    ]
+  }
+] as const
+
+const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): ReadonlyArray<string> =>
+  tools.map(([, toolName]) => toolName)
+
+const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): ReadonlyArray<string> =>
+  tools.map(([requestName]) => requestName)
+
 describe("MCP tool registry", () => {
   it("exposes exactly the enabled tools by default", () => {
     expect(getEnabledTools(config.enabledToolsets).map((tool) => tool.name)).toEqual([
@@ -239,6 +300,29 @@ describe("MCP tool registry", () => {
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
     expect(getEnabledTools(["inputs"], ["GetInputList"]).map((tool) => tool.name)).toEqual(["list_inputs"])
+  })
+
+  describe("lifecycle tool filtering", () => {
+    it.each(lifecycleToolGroups)("filters $name tools by toolset category", ({ disabledToolset, tools, toolset }) => {
+      const expectedToolNames = lifecycleToolNames(tools)
+      expect(getEnabledTools([toolset], allAvailableRequests).map((tool) => tool.name))
+        .toEqual(expect.arrayContaining(expectedToolNames))
+      expect(getEnabledTools([disabledToolset], allAvailableRequests).map((tool) => tool.name))
+        .toEqual(expect.not.arrayContaining(expectedToolNames))
+    })
+
+    it.each(lifecycleToolGroups)("filters $name tools by partial OBS capabilities", ({ tools, toolset }) => {
+      const partialTools = tools.filter((_, index) => index % 2 === 0)
+      expect(getEnabledTools([toolset], lifecycleRequestNames(partialTools)).map((tool) => tool.name))
+        .toEqual(lifecycleToolNames(partialTools))
+      expect(getEnabledTools([toolset], []).map((tool) => tool.name)).toEqual([])
+    })
+
+    it.each(lifecycleToolGroups)("maps every $name tool to its required OBS request", ({ tools, toolset }) => {
+      for (const [requestName, toolName] of tools) {
+        expect(getEnabledTools([toolset], [requestName]).map((tool) => tool.name)).toEqual([toolName])
+      }
+    })
   })
 
   it("keeps protocol schemas owned by each registered tool definition", () => {
