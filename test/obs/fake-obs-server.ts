@@ -19,8 +19,7 @@ import {
   type FakeObsProfileParameter,
   type FakeObsReceivedRequest,
   type FakeObsScene,
-  type FakeObsTransition,
-  sceneItemsFor
+  type FakeObsTransition
 } from "./fake-obs-fixtures.js"
 import { handleFakeObsFoundationRequest } from "./fake-obs-foundation-requests.js"
 import { handleFakeObsHotkeyRequest } from "./fake-obs-hotkey-requests.js"
@@ -459,70 +458,6 @@ export class FakeObsServer {
         this.sceneItems
       )
     ) {
-      return
-    }
-    if (requestType === "GetSceneItemList" || requestType === "GetGroupSceneItemList") {
-      send({ sceneItems: sceneItemsFor(envelope.d.requestData, requestType === "GetGroupSceneItemList") })
-      return
-    }
-    if (requestType === "GetSceneItemId") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sourceName === envelope.d.requestData.sourceName)
-      send({ sceneItemId: sceneItem?.sceneItemId ?? 0 })
-      return
-    }
-    if (requestType === "GetSceneItemSource") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
-      send({ sourceName: sceneItem?.sourceName ?? "Camera", sourceUuid: sceneItem?.sourceUuid ?? "source-camera" })
-      return
-    }
-    if (requestType === "GetSceneItemEnabled") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
-      send({ sceneItemEnabled: sceneItem?.sceneItemEnabled ?? true })
-      return
-    }
-    if (requestType === "SetSceneItemEnabled") {
-      send()
-      return
-    }
-    if (requestType === "GetSceneItemLocked") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
-      send({ sceneItemLocked: sceneItem?.sceneItemLocked ?? false })
-      return
-    }
-    if (requestType === "SetSceneItemLocked") {
-      send()
-      return
-    }
-    if (requestType === "GetSceneItemIndex") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
-      send({ sceneItemIndex: sceneItem?.sceneItemIndex ?? 0 })
-      return
-    }
-    if (requestType === "GetSceneItemBlendMode") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) => item.sceneItemId === envelope.d.requestData.sceneItemId)
-      send({ sceneItemBlendMode: sceneItem?.sceneItemBlendMode ?? "OBS_BLEND_NORMAL" })
-      return
-    }
-    if (requestType === "SetSceneItemIndex" || requestType === "SetSceneItemBlendMode") {
-      send()
-      return
-    }
-    if (requestType === "GetSourceActive") {
-      const sceneItem = sceneItemsFor(envelope.d.requestData, false)
-        .find((item) =>
-          item.sourceName === envelope.d.requestData.sourceName
-          || item.sourceUuid === envelope.d.requestData.sourceUuid
-        )
-      send({
-        videoActive: sceneItem?.sceneItemEnabled ?? false,
-        videoShowing: sceneItem !== undefined
-      })
       return
     }
     if (requestType === "GetSourceScreenshot") {

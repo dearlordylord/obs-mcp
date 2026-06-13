@@ -2,34 +2,23 @@
 
 Branch: `ralph/events-raw-batches`
 
-## Scope
-
-Remaining matrix rows covered by this lane:
-
-- all 60 event rows from `plans/obs-websocket-surface-matrix.json`
-- raw/vendor/general rows: `BroadcastCustomEvent`, `CallVendorRequest`
-- persistent data rows: `GetPersistentData`, `SetPersistentData`
-- batch-only semantics around `Sleep` and request batching if public batch support is introduced
-
-Normal OBS request-category tools are owned by the other three lanes. This lane must keep raw/vendor/custom/event/batch surfaces disabled by default.
-
 ## Tasks
 
-- [ ] `task-1` Add event matrix ledger and subscription policy tests
-- [ ] `task-2` Add typed config and general events
-- [ ] `task-3` Add typed scene and scene-item events
-- [ ] `task-4` Add typed input and media-input events
-- [ ] `task-5` Add typed output, transition, UI, canvas, and filter events
-- [ ] `task-6` Add event resources and subscription controls
-- [ ] `task-7` Add high-volume event throttling or coalescing
-- [ ] `task-8` Add gated persistent data tools
-- [ ] `task-9` Add gated vendor/custom event tools
-- [ ] `task-10` Add request batch and Sleep support
-- [ ] `task-11` Harden raw/event/batch safety docs and tests
+- [x] `task-1` Add event matrix ledger and subscription policy tests
+- [x] `task-2` Add typed config and general events
+- [x] `task-3` Add typed scene and scene-item events
+- [x] `task-4` Add typed input and media-input events
+- [x] `task-5` Add typed output, transition, UI, canvas, and filter events
+- [x] `task-6` Add event resources and subscription controls
+- [x] `task-7` Add high-volume event throttling or coalescing
+- [x] `task-8` Add gated persistent data tools
+- [x] `task-9` Add gated vendor/custom event tools
+- [x] `task-10` Add request batch and Sleep support
+- [x] `task-11` Harden raw/event/batch safety docs and tests
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -37,7 +26,7 @@ Create an event ledger test that maps every official event row from `plans/obs-w
 
 ## task-2
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -45,7 +34,7 @@ Add typed event schemas and buffer decoding for config/general events that are s
 
 ## task-3
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -53,7 +42,7 @@ Add typed scene and scene-item event schemas for all safe non-high-volume scene 
 
 ## task-4
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -61,7 +50,7 @@ Add typed input and media-input event schemas. Keep high-volume input active/sho
 
 ## task-5
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -69,7 +58,7 @@ Add typed output, transition, UI, canvas, and filter event schemas for safe even
 
 ## task-6
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -77,7 +66,7 @@ Add event resource/subscription controls if needed beyond the existing `get_rece
 
 ## task-7
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -85,7 +74,7 @@ Design and implement explicit high-volume event policy for `InputVolumeMeters`, 
 
 ## task-8
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -93,7 +82,7 @@ Add `get_persistent_data` and `set_persistent_data` behind an explicit `raw` or 
 
 ## task-9
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -101,7 +90,7 @@ Add gated raw/vendor tools for `call_vendor_request` and `broadcast_custom_event
 
 ## task-10
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -109,7 +98,7 @@ Add request batch support only if it can preserve schema-first boundaries. Inclu
 
 ## task-11
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

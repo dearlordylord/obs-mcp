@@ -1,4 +1,4 @@
-import { type FakeObsSceneItem, sceneItemsFor, sceneItemTransformFor } from "./fake-obs-fixtures.js"
+import { type FakeObsSceneItem, sceneItemsFor, sceneItemTransformFor } from "./fake-obs-scene-item-fixtures.js"
 
 type SendFakeObsResponse = (responseData?: Record<string, unknown>) => void
 type SendFakeObsError = (code: number, comment: string) => void

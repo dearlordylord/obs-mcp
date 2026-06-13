@@ -2,30 +2,22 @@
 
 Branch: `ralph/inputs-filters-sources`
 
-## Scope
-
-Remaining matrix rows covered by this lane:
-
-- inputs: `CreateInput`, `RemoveInput`, `SetInputName`, `GetInputDefaultSettings`, `GetInputSettings`, `SetInputSettings`, `GetInputAudioTracks`, `SetInputAudioTracks`, `GetInputDeinterlaceMode`, `SetInputDeinterlaceMode`, `GetInputDeinterlaceFieldOrder`, `SetInputDeinterlaceFieldOrder`, `GetInputPropertiesListPropertyItems`, `PressInputPropertiesButton`
-- filters: `GetSourceFilterKindList`, `GetSourceFilterList`, `GetSourceFilterDefaultSettings`, `CreateSourceFilter`, `RemoveSourceFilter`, `SetSourceFilterName`, `GetSourceFilter`, `SetSourceFilterIndex`, `SetSourceFilterSettings`, `SetSourceFilterEnabled`
-- sources: `GetSourceScreenshot`, `SaveSourceScreenshot`
-
 ## Tasks
 
-- [ ] `task-1` Add input audio track controls
-- [ ] `task-2` Add input deinterlace controls
-- [ ] `task-3` Add input settings read tools
-- [ ] `task-4` Add guarded input settings mutations and property buttons
-- [ ] `task-5` Add input lifecycle and rename tools
-- [ ] `task-6` Add filter discovery and read tools
-- [ ] `task-7` Add filter enable/index/name mutations
-- [ ] `task-8` Add filter create/remove/settings tools
-- [ ] `task-9` Add screenshot payload and save policies
-- [ ] `task-10` Harden settings/filter/source fixtures and docs
+- [x] `task-1` Add input audio track controls
+- [x] `task-2` Add input deinterlace controls
+- [x] `task-3` Add input settings read tools
+- [x] `task-4` Add guarded input settings mutations and property buttons
+- [x] `task-5` Add input lifecycle and rename tools
+- [x] `task-6` Add filter discovery and read tools
+- [x] `task-7` Add filter enable/index/name mutations
+- [x] `task-8` Add filter create/remove/settings tools
+- [x] `task-9` Add screenshot payload and save policies
+- [x] `task-10` Harden settings/filter/source fixtures and docs
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -33,7 +25,7 @@ Add `get_input_audio_tracks` and `set_input_audio_tracks`. Reuse the established
 
 ## task-2
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -41,7 +33,7 @@ Add deinterlace tools: `get_input_deinterlace_mode`, `set_input_deinterlace_mode
 
 ## task-3
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -49,7 +41,7 @@ Add read-only input settings tools: `get_input_default_settings`, `get_input_set
 
 ## task-4
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -57,7 +49,7 @@ Add guarded input mutation tools: `set_input_settings` and `press_input_properti
 
 ## task-5
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -65,7 +57,7 @@ Add input lifecycle/name tools: `create_input`, `remove_input`, and `set_input_n
 
 ## task-6
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -73,7 +65,7 @@ Add filter discovery/read tools: `list_source_filter_kinds`, `list_source_filter
 
 ## task-7
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -81,7 +73,7 @@ Add simple filter mutation tools: `set_source_filter_enabled`, `set_source_filte
 
 ## task-8
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -89,7 +81,7 @@ Add advanced filter mutation tools: `create_source_filter`, `remove_source_filte
 
 ## task-9
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -97,7 +89,7 @@ Add source screenshot tools from `GetSourceScreenshot` and `SaveSourceScreenshot
 
 ## task-10
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

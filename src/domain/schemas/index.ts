@@ -1,6 +1,6 @@
+export * from "./batch.js"
 export * from "./canvases.js"
 export * from "./config.js"
-export * from "./batch.js"
 export * from "./connection.js"
 export * from "./events.js"
 export * from "./filters.js"

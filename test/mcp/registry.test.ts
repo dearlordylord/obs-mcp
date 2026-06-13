@@ -69,15 +69,15 @@ import {
   ToggleRecordOutput
 } from "../../src/domain/schemas/record.js"
 import {
+  GetSceneItemTransformOutput,
+  SetSceneItemTransformInput
+} from "../../src/domain/schemas/scene-item-transforms.js"
+import {
   GetSourceScreenshotInput,
   GetSourceScreenshotOutput,
   SaveSourceScreenshotInput,
   SaveSourceScreenshotOutput
 } from "../../src/domain/schemas/screenshots.js"
-import {
-  GetSceneItemTransformOutput,
-  SetSceneItemTransformInput
-} from "../../src/domain/schemas/scene-item-transforms.js"
 import { SendStreamCaptionInput } from "../../src/domain/schemas/stream.js"
 import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"

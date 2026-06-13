@@ -2,34 +2,22 @@
 
 Branch: `ralph/studio-admin-transitions`
 
-## Scope
-
-Remaining matrix rows covered by this lane:
-
-- canvases: `GetCanvasList`
-- general: `GetHotkeyList`, `TriggerHotkeyByName`, `TriggerHotkeyByKeySequence`
-- transitions: `GetTransitionKindList`, `GetSceneTransitionList`, `GetCurrentSceneTransition`, `SetCurrentSceneTransition`, `SetCurrentSceneTransitionDuration`, `SetCurrentSceneTransitionSettings`, `GetCurrentSceneTransitionCursor`, `TriggerStudioModeTransition`, `SetTBarPosition`
-- ui: `GetStudioModeEnabled`, `SetStudioModeEnabled`, `OpenInputPropertiesDialog`, `OpenInputFiltersDialog`, `OpenInputInteractDialog`, `GetMonitorList`, `OpenVideoMixProjector`, `OpenSourceProjector`
-- config: `GetSceneCollectionList`, `SetCurrentSceneCollection`, `CreateSceneCollection`, `GetProfileList`, `SetCurrentProfile`, `CreateProfile`, `RemoveProfile`, `GetProfileParameter`, `SetProfileParameter`, `GetVideoSettings`, `SetVideoSettings`, `GetStreamServiceSettings`, `SetStreamServiceSettings`, `GetRecordDirectory`, `SetRecordDirectory`
-
-Raw/vendor/persistent data rows and batch-only `Sleep` semantics are owned by `events-raw-batches`.
-
 ## Tasks
 
-- [ ] `task-1` Add canvas and studio-mode read foundations
-- [ ] `task-2` Add transition inventory read tools
-- [ ] `task-3` Add transition mutation tools
-- [ ] `task-4` Add hotkey inventory and bounded trigger tools
-- [ ] `task-5` Add profile and scene collection read tools
-- [ ] `task-6` Add profile and scene collection mutation tools
-- [ ] `task-7` Add video settings and record-directory tools
-- [ ] `task-8` Add stream service settings tools
-- [ ] `task-9` Add gated UI dialog and projector tools
-- [ ] `task-10` Harden admin/studio verification and docs
+- [x] `task-1` Add canvas and studio-mode read foundations
+- [x] `task-2` Add transition inventory read tools
+- [x] `task-3` Add transition mutation tools
+- [x] `task-4` Add hotkey inventory and bounded trigger tools
+- [x] `task-5` Add profile and scene collection read tools
+- [x] `task-6` Add profile and scene collection mutation tools
+- [x] `task-7` Add video settings and record-directory tools
+- [x] `task-8` Add stream service settings tools
+- [x] `task-9` Add gated UI dialog and projector tools
+- [x] `task-10` Harden admin/studio verification and docs
 
 ## task-1
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -37,7 +25,7 @@ Add `list_canvases` from `GetCanvasList` and `get_studio_mode_enabled` from `Get
 
 ## task-2
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -45,7 +33,7 @@ Add read-only transition inventory tools: `list_transition_kinds`, `list_scene_t
 
 ## task-3
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -53,7 +41,7 @@ Add transition mutation tools: `set_current_scene_transition`, `set_current_scen
 
 ## task-4
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -61,7 +49,7 @@ Add hotkey tools: `list_hotkeys`, `trigger_hotkey_by_name`, and `trigger_hotkey_
 
 ## task-5
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -69,7 +57,7 @@ Add read-only config inventory tools: `list_profiles`, `list_scene_collections`,
 
 ## task-6
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -77,7 +65,7 @@ Add global config mutation tools: `set_current_profile`, `create_profile`, `remo
 
 ## task-7
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -85,7 +73,7 @@ Add video settings and record-directory tools: `get_video_settings`, `set_video_
 
 ## task-8
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -93,7 +81,7 @@ Add stream service settings tools: `get_stream_service_settings` and `set_stream
 
 ## task-9
 
-Status: `todo`
+Status: `done`
 
 ### Load
 
@@ -101,7 +89,7 @@ Add gated UI side-effect tools: `open_input_properties_dialog`, `open_input_filt
 
 ## task-10
 
-Status: `todo`
+Status: `done`
 
 ### Load
 

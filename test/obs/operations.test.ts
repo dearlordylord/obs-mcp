@@ -36,14 +36,6 @@ import {
   setVideoSettings
 } from "../../src/obs/operations/config.js"
 import {
-  getObsStats,
-  getRecordStatus,
-  getVersion,
-  listHotkeys,
-  triggerHotkeyByKeySequence,
-  triggerHotkeyByName
-} from "../../src/obs/operations/general.js"
-import {
   createSourceFilter,
   getSourceFilter,
   getSourceFilterDefaultSettings,
@@ -55,6 +47,14 @@ import {
   setSourceFilterName,
   setSourceFilterSettings
 } from "../../src/obs/operations/filters.js"
+import {
+  getObsStats,
+  getRecordStatus,
+  getVersion,
+  listHotkeys,
+  triggerHotkeyByKeySequence,
+  triggerHotkeyByName
+} from "../../src/obs/operations/general.js"
 import {
   createInput,
   getInputAudioBalance,
@@ -119,7 +119,6 @@ import {
   toggleRecord,
   toggleRecordPause
 } from "../../src/obs/operations/record.js"
-import { getSourceScreenshot, saveSourceScreenshot } from "../../src/obs/operations/screenshots.js"
 import {
   createScene,
   createSceneItem,
@@ -145,6 +144,7 @@ import {
   setSceneName,
   setSceneTransitionOverride
 } from "../../src/obs/operations/scenes.js"
+import { getSourceScreenshot, saveSourceScreenshot } from "../../src/obs/operations/screenshots.js"
 import {
   getStreamStatus,
   sendStreamCaption,
