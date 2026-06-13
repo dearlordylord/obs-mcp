@@ -36,6 +36,7 @@ import type { ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
 import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { DEFAULT_AVAILABLE_REQUESTS } from "../obs/fake-obs-fixtures.js"
 import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
 const config: ObsConfig = {
@@ -72,6 +73,39 @@ const deferredInputMediaToolNames = [
   "get_input_settings",
   "set_input_settings"
 ]
+
+const laneOwnedRequestTools = [
+  ["GetGroupList", "list_groups"],
+  ["GetCurrentPreviewScene", "get_current_preview_scene"],
+  ["SetCurrentPreviewScene", "set_current_preview_scene"],
+  ["CreateScene", "create_scene"],
+  ["RemoveScene", "remove_scene"],
+  ["SetSceneName", "set_scene_name"],
+  ["GetSceneSceneTransitionOverride", "get_scene_transition_override"],
+  ["SetSceneSceneTransitionOverride", "set_scene_transition_override"],
+  ["GetSceneItemTransform", "get_scene_item_transform"],
+  ["SetSceneItemTransform", "set_scene_item_transform"],
+  ["CreateSceneItem", "create_scene_item"],
+  ["RemoveSceneItem", "remove_scene_item"],
+  ["DuplicateSceneItem", "duplicate_scene_item"],
+  ["GetOutputList", "list_outputs"],
+  ["GetOutputStatus", "get_output_status"],
+  ["GetOutputSettings", "get_output_settings"],
+  ["SetOutputSettings", "set_output_settings"],
+  ["StartOutput", "start_output"],
+  ["StopOutput", "stop_output"],
+  ["ToggleOutput", "toggle_output"]
+] as const
+
+const genericOutputToolNames = [
+  "list_outputs",
+  "get_output_status",
+  "get_output_settings",
+  "set_output_settings",
+  "start_output",
+  "stop_output",
+  "toggle_output"
+] as const
 
 const inputAvailableRequests = [
   "GetInputList",
@@ -223,6 +257,54 @@ describe("MCP tool registry", () => {
       "resume_record",
       "toggle_record_pause"
     ])
+  })
+
+  it("represents every scene composition/output lane-owned OBS request", () => {
+    for (const [requestType, toolName] of laneOwnedRequestTools) {
+      expect(DEFAULT_AVAILABLE_REQUESTS).toContain(requestType)
+      expect(allAvailableRequests).toContain(requestType)
+      const tool = allTools.find((candidate) => candidate.name === toolName)
+      expect(tool?.requiredObsRequests).toContain(requestType)
+    }
+  })
+
+  it("keeps generic output tools separate from specialized output controls", () => {
+    const genericRequests = new Set(
+      genericOutputToolNames.flatMap((toolName) =>
+        allTools.find((tool) => tool.name === toolName)?.requiredObsRequests ?? []
+      )
+    )
+    const specializedToolNames = [
+      "get_virtual_cam_status",
+      "start_virtual_cam",
+      "stop_virtual_cam",
+      "toggle_virtual_cam",
+      "get_replay_buffer_status",
+      "start_replay_buffer",
+      "stop_replay_buffer",
+      "toggle_replay_buffer",
+      "get_record_status",
+      "start_record",
+      "stop_record",
+      "toggle_record",
+      "get_stream_status",
+      "start_stream",
+      "stop_stream",
+      "toggle_stream"
+    ]
+    for (const toolName of specializedToolNames) {
+      const tool = allTools.find((candidate) => candidate.name === toolName)
+      expect(tool?.requiredObsRequests.some((requestType) => genericRequests.has(requestType))).toBe(false)
+    }
+  })
+
+  it("does not expose generic output tools outside the outputs toolset", () => {
+    const defaultToolNames = getEnabledTools(config.enabledToolsets, allAvailableRequests).map((tool) => tool.name)
+    const sceneToolNames = getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name)
+    for (const toolName of genericOutputToolNames) {
+      expect(defaultToolNames).not.toContain(toolName)
+      expect(sceneToolNames).not.toContain(toolName)
+    }
   })
 
   it("exposes input discovery tools when the input toolset is enabled", () => {
