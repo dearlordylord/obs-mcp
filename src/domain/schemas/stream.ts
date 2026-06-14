@@ -1,17 +1,14 @@
 import { JSONSchema, Schema } from "effect"
 
-import { ObsNonEmptyString, ObsNumber, ObsString, OutputActiveState } from "./shared.js"
+import {
+  ObsNonEmptyString,
+  ObsNumber,
+  OutputActiveState,
+  outputStatusFields,
+  RequestAcknowledgedOutput
+} from "./shared.js"
 
-export const StreamStatusOutput = Schema.Struct({
-  outputActive: Schema.Boolean,
-  outputReconnecting: Schema.Boolean,
-  outputTimecode: ObsString,
-  outputDuration: ObsNumber,
-  outputCongestion: ObsNumber,
-  outputBytes: ObsNumber,
-  outputSkippedFrames: ObsNumber,
-  outputTotalFrames: ObsNumber
-})
+export const StreamStatusOutput = Schema.Struct(outputStatusFields(ObsNumber))
 export type StreamStatusOutput = typeof StreamStatusOutput.Type
 export const StreamStatusOutputJsonSchema = JSONSchema.make(StreamStatusOutput)
 
@@ -33,9 +30,6 @@ export const SendStreamCaptionInput = Schema.Struct({
 export type SendStreamCaptionInput = typeof SendStreamCaptionInput.Type
 export const SendStreamCaptionInputJsonSchema = JSONSchema.make(SendStreamCaptionInput)
 
-export const SendStreamCaptionOutput = Schema.Struct({
-  requestType: Schema.Literal("SendStreamCaption"),
-  acknowledged: Schema.Literal(true)
-})
+export const SendStreamCaptionOutput = RequestAcknowledgedOutput("SendStreamCaption")
 export type SendStreamCaptionOutput = typeof SendStreamCaptionOutput.Type
 export const SendStreamCaptionOutputJsonSchema = JSONSchema.make(SendStreamCaptionOutput)

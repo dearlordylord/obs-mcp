@@ -5,6 +5,13 @@ import type { ObsConfig } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
 import {
+  confirmObsCanvasInventoryChange,
+  confirmObsConfigWorkflow,
+  confirmObsInputIdentityChange,
+  confirmObsStudioModeStateChange,
+  confirmObsTransitionWorkflow
+} from "../../src/obs/operations/events.js"
+import {
   EventSubscription,
   HIGH_VOLUME_EVENT_SUBSCRIPTIONS,
   SAFE_EVENT_SUBSCRIPTION_MASK
@@ -208,6 +215,9 @@ describe("OBS websocket client", () => {
     expect(client.getBufferedEvents()).toEqual({
       capacity: 1,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 1,
+      missedEvents: false,
       events: [{
         sequence: 1,
         eventType: "CurrentProgramSceneChanged",
@@ -245,14 +255,34 @@ describe("OBS websocket client", () => {
   it("buffers typed low-volume event payloads from websocket frames", async () => {
     const cases = [
       {
-        eventType: "CurrentSceneCollectionChanged",
+        eventType: "CurrentProfileChanging",
         eventIntent: EventSubscription.Config,
-        eventData: { sceneCollectionName: "Collection B" }
+        eventData: { profileName: "Profile A" }
+      },
+      {
+        eventType: "CurrentProfileChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "Profile B" }
       },
       {
         eventType: "ProfileListChanged",
         eventIntent: EventSubscription.Config,
         eventData: { profiles: ["Profile A", "Profile B"] }
+      },
+      {
+        eventType: "CurrentSceneCollectionChanging",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection A" }
+      },
+      {
+        eventType: "CurrentSceneCollectionChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection B" }
+      },
+      {
+        eventType: "SceneCollectionListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollections: ["Collection A", "Collection B"] }
       },
       {
         eventType: "ExitStarted",
@@ -265,9 +295,19 @@ describe("OBS websocket client", () => {
         eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
       },
       {
+        eventType: "SceneRemoved",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Old Scene", sceneUuid: "scene-old", isGroup: false }
+      },
+      {
         eventType: "SceneNameChanged",
         eventIntent: EventSubscription.Scenes,
         eventData: { sceneUuid: "scene-program", oldSceneName: "Old Program", sceneName: "Program" }
+      },
+      {
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program" }
       },
       {
         eventType: "CurrentPreviewSceneChanged",
@@ -347,6 +387,35 @@ describe("OBS websocket client", () => {
         eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
       },
       {
+        eventType: "InputMuteStateChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputMuted: true }
+      },
+      {
+        eventType: "InputVolumeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputVolumeMul: 0.5, inputVolumeDb: -6 }
+      },
+      {
+        eventType: "InputAudioBalanceChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputAudioBalance: 0.25 }
+      },
+      {
+        eventType: "InputAudioSyncOffsetChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputAudioSyncOffset: -250 }
+      },
+      {
+        eventType: "InputAudioTracksChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputName: "Mic/Aux",
+          inputUuid: "input-mic",
+          inputAudioTracks: { "1": true, "2": false, "3": false, "4": true, "5": false, "6": true }
+        }
+      },
+      {
         eventType: "InputAudioMonitorTypeChanged",
         eventIntent: EventSubscription.Inputs,
         eventData: {
@@ -363,6 +432,31 @@ describe("OBS websocket client", () => {
           outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
           outputPath: "/tmp/recording.mkv"
         }
+      },
+      {
+        eventType: "CurrentSceneTransitionChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration: 300 }
+      },
+      {
+        eventType: "SceneTransitionStarted",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        eventType: "SceneTransitionEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        eventType: "SceneTransitionVideoEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
       },
       {
         eventType: "MediaInputPlaybackStarted",
@@ -450,6 +544,18 @@ describe("OBS websocket client", () => {
         eventData: { canvasUuid: "canvas-a", oldCanvasName: "Old Canvas", canvasName: "Canvas A" }
       },
       {
+        eventType: "SourceFilterCreated",
+        eventIntent: EventSubscription.Filters,
+        eventData: {
+          sourceName: "Camera",
+          filterName: "Color",
+          filterKind: "color_filter",
+          filterIndex: 0,
+          filterSettings: { secret: true },
+          defaultFilterSettings: { secret: false }
+        }
+      },
+      {
         eventType: "SourceFilterSettingsChanged",
         eventIntent: EventSubscription.Filters,
         eventData: { sourceName: "Camera", filterName: "Color", filterSettings: { secret: true } }
@@ -491,6 +597,17 @@ describe("OBS websocket client", () => {
       },
       {
         sequence: 5,
+        eventType: "SourceFilterCreated",
+        eventIntent: EventSubscription.Filters,
+        eventData: {
+          sourceName: "Camera",
+          filterName: "Color",
+          filterKind: "color_filter",
+          filterIndex: 0
+        }
+      },
+      {
+        sequence: 6,
         eventType: "SourceFilterSettingsChanged",
         eventIntent: EventSubscription.Filters,
         eventData: { sourceName: "Camera", filterName: "Color" }
@@ -642,11 +759,86 @@ describe("OBS websocket client", () => {
 
   it("drops malformed typed event payloads without surfacing raw data", async () => {
     const server = await FakeObsServer.start({
-      eventBeforeResponse: {
-        eventType: "InputNameChanged",
-        eventIntent: EventSubscription.Inputs,
-        eventData: { inputUuid: "input-camera", inputName: "Camera" }
-      },
+      eventBurstBeforeResponse: [
+        {
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputUuid: "input-camera", inputName: "Camera" }
+        },
+        {
+          eventType: "InputRemoved",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Camera", inputUuid: "input-camera", inputSettings: { secret: true } }
+        },
+        {
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: {
+            inputUuid: "input-camera",
+            oldInputName: "Old Camera",
+            inputName: "Camera",
+            inputKind: "dshow_input"
+          }
+        },
+        {
+          eventType: "SceneItemCreated",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sourceName: "Camera",
+            sourceUuid: "source-camera",
+            sceneItemId: -1,
+            sceneItemIndex: 0
+          }
+        },
+        {
+          eventType: "SourceFilterListReindexed",
+          eventIntent: EventSubscription.Filters,
+          eventData: {
+            sourceName: "Camera",
+            filters: [{ filterName: "Color", filterIndex: Number.MAX_SAFE_INTEGER + 1 }]
+          }
+        },
+        {
+          eventType: "InputVolumeChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: {
+            inputName: "Mic/Aux",
+            inputUuid: "input-mic",
+            inputVolumeMul: 0.5,
+            inputVolumeDb: -6,
+            inputSettings: { secret: true }
+          }
+        },
+        {
+          eventType: "MediaInputPlaybackEnded",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaCursor: 1000
+          }
+        },
+        {
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: {
+            inputName: "Media",
+            inputUuid: "input-media",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY",
+            inputSettings: { secret: true }
+          }
+        },
+        {
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          eventData: {
+            studioModeEnabled: true,
+            savedScreenshotPath: "/tmp/screenshot.png"
+          }
+        }
+      ],
       eventBeforeResponseFor: "GetCurrentProgramScene"
     })
     servers.push(server)
@@ -655,6 +847,376 @@ describe("OBS websocket client", () => {
 
     await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
     expect(client.getBufferedEvents().events).toEqual([])
+  })
+
+  it("does not confirm malformed ingested studio-mode state payloads", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          eventData: { studioModeEnabled: "yes" }
+        },
+        {
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          eventData: {
+            studioModeEnabled: true,
+            savedScreenshotPath: "/tmp/screenshot.png"
+          }
+        },
+        {
+          eventType: "ScreenshotSaved",
+          eventIntent: EventSubscription.Ui,
+          eventData: { savedScreenshotPath: "/tmp/screenshot.png" }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([
+      {
+        sequence: 1,
+        eventType: "ScreenshotSaved",
+        eventIntent: EventSubscription.Ui,
+        eventData: { savedScreenshotPath: "/tmp/screenshot.png" }
+      }
+    ])
+    await expect(confirmObsStudioModeStateChange(client, {
+      target: "studio_mode",
+      outcome: "enabled",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 1
+    })
+  })
+
+  it("does not confirm malformed ingested transition workflow payloads", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "CurrentSceneTransitionDurationChanged",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionDuration: 0 }
+        },
+        {
+          eventType: "CurrentSceneTransitionDurationChanged",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionDuration: 49 }
+        },
+        {
+          eventType: "CurrentSceneTransitionDurationChanged",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionDuration: 20001 }
+        },
+        {
+          eventType: "CurrentSceneTransitionDurationChanged",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionDuration: 300.5 }
+        },
+        {
+          eventType: "CurrentSceneTransitionDurationChanged",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionDuration: 300, transitionName: "Fade" }
+        },
+        {
+          eventType: "SceneTransitionStarted",
+          eventIntent: EventSubscription.Transitions,
+          eventData: {
+            transitionName: "Fade",
+            transitionUuid: "transition-fade",
+            transitionSettings: { secret: true }
+          }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([
+      {
+        sequence: 1,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration: 0 }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration: 49 }
+      },
+      {
+        sequence: 3,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration: 20001 }
+      }
+    ])
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "current_scene_transition",
+      outcome: "duration_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 3
+    })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "scene_transition",
+      outcome: "started",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 3
+    })
+  })
+
+  it("does not confirm malformed ingested config workflow payloads", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "CurrentProfileChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profileName: "" }
+        },
+        {
+          eventType: "ProfileListChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profiles: ["Profile A", ""] }
+        },
+        {
+          eventType: "ProfileListChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profiles: "Profile A" }
+        },
+        {
+          eventType: "ProfileListChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profiles: ["Profile A", 1] }
+        },
+        {
+          eventType: "ProfileListChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profiles: ["Profile A"], profileName: "Profile A" }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([
+      {
+        sequence: 1,
+        eventType: "CurrentProfileChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "" }
+      },
+      {
+        sequence: 2,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: ["Profile A", ""] }
+      }
+    ])
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 2
+    })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "list_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 2
+    })
+  })
+
+  it("retains diagnostic canvas empty strings without confirming canvas inventory changes", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "CanvasCreated",
+          eventIntent: EventSubscription.Canvases,
+          eventData: { canvasName: "", canvasUuid: "canvas-a" }
+        },
+        {
+          eventType: "CanvasRemoved",
+          eventIntent: EventSubscription.Canvases,
+          eventData: { canvasName: "Canvas B", canvasUuid: "" }
+        },
+        {
+          eventType: "CanvasNameChanged",
+          eventIntent: EventSubscription.Canvases,
+          eventData: { oldCanvasName: "", canvasName: "Canvas C", canvasUuid: "canvas-c" }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([
+      {
+        sequence: 1,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "", canvasUuid: "canvas-a" }
+      },
+      {
+        sequence: 2,
+        eventType: "CanvasRemoved",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas B", canvasUuid: "" }
+      },
+      {
+        sequence: 3,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { oldCanvasName: "", canvasName: "Canvas C", canvasUuid: "canvas-c" }
+      }
+    ])
+    await expect(confirmObsCanvasInventoryChange(client, {
+      target: "canvas",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 3
+    })
+    await expect(confirmObsCanvasInventoryChange(client, {
+      target: "canvas",
+      outcome: "removed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 3
+    })
+    await expect(confirmObsCanvasInventoryChange(client, {
+      target: "canvas",
+      outcome: "renamed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 3
+    })
+  })
+
+  it("does not confirm malformed or excluded ingested input identity payloads", async () => {
+    const server = await FakeObsServer.start({
+      eventBurstBeforeResponse: [
+        {
+          eventType: "InputRemoved",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "", inputUuid: "input-camera" }
+        },
+        {
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputUuid: "input-camera", oldInputName: "", inputName: "Camera" }
+        },
+        {
+          eventType: "InputCreated",
+          eventIntent: EventSubscription.Inputs,
+          eventData: {
+            inputName: "Camera",
+            inputUuid: "input-camera",
+            inputKind: "dshow_input",
+            inputSettings: { secret: true }
+          }
+        },
+        {
+          eventType: "InputSettingsChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Camera", inputUuid: "input-camera", inputSettings: { secret: true } }
+        }
+      ],
+      eventBeforeResponseFor: "GetCurrentProgramScene"
+    })
+    servers.push(server)
+    const client = await createObsClient(configFor(server.url))
+    clients.push(client)
+
+    await expect(client.request(GetCurrentProgramScene)).resolves.toMatchObject({ sceneName: "Intro" })
+    expect(client.getBufferedEvents().events).toEqual([
+      {
+        sequence: 1,
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "", inputUuid: "input-camera" }
+      },
+      {
+        sequence: 2,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputUuid: "input-camera", oldInputName: "", inputName: "Camera" }
+      },
+      {
+        sequence: 3,
+        eventType: "InputCreated",
+        eventIntent: EventSubscription.Inputs,
+        eventData: undefined
+      },
+      {
+        sequence: 4,
+        eventType: "InputSettingsChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: undefined
+      }
+    ])
+    await expect(confirmObsInputIdentityChange(client, {
+      target: "input",
+      outcome: "removed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 4
+    })
+    await expect(confirmObsInputIdentityChange(client, {
+      target: "input",
+      outcome: "renamed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 4
+    })
   })
 
   it("drops typed input and media events with mismatched event intents", async () => {

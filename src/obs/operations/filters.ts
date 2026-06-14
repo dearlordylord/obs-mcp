@@ -45,6 +45,7 @@ import {
   SetSourceFilterName,
   SetSourceFilterSettings
 } from "../requests.js"
+import { withDefinedFields } from "./shared.js"
 
 const filterValueType = (value: unknown): SanitizedFilterValueType => {
   if (value === null) {
@@ -117,6 +118,19 @@ const filterSettingsPatchToObsSettings = (
     ].filter(([, value]) => value !== undefined)
   )
 
+const sourceLocatorRequestData = (
+  input: Readonly<{
+    canvasUuid?: string | undefined
+    sourceName?: string | undefined
+    sourceUuid?: string | undefined
+  }>
+) =>
+  withDefinedFields({
+    sourceName: input.sourceName,
+    sourceUuid: input.sourceUuid,
+    canvasUuid: input.canvasUuid
+  })
+
 export const listSourceFilterKinds = async (client: ObsClient): Promise<ListSourceFilterKindsOutput> =>
   Schema.decodeUnknownSync(ListSourceFilterKindsOutputSchema)(await client.request(GetSourceFilterKindList))
 
@@ -165,9 +179,7 @@ export const createSourceFilter = async (
 ): Promise<CreateSourceFilterOutput> => {
   const decodedInput = Schema.decodeUnknownSync(CreateSourceFilterInput)(input)
   await client.request(CreateSourceFilter, {
-    ...(decodedInput.sourceName === undefined ? {} : { sourceName: decodedInput.sourceName }),
-    ...(decodedInput.sourceUuid === undefined ? {} : { sourceUuid: decodedInput.sourceUuid }),
-    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    ...sourceLocatorRequestData(decodedInput),
     filterName: decodedInput.filterName,
     filterKind: decodedInput.filterKind,
     ...(decodedInput.filterSettings === undefined
@@ -197,9 +209,7 @@ export const setSourceFilterSettings = async (
   const decodedInput = Schema.decodeUnknownSync(SetSourceFilterSettingsInput)(input)
   const overlay = decodedInput.overlay ?? true
   await client.request(SetSourceFilterSettings, {
-    ...(decodedInput.sourceName === undefined ? {} : { sourceName: decodedInput.sourceName }),
-    ...(decodedInput.sourceUuid === undefined ? {} : { sourceUuid: decodedInput.sourceUuid }),
-    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    ...sourceLocatorRequestData(decodedInput),
     filterName: decodedInput.filterName,
     filterSettings: filterSettingsPatchToObsSettings(decodedInput.filterSettings),
     overlay

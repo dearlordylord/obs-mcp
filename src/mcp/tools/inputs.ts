@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import {
   CreateInputInput,
   CreateInputOutput,
@@ -87,40 +85,7 @@ import {
   toggleInputMute,
   triggerMediaInputAction
 } from "../../obs/operations/inputs.js"
-import {
-  CreateInput,
-  GetInputAudioBalance,
-  GetInputAudioMonitorType,
-  GetInputAudioSyncOffset,
-  GetInputAudioTracks,
-  GetInputDefaultSettings,
-  GetInputDeinterlaceFieldOrder,
-  GetInputDeinterlaceMode,
-  GetInputKindList,
-  GetInputList,
-  GetInputMute,
-  GetInputPropertiesListPropertyItems,
-  GetInputSettings,
-  GetInputVolume,
-  GetMediaInputStatus,
-  GetSpecialInputs,
-  OffsetMediaInputCursor,
-  PressInputPropertiesButton,
-  RemoveInput,
-  SetInputAudioBalance,
-  SetInputAudioMonitorType,
-  SetInputAudioSyncOffset,
-  SetInputAudioTracks,
-  SetInputDeinterlaceFieldOrder,
-  SetInputDeinterlaceMode,
-  SetInputMute,
-  SetInputName,
-  SetInputSettings,
-  SetInputVolume,
-  SetMediaInputCursor,
-  ToggleInputMute,
-  TriggerMediaInputAction
-} from "../../obs/requests.js"
+import * as ObsRequests from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
 const CATEGORY = "inputs" as const
@@ -131,7 +96,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "List OBS Inputs",
     description: "Return OBS inputs, optionally restricted to one input kind.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputList.requestType],
+    requiredObsRequests: [ObsRequests.GetInputList.requestType],
     inputSchema: ListInputsInput,
     outputSchema: ListInputsOutput,
     handler: async (input, context) => listInputs(context.client, input)
@@ -141,7 +106,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "List OBS Input Kinds",
     description: "Return OBS input kinds, with optional unversioned kind names.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputKindList.requestType],
+    requiredObsRequests: [ObsRequests.GetInputKindList.requestType],
     inputSchema: ListInputKindsInput,
     outputSchema: ListInputKindsOutput,
     handler: async (input, context) => listInputKinds(context.client, input)
@@ -151,7 +116,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Special Inputs",
     description: "Return OBS desktop and microphone special input names.",
     category: CATEGORY,
-    requiredObsRequests: [GetSpecialInputs.requestType],
+    requiredObsRequests: [ObsRequests.GetSpecialInputs.requestType],
     inputSchema: EmptyInput,
     outputSchema: SpecialInputsOutput,
     handler: async (_input, context) => getSpecialInputs(context.client)
@@ -161,7 +126,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Mute",
     description: "Return whether an OBS input is muted.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputMute.requestType],
+    requiredObsRequests: [ObsRequests.GetInputMute.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputMuteOutput,
     handler: async (input, context) => getInputMute(context.client, input)
@@ -171,7 +136,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Mute",
     description: "Set whether an OBS input is muted.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputMute.requestType],
+    requiredObsRequests: [ObsRequests.SetInputMute.requestType],
     inputSchema: SetInputMuteInput,
     outputSchema: InputMuteOutput,
     handler: async (input, context) => setInputMute(context.client, input)
@@ -181,7 +146,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Toggle OBS Input Mute",
     description: "Toggle whether an OBS input is muted.",
     category: CATEGORY,
-    requiredObsRequests: [ToggleInputMute.requestType],
+    requiredObsRequests: [ObsRequests.ToggleInputMute.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputMuteOutput,
     handler: async (input, context) => toggleInputMute(context.client, input)
@@ -191,7 +156,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Volume",
     description: "Return an OBS input volume in multiplier and dB units.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputVolume.requestType],
+    requiredObsRequests: [ObsRequests.GetInputVolume.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputVolumeOutput,
     handler: async (input, context) => getInputVolume(context.client, input)
@@ -201,7 +166,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Volume",
     description: "Set an OBS input volume using either multiplier or dB units.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputVolume.requestType],
+    requiredObsRequests: [ObsRequests.SetInputVolume.requestType],
     inputSchema: SetInputVolumeInput,
     outputSchema: SetInputVolumeOutput,
     handler: async (input, context) => setInputVolume(context.client, input)
@@ -211,7 +176,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Audio Balance",
     description: "Return an OBS input audio balance.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputAudioBalance.requestType],
+    requiredObsRequests: [ObsRequests.GetInputAudioBalance.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputAudioBalanceOutput,
     handler: async (input, context) => getInputAudioBalance(context.client, input)
@@ -221,7 +186,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Audio Balance",
     description: "Set an OBS input audio balance.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputAudioBalance.requestType],
+    requiredObsRequests: [ObsRequests.SetInputAudioBalance.requestType],
     inputSchema: SetInputAudioBalanceInput,
     outputSchema: SetInputAudioBalanceOutput,
     handler: async (input, context) => setInputAudioBalance(context.client, input)
@@ -231,7 +196,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Audio Monitor Type",
     description: "Return an OBS input audio monitor type.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputAudioMonitorType.requestType],
+    requiredObsRequests: [ObsRequests.GetInputAudioMonitorType.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputAudioMonitorTypeOutput,
     handler: async (input, context) => getInputAudioMonitorType(context.client, input)
@@ -241,7 +206,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Audio Monitor Type",
     description: "Set an OBS input audio monitor type.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputAudioMonitorType.requestType],
+    requiredObsRequests: [ObsRequests.SetInputAudioMonitorType.requestType],
     inputSchema: SetInputAudioMonitorTypeInput,
     outputSchema: SetInputAudioMonitorTypeOutput,
     handler: async (input, context) => setInputAudioMonitorType(context.client, input)
@@ -251,7 +216,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Audio Sync Offset",
     description: "Return an OBS input audio sync offset in milliseconds.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputAudioSyncOffset.requestType],
+    requiredObsRequests: [ObsRequests.GetInputAudioSyncOffset.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputAudioSyncOffsetOutput,
     handler: async (input, context) => getInputAudioSyncOffset(context.client, input)
@@ -261,7 +226,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Audio Sync Offset",
     description: "Set an OBS input audio sync offset in milliseconds.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputAudioSyncOffset.requestType],
+    requiredObsRequests: [ObsRequests.SetInputAudioSyncOffset.requestType],
     inputSchema: SetInputAudioSyncOffsetInput,
     outputSchema: SetInputAudioSyncOffsetOutput,
     handler: async (input, context) => setInputAudioSyncOffset(context.client, input)
@@ -271,7 +236,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Audio Tracks",
     description: "Return enabled OBS audio tracks for an input.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputAudioTracks.requestType],
+    requiredObsRequests: [ObsRequests.GetInputAudioTracks.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputAudioTracksOutput,
     handler: async (input, context) => getInputAudioTracks(context.client, input)
@@ -281,7 +246,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Audio Tracks",
     description: "Set enabled OBS audio tracks for an input.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputAudioTracks.requestType],
+    requiredObsRequests: [ObsRequests.SetInputAudioTracks.requestType],
     inputSchema: SetInputAudioTracksInput,
     outputSchema: SetInputAudioTracksOutput,
     handler: async (input, context) => setInputAudioTracks(context.client, input)
@@ -291,7 +256,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Deinterlace Mode",
     description: "Return an OBS input deinterlace mode. OBS restricts deinterlacing to async inputs.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputDeinterlaceMode.requestType],
+    requiredObsRequests: [ObsRequests.GetInputDeinterlaceMode.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputDeinterlaceModeOutput,
     handler: async (input, context) => getInputDeinterlaceMode(context.client, input)
@@ -301,7 +266,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Deinterlace Mode",
     description: "Set an OBS input deinterlace mode. OBS restricts deinterlacing to async inputs.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputDeinterlaceMode.requestType],
+    requiredObsRequests: [ObsRequests.SetInputDeinterlaceMode.requestType],
     inputSchema: SetInputDeinterlaceModeInput,
     outputSchema: SetInputDeinterlaceModeOutput,
     handler: async (input, context) => setInputDeinterlaceMode(context.client, input)
@@ -311,7 +276,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Deinterlace Field Order",
     description: "Return an OBS input deinterlace field order. OBS restricts deinterlacing to async inputs.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputDeinterlaceFieldOrder.requestType],
+    requiredObsRequests: [ObsRequests.GetInputDeinterlaceFieldOrder.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputDeinterlaceFieldOrderOutput,
     handler: async (input, context) => getInputDeinterlaceFieldOrder(context.client, input)
@@ -321,7 +286,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Deinterlace Field Order",
     description: "Set an OBS input deinterlace field order. OBS restricts deinterlacing to async inputs.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputDeinterlaceFieldOrder.requestType],
+    requiredObsRequests: [ObsRequests.SetInputDeinterlaceFieldOrder.requestType],
     inputSchema: SetInputDeinterlaceFieldOrderInput,
     outputSchema: SetInputDeinterlaceFieldOrderOutput,
     handler: async (input, context) => setInputDeinterlaceFieldOrder(context.client, input)
@@ -331,7 +296,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Default Settings Summary",
     description: "Return sanitized default setting names and value types for an OBS input kind.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputDefaultSettings.requestType],
+    requiredObsRequests: [ObsRequests.GetInputDefaultSettings.requestType],
     inputSchema: InputKindInput,
     outputSchema: InputDefaultSettingsOutput,
     handler: async (input, context) => getInputDefaultSettings(context.client, input)
@@ -341,7 +306,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Settings Summary",
     description: "Return sanitized setting names and value types for an OBS input.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputSettings.requestType],
+    requiredObsRequests: [ObsRequests.GetInputSettings.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputSettingsOutput,
     handler: async (input, context) => getInputSettings(context.client, input)
@@ -351,7 +316,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Input Property List Items Summary",
     description: "Return sanitized list-property item fields for an OBS input property.",
     category: CATEGORY,
-    requiredObsRequests: [GetInputPropertiesListPropertyItems.requestType],
+    requiredObsRequests: [ObsRequests.GetInputPropertiesListPropertyItems.requestType],
     inputSchema: InputPropertiesListPropertyItemsInput,
     outputSchema: InputPropertiesListPropertyItemsOutput,
     handler: async (input, context) => getInputPropertiesListPropertyItems(context.client, input)
@@ -361,7 +326,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Input Settings",
     description: "Apply a narrow allowlisted OBS input settings patch. Arbitrary raw settings are not accepted.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputSettings.requestType],
+    requiredObsRequests: [ObsRequests.SetInputSettings.requestType],
     inputSchema: SetInputSettingsInput,
     outputSchema: SetInputSettingsOutput,
     handler: async (input, context) => setInputSettings(context.client, input)
@@ -371,7 +336,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Press OBS Input Properties Button",
     description: "Press a named OBS input properties button. This is an OBS-side effect.",
     category: CATEGORY,
-    requiredObsRequests: [PressInputPropertiesButton.requestType],
+    requiredObsRequests: [ObsRequests.PressInputPropertiesButton.requestType],
     inputSchema: PressInputPropertiesButtonInput,
     outputSchema: PressInputPropertiesButtonOutput,
     handler: async (input, context) => pressInputPropertiesButton(context.client, input)
@@ -381,7 +346,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Create OBS Input",
     description: "Create an OBS input in a scene. Optional inputSettings uses the narrow allowlisted settings patch.",
     category: CATEGORY,
-    requiredObsRequests: [CreateInput.requestType],
+    requiredObsRequests: [ObsRequests.CreateInput.requestType],
     inputSchema: CreateInputInput,
     outputSchema: CreateInputOutput,
     handler: async (input, context) => createInput(context.client, input)
@@ -391,7 +356,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Remove OBS Input",
     description: "Remove an OBS input by name or UUID.",
     category: CATEGORY,
-    requiredObsRequests: [RemoveInput.requestType],
+    requiredObsRequests: [ObsRequests.RemoveInput.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: InputMutationAcknowledgedOutput,
     handler: async (input, context) => removeInput(context.client, input)
@@ -401,7 +366,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Rename OBS Input",
     description: "Rename an OBS input by name or UUID.",
     category: CATEGORY,
-    requiredObsRequests: [SetInputName.requestType],
+    requiredObsRequests: [ObsRequests.SetInputName.requestType],
     inputSchema: SetInputNameInput,
     outputSchema: SetInputNameOutput,
     handler: async (input, context) => setInputName(context.client, input)
@@ -411,7 +376,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Get OBS Media Input Status",
     description: "Return an OBS media input status with duration and cursor data.",
     category: CATEGORY,
-    requiredObsRequests: [GetMediaInputStatus.requestType],
+    requiredObsRequests: [ObsRequests.GetMediaInputStatus.requestType],
     inputSchema: InputLocatorInput,
     outputSchema: MediaInputStatusOutput,
     handler: async (input, context) => getMediaInputStatus(context.client, input)
@@ -421,7 +386,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Set OBS Media Input Cursor",
     description: "Set a media input cursor in milliseconds. OBS does not perform duration bounds checking.",
     category: CATEGORY,
-    requiredObsRequests: [SetMediaInputCursor.requestType],
+    requiredObsRequests: [ObsRequests.SetMediaInputCursor.requestType],
     inputSchema: SetMediaInputCursorInput,
     outputSchema: SetMediaInputCursorOutput,
     handler: async (input, context) => setMediaInputCursor(context.client, input)
@@ -431,7 +396,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Offset OBS Media Input Cursor",
     description: "Offset a media input cursor in milliseconds. OBS does not perform duration bounds checking.",
     category: CATEGORY,
-    requiredObsRequests: [OffsetMediaInputCursor.requestType],
+    requiredObsRequests: [ObsRequests.OffsetMediaInputCursor.requestType],
     inputSchema: OffsetMediaInputCursorInput,
     outputSchema: OffsetMediaInputCursorOutput,
     handler: async (input, context) => offsetMediaInputCursor(context.client, input)
@@ -441,7 +406,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
     title: "Trigger OBS Media Input Action",
     description: "Trigger an official OBS media input action.",
     category: CATEGORY,
-    requiredObsRequests: [TriggerMediaInputAction.requestType],
+    requiredObsRequests: [ObsRequests.TriggerMediaInputAction.requestType],
     inputSchema: TriggerMediaInputActionInput,
     outputSchema: TriggerMediaInputActionOutput,
     handler: async (input, context) => triggerMediaInputAction(context.client, input)

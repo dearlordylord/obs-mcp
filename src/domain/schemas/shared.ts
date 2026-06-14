@@ -62,6 +62,16 @@ export const JsonRecordKey = ObsString
 export const StringArray = Schema.Array(ObsString)
 export const UnknownRecord = Schema.Record({ key: JsonRecordKey, value: Schema.Unknown })
 
+export const ObsInputAudioTracks = Schema.Struct({
+  "1": Schema.Boolean,
+  "2": Schema.Boolean,
+  "3": Schema.Boolean,
+  "4": Schema.Boolean,
+  "5": Schema.Boolean,
+  "6": Schema.Boolean
+})
+export type ObsInputAudioTracks = typeof ObsInputAudioTracks.Type
+
 export const OutputActiveState = Schema.Struct({
   outputActive: Schema.Boolean
 })
@@ -73,6 +83,24 @@ export const OutputActiveSwitchState = Schema.Struct({
 })
 export type OutputActiveSwitchState = typeof OutputActiveSwitchState.Type
 
+export const outputStatusFields = <FrameCount extends Schema.Struct.Field>(frameCount: FrameCount) =>
+  ({
+    outputActive: Schema.Boolean,
+    outputReconnecting: Schema.Boolean,
+    outputTimecode: ObsString,
+    outputDuration: ObsNumber,
+    outputCongestion: ObsNumber,
+    outputBytes: ObsNumber,
+    outputSkippedFrames: frameCount,
+    outputTotalFrames: frameCount
+  }) as const
+
+export const RequestAcknowledgedOutput = <RequestType extends string>(requestType: RequestType) =>
+  Schema.Struct({
+    requestType: Schema.Literal(requestType),
+    acknowledged: Schema.Literal(true)
+  })
+
 export const EmptyInput = Schema.Struct({}).pipe(
   Schema.filter((input) => Object.keys(input).length === 0, {
     message: () => "Expected no arguments"
@@ -80,3 +108,20 @@ export const EmptyInput = Schema.Struct({}).pipe(
 ).annotations({
   jsonSchema: { type: "object", properties: {}, additionalProperties: false }
 })
+
+export const requireAtLeastOneField = <T extends Record<string, unknown>>(
+  schema: Schema.Schema<T>,
+  message: string
+): Schema.Schema<T> =>
+  schema.pipe(
+    Schema.filter((value) => Object.keys(value).length > 0, {
+      message: () => message
+    })
+  )
+
+export const isPlainJsonObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object"
+  && value !== null
+  && !Array.isArray(value)
+  && (Object.getPrototypeOf(value) === Object.prototype
+    || Object.getPrototypeOf(value) === null)

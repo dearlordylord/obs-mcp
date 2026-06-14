@@ -1,11 +1,17 @@
 import { JSONSchema, Schema } from "effect"
 
-import { ObsNonNegativeInteger, ObsString, UnknownRecord } from "./shared.js"
+import { ObsNonEmptyString, ObsNonNegativeInteger, ObsString, UnknownRecord } from "./shared.js"
 
 export const RawCanvasListOutput = Schema.Struct({
   canvases: Schema.Array(UnknownRecord)
 })
 export type RawCanvasListOutput = typeof RawCanvasListOutput.Type
+
+export const CanvasName = ObsNonEmptyString
+export type CanvasName = typeof CanvasName.Type
+
+export const CanvasUuid = ObsNonEmptyString
+export type CanvasUuid = typeof CanvasUuid.Type
 
 export const CanvasSummary = Schema.Struct({
   canvasIndex: ObsNonNegativeInteger,

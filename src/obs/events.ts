@@ -14,12 +14,35 @@ export interface BufferedObsEvent {
 export interface ObsEventBufferSnapshot {
   readonly capacity: number
   readonly droppedEvents: number
+  readonly oldestSequence: number
+  readonly latestSequence: number
+  readonly missedEvents: boolean
   readonly events: ReadonlyArray<BufferedObsEvent>
+}
+
+export interface ObsEventBufferSnapshotInput {
+  readonly sinceSequence?: number | undefined
+}
+
+export type ObsEventMatcher = (event: BufferedObsEvent) => boolean
+
+export interface ObsEventWaitOptions {
+  readonly afterSequence: number
+  readonly timeoutMs: number
+}
+
+export interface ObsEventWaitResult {
+  readonly timedOut: boolean
+  readonly baselineSequence: number
+  readonly snapshot: ObsEventBufferSnapshot
+  readonly event?: BufferedObsEvent | undefined
 }
 
 interface ObsEventBuffer {
   record(event: EventEnvelope): void
-  snapshot(): ObsEventBufferSnapshot
+  snapshot(input?: ObsEventBufferSnapshotInput): ObsEventBufferSnapshot
+  waitFor(match: ObsEventMatcher, options: ObsEventWaitOptions): Promise<ObsEventWaitResult>
+  close(error: Error): void
 }
 
 interface ObsEventBufferOptions {
@@ -34,6 +57,49 @@ export const createObsEventBuffer = (options: ObsEventBufferOptions = {}): ObsEv
   let events: ReadonlyArray<BufferedObsEvent> = []
   let droppedEvents = 0
   let nextSequence = 1
+  let closedError: Error | undefined
+  let waiters: ReadonlyArray<{
+    readonly match: ObsEventMatcher
+    readonly options: ObsEventWaitOptions
+    readonly resolve: (result: ObsEventWaitResult) => void
+    readonly reject: (error: Error) => void
+    readonly timer: NodeJS.Timeout
+  }> = []
+
+  const snapshot = (input: ObsEventBufferSnapshotInput = {}): ObsEventBufferSnapshot => {
+    const sinceSequence = input.sinceSequence
+    const oldestSequence = events[0]?.sequence ?? 0
+    const latestSequence = nextSequence - 1
+    const missedEvents = sinceSequence !== undefined
+      && oldestSequence > 0
+      && sinceSequence < oldestSequence - 1
+    const retainedEvents = sinceSequence === undefined
+      ? events
+      : events.filter((event) => event.sequence > sinceSequence)
+    return {
+      capacity,
+      droppedEvents,
+      oldestSequence,
+      latestSequence,
+      missedEvents,
+      events: retainedEvents
+    }
+  }
+
+  const resolveWaiter = (
+    waiter: typeof waiters[number],
+    event: BufferedObsEvent | undefined,
+    timedOut: boolean
+  ): void => {
+    clearTimeout(waiter.timer)
+    waiters = waiters.filter((entry) => entry !== waiter)
+    waiter.resolve({
+      timedOut,
+      baselineSequence: waiter.options.afterSequence,
+      snapshot: snapshot({ sinceSequence: waiter.options.afterSequence }),
+      ...(event === undefined ? {} : { event })
+    })
+  }
 
   return {
     record: (event) => {
@@ -56,14 +122,49 @@ export const createObsEventBuffer = (options: ObsEventBufferOptions = {}): ObsEv
       if (events.length >= capacity) {
         droppedEvents += 1
         events = [...events.slice(1), bufferedEvent]
-        return
+      } else {
+        events = [...events, bufferedEvent]
       }
-      events = [...events, bufferedEvent]
+      for (const waiter of waiters) {
+        if (bufferedEvent.sequence > waiter.options.afterSequence && waiter.match(bufferedEvent)) {
+          resolveWaiter(waiter, bufferedEvent, false)
+        }
+      }
     },
-    snapshot: () => ({
-      capacity,
-      droppedEvents,
-      events
-    })
+    snapshot,
+    waitFor: async (match, options) => {
+      if (closedError !== undefined) {
+        throw closedError
+      }
+      const retainedMatch = events.find((event) => event.sequence > options.afterSequence && match(event))
+      if (retainedMatch !== undefined) {
+        return {
+          timedOut: false,
+          baselineSequence: options.afterSequence,
+          snapshot: snapshot({ sinceSequence: options.afterSequence }),
+          event: retainedMatch
+        }
+      }
+      return await new Promise<ObsEventWaitResult>((resolve, reject) => {
+        const waiter = {
+          match,
+          options,
+          resolve,
+          reject,
+          timer: setTimeout(() => {
+            resolveWaiter(waiter, undefined, true)
+          }, options.timeoutMs)
+        }
+        waiters = [...waiters, waiter]
+      })
+    },
+    close: (error) => {
+      closedError = error
+      for (const waiter of waiters) {
+        clearTimeout(waiter.timer)
+        waiter.reject(error)
+      }
+      waiters = []
+    }
   }
 }

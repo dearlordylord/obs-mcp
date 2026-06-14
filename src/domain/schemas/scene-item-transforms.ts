@@ -1,33 +1,10 @@
 import { JSONSchema, Schema } from "effect"
 
-import { ObsInteger, ObsNumber, ObsString } from "./shared.js"
+import { ObsInteger, ObsNumber, ObsString, requireAtLeastOneField } from "./shared.js"
 
 import { SceneItemLocatorInput } from "./scenes.js"
 
-export const SceneItemTransform = Schema.Struct({
-  alignment: Schema.optional(ObsInteger),
-  boundsAlignment: Schema.optional(ObsInteger),
-  boundsHeight: Schema.optional(ObsNumber),
-  boundsType: Schema.optional(ObsString),
-  boundsWidth: Schema.optional(ObsNumber),
-  cropBottom: Schema.optional(ObsInteger),
-  cropLeft: Schema.optional(ObsInteger),
-  cropRight: Schema.optional(ObsInteger),
-  cropTop: Schema.optional(ObsInteger),
-  cropToBounds: Schema.optional(Schema.Boolean),
-  height: Schema.optional(ObsNumber),
-  positionX: Schema.optional(ObsNumber),
-  positionY: Schema.optional(ObsNumber),
-  rotation: Schema.optional(ObsNumber),
-  scaleX: Schema.optional(ObsNumber),
-  scaleY: Schema.optional(ObsNumber),
-  sourceHeight: Schema.optional(ObsNumber),
-  sourceWidth: Schema.optional(ObsNumber),
-  width: Schema.optional(ObsNumber)
-})
-export type SceneItemTransform = typeof SceneItemTransform.Type
-
-export const SettableSceneItemTransform = Schema.Struct({
+const SceneItemSettableTransformFields = {
   alignment: Schema.optional(ObsInteger),
   boundsAlignment: Schema.optional(ObsInteger),
   boundsHeight: Schema.optional(ObsNumber),
@@ -43,10 +20,20 @@ export const SettableSceneItemTransform = Schema.Struct({
   rotation: Schema.optional(ObsNumber),
   scaleX: Schema.optional(ObsNumber),
   scaleY: Schema.optional(ObsNumber)
-}).pipe(
-  Schema.filter((transform) => Object.keys(transform).length > 0, {
-    message: () => "At least one settable scene item transform field is required"
-  })
+}
+
+export const SceneItemTransform = Schema.Struct({
+  ...SceneItemSettableTransformFields,
+  height: Schema.optional(ObsNumber),
+  sourceHeight: Schema.optional(ObsNumber),
+  sourceWidth: Schema.optional(ObsNumber),
+  width: Schema.optional(ObsNumber)
+})
+export type SceneItemTransform = typeof SceneItemTransform.Type
+
+export const SettableSceneItemTransform = requireAtLeastOneField(
+  Schema.Struct(SceneItemSettableTransformFields),
+  "At least one settable scene item transform field is required"
 )
 export type SettableSceneItemTransform = typeof SettableSceneItemTransform.Type
 

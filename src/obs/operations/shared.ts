@@ -22,6 +22,9 @@ export const requestAndReturn = async <
   return Schema.decodeUnknownSync(outputSchema)(output)
 }
 
+export const withDefinedFields = <T extends Record<string, unknown>>(fields: T) =>
+  Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined))
+
 export const acknowledged = <RequestType extends string>(
   requestType: RequestType
 ): { readonly requestType: RequestType; readonly acknowledged: true } => ({

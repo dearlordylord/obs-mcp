@@ -2,7 +2,7 @@ import { JSONSchema, Schema } from "effect"
 
 import { ObsNonEmptyString, ObsNonNegativeInteger, ObsString } from "./shared.js"
 
-import { SceneItemLocatorInput } from "./scenes.js"
+import { SceneItemLocatorInput, SceneLocatorOutputFields } from "./scenes.js"
 
 const ForbiddenLocatorField = Schema.optional(Schema.Never)
 const SceneItemId = ObsNonNegativeInteger
@@ -49,9 +49,7 @@ export type CreateSceneItemInput = typeof CreateSceneItemInput.Type
 export const CreateSceneItemInputJsonSchema = JSONSchema.make(CreateSceneItemInput)
 
 export const CreateSceneItemOutput = Schema.Struct({
-  sceneName: Schema.optional(ObsString),
-  sceneUuid: Schema.optional(ObsString),
-  canvasUuid: Schema.optional(ObsString),
+  ...SceneLocatorOutputFields,
   sourceName: Schema.optional(ObsString),
   sourceUuid: Schema.optional(ObsString),
   sceneItemId: SceneItemId,
@@ -65,9 +63,7 @@ export type RemoveSceneItemInput = typeof RemoveSceneItemInput.Type
 export const RemoveSceneItemInputJsonSchema = JSONSchema.make(RemoveSceneItemInput)
 
 export const RemoveSceneItemOutput = Schema.Struct({
-  sceneName: Schema.optional(ObsString),
-  sceneUuid: Schema.optional(ObsString),
-  canvasUuid: Schema.optional(ObsString),
+  ...SceneLocatorOutputFields,
   sceneItemId: SceneItemId,
   removed: Schema.Literal(true)
 })
@@ -103,9 +99,7 @@ export type DuplicateSceneItemInput = typeof DuplicateSceneItemInput.Type
 export const DuplicateSceneItemInputJsonSchema = JSONSchema.make(DuplicateSceneItemInput)
 
 export const DuplicateSceneItemOutput = Schema.Struct({
-  sceneName: Schema.optional(ObsString),
-  sceneUuid: Schema.optional(ObsString),
-  canvasUuid: Schema.optional(ObsString),
+  ...SceneLocatorOutputFields,
   destinationSceneName: Schema.optional(ObsString),
   destinationSceneUuid: Schema.optional(ObsString),
   sceneItemId: SceneItemId,

@@ -1,5 +1,6 @@
 import { Effect, Schema } from "effect"
 
+import { EventBufferCapacity } from "../domain/schemas/events.js"
 import { ObsNonEmptyString, ObsPositiveInteger, ObsString } from "../domain/schemas/shared.js"
 
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
@@ -27,8 +28,6 @@ const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes",
 
 const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
 const DEFAULT_OBS_CONNECTION_TIMEOUT = 30_000
-
-const EventBufferCapacity = ObsPositiveInteger
 
 export const ObsConfig = Schema.Struct({
   url: ObsString,
@@ -88,9 +87,7 @@ export const normalizeObsWebSocketUrl = (input: string): string => {
 
 export const redactedObsWebSocketUrl = (value: string): string => {
   const url = new URL(value)
-  url.username = ""
-  url.password = ""
-  return url.toString()
+  return `${url.protocol}//${url.host}${url.pathname}${url.search}${url.hash}`
 }
 
 export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsConfig, Error> =>

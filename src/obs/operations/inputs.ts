@@ -95,6 +95,7 @@ import {
   ToggleInputMute,
   TriggerMediaInputAction
 } from "../requests.js"
+import { withDefinedFields } from "./shared.js"
 
 export const listInputs = async (client: ObsClient, input: ListInputsInput): Promise<ListInputsOutput> => {
   const decodedInput = Schema.decodeUnknownSync(ListInputsInput)(input)
@@ -147,8 +148,10 @@ export const setInputVolume = async (
   const decodedInput = Schema.decodeUnknownSync(SetInputVolumeInput)(input)
   await client.request(SetInputVolume, decodedInput)
   return Schema.decodeUnknownSync(SetInputVolumeOutput)({
-    ...(decodedInput.inputVolumeMul === undefined ? {} : { inputVolumeMul: decodedInput.inputVolumeMul }),
-    ...(decodedInput.inputVolumeDb === undefined ? {} : { inputVolumeDb: decodedInput.inputVolumeDb }),
+    ...withDefinedFields({
+      inputVolumeMul: decodedInput.inputVolumeMul,
+      inputVolumeDb: decodedInput.inputVolumeDb
+    }),
     acknowledged: true
   })
 }
@@ -343,10 +346,12 @@ const sanitizePropertyItem = (
   const itemValuePreview = sanitizedValuePreview(itemValue)
   return {
     itemIndex,
-    ...(itemName === undefined ? {} : { itemName }),
-    ...(itemValue === undefined ? {} : { itemValueType: sanitizedValueType(itemValue) }),
-    ...(itemValuePreview === undefined ? {} : { itemValuePreview }),
-    ...(itemEnabled === undefined ? {} : { itemEnabled }),
+    ...withDefinedFields({
+      itemName,
+      itemValueType: itemValue === undefined ? undefined : sanitizedValueType(itemValue),
+      itemValuePreview,
+      itemEnabled
+    }),
     fields: sanitizeSettingsRecord(propertyItem)
   }
 }
@@ -393,18 +398,16 @@ export const getInputPropertiesListPropertyItems = async (
 const inputSettingsPatchToObsSettings = (
   settings: SetInputSettingsInput["inputSettings"]
 ): Readonly<Record<string, unknown>> =>
-  Object.fromEntries(
-    [
-      ["is_local_file", settings.isLocalFile],
-      ["looping", settings.looping],
-      ["restart_on_activate", settings.restartOnActivate],
-      ["close_when_inactive", settings.closeWhenInactive],
-      ["clear_on_media_end", settings.clearOnMediaEnd],
-      ["hw_decode", settings.hwDecode],
-      ["speed_percent", settings.speedPercent],
-      ["reconnect_delay_sec", settings.reconnectDelaySec]
-    ].filter(([, value]) => value !== undefined)
-  )
+  withDefinedFields({
+    is_local_file: settings.isLocalFile,
+    looping: settings.looping,
+    restart_on_activate: settings.restartOnActivate,
+    close_when_inactive: settings.closeWhenInactive,
+    clear_on_media_end: settings.clearOnMediaEnd,
+    hw_decode: settings.hwDecode,
+    speed_percent: settings.speedPercent,
+    reconnect_delay_sec: settings.reconnectDelaySec
+  })
 
 export const setInputSettings = async (
   client: ObsClient,
@@ -413,9 +416,11 @@ export const setInputSettings = async (
   const decodedInput = Schema.decodeUnknownSync(SetInputSettingsInput)(input)
   const overlay = decodedInput.overlay ?? true
   await client.request(SetInputSettings, {
-    ...(decodedInput.inputName === undefined ? {} : { inputName: decodedInput.inputName }),
-    ...(decodedInput.inputUuid === undefined ? {} : { inputUuid: decodedInput.inputUuid }),
-    inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings),
+    ...withDefinedFields({
+      inputName: decodedInput.inputName,
+      inputUuid: decodedInput.inputUuid,
+      inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings)
+    }),
     overlay
   })
   return { inputSettings: decodedInput.inputSettings, overlay, acknowledged: true }
@@ -432,15 +437,18 @@ export const pressInputPropertiesButton = async (
 
 export const createInput = async (client: ObsClient, input: CreateInputInput): Promise<CreateInputOutput> => {
   const decodedInput = Schema.decodeUnknownSync(CreateInputInput)(input)
+  const inputSettings = decodedInput.inputSettings === undefined
+    ? undefined
+    : inputSettingsPatchToObsSettings(decodedInput.inputSettings)
   const response = await client.request(CreateInput, {
-    ...(decodedInput.sceneName === undefined ? {} : { sceneName: decodedInput.sceneName }),
-    ...(decodedInput.sceneUuid === undefined ? {} : { sceneUuid: decodedInput.sceneUuid }),
-    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    ...withDefinedFields({
+      sceneName: decodedInput.sceneName,
+      sceneUuid: decodedInput.sceneUuid,
+      canvasUuid: decodedInput.canvasUuid,
+      inputSettings
+    }),
     inputName: decodedInput.inputName,
     inputKind: decodedInput.inputKind,
-    ...(decodedInput.inputSettings === undefined
-      ? {}
-      : { inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings) }),
     sceneItemEnabled: decodedInput.sceneItemEnabled ?? true
   })
   return Schema.decodeUnknownSync(CreateInputOutput)(response)

@@ -4,10 +4,12 @@ import {
   ObsInteger,
   ObsNonEmptyString,
   ObsNonNegativeInteger,
-  ObsNumber,
   ObsString,
   OutputActiveState,
-  OutputActiveSwitchState
+  OutputActiveSwitchState,
+  outputStatusFields,
+  RequestAcknowledgedOutput,
+  requireAtLeastOneField
 } from "./shared.js"
 
 export const OutputSummary = Schema.Struct({
@@ -29,16 +31,7 @@ export const GetOutputStatusInput = Schema.Struct({
 export type GetOutputStatusInput = typeof GetOutputStatusInput.Type
 export const GetOutputStatusInputJsonSchema = JSONSchema.make(GetOutputStatusInput)
 
-export const OutputStatusResponse = Schema.Struct({
-  outputActive: Schema.Boolean,
-  outputReconnecting: Schema.Boolean,
-  outputTimecode: ObsString,
-  outputDuration: ObsNumber,
-  outputCongestion: ObsNumber,
-  outputBytes: ObsNumber,
-  outputSkippedFrames: ObsInteger,
-  outputTotalFrames: ObsInteger
-})
+export const OutputStatusResponse = Schema.Struct(outputStatusFields(ObsInteger))
 export type OutputStatusResponse = typeof OutputStatusResponse.Type
 
 export const GetOutputStatusOutput = Schema.extend(
@@ -89,10 +82,9 @@ export const GetOutputSettingsOutput = Schema.extend(
 export type GetOutputSettingsOutput = typeof GetOutputSettingsOutput.Type
 export const GetOutputSettingsOutputJsonSchema = JSONSchema.make(GetOutputSettingsOutput)
 
-const SetOutputSettingsPayload = OutputSettings.pipe(
-  Schema.filter((settings) => Object.keys(settings).length > 0, {
-    message: () => "At least one output setting is required"
-  })
+const SetOutputSettingsPayload = requireAtLeastOneField(
+  OutputSettings,
+  "At least one output setting is required"
 )
 
 export const SetOutputSettingsInput = Schema.extend(
@@ -128,10 +120,7 @@ export const ReplayBufferSwitchOutput = OutputActiveState
 export type ReplayBufferSwitchOutput = typeof ReplayBufferSwitchOutput.Type
 export const ReplayBufferSwitchOutputJsonSchema = JSONSchema.make(ReplayBufferSwitchOutput)
 
-export const SaveReplayBufferOutput = Schema.Struct({
-  requestType: Schema.Literal("SaveReplayBuffer"),
-  acknowledged: Schema.Literal(true)
-})
+export const SaveReplayBufferOutput = RequestAcknowledgedOutput("SaveReplayBuffer")
 export type SaveReplayBufferOutput = typeof SaveReplayBufferOutput.Type
 export const SaveReplayBufferOutputJsonSchema = JSONSchema.make(SaveReplayBufferOutput)
 

@@ -1,6 +1,6 @@
 import { Schema } from "effect"
 
-import { ObsNumber, ObsString, UnknownRecord } from "../domain/schemas/shared.js"
+import { ObsNonNegativeInteger, ObsNumber, ObsString, UnknownRecord } from "../domain/schemas/shared.js"
 
 const OP_HELLO = 0
 export const OP_IDENTIFY = 1
@@ -11,24 +11,41 @@ export const OP_REQUEST_RESPONSE = 7
 export const OP_REQUEST_BATCH = 8
 export const OP_REQUEST_BATCH_RESPONSE = 9
 
+const EventSubscriptionGeneralBit = 0
+const EventSubscriptionConfigBit = 1
+const EventSubscriptionScenesBit = 2
+const EventSubscriptionInputsBit = 3
+const EventSubscriptionTransitionsBit = 4
+const EventSubscriptionFiltersBit = 5
+const EventSubscriptionOutputsBit = 6
+const EventSubscriptionSceneItemsBit = 7
+const EventSubscriptionMediaInputsBit = 8
+const EventSubscriptionVendorsBit = 9
+const EventSubscriptionUiBit = 10
+const EventSubscriptionCanvasesBit = 11
+const EventSubscriptionInputVolumeMetersBit = 16
+const EventSubscriptionInputActiveStateChangedBit = 17
+const EventSubscriptionInputShowStateChangedBit = 18
+const EventSubscriptionSceneItemTransformChangedBit = 19
+
 export const EventSubscription = {
   None: 0,
-  General: 1 << 0,
-  Config: 1 << 1,
-  Scenes: 1 << 2,
-  Inputs: 1 << 3,
-  Transitions: 1 << 4,
-  Filters: 1 << 5,
-  Outputs: 1 << 6,
-  SceneItems: 1 << 7,
-  MediaInputs: 1 << 8,
-  Vendors: 1 << 9,
-  Ui: 1 << 10,
-  Canvases: 1 << 11,
-  InputVolumeMeters: 1 << 16,
-  InputActiveStateChanged: 1 << 17,
-  InputShowStateChanged: 1 << 18,
-  SceneItemTransformChanged: 1 << 19
+  General: 1 << EventSubscriptionGeneralBit,
+  Config: 1 << EventSubscriptionConfigBit,
+  Scenes: 1 << EventSubscriptionScenesBit,
+  Inputs: 1 << EventSubscriptionInputsBit,
+  Transitions: 1 << EventSubscriptionTransitionsBit,
+  Filters: 1 << EventSubscriptionFiltersBit,
+  Outputs: 1 << EventSubscriptionOutputsBit,
+  SceneItems: 1 << EventSubscriptionSceneItemsBit,
+  MediaInputs: 1 << EventSubscriptionMediaInputsBit,
+  Vendors: 1 << EventSubscriptionVendorsBit,
+  Ui: 1 << EventSubscriptionUiBit,
+  Canvases: 1 << EventSubscriptionCanvasesBit,
+  InputVolumeMeters: 1 << EventSubscriptionInputVolumeMetersBit,
+  InputActiveStateChanged: 1 << EventSubscriptionInputActiveStateChangedBit,
+  InputShowStateChanged: 1 << EventSubscriptionInputShowStateChangedBit,
+  SceneItemTransformChanged: 1 << EventSubscriptionSceneItemTransformChangedBit
 }
 
 export const HIGH_VOLUME_EVENT_SUBSCRIPTIONS = [
@@ -150,6 +167,8 @@ const RequestStatus = Schema.Struct({
   comment: Schema.optional(ObsString)
 })
 
+const EventIntent = ObsNonNegativeInteger.pipe(Schema.lessThanOrEqualTo(Number.MAX_SAFE_INTEGER))
+
 export const RequestResponseEnvelope = Schema.Struct({
   op: Schema.Literal(OP_REQUEST_RESPONSE),
   d: Schema.Struct({
@@ -179,7 +198,7 @@ export const EventEnvelope = Schema.Struct({
   op: Schema.Literal(OP_EVENT),
   d: Schema.Struct({
     eventType: ObsString,
-    eventIntent: ObsNumber,
+    eventIntent: EventIntent,
     eventData: Schema.optional(UnknownRecord)
   })
 })

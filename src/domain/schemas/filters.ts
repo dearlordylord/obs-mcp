@@ -77,19 +77,37 @@ export type SourceFilterOutput = typeof SourceFilterOutput.Type
 export const SourceFilterOutputJsonSchema = JSONSchema.make(SourceFilterOutput)
 
 // Filter signed unit values are bounded structural floats where negative, zero, and positive are meaningful.
-const FilterSignedUnit = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-1), Schema.lessThanOrEqualTo(1))
+const FilterSignedUnitMin = -1
+const FilterSignedUnitMax = 1
+const FilterSignedUnit = ObsNumber.pipe(
+  Schema.greaterThanOrEqualTo(FilterSignedUnitMin),
+  Schema.lessThanOrEqualTo(FilterSignedUnitMax)
+)
 // OBS color values are packed unsigned integers; the field name carries color semantics, not a brand.
+const FilterColorIntegerMax = 4_294_967_295
 const FilterColorInteger = ObsNumber.pipe(
   Schema.int(),
   Schema.greaterThanOrEqualTo(0),
-  Schema.lessThanOrEqualTo(4_294_967_295)
+  Schema.lessThanOrEqualTo(FilterColorIntegerMax)
 )
 // Gamma is a bounded OBS filter scalar; branding would not add meaning beyond the allowlisted field.
-const FilterGamma = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-3), Schema.lessThanOrEqualTo(3))
+const FilterGammaMin = -3
+const FilterGammaMax = 3
+const FilterGamma = ObsNumber.pipe(
+  Schema.greaterThanOrEqualTo(FilterGammaMin),
+  Schema.lessThanOrEqualTo(FilterGammaMax)
+)
 // Hue shift is a bounded degree value whose unit is carried by the field name.
-const FilterHueShift = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-180), Schema.lessThanOrEqualTo(180))
+const FilterHueShiftMin = -180
+const FilterHueShiftMax = 180
+const FilterHueShift = ObsNumber.pipe(
+  Schema.greaterThanOrEqualTo(FilterHueShiftMin),
+  Schema.lessThanOrEqualTo(FilterHueShiftMax)
+)
 // Gain is a bounded dB value where negative, zero, and positive values are expected.
-const FilterDb = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-100), Schema.lessThanOrEqualTo(100))
+const FilterDbMin = -100
+const FilterDbMax = 100
+const FilterDb = ObsNumber.pipe(Schema.greaterThanOrEqualTo(FilterDbMin), Schema.lessThanOrEqualTo(FilterDbMax))
 
 export const SourceFilterSettingsPatch = Schema.Struct({
   brightness: Schema.optional(FilterSignedUnit),

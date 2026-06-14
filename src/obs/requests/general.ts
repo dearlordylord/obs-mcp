@@ -4,29 +4,18 @@ import {
   HotkeyListOutput,
   ObsStatsOutput,
   TriggerHotkeyByKeySequenceInput,
-  TriggerHotkeyByNameInput
+  TriggerHotkeyByNameInput,
+  VersionResponse
 } from "../../domain/schemas/general.js"
-import { ObsNumber, ObsString, StringArray } from "../../domain/schemas/shared.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
 const EmptyResponseData = Schema.Struct({})
 
-const GetVersionResponse = Schema.Struct({
-  obsVersion: ObsString,
-  obsWebSocketVersion: ObsString,
-  rpcVersion: ObsNumber,
-  availableRequests: StringArray,
-  supportedImageFormats: StringArray,
-  platform: Schema.optional(ObsString),
-  platformDescription: Schema.optional(ObsString)
-})
-type GetVersionResponse = typeof GetVersionResponse.Type
-
 export const GetVersion = {
   requestType: "GetVersion",
   requestDataSchema: EmptyRequestData,
-  responseSchema: GetVersionResponse
-} satisfies ObsRequestDescriptor<GetVersionResponse>
+  responseSchema: VersionResponse
+} satisfies ObsRequestDescriptor<VersionResponse>
 
 export const GetStats = {
   requestType: "GetStats",

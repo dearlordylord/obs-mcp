@@ -458,8 +458,22 @@ const lifecycleToolNames = (tools: ReadonlyArray<readonly [string, string]>): Ar
 const lifecycleRequestNames = (tools: ReadonlyArray<readonly [string, string]>): Array<string> =>
   tools.map(([requestName]) => requestName)
 
+const eventToolNames = [
+  "get_recent_obs_events",
+  "confirm_obs_output_lifecycle",
+  "confirm_obs_scene_graph_change",
+  "confirm_obs_source_filter_change",
+  "confirm_obs_media_input_workflow",
+  "confirm_obs_transition_workflow",
+  "confirm_obs_input_audio_change",
+  "confirm_obs_input_identity_change",
+  "confirm_obs_canvas_inventory_change",
+  "confirm_obs_studio_mode_state_change",
+  "confirm_obs_config_workflow"
+] as const
+
 const gatedToolsets = [
-  { toolset: "events", tools: ["get_recent_obs_events"] },
+  { toolset: "events", tools: eventToolNames },
   { toolset: "admin_raw", tools: ["get_persistent_data", "set_persistent_data"] },
   { toolset: "vendor", tools: ["call_vendor_request", "broadcast_custom_event"] },
   { toolset: "batch", tools: ["run_obs_request_batch"] }
@@ -471,16 +485,53 @@ const neverPublicToolNames = [
   "get_input_volume_meters",
   "get_high_volume_obs_events",
   "stream_obs_events",
+  "wait_for_obs_event",
+  "subscribe_to_obs_event",
+  "get_transition_events",
+  "notifications_obs_event",
+  "get_obs_event_resource",
   "call_raw_obs_request",
   "run_raw_obs_request_batch"
 ]
 
-const eventClient = (events: ReturnType<ObsClient["getBufferedEvents"]>): ObsClient => ({
+type EventClientSnapshot =
+  & Omit<ReturnType<ObsClient["getBufferedEvents"]>, "oldestSequence" | "latestSequence" | "missedEvents">
+  & Partial<Pick<ReturnType<ObsClient["getBufferedEvents"]>, "oldestSequence" | "latestSequence" | "missedEvents">>
+
+const normalizeEventSnapshot = (
+  snapshot: EventClientSnapshot,
+  input: Parameters<ObsClient["getBufferedEvents"]>[0] = {}
+): ReturnType<ObsClient["getBufferedEvents"]> => {
+  const sinceSequence = input.sinceSequence
+  const oldestSequence = snapshot.oldestSequence ?? snapshot.events[0]?.sequence ?? 0
+  const latestSequence = snapshot.latestSequence ?? snapshot.events.at(-1)?.sequence ?? 0
+  const missedEvents = snapshot.missedEvents ?? (
+    sinceSequence !== undefined
+    && oldestSequence > 0
+    && sinceSequence < oldestSequence - 1
+  )
+  const events = sinceSequence === undefined
+    ? snapshot.events
+    : snapshot.events.filter((event) => event.sequence > sinceSequence)
+  return { ...snapshot, oldestSequence, latestSequence, missedEvents, events }
+}
+
+const eventClient = (events: EventClientSnapshot): ObsClient => ({
   negotiatedRpcVersion: 1,
   availableRequests: allAvailableRequests,
   request: async (descriptor) => Schema.decodeUnknownSync(descriptor.responseSchema)({}),
   requestBatch: async () => [],
-  getBufferedEvents: () => events,
+  getBufferedEvents: (input) => normalizeEventSnapshot(events, input),
+  waitForBufferedEvent: async (match, options) => {
+    const snapshot = normalizeEventSnapshot(events, { sinceSequence: options.afterSequence })
+    const event = snapshot.events.find(match)
+    return {
+      timedOut: event === undefined,
+      baselineSequence: options.afterSequence,
+      snapshot,
+      ...(event === undefined ? {} : { event })
+    }
+  },
   close: async () => undefined
 })
 
@@ -854,9 +905,7 @@ describe("MCP tool registry", () => {
   })
 
   it("exposes recent safe OBS events only when the events toolset is enabled", () => {
-    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
-      "get_recent_obs_events"
-    ])
+    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([...eventToolNames])
     expect(getEnabledTools(["scenes"], allAvailableRequests).map((tool) => tool.name))
       .not.toContain("get_recent_obs_events")
   })
@@ -901,9 +950,7 @@ describe("MCP tool registry", () => {
 
   it("filters tools by toolset category", () => {
     expect(getEnabledTools(["general"], allAvailableRequests).map((tool) => tool.name)).toEqual(generalToolNames)
-    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([
-      "get_recent_obs_events"
-    ])
+    expect(getEnabledTools(["events"], allAvailableRequests).map((tool) => tool.name)).toEqual([...eventToolNames])
     expect(getEnabledTools(["filters"], allAvailableRequests).map((tool) => tool.name)).toEqual(filterToolNames)
     expect(getEnabledTools(["record"], allAvailableRequests).map((tool) => tool.name)).toEqual([
       "get_record_status",
@@ -3567,6 +3614,2192 @@ describe("MCP tool registry", () => {
     })).rejects.toBeInstanceOf(McpError)
   })
 
+  it("returns recent event cursor metadata and filters by sinceSequence before ordering", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), {
+      order: "oldest_first",
+      sinceSequence: 3
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 3,
+        droppedEvents: 2,
+        events: [
+          {
+            sequence: 3,
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Scene 3", sceneUuid: "scene-3" }
+          },
+          {
+            sequence: 4,
+            eventType: "InputMuteStateChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputMuted: true }
+          },
+          {
+            sequence: 5,
+            eventType: "RecordFileChanged",
+            eventIntent: EventSubscription.Outputs,
+            eventData: { newOutputPath: "/tmp/recording-5.mkv" }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      capacity: 3,
+      droppedEvents: 2,
+      oldestSequence: 3,
+      latestSequence: 5,
+      missedEvents: false,
+      returnedEvents: 2,
+      order: "oldest_first",
+      events: [
+        {
+          sequence: 4,
+          eventType: "InputMuteStateChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          eventData: { inputName: "Mic/Aux", inputUuid: "input-mic", inputMuted: true }
+        },
+        {
+          sequence: 5,
+          eventType: "RecordFileChanged",
+          eventIntent: EventSubscription.Outputs,
+          category: "outputs",
+          eventData: { newOutputPath: "/tmp/recording-5.mkv" }
+        }
+      ]
+    })
+  })
+
+  it("reports missed events when sinceSequence is older than the retained event window", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { sinceSequence: 1 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 2,
+        droppedEvents: 3,
+        events: [
+          {
+            sequence: 3,
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Scene 3", sceneUuid: "scene-3" }
+          },
+          {
+            sequence: 4,
+            eventType: "CurrentPreviewSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Scene 4", sceneUuid: "scene-4" }
+          }
+        ]
+      })
+    })).resolves.toMatchObject({
+      capacity: 2,
+      droppedEvents: 3,
+      oldestSequence: 3,
+      latestSequence: 4,
+      missedEvents: true,
+      returnedEvents: 2
+    })
+  })
+
+  it("accepts zero as a recent event cursor", async () => {
+    await expect(executeTool(toolByName("get_recent_obs_events"), { sinceSequence: 0 }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 1,
+        droppedEvents: 0,
+        events: [{
+          sequence: 1,
+          eventType: "CurrentProgramSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Scene 1", sceneUuid: "scene-1" }
+        }]
+      })
+    })).resolves.toMatchObject({
+      oldestSequence: 1,
+      latestSequence: 1,
+      missedEvents: false,
+      returnedEvents: 1
+    })
+  })
+
+  it("confirms typed output lifecycle outcomes after the requested sequence", async () => {
+    await expect(executeTool(toolByName("confirm_obs_output_lifecycle"), {
+      target: "record",
+      outcome: "file_changed",
+      afterSequence: 1,
+      timeoutMs: 10
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 2,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "RecordFileChanged",
+            eventIntent: EventSubscription.Outputs,
+            eventData: { newOutputPath: "/tmp/stale.mkv" }
+          },
+          {
+            sequence: 2,
+            eventType: "RecordFileChanged",
+            eventIntent: EventSubscription.Outputs,
+            eventData: { newOutputPath: "/tmp/current.mkv" }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      confirmed: true,
+      timedOut: false,
+      baselineSequence: 1,
+      latestSequence: 2,
+      missedEvents: false,
+      event: {
+        sequence: 2,
+        eventType: "RecordFileChanged",
+        eventIntent: EventSubscription.Outputs,
+        category: "outputs",
+        target: "record",
+        outcome: "file_changed",
+        newOutputPath: "/tmp/current.mkv"
+      }
+    })
+  })
+
+  it("confirms each first-slice output lifecycle event type", async () => {
+    const client = eventClient({
+      capacity: 6,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "StreamStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+        },
+        {
+          sequence: 2,
+          eventType: "RecordStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: {
+            outputActive: false,
+            outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED",
+            outputPath: null
+          }
+        },
+        {
+          sequence: 3,
+          eventType: "RecordFileChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: { newOutputPath: "/tmp/recording-3.mkv" }
+        },
+        {
+          sequence: 4,
+          eventType: "ReplayBufferStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+        },
+        {
+          sequence: 5,
+          eventType: "ReplayBufferSaved",
+          eventIntent: EventSubscription.Outputs,
+          eventData: { savedReplayPath: "/tmp/replay.mkv" }
+        },
+        {
+          sequence: 6,
+          eventType: "VirtualcamStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED" }
+        }
+      ]
+    })
+
+    const cases = [
+      { target: "stream", outcome: "started", afterSequence: 0, eventType: "StreamStateChanged" },
+      { target: "record", outcome: "stopped", afterSequence: 1, eventType: "RecordStateChanged" },
+      { target: "record", outcome: "file_changed", afterSequence: 2, eventType: "RecordFileChanged" },
+      { target: "replay_buffer", outcome: "started", afterSequence: 3, eventType: "ReplayBufferStateChanged" },
+      { target: "replay_buffer", outcome: "replay_saved", afterSequence: 4, eventType: "ReplayBufferSaved" },
+      { target: "virtualcam", outcome: "stopped", afterSequence: 5, eventType: "VirtualcamStateChanged" }
+    ] as const
+
+    for (const entry of cases) {
+      await expect(executeTool(toolByName("confirm_obs_output_lifecycle"), {
+        target: entry.target,
+        outcome: entry.outcome,
+        afterSequence: entry.afterSequence,
+        timeoutMs: 10
+      }, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client
+      })).resolves.toMatchObject({
+        confirmed: true,
+        timedOut: false,
+        latestSequence: 6,
+        missedEvents: false,
+        event: {
+          eventType: entry.eventType,
+          target: entry.target,
+          outcome: entry.outcome
+        }
+      })
+    }
+  })
+
+  it("preserves missed-event metadata during output lifecycle confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_output_lifecycle"), {
+      target: "record",
+      outcome: "file_changed",
+      afterSequence: 1,
+      timeoutMs: 10
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 2,
+        droppedEvents: 3,
+        events: [
+          {
+            sequence: 3,
+            eventType: "StreamStateChanged",
+            eventIntent: EventSubscription.Outputs,
+            eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+          },
+          {
+            sequence: 4,
+            eventType: "RecordFileChanged",
+            eventIntent: EventSubscription.Outputs,
+            eventData: { newOutputPath: "/tmp/current.mkv" }
+          }
+        ]
+      })
+    })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      baselineSequence: 1,
+      latestSequence: 4,
+      missedEvents: true,
+      event: {
+        sequence: 4,
+        eventType: "RecordFileChanged",
+        outcome: "file_changed"
+      }
+    })
+  })
+
+  it("returns a bounded timeout result when no output lifecycle event matches", async () => {
+    await expect(executeTool(toolByName("confirm_obs_output_lifecycle"), {
+      target: "stream",
+      outcome: "stopped",
+      afterSequence: 1,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 1,
+        droppedEvents: 0,
+        events: [{
+          sequence: 1,
+          eventType: "StreamStateChanged",
+          eventIntent: EventSubscription.Outputs,
+          eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+        }]
+      })
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 1,
+      latestSequence: 1,
+      missedEvents: false
+    })
+  })
+
+  it("rejects raw event workflow inputs for output lifecycle confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_output_lifecycle"), {
+      target: "record",
+      outcome: "stopped",
+      afterSequence: 0,
+      eventType: "RecordStateChanged"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+
+    await expect(executeTool(toolByName("confirm_obs_output_lifecycle"), {
+      target: "record",
+      outcome: "OBS_WEBSOCKET_OUTPUT_STOPPED",
+      afterSequence: 0
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+
+    await expect(executeTool(toolByName("confirm_obs_output_lifecycle"), {
+      target: "stream",
+      outcome: "replay_saved",
+      afterSequence: 0
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("confirms each scene graph workflow event type", async () => {
+    const client = eventClient({
+      capacity: 10,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "SceneCreated",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+        },
+        {
+          sequence: 2,
+          eventType: "SceneRemoved",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Old Scene", sceneUuid: "scene-old", isGroup: false }
+        },
+        {
+          sequence: 3,
+          eventType: "SceneNameChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { oldSceneName: "Old Program", sceneName: "Program", sceneUuid: "scene-program" }
+        },
+        {
+          sequence: 4,
+          eventType: "CurrentProgramSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+        },
+        {
+          sequence: 5,
+          eventType: "CurrentPreviewSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Preview", sceneUuid: "scene-preview" }
+        },
+        {
+          sequence: 6,
+          eventType: "SceneItemCreated",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sourceName: "Camera",
+            sourceUuid: "source-camera",
+            sceneItemId: 12,
+            sceneItemIndex: 1
+          }
+        },
+        {
+          sequence: 7,
+          eventType: "SceneItemRemoved",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sourceName: "Camera",
+            sourceUuid: "source-camera",
+            sceneItemId: 12
+          }
+        },
+        {
+          sequence: 8,
+          eventType: "SceneItemListReindexed",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItems: [
+              { sceneItemId: 12, sceneItemIndex: 0 },
+              { sceneItemId: 13, sceneItemIndex: 1 }
+            ]
+          }
+        },
+        {
+          sequence: 9,
+          eventType: "SceneItemEnableStateChanged",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItemId: 12,
+            sceneItemEnabled: true
+          }
+        },
+        {
+          sequence: 10,
+          eventType: "SceneItemLockStateChanged",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItemId: 12,
+            sceneItemLocked: true
+          }
+        }
+      ]
+    })
+    const cases = [
+      { target: "scene", outcome: "created", afterSequence: 0, eventType: "SceneCreated" },
+      { target: "scene", outcome: "removed", afterSequence: 1, eventType: "SceneRemoved" },
+      { target: "scene", outcome: "renamed", afterSequence: 2, eventType: "SceneNameChanged" },
+      {
+        target: "current_program_scene",
+        outcome: "changed",
+        afterSequence: 3,
+        eventType: "CurrentProgramSceneChanged"
+      },
+      {
+        target: "current_preview_scene",
+        outcome: "changed",
+        afterSequence: 4,
+        eventType: "CurrentPreviewSceneChanged"
+      },
+      { target: "scene_item", outcome: "created", afterSequence: 5, eventType: "SceneItemCreated" },
+      { target: "scene_item", outcome: "removed", afterSequence: 6, eventType: "SceneItemRemoved" },
+      { target: "scene_item", outcome: "reordered", afterSequence: 7, eventType: "SceneItemListReindexed" },
+      { target: "scene_item", outcome: "enabled", afterSequence: 8, eventType: "SceneItemEnableStateChanged" },
+      { target: "scene_item", outcome: "locked", afterSequence: 9, eventType: "SceneItemLockStateChanged" }
+    ] as const
+
+    for (const entry of cases) {
+      await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+        target: entry.target,
+        outcome: entry.outcome,
+        afterSequence: entry.afterSequence,
+        timeoutMs: 10
+      }, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client
+      })).resolves.toMatchObject({
+        confirmed: true,
+        timedOut: false,
+        latestSequence: 10,
+        missedEvents: false,
+        event: {
+          eventType: entry.eventType,
+          target: entry.target,
+          outcome: entry.outcome
+        }
+      })
+    }
+  })
+
+  it("narrows scene graph confirmations by identity filters and typed reindex contents", async () => {
+    const client = eventClient({
+      capacity: 4,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "SceneItemCreated",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sourceName: "Camera A",
+            sourceUuid: "source-a",
+            sceneItemId: 12,
+            sceneItemIndex: 0
+          }
+        },
+        {
+          sequence: 2,
+          eventType: "SceneItemCreated",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sourceName: "Camera B",
+            sourceUuid: "source-b",
+            sceneItemId: 13,
+            sceneItemIndex: 1
+          }
+        },
+        {
+          sequence: 3,
+          eventType: "SceneItemListReindexed",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItems: [{ sceneItemId: 12, sceneItemIndex: 0 }]
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "SceneItemListReindexed",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItems: [{ sceneItemId: 13, sceneItemIndex: 0 }]
+          }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene_item",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 10,
+      sceneName: "Program",
+      sourceUuid: "source-b",
+      sceneItemId: 13
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, sourceName: "Camera B", sceneItemId: 13 }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene_item",
+      outcome: "reordered",
+      afterSequence: 0,
+      timeoutMs: 10,
+      sceneItemId: 13
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 4,
+        sceneItems: [{ sceneItemId: 13, sceneItemIndex: 0 }]
+      }
+    })
+  })
+
+  it("maps scene item enable and lock booleans to workflow outcomes", async () => {
+    const client = eventClient({
+      capacity: 2,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "SceneItemEnableStateChanged",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItemId: 12,
+            sceneItemEnabled: false
+          }
+        },
+        {
+          sequence: 2,
+          eventType: "SceneItemLockStateChanged",
+          eventIntent: EventSubscription.SceneItems,
+          eventData: {
+            sceneName: "Program",
+            sceneUuid: "scene-program",
+            sceneItemId: 12,
+            sceneItemLocked: false
+          }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene_item",
+      outcome: "disabled",
+      afterSequence: 0,
+      timeoutMs: 10,
+      sceneItemId: 12
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: { eventType: "SceneItemEnableStateChanged", outcome: "disabled", sceneItemEnabled: false }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene_item",
+      outcome: "unlocked",
+      afterSequence: 1,
+      timeoutMs: 10,
+      sceneItemId: 12
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: { eventType: "SceneItemLockStateChanged", outcome: "unlocked", sceneItemLocked: false }
+    })
+  })
+
+  it("preserves missed-event metadata during scene graph confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene",
+      outcome: "created",
+      afterSequence: 1,
+      timeoutMs: 10,
+      sceneName: "Program"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 2,
+        droppedEvents: 3,
+        events: [
+          {
+            sequence: 3,
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+          },
+          {
+            sequence: 4,
+            eventType: "SceneCreated",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+          }
+        ]
+      })
+    })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      baselineSequence: 1,
+      latestSequence: 4,
+      missedEvents: true,
+      event: { sequence: 4, eventType: "SceneCreated" }
+    })
+  })
+
+  it("times out scene graph confirmation when no included event matches", async () => {
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 1,
+        droppedEvents: 0,
+        events: [{
+          sequence: 1,
+          eventType: "CurrentProgramSceneChanged",
+          eventIntent: EventSubscription.Scenes,
+          eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+        }]
+      })
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 0,
+      latestSequence: 1,
+      missedEvents: false
+    })
+  })
+
+  it("does not let excluded or raw events satisfy scene graph confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 5,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "SceneListChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { scenes: [{ sceneName: "Program", sceneUuid: "scene-program", sceneIndex: 0 }] }
+          },
+          {
+            sequence: 2,
+            eventType: "SceneItemSelected",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 }
+          },
+          {
+            sequence: 3,
+            eventType: "SceneItemTransformChanged",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 12 }
+          },
+          {
+            sequence: 4,
+            eventType: "VendorEvent",
+            eventIntent: EventSubscription.Vendors,
+            eventData: { vendorName: "plugin", payload: { raw: true } }
+          },
+          {
+            sequence: 5,
+            eventType: "CustomEvent",
+            eventIntent: EventSubscription.General,
+            eventData: { raw: true }
+          }
+        ]
+      })
+    })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 5
+    })
+  })
+
+  it("rejects invalid scene graph confirmation input through schema validation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene_item",
+      outcome: "enabled",
+      afterSequence: 0,
+      sourceName: "Camera"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+
+    await expect(executeTool(toolByName("confirm_obs_scene_graph_change"), {
+      target: "scene",
+      outcome: "created",
+      afterSequence: 0,
+      eventType: "SceneCreated"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+    })).rejects.toBeInstanceOf(McpError)
+  })
+
+  it("confirms each source filter workflow event type", async () => {
+    const client = eventClient({
+      capacity: 7,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "SourceFilterCreated",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Color", filterKind: "color_filter", filterIndex: 0 }
+        },
+        {
+          sequence: 2,
+          eventType: "SourceFilterRemoved",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Old Color" }
+        },
+        {
+          sequence: 3,
+          eventType: "SourceFilterNameChanged",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", oldFilterName: "Blur Old", filterName: "Blur" }
+        },
+        {
+          sequence: 4,
+          eventType: "SourceFilterListReindexed",
+          eventIntent: EventSubscription.Filters,
+          eventData: {
+            sourceName: "Camera",
+            filters: [
+              { filterName: "Blur", filterIndex: 0 },
+              { filterName: "Color", filterIndex: 1 }
+            ]
+          }
+        },
+        {
+          sequence: 5,
+          eventType: "SourceFilterEnableStateChanged",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Color", filterEnabled: true }
+        },
+        {
+          sequence: 6,
+          eventType: "SourceFilterEnableStateChanged",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Color", filterEnabled: false }
+        },
+        {
+          sequence: 7,
+          eventType: "SourceFilterSettingsChanged",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Color" }
+        }
+      ]
+    })
+    const cases = [
+      { outcome: "created", afterSequence: 0, eventType: "SourceFilterCreated" },
+      { outcome: "removed", afterSequence: 1, eventType: "SourceFilterRemoved" },
+      { outcome: "renamed", afterSequence: 2, eventType: "SourceFilterNameChanged" },
+      { outcome: "reordered", afterSequence: 3, eventType: "SourceFilterListReindexed" },
+      { outcome: "enabled", afterSequence: 4, eventType: "SourceFilterEnableStateChanged" },
+      { outcome: "disabled", afterSequence: 5, eventType: "SourceFilterEnableStateChanged" },
+      { outcome: "settings_changed", afterSequence: 6, eventType: "SourceFilterSettingsChanged" }
+    ] as const
+
+    for (const entry of cases) {
+      await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+        target: "source_filter",
+        outcome: entry.outcome,
+        afterSequence: entry.afterSequence,
+        timeoutMs: 10
+      }, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client
+      })).resolves.toMatchObject({
+        confirmed: true,
+        timedOut: false,
+        latestSequence: 7,
+        missedEvents: false,
+        event: {
+          eventType: entry.eventType,
+          target: "source_filter",
+          outcome: entry.outcome,
+          category: "filters"
+        }
+      })
+    }
+  })
+
+  it("narrows source filter confirmations by identity filters and reindexed same-item matching", async () => {
+    const client = eventClient({
+      capacity: 4,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "SourceFilterCreated",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera A", filterName: "Color", filterKind: "color_filter", filterIndex: 0 }
+        },
+        {
+          sequence: 2,
+          eventType: "SourceFilterCreated",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera B", filterName: "Gain", filterKind: "gain_filter", filterIndex: 1 }
+        },
+        {
+          sequence: 3,
+          eventType: "SourceFilterListReindexed",
+          eventIntent: EventSubscription.Filters,
+          eventData: {
+            sourceName: "Camera A",
+            filters: [
+              { filterName: "Color", filterIndex: 0 },
+              { filterName: "Gain", filterIndex: 1 }
+            ]
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "SourceFilterListReindexed",
+          eventIntent: EventSubscription.Filters,
+          eventData: {
+            sourceName: "Camera A",
+            filters: [
+              { filterName: "Gain", filterIndex: 0 },
+              { filterName: "Color", filterIndex: 1 }
+            ]
+          }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+      target: "source_filter",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 10,
+      sourceName: "Camera B",
+      filterName: "Gain",
+      filterKind: "gain_filter",
+      filterIndex: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, sourceName: "Camera B", filterName: "Gain", filterKind: "gain_filter", filterIndex: 1 }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+      target: "source_filter",
+      outcome: "reordered",
+      afterSequence: 0,
+      timeoutMs: 10,
+      sourceName: "Camera A",
+      filterName: "Color",
+      filterIndex: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 4,
+        filters: [
+          { filterName: "Gain", filterIndex: 0 },
+          { filterName: "Color", filterIndex: 1 }
+        ]
+      }
+    })
+  })
+
+  it("omits raw source filter settings from workflow confirmations and reports omission markers", async () => {
+    const client = eventClient({
+      capacity: 2,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "SourceFilterCreated",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Color", filterKind: "color_filter", filterIndex: 0 }
+        },
+        {
+          sequence: 2,
+          eventType: "SourceFilterSettingsChanged",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Color" }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+      target: "source_filter",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 10
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        rawSettingsOmitted: true,
+        defaultSettingsOmitted: true
+      }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+      target: "source_filter",
+      outcome: "settings_changed",
+      afterSequence: 1,
+      timeoutMs: 10
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        rawSettingsOmitted: true
+      }
+    })
+  })
+
+  it("preserves missed-event metadata during source filter confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+      target: "source_filter",
+      outcome: "created",
+      afterSequence: 1,
+      timeoutMs: 10,
+      sourceName: "Camera"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 2,
+        droppedEvents: 3,
+        events: [
+          {
+            sequence: 3,
+            eventType: "SourceFilterRemoved",
+            eventIntent: EventSubscription.Filters,
+            eventData: { sourceName: "Camera", filterName: "Old Color" }
+          },
+          {
+            sequence: 4,
+            eventType: "SourceFilterCreated",
+            eventIntent: EventSubscription.Filters,
+            eventData: { sourceName: "Camera", filterName: "Color", filterKind: "color_filter", filterIndex: 0 }
+          }
+        ]
+      })
+    })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      baselineSequence: 1,
+      latestSequence: 4,
+      missedEvents: true,
+      event: { sequence: 4, eventType: "SourceFilterCreated" }
+    })
+  })
+
+  it("times out source filter confirmation when no included event matches", async () => {
+    await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+      target: "source_filter",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 1,
+        droppedEvents: 0,
+        events: [{
+          sequence: 1,
+          eventType: "SourceFilterRemoved",
+          eventIntent: EventSubscription.Filters,
+          eventData: { sourceName: "Camera", filterName: "Color" }
+        }]
+      })
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 0,
+      latestSequence: 1,
+      missedEvents: false
+    })
+  })
+
+  it("does not let unrelated events satisfy source filter confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_source_filter_change"), {
+      target: "source_filter",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 3,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "SceneCreated",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sceneName: "Program", sceneUuid: "scene-program", isGroup: false }
+          },
+          {
+            sequence: 2,
+            eventType: "SourceFilterCreated",
+            eventIntent: EventSubscription.Scenes,
+            eventData: { sourceName: "Camera", filterName: "Color", filterKind: "color_filter", filterIndex: 0 }
+          },
+          {
+            sequence: 3,
+            eventType: "VendorEvent",
+            eventIntent: EventSubscription.Vendors,
+            eventData: { vendorName: "plugin", payload: { raw: true } }
+          }
+        ]
+      })
+    })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 3
+    })
+  })
+
+  it("rejects invalid source filter confirmation input through schema validation", async () => {
+    for (
+      const input of [
+        {
+          target: "source_filter",
+          outcome: "created",
+          afterSequence: 0,
+          filterSettings: { secret: true }
+        },
+        {
+          target: "source_filter",
+          outcome: "enabled",
+          afterSequence: 0,
+          filterEnabled: true
+        },
+        {
+          target: "source_filter",
+          outcome: "reordered",
+          afterSequence: 0,
+          filterIndex: Number.MAX_SAFE_INTEGER + 1
+        }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_source_filter_change"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
+  it("confirms media input workflow events with identity and action filters", async () => {
+    const client = eventClient({
+      capacity: 4,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "MediaInputPlaybackStarted",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: { inputName: "Media A", inputUuid: "input-media-a" }
+        },
+        {
+          sequence: 2,
+          eventType: "MediaInputPlaybackEnded",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: { inputName: "Media B", inputUuid: "input-media-b" }
+        },
+        {
+          sequence: 3,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: {
+            inputName: "Media A",
+            inputUuid: "input-media-a",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+          }
+        },
+        {
+          sequence: 4,
+          eventType: "MediaInputActionTriggered",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: {
+            inputName: "Media A",
+            inputUuid: "input-media-a",
+            mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+          }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_media_input_workflow"), {
+      target: "media_input",
+      outcome: "playback_started",
+      afterSequence: 0,
+      timeoutMs: 10,
+      inputName: "Media A"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      latestSequence: 4,
+      event: {
+        sequence: 1,
+        eventType: "MediaInputPlaybackStarted",
+        target: "media_input",
+        outcome: "playback_started",
+        category: "media_inputs",
+        inputName: "Media A",
+        inputUuid: "input-media-a"
+      }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_media_input_workflow"), {
+      target: "media_input",
+      outcome: "playback_ended",
+      afterSequence: 0,
+      timeoutMs: 10,
+      inputUuid: "input-media-b"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, eventType: "MediaInputPlaybackEnded", outcome: "playback_ended" }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_media_input_workflow"), {
+      target: "media_input",
+      outcome: "action_triggered",
+      afterSequence: 0,
+      timeoutMs: 10,
+      inputName: "Media A",
+      inputUuid: "input-media-a",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 4,
+        eventType: "MediaInputActionTriggered",
+        outcome: "action_triggered",
+        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+      }
+    })
+  })
+
+  it("does not let unrelated events satisfy media input workflow confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_media_input_workflow"), {
+      target: "media_input",
+      outcome: "action_triggered",
+      afterSequence: 0,
+      timeoutMs: 1,
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 5,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "MediaInputPlaybackStarted",
+            eventIntent: EventSubscription.MediaInputs,
+            eventData: { inputName: "Media", inputUuid: "input-media" }
+          },
+          {
+            sequence: 2,
+            eventType: "MediaInputActionTriggered",
+            eventIntent: EventSubscription.MediaInputs,
+            eventData: {
+              inputName: "Media",
+              inputUuid: "input-media",
+              mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+            }
+          },
+          {
+            sequence: 3,
+            eventType: "MediaInputActionTriggered",
+            eventIntent: EventSubscription.Inputs,
+            eventData: {
+              inputName: "Media",
+              inputUuid: "input-media",
+              mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+            }
+          },
+          {
+            sequence: 4,
+            eventType: "InputVolumeMeters",
+            eventIntent: EventSubscription.InputVolumeMeters,
+            eventData: { inputs: [] }
+          },
+          {
+            sequence: 5,
+            eventType: "CustomEvent",
+            eventIntent: EventSubscription.General,
+            eventData: { raw: true }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 0,
+      latestSequence: 5,
+      missedEvents: false
+    })
+  })
+
+  it("preserves missed-event metadata during media input workflow confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_media_input_workflow"), {
+      target: "media_input",
+      outcome: "playback_started",
+      afterSequence: 0,
+      timeoutMs: 10,
+      inputName: "Media"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client: eventClient({
+        capacity: 1,
+        droppedEvents: 3,
+        events: [{
+          sequence: 3,
+          eventType: "MediaInputPlaybackStarted",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: { inputName: "Media", inputUuid: "input-media" }
+        }]
+      })
+    })).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3 }
+    })
+  })
+
+  it("rejects invalid media input workflow input through schema validation", async () => {
+    for (
+      const input of [
+        {
+          target: "media_input",
+          outcome: "playback_started",
+          afterSequence: 0,
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+        },
+        {
+          target: "media_input",
+          outcome: "action_triggered",
+          afterSequence: 0
+        },
+        {
+          target: "media_input",
+          outcome: "action_triggered",
+          afterSequence: 0,
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NONE"
+        },
+        {
+          target: "media_input",
+          outcome: "playback_started",
+          afterSequence: 0,
+          payload: { raw: true }
+        }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_media_input_workflow"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
+  it("confirms transition workflow events with public summaries", async () => {
+    const client = eventClient({
+      capacity: 5,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "CurrentSceneTransitionChanged",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+        },
+        {
+          sequence: 2,
+          eventType: "CurrentSceneTransitionDurationChanged",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionDuration: 300 }
+        },
+        {
+          sequence: 3,
+          eventType: "SceneTransitionStarted",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionName: "Cut", transitionUuid: "transition-cut" }
+        },
+        {
+          sequence: 4,
+          eventType: "SceneTransitionEnded",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+        },
+        {
+          sequence: 5,
+          eventType: "SceneTransitionVideoEnded",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+        }
+      ]
+    })
+    const cases = [
+      {
+        input: {
+          target: "current_scene_transition",
+          outcome: "changed",
+          afterSequence: 0,
+          transitionName: "Fade",
+          transitionUuid: "transition-fade"
+        },
+        event: { sequence: 1, eventType: "CurrentSceneTransitionChanged", outcome: "changed" }
+      },
+      {
+        input: {
+          target: "current_scene_transition",
+          outcome: "duration_changed",
+          afterSequence: 0,
+          transitionDuration: 300
+        },
+        event: { sequence: 2, eventType: "CurrentSceneTransitionDurationChanged", outcome: "duration_changed" }
+      },
+      {
+        input: { target: "scene_transition", outcome: "started", afterSequence: 0, transitionUuid: "transition-cut" },
+        event: { sequence: 3, eventType: "SceneTransitionStarted", outcome: "started" }
+      },
+      {
+        input: { target: "scene_transition", outcome: "ended", afterSequence: 0, transitionName: "Fade" },
+        event: { sequence: 4, eventType: "SceneTransitionEnded", outcome: "ended" }
+      },
+      {
+        input: {
+          target: "scene_transition",
+          outcome: "video_ended",
+          afterSequence: 0,
+          transitionName: "Fade",
+          transitionUuid: "transition-fade"
+        },
+        event: { sequence: 5, eventType: "SceneTransitionVideoEnded", outcome: "video_ended" }
+      }
+    ] as const
+
+    for (const entry of cases) {
+      await expect(executeTool(toolByName("confirm_obs_transition_workflow"), {
+        ...entry.input,
+        timeoutMs: 10
+      }, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client
+      })).resolves.toMatchObject({
+        confirmed: true,
+        timedOut: false,
+        latestSequence: 5,
+        event: {
+          category: "transitions",
+          ...entry.event
+        }
+      })
+    }
+  })
+
+  it("rejects invalid transition workflow input through schema validation", async () => {
+    for (
+      const input of [
+        { target: "scene_transition", outcome: "started", afterSequence: 0, transitionDuration: 300 },
+        { target: "current_scene_transition", outcome: "duration_changed", afterSequence: 0, transitionName: "Fade" },
+        { target: "current_scene_transition", outcome: "duration_changed", afterSequence: 0, transitionDuration: 49 },
+        { target: "scene_transition", outcome: "started", afterSequence: 0, transitionSettings: { secret: true } },
+        { target: "scene_transition", outcome: "started", afterSequence: 0, payload: { raw: true } }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_transition_workflow"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
+  it("confirms input audio changes with public workflow summaries", async () => {
+    const client = eventClient({
+      capacity: 7,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "InputMuteStateChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputMuted: true }
+        },
+        {
+          sequence: 2,
+          eventType: "InputMuteStateChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Mic B", inputUuid: "input-mic-b", inputMuted: false }
+        },
+        {
+          sequence: 3,
+          eventType: "InputVolumeChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputVolumeMul: 0.5, inputVolumeDb: -6 }
+        },
+        {
+          sequence: 4,
+          eventType: "InputAudioBalanceChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputAudioBalance: 0.25 }
+        },
+        {
+          sequence: 5,
+          eventType: "InputAudioSyncOffsetChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputAudioSyncOffset: 125 }
+        },
+        {
+          sequence: 6,
+          eventType: "InputAudioTracksChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: {
+            inputName: "Mic A",
+            inputUuid: "input-mic-a",
+            inputAudioTracks: { "1": true, "2": false, "3": true, "4": false, "5": false, "6": true }
+          }
+        },
+        {
+          sequence: 7,
+          eventType: "InputAudioMonitorTypeChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: {
+            inputName: "Mic A",
+            inputUuid: "input-mic-a",
+            monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+          }
+        }
+      ]
+    })
+    const cases = [
+      {
+        input: { target: "input_audio", outcome: "muted", afterSequence: 0, inputName: "Mic A" },
+        event: { sequence: 1, eventType: "InputMuteStateChanged", outcome: "muted", inputMuted: true }
+      },
+      {
+        input: { target: "input_audio", outcome: "unmuted", afterSequence: 0, inputUuid: "input-mic-b" },
+        event: { sequence: 2, eventType: "InputMuteStateChanged", outcome: "unmuted", inputMuted: false }
+      },
+      {
+        input: { target: "input_audio", outcome: "volume_changed", afterSequence: 0, inputVolumeDb: -6 },
+        event: { sequence: 3, eventType: "InputVolumeChanged", outcome: "volume_changed" }
+      },
+      {
+        input: { target: "input_audio", outcome: "balance_changed", afterSequence: 0, inputAudioBalance: 0.25 },
+        event: { sequence: 4, eventType: "InputAudioBalanceChanged", outcome: "balance_changed" }
+      },
+      {
+        input: { target: "input_audio", outcome: "sync_offset_changed", afterSequence: 0, inputAudioSyncOffset: 125 },
+        event: { sequence: 5, eventType: "InputAudioSyncOffsetChanged", outcome: "sync_offset_changed" }
+      },
+      {
+        input: {
+          target: "input_audio",
+          outcome: "tracks_changed",
+          afterSequence: 0,
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: false,
+            track6: true
+          }
+        },
+        event: {
+          sequence: 6,
+          eventType: "InputAudioTracksChanged",
+          outcome: "tracks_changed",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: false,
+            track6: true
+          }
+        }
+      },
+      {
+        input: {
+          target: "input_audio",
+          outcome: "monitor_type_changed",
+          afterSequence: 0,
+          monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+        },
+        event: {
+          sequence: 7,
+          eventType: "InputAudioMonitorTypeChanged",
+          outcome: "monitor_type_changed",
+          monitorType: "OBS_MONITORING_TYPE_MONITOR_ONLY"
+        }
+      }
+    ] as const
+
+    for (const entry of cases) {
+      const result = await executeTool(toolByName("confirm_obs_input_audio_change"), {
+        ...entry.input,
+        timeoutMs: 10
+      }, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client
+      })
+      expect(result).toMatchObject({
+        confirmed: true,
+        timedOut: false,
+        latestSequence: 7,
+        missedEvents: false,
+        event: {
+          category: "inputs",
+          target: "input_audio",
+          ...entry.event
+        }
+      })
+      expect(JSON.stringify(result)).not.toContain("\"1\"")
+    }
+  })
+
+  it("does not let unrelated or malformed input audio events satisfy confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_input_audio_change"), {
+      target: "input_audio",
+      outcome: "volume_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 5,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "InputVolumeChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Mic", inputUuid: "input-mic", inputVolumeMul: 21, inputVolumeDb: -6 }
+          },
+          {
+            sequence: 2,
+            eventType: "InputMuteStateChanged",
+            eventIntent: EventSubscription.General,
+            eventData: { inputName: "Mic", inputUuid: "input-mic", inputMuted: true }
+          },
+          {
+            sequence: 3,
+            eventType: "InputVolumeMeters",
+            eventIntent: EventSubscription.InputVolumeMeters,
+            eventData: { inputs: [] }
+          },
+          {
+            sequence: 4,
+            eventType: "InputSettingsChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Mic", inputUuid: "input-mic", inputSettings: { secret: true } }
+          },
+          {
+            sequence: 5,
+            eventType: "CustomEvent",
+            eventIntent: EventSubscription.General,
+            eventData: { raw: true }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 0,
+      latestSequence: 5,
+      missedEvents: false
+    })
+  })
+
+  it("rejects invalid input audio confirmation input through schema validation", async () => {
+    for (
+      const input of [
+        { target: "input_audio", outcome: "muted", afterSequence: 0, inputMuted: true },
+        { target: "input_audio", outcome: "volume_changed", afterSequence: 0, inputVolumeMul: 21 },
+        { target: "input_audio", outcome: "tracks_changed", afterSequence: 0, inputAudioTracks: { track1: true } },
+        { target: "input_audio", outcome: "monitor_type_changed", afterSequence: 0, monitorType: "UNKNOWN" },
+        { target: "input_audio", outcome: "muted", afterSequence: 0, payload: { raw: true } }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_input_audio_change"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
+  it("confirms input identity changes with public workflow summaries", async () => {
+    const client = eventClient({
+      capacity: 4,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "InputCreated",
+          eventIntent: EventSubscription.Inputs,
+          eventData: undefined
+        },
+        {
+          sequence: 2,
+          eventType: "InputRemoved",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Camera A", inputUuid: "input-camera-a" }
+        },
+        {
+          sequence: 3,
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputUuid: "input-camera-b", oldInputName: "Old Camera", inputName: "Camera B" }
+        },
+        {
+          sequence: 4,
+          eventType: "InputSettingsChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: undefined
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_input_identity_change"), {
+      target: "input",
+      outcome: "removed",
+      afterSequence: 0,
+      timeoutMs: 10,
+      inputName: "Camera A",
+      inputUuid: "input-camera-a"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toEqual({
+      confirmed: true,
+      timedOut: false,
+      baselineSequence: 0,
+      latestSequence: 4,
+      missedEvents: false,
+      event: {
+        sequence: 2,
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        category: "inputs",
+        target: "input",
+        outcome: "removed",
+        inputName: "Camera A",
+        inputUuid: "input-camera-a"
+      }
+    })
+
+    const result = await executeTool(toolByName("confirm_obs_input_identity_change"), {
+      target: "input",
+      outcome: "renamed",
+      afterSequence: 0,
+      timeoutMs: 10,
+      oldInputName: "Old Camera",
+      inputName: "Camera B",
+      inputUuid: "input-camera-b"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })
+    expect(result).toEqual({
+      confirmed: true,
+      timedOut: false,
+      baselineSequence: 0,
+      latestSequence: 4,
+      missedEvents: false,
+      event: {
+        sequence: 3,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        category: "inputs",
+        target: "input",
+        outcome: "renamed",
+        oldInputName: "Old Camera",
+        inputName: "Camera B",
+        inputUuid: "input-camera-b"
+      }
+    })
+    expect(JSON.stringify(result)).not.toContain("eventData")
+    expect(JSON.stringify(result)).not.toContain("inputSettings")
+    expect(JSON.stringify(result)).not.toContain("inputKind")
+  })
+
+  it("does not let unrelated or malformed input identity events satisfy confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_input_identity_change"), {
+      target: "input",
+      outcome: "renamed",
+      afterSequence: 0,
+      oldInputName: "Other Camera",
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 6,
+        droppedEvents: 0,
+        events: [
+          {
+            sequence: 1,
+            eventType: "InputRemoved",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputName: "Camera", inputUuid: "input-camera" }
+          },
+          {
+            sequence: 2,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: { inputUuid: "input-camera", oldInputName: "", inputName: "Camera" }
+          },
+          {
+            sequence: 3,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.General,
+            eventData: { inputUuid: "input-camera", oldInputName: "Old Camera", inputName: "Camera" }
+          },
+          {
+            sequence: 4,
+            eventType: "InputCreated",
+            eventIntent: EventSubscription.Inputs,
+            eventData: undefined
+          },
+          {
+            sequence: 5,
+            eventType: "InputSettingsChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: undefined
+          },
+          {
+            sequence: 6,
+            eventType: "CustomEvent",
+            eventIntent: EventSubscription.General,
+            eventData: { raw: true }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 0,
+      latestSequence: 6,
+      missedEvents: false
+    })
+  })
+
+  it("rejects invalid input identity confirmation input through schema validation", async () => {
+    for (
+      const input of [
+        { target: "input", outcome: "created", afterSequence: 0 },
+        { target: "input", outcome: "settings_changed", afterSequence: 0 },
+        { target: "input", outcome: "removed", afterSequence: 0, oldInputName: "Old Camera" },
+        { target: "input", outcome: "renamed", afterSequence: 0, oldInputName: "" },
+        { target: "input", outcome: "removed", afterSequence: 0, inputName: "" },
+        { target: "input", outcome: "removed", afterSequence: 0, inputUuid: "" },
+        { target: "input", outcome: "removed", afterSequence: 0, eventType: "InputRemoved" },
+        { target: "input", outcome: "removed", afterSequence: 0, eventData: {} },
+        { target: "input", outcome: "removed", afterSequence: 0, settings: { secret: true } },
+        { target: "input", outcome: "removed", afterSequence: 0, inputSettings: { secret: true } },
+        { target: "input", outcome: "removed", afterSequence: 0, defaultInputSettings: { secret: false } },
+        { target: "input", outcome: "removed", afterSequence: 0, inputKind: "dshow_input" },
+        { target: "input", outcome: "removed", afterSequence: 0, unversionedInputKind: "dshow_input" },
+        { target: "input", outcome: "removed", afterSequence: 0, inputKindCaps: 1 },
+        { target: "input", outcome: "removed", afterSequence: 0, sceneItemId: 1 },
+        { target: "input", outcome: "removed", afterSequence: 0, unexpected: true }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_input_identity_change"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
+  it("confirms canvas inventory-change events through MCP tool execution", async () => {
+    const client = eventClient({
+      capacity: 3,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "CanvasCreated",
+          eventIntent: EventSubscription.Canvases,
+          eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+        },
+        {
+          sequence: 2,
+          eventType: "CanvasRemoved",
+          eventIntent: EventSubscription.Canvases,
+          eventData: { canvasName: "Canvas B", canvasUuid: "canvas-b" }
+        },
+        {
+          sequence: 3,
+          eventType: "CanvasNameChanged",
+          eventIntent: EventSubscription.Canvases,
+          eventData: { oldCanvasName: "Canvas C", canvasName: "Canvas D", canvasUuid: "canvas-d" }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_canvas_inventory_change"), {
+      target: "canvas",
+      outcome: "renamed",
+      afterSequence: 0,
+      timeoutMs: 10,
+      oldCanvasName: "Canvas C",
+      canvasName: "Canvas D",
+      canvasUuid: "canvas-d"
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      latestSequence: 3,
+      event: {
+        sequence: 3,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        category: "canvases",
+        target: "canvas",
+        outcome: "renamed",
+        oldCanvasName: "Canvas C",
+        canvasName: "Canvas D",
+        canvasUuid: "canvas-d"
+      }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_canvas_inventory_change"), {
+      target: "canvas",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1,
+      canvasUuid: "canvas-d"
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: false
+    })
+  })
+
+  it("rejects invalid canvas inventory-change input through schema validation", async () => {
+    for (
+      const input of [
+        { target: "canvas", outcome: "created", afterSequence: 0, oldCanvasName: "Old Canvas" },
+        { target: "canvas", outcome: "renamed", afterSequence: 0, oldCanvasName: "" },
+        { target: "canvas", outcome: "created", afterSequence: 0, canvasUuid: "" },
+        { target: "canvas", outcome: "created", afterSequence: 0, eventType: "CanvasCreated" }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_canvas_inventory_change"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
+  it("confirms studio-mode state changes through MCP tool execution", async () => {
+    const client = eventClient({
+      capacity: 3,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "ScreenshotSaved",
+          eventIntent: EventSubscription.Ui,
+          eventData: { savedScreenshotPath: "/tmp/screenshot.png" }
+        },
+        {
+          sequence: 2,
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          eventData: { studioModeEnabled: true }
+        },
+        {
+          sequence: 3,
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          eventData: { studioModeEnabled: false }
+        }
+      ]
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_studio_mode_state_change"), {
+      target: "studio_mode",
+      outcome: "disabled",
+      afterSequence: 2,
+      timeoutMs: 10
+    }, {
+      config: { ...config, enabledToolsets: ["events"] },
+      client
+    })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      latestSequence: 3,
+      event: {
+        sequence: 3,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        category: "ui",
+        target: "studio_mode",
+        outcome: "disabled",
+        studioModeEnabled: false
+      }
+    })
+
+    await expect(executeTool(toolByName("confirm_obs_studio_mode_state_change"), {
+      target: "studio_mode",
+      outcome: "enabled",
+      afterSequence: 2,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 2,
+      latestSequence: 3,
+      missedEvents: false
+    })
+  })
+
+  it("rejects invalid studio-mode state confirmation input through schema validation", async () => {
+    for (
+      const input of [
+        { target: "studio_mode", outcome: "enabled", afterSequence: 0, studioModeEnabled: true },
+        { target: "studio_mode", outcome: "enabled", afterSequence: 0, savedScreenshotPath: "/tmp/shot.png" },
+        { target: "studio_mode", outcome: "enabled", afterSequence: 0, eventType: "StudioModeStateChanged" },
+        { target: "studio_mode", outcome: "enabled", afterSequence: 0, unexpected: true }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_studio_mode_state_change"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
+  it("confirms config workflow events with public summaries", async () => {
+    const client = eventClient({
+      capacity: 6,
+      droppedEvents: 0,
+      events: [
+        {
+          sequence: 1,
+          eventType: "CurrentProfileChanging",
+          eventIntent: EventSubscription.Config,
+          eventData: { profileName: "Profile A" }
+        },
+        {
+          sequence: 2,
+          eventType: "CurrentProfileChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profileName: "Profile B" }
+        },
+        {
+          sequence: 3,
+          eventType: "ProfileListChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profiles: ["Profile A", "Profile B"] }
+        },
+        {
+          sequence: 4,
+          eventType: "CurrentSceneCollectionChanging",
+          eventIntent: EventSubscription.Config,
+          eventData: { sceneCollectionName: "Collection A" }
+        },
+        {
+          sequence: 5,
+          eventType: "CurrentSceneCollectionChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { sceneCollectionName: "Collection B" }
+        },
+        {
+          sequence: 6,
+          eventType: "SceneCollectionListChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { sceneCollections: ["Collection A", "Collection B"] }
+        }
+      ]
+    })
+    const cases = [
+      {
+        input: { target: "profile", outcome: "changing", afterSequence: 0, profileName: "Profile A" },
+        event: { sequence: 1, eventType: "CurrentProfileChanging", outcome: "changing" }
+      },
+      {
+        input: { target: "profile", outcome: "changed", afterSequence: 0, profileName: "Profile B" },
+        event: { sequence: 2, eventType: "CurrentProfileChanged", outcome: "changed" }
+      },
+      {
+        input: { target: "profile", outcome: "list_changed", afterSequence: 0, profiles: ["Profile A", "Profile B"] },
+        event: { sequence: 3, eventType: "ProfileListChanged", outcome: "list_changed" }
+      },
+      {
+        input: {
+          target: "scene_collection",
+          outcome: "changing",
+          afterSequence: 0,
+          sceneCollectionName: "Collection A"
+        },
+        event: { sequence: 4, eventType: "CurrentSceneCollectionChanging", outcome: "changing" }
+      },
+      {
+        input: {
+          target: "scene_collection",
+          outcome: "changed",
+          afterSequence: 0,
+          sceneCollectionName: "Collection B"
+        },
+        event: { sequence: 5, eventType: "CurrentSceneCollectionChanged", outcome: "changed" }
+      },
+      {
+        input: {
+          target: "scene_collection",
+          outcome: "list_changed",
+          afterSequence: 0,
+          sceneCollections: ["Collection A", "Collection B"]
+        },
+        event: { sequence: 6, eventType: "SceneCollectionListChanged", outcome: "list_changed" }
+      }
+    ] as const
+
+    for (const entry of cases) {
+      await expect(executeTool(toolByName("confirm_obs_config_workflow"), {
+        ...entry.input,
+        timeoutMs: 10
+      }, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client
+      })).resolves.toMatchObject({
+        confirmed: true,
+        timedOut: false,
+        latestSequence: 6,
+        event: {
+          category: "config",
+          target: entry.input.target,
+          ...entry.event
+        }
+      })
+    }
+  })
+
+  it("does not let excluded config-adjacent events satisfy config workflow confirmation", async () => {
+    await expect(executeTool(toolByName("confirm_obs_config_workflow"), {
+      target: "profile",
+      outcome: "changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, {
+      config: { ...config, enabledToolsets: ["events"], connectionTimeoutMs: 5 },
+      client: eventClient({
+        capacity: 4,
+        droppedEvents: 0,
+        events: [
+          { sequence: 1, eventType: "ExitStarted", eventIntent: EventSubscription.General, eventData: {} },
+          {
+            sequence: 2,
+            eventType: "CurrentProfileChanged",
+            eventIntent: EventSubscription.General,
+            eventData: { profileName: "Profile B" }
+          },
+          {
+            sequence: 3,
+            eventType: "ProfileListChanged",
+            eventIntent: EventSubscription.Config,
+            eventData: { profiles: ["Profile B"] }
+          },
+          {
+            sequence: 4,
+            eventType: "SceneCollectionListChanged",
+            eventIntent: EventSubscription.Config,
+            eventData: { sceneCollections: ["Collection B"] }
+          }
+        ]
+      })
+    })).resolves.toEqual({
+      confirmed: false,
+      timedOut: true,
+      baselineSequence: 0,
+      latestSequence: 4,
+      missedEvents: false
+    })
+  })
+
+  it("rejects invalid config workflow input through schema validation", async () => {
+    for (
+      const input of [
+        { target: "profile", outcome: "list_changed", afterSequence: 0, profileName: "Profile A" },
+        { target: "profile", outcome: "changed", afterSequence: 0, profiles: ["Profile A"] },
+        { target: "scene_collection", outcome: "changed", afterSequence: 0, sceneCollections: ["Collection A"] },
+        { target: "profile", outcome: "changed", afterSequence: 0, profileName: "" },
+        { target: "profile", outcome: "changed", afterSequence: 0, eventType: "CurrentProfileChanged" },
+        { target: "profile", outcome: "changed", afterSequence: 0, parameterName: "Mode" }
+      ] as const
+    ) {
+      await expect(executeTool(toolByName("confirm_obs_config_workflow"), input, {
+        config: { ...config, enabledToolsets: ["events"] },
+        client: eventClient({ capacity: 1, droppedEvents: 0, events: [] })
+      })).rejects.toBeInstanceOf(McpError)
+    }
+  })
+
   it("returns recent safe OBS event summaries with ordering and category filters", async () => {
     const obsEvents = eventClient({
       capacity: 6,
@@ -3613,6 +5846,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 6,
       droppedEvents: 1,
+      oldestSequence: 1,
+      latestSequence: 4,
+      missedEvents: false,
       returnedEvents: 3,
       order: "newest_first",
       events: [
@@ -3657,6 +5893,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 6,
       droppedEvents: 1,
+      oldestSequence: 1,
+      latestSequence: 4,
+      missedEvents: false,
       returnedEvents: 1,
       order: "oldest_first",
       events: [{
@@ -3702,6 +5941,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 3,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 3,
+      missedEvents: false,
       returnedEvents: 3,
       order: "oldest_first",
       events: [
@@ -3783,6 +6025,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 4,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 4,
+      missedEvents: false,
       returnedEvents: 4,
       order: "oldest_first",
       events: [
@@ -3885,6 +6130,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 5,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 5,
+      missedEvents: false,
       returnedEvents: 5,
       order: "oldest_first",
       events: [
@@ -3965,6 +6213,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 3,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 3,
+      missedEvents: false,
       returnedEvents: 1,
       order: "oldest_first",
       events: [{
@@ -4022,6 +6273,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 5,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 5,
+      missedEvents: false,
       returnedEvents: 5,
       order: "oldest_first",
       events: [
@@ -4118,6 +6372,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 7,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 7,
+      missedEvents: false,
       returnedEvents: 1,
       order: "oldest_first",
       events: [{
@@ -4146,6 +6403,9 @@ describe("MCP tool registry", () => {
     })).resolves.toEqual({
       capacity: 1,
       droppedEvents: 0,
+      oldestSequence: 1,
+      latestSequence: 1,
+      missedEvents: false,
       returnedEvents: 1,
       order: "newest_first",
       events: [{

@@ -1,18 +1,12 @@
 import { JSONSchema, Schema } from "effect"
 
-import { ObsNonEmptyString, ObsString, OutputActiveState } from "./shared.js"
+import { ObsNonEmptyString, ObsString, OutputActiveState, RequestAcknowledgedOutput } from "./shared.js"
 
-const recordAcknowledgementOutput = <RequestType extends string>(requestType: RequestType) =>
-  Schema.Struct({
-    requestType: Schema.Literal(requestType),
-    acknowledged: Schema.Literal(true)
-  })
-
-export const StartRecordOutput = recordAcknowledgementOutput("StartRecord")
+export const StartRecordOutput = RequestAcknowledgedOutput("StartRecord")
 export type StartRecordOutput = typeof StartRecordOutput.Type
 export const StartRecordOutputJsonSchema = JSONSchema.make(StartRecordOutput)
 
-export const SplitRecordFileOutput = recordAcknowledgementOutput("SplitRecordFile")
+export const SplitRecordFileOutput = RequestAcknowledgedOutput("SplitRecordFile")
 export type SplitRecordFileOutput = typeof SplitRecordFileOutput.Type
 export const SplitRecordFileOutputJsonSchema = JSONSchema.make(SplitRecordFileOutput)
 
@@ -22,7 +16,7 @@ export const CreateRecordChapterInput = Schema.Struct({
 export type CreateRecordChapterInput = typeof CreateRecordChapterInput.Type
 export const CreateRecordChapterInputJsonSchema = JSONSchema.make(CreateRecordChapterInput)
 
-export const CreateRecordChapterOutput = recordAcknowledgementOutput("CreateRecordChapter")
+export const CreateRecordChapterOutput = RequestAcknowledgedOutput("CreateRecordChapter")
 export type CreateRecordChapterOutput = typeof CreateRecordChapterOutput.Type
 export const CreateRecordChapterOutputJsonSchema = JSONSchema.make(CreateRecordChapterOutput)
 

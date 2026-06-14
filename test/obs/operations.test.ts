@@ -16,6 +16,7 @@ import {
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { type ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
+import type { BufferedObsEvent } from "../../src/obs/events.js"
 import { runObsRequestBatch } from "../../src/obs/operations/batch.js"
 import { listCanvases } from "../../src/obs/operations/canvases.js"
 import {
@@ -35,6 +36,17 @@ import {
   setStreamServiceSettings,
   setVideoSettings
 } from "../../src/obs/operations/config.js"
+import {
+  confirmObsCanvasInventoryChange,
+  confirmObsConfigWorkflow,
+  confirmObsInputAudioChange,
+  confirmObsInputIdentityChange,
+  confirmObsMediaInputWorkflow,
+  confirmObsSceneGraphChange,
+  confirmObsSourceFilterChange,
+  confirmObsStudioModeStateChange,
+  confirmObsTransitionWorkflow
+} from "../../src/obs/operations/events.js"
 import {
   createSourceFilter,
   getSourceFilter,
@@ -173,6 +185,7 @@ import {
   openVideoMixProjector
 } from "../../src/obs/operations/ui.js"
 import { broadcastCustomEvent, callVendorRequest } from "../../src/obs/operations/vendor.js"
+import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
@@ -193,9 +206,65 @@ const fakeClient = (handler: (requestType: ObsRequestType, requestData: unknown)
   requestBatch: async () => [],
   request: async (descriptor, requestData) =>
     Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
-  getBufferedEvents: () => ({ capacity: 0, droppedEvents: 0, events: [] }),
+  getBufferedEvents: () => ({
+    capacity: 1,
+    droppedEvents: 0,
+    oldestSequence: 0,
+    latestSequence: 0,
+    missedEvents: false,
+    events: []
+  }),
+  waitForBufferedEvent: async (_match, options) => ({
+    timedOut: true,
+    baselineSequence: options.afterSequence,
+    snapshot: {
+      capacity: 1,
+      droppedEvents: 0,
+      oldestSequence: 0,
+      latestSequence: 0,
+      missedEvents: false,
+      events: []
+    }
+  }),
   close: async () => undefined
 })
+
+const bufferedEventClient = (
+  events: ReadonlyArray<BufferedObsEvent>,
+  options: { readonly droppedEvents?: number } = {}
+): ObsClient => {
+  const snapshotFor = (sinceSequence?: number) => {
+    const oldestSequence = events[0]?.sequence ?? 0
+    const latestSequence = events.at(-1)?.sequence ?? 0
+    const missedEvents = sinceSequence !== undefined && oldestSequence > 0 && sinceSequence < oldestSequence - 1
+    return {
+      capacity: events.length,
+      droppedEvents: options.droppedEvents ?? 0,
+      oldestSequence,
+      latestSequence,
+      missedEvents,
+      events: sinceSequence === undefined ? events : events.filter((event) => event.sequence > sinceSequence)
+    }
+  }
+  return {
+    negotiatedRpcVersion: 1,
+    availableRequests: [],
+    requestBatch: async () => [],
+    request: async (descriptor) => Schema.decodeUnknownSync(descriptor.responseSchema)({}),
+    getBufferedEvents: (input) => snapshotFor(input?.sinceSequence),
+    waitForBufferedEvent: async (match, waitOptions) => {
+      const snapshot = snapshotFor(waitOptions.afterSequence)
+      const event = snapshot.events.find(match)
+      return {
+        timedOut: event === undefined,
+        baselineSequence: waitOptions.afterSequence,
+        snapshot,
+        ...(event === undefined ? {} : { event })
+      }
+    },
+    close: async () => undefined
+  }
+}
 
 afterEach(async () => {
   await Promise.all(clients.splice(0).map((client) => client.close().catch(() => undefined)))
@@ -203,6 +272,1615 @@ afterEach(async () => {
 })
 
 describe("OBS operations", () => {
+  it("rejects unknown scene graph confirmation fields on direct operation calls", async () => {
+    await expect(confirmObsSceneGraphChange(fakeClient(async () => ({})), {
+      target: "scene",
+      outcome: "created",
+      afterSequence: 0,
+      sceneItemIndex: 0
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("sceneItemIndex")
+  })
+
+  it("rejects unknown source filter confirmation fields on direct operation calls", async () => {
+    await expect(confirmObsSourceFilterChange(fakeClient(async () => ({})), {
+      target: "source_filter",
+      outcome: "created",
+      afterSequence: 0,
+      sourceName: "Camera",
+      filterSettings: { secret: true }
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("filterSettings")
+  })
+
+  it("rejects unknown media input workflow fields on direct operation calls", async () => {
+    await expect(confirmObsMediaInputWorkflow(fakeClient(async () => ({})), {
+      target: "media_input",
+      outcome: "playback_started",
+      afterSequence: 0,
+      mediaCursor: 1000
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("mediaCursor")
+  })
+
+  it("rejects unknown transition workflow fields on direct operation calls", async () => {
+    await expect(confirmObsTransitionWorkflow(fakeClient(async () => ({})), {
+      target: "scene_transition",
+      outcome: "started",
+      afterSequence: 0,
+      position: 0.5
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("position")
+  })
+
+  it("rejects unknown input audio confirmation fields on direct operation calls", async () => {
+    await expect(confirmObsInputAudioChange(fakeClient(async () => ({})), {
+      target: "input_audio",
+      outcome: "muted",
+      afterSequence: 0,
+      inputMuted: true
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("inputMuted")
+  })
+
+  it("rejects unknown config workflow fields on direct operation calls", async () => {
+    await expect(confirmObsConfigWorkflow(fakeClient(async () => ({})), {
+      target: "profile",
+      outcome: "changed",
+      afterSequence: 0,
+      eventType: "CurrentProfileChanged"
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("eventType")
+  })
+
+  it("rejects unknown canvas inventory-change fields on direct operation calls", async () => {
+    await expect(confirmObsCanvasInventoryChange(fakeClient(async () => ({})), {
+      target: "canvas",
+      outcome: "created",
+      afterSequence: 0,
+      oldCanvasName: "Old Canvas"
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("oldCanvasName")
+  })
+
+  it("rejects unknown studio-mode state confirmation fields on direct operation calls", async () => {
+    await expect(confirmObsStudioModeStateChange(fakeClient(async () => ({})), {
+      target: "studio_mode",
+      outcome: "enabled",
+      afterSequence: 0,
+      studioModeEnabled: true
+    } as never, { maxTimeoutMs: 10 })).rejects.toThrow("studioModeEnabled")
+  })
+
+  it("confirms canvas inventory-change events with identity filters", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+      },
+      {
+        sequence: 2,
+        eventType: "CanvasRemoved",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas B", canvasUuid: "canvas-b" }
+      },
+      {
+        sequence: 3,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { oldCanvasName: "Canvas C", canvasName: "Canvas D", canvasUuid: "canvas-d" }
+      }
+    ])
+
+    await expect(confirmObsCanvasInventoryChange(client, {
+      target: "canvas",
+      outcome: "created",
+      afterSequence: 0,
+      canvasName: "Canvas A",
+      canvasUuid: "canvas-a"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 1,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.Canvases,
+        category: "canvases",
+        target: "canvas",
+        outcome: "created",
+        canvasName: "Canvas A",
+        canvasUuid: "canvas-a"
+      }
+    })
+    await expect(confirmObsCanvasInventoryChange(client, {
+      target: "canvas",
+      outcome: "removed",
+      afterSequence: 0,
+      canvasUuid: "canvas-b"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, eventType: "CanvasRemoved", outcome: "removed", canvasName: "Canvas B" }
+    })
+    await expect(confirmObsCanvasInventoryChange(client, {
+      target: "canvas",
+      outcome: "renamed",
+      afterSequence: 0,
+      oldCanvasName: "Canvas C",
+      canvasName: "Canvas D",
+      canvasUuid: "canvas-d"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 3,
+        eventType: "CanvasNameChanged",
+        outcome: "renamed",
+        oldCanvasName: "Canvas C",
+        canvasName: "Canvas D",
+        canvasUuid: "canvas-d"
+      }
+    })
+  })
+
+  it("does not cross-match canvas inventory-change outcomes or mismatched filters", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+      },
+      {
+        sequence: 2,
+        eventType: "CanvasRemoved",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas B", canvasUuid: "canvas-b" }
+      },
+      {
+        sequence: 3,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { oldCanvasName: "Canvas C", canvasName: "Canvas D", canvasUuid: "canvas-d" }
+      },
+      {
+        sequence: 4,
+        eventType: "SceneCreated",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Canvas A", sceneUuid: "scene-a", isGroup: false }
+      }
+    ])
+    const cases = [
+      { target: "canvas", outcome: "removed", afterSequence: 0, canvasUuid: "canvas-a" },
+      { target: "canvas", outcome: "created", afterSequence: 0, canvasUuid: "canvas-b" },
+      { target: "canvas", outcome: "created", afterSequence: 0, canvasUuid: "canvas-d" },
+      { target: "canvas", outcome: "removed", afterSequence: 0, canvasUuid: "canvas-d" },
+      { target: "canvas", outcome: "renamed", afterSequence: 0, canvasUuid: "canvas-a" },
+      { target: "canvas", outcome: "renamed", afterSequence: 0, oldCanvasName: "Canvas B" },
+      { target: "canvas", outcome: "created", afterSequence: 1 },
+      { target: "canvas", outcome: "removed", afterSequence: 2 },
+      { target: "canvas", outcome: "renamed", afterSequence: 3 }
+    ] as const
+
+    for (const input of cases) {
+      await expect(confirmObsCanvasInventoryChange(client, { ...input, timeoutMs: 1 }, { maxTimeoutMs: 5 }))
+        .resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 4 })
+    }
+  })
+
+  it("does not let malformed retained canvas events satisfy inventory-change confirmation", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "", canvasUuid: "canvas-a" }
+      },
+      {
+        sequence: 2,
+        eventType: "CanvasRemoved",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas B", canvasUuid: "" }
+      },
+      {
+        sequence: 3,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { oldCanvasName: "", canvasName: "Canvas D", canvasUuid: "canvas-d" }
+      },
+      {
+        sequence: 4,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.General,
+        eventData: { canvasName: "Canvas E", canvasUuid: "canvas-e" }
+      },
+      {
+        sequence: 5,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas F", canvasUuid: "canvas-f", canvasSettings: {} }
+      },
+      {
+        sequence: 6,
+        eventType: "CanvasRemoved",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasName: "Canvas G", canvasUuid: "canvas-g", canvasSettings: {} }
+      },
+      {
+        sequence: 7,
+        eventType: "CanvasNameChanged",
+        eventIntent: EventSubscription.Canvases,
+        eventData: {
+          oldCanvasName: "Canvas H",
+          canvasName: "Canvas I",
+          canvasUuid: "canvas-i",
+          canvasSettings: {}
+        }
+      }
+    ])
+
+    for (const outcome of ["created", "removed", "renamed"] as const) {
+      await expect(confirmObsCanvasInventoryChange(client, {
+        target: "canvas",
+        outcome,
+        afterSequence: 0,
+        timeoutMs: 1
+      }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 7 })
+    }
+  })
+
+  it("propagates missed-event metadata for canvas inventory-change confirmation", async () => {
+    await expect(confirmObsCanvasInventoryChange(
+      bufferedEventClient([
+        {
+          sequence: 3,
+          eventType: "CanvasCreated",
+          eventIntent: EventSubscription.Canvases,
+          eventData: { canvasName: "Canvas A", canvasUuid: "canvas-a" }
+        }
+      ], { droppedEvents: 2 }),
+      {
+        target: "canvas",
+        outcome: "created",
+        afterSequence: 0
+      },
+      { maxTimeoutMs: 10 }
+    )).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3, eventType: "CanvasCreated" }
+    })
+  })
+
+  it("confirms studio-mode state change events by enabled or disabled outcome", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true }
+      },
+      {
+        sequence: 2,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: false }
+      }
+    ])
+
+    await expect(confirmObsStudioModeStateChange(client, {
+      target: "studio_mode",
+      outcome: "enabled",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      event: {
+        sequence: 1,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        category: "ui",
+        target: "studio_mode",
+        outcome: "enabled",
+        studioModeEnabled: true
+      }
+    })
+    await expect(confirmObsStudioModeStateChange(client, {
+      target: "studio_mode",
+      outcome: "disabled",
+      afterSequence: 1
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      event: {
+        sequence: 2,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        category: "ui",
+        target: "studio_mode",
+        outcome: "disabled",
+        studioModeEnabled: false
+      }
+    })
+  })
+
+  it("does not cross-match studio-mode outcomes, wrong subscriptions, screenshots, or transition events", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true }
+      },
+      {
+        sequence: 2,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.General,
+        eventData: { studioModeEnabled: false }
+      },
+      {
+        sequence: 3,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui | EventSubscription.Vendors,
+        eventData: { studioModeEnabled: false }
+      },
+      {
+        sequence: 4,
+        eventType: "ScreenshotSaved",
+        eventIntent: EventSubscription.Ui,
+        eventData: { savedScreenshotPath: "/tmp/screenshot.png" }
+      },
+      {
+        sequence: 5,
+        eventType: "SceneTransitionStarted",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      }
+    ])
+
+    await expect(confirmObsStudioModeStateChange(client, {
+      target: "studio_mode",
+      outcome: "disabled",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 5
+    })
+    await expect(confirmObsStudioModeStateChange(client, {
+      target: "studio_mode",
+      outcome: "enabled",
+      afterSequence: 1,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 5
+    })
+  })
+
+  it("does not let malformed retained studio-mode events satisfy confirmation", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: "yes" }
+      },
+      {
+        sequence: 2,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true, savedScreenshotPath: "/tmp/screenshot.png" }
+      }
+    ])
+
+    for (const outcome of ["enabled", "disabled"] as const) {
+      await expect(confirmObsStudioModeStateChange(client, {
+        target: "studio_mode",
+        outcome,
+        afterSequence: 0,
+        timeoutMs: 1
+      }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+        confirmed: false,
+        timedOut: true,
+        latestSequence: 2
+      })
+    }
+  })
+
+  it("propagates missed-event metadata for studio-mode state confirmation", async () => {
+    await expect(confirmObsStudioModeStateChange(
+      bufferedEventClient([
+        {
+          sequence: 3,
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          eventData: { studioModeEnabled: false }
+        }
+      ], { droppedEvents: 2 }),
+      {
+        target: "studio_mode",
+        outcome: "disabled",
+        afterSequence: 0
+      },
+      { maxTimeoutMs: 10 }
+    )).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3, eventType: "StudioModeStateChanged", outcome: "disabled" }
+    })
+  })
+
+  it("confirms input identity changes with identity filters", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Old Mic", inputUuid: "input-old-mic" }
+      },
+      {
+        sequence: 2,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputUuid: "input-camera", oldInputName: "Camera A", inputName: "Camera B" }
+      }
+    ])
+
+    await expect(confirmObsInputIdentityChange(client, {
+      target: "input",
+      outcome: "removed",
+      afterSequence: 0,
+      inputName: "Old Mic",
+      inputUuid: "input-old-mic"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      event: {
+        sequence: 1,
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        category: "inputs",
+        target: "input",
+        outcome: "removed",
+        inputName: "Old Mic",
+        inputUuid: "input-old-mic"
+      }
+    })
+    await expect(confirmObsInputIdentityChange(client, {
+      target: "input",
+      outcome: "renamed",
+      afterSequence: 0,
+      oldInputName: "Camera A",
+      inputName: "Camera B",
+      inputUuid: "input-camera"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      timedOut: false,
+      event: {
+        sequence: 2,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        category: "inputs",
+        target: "input",
+        outcome: "renamed",
+        oldInputName: "Camera A",
+        inputName: "Camera B",
+        inputUuid: "input-camera"
+      }
+    })
+  })
+
+  it("does not cross-match input identity outcomes, deferred input events, or wrong subscriptions", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic" }
+      },
+      {
+        sequence: 2,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.General,
+        eventData: { inputUuid: "input-camera", oldInputName: "Camera A", inputName: "Camera B" }
+      },
+      {
+        sequence: 3,
+        eventType: "InputCreated",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputName: "Media",
+          inputUuid: "input-media",
+          inputKind: "ffmpeg_source",
+          unversionedInputKind: "ffmpeg_source",
+          inputKindCaps: 1,
+          inputSettings: { secret: true },
+          defaultInputSettings: { secret: false }
+        }
+      },
+      {
+        sequence: 4,
+        eventType: "InputSettingsChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic", inputSettings: { secret: true } }
+      }
+    ])
+
+    await expect(confirmObsInputIdentityChange(client, {
+      target: "input",
+      outcome: "renamed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 4
+    })
+    await expect(confirmObsInputIdentityChange(client, {
+      target: "input",
+      outcome: "removed",
+      afterSequence: 1,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 4
+    })
+  })
+
+  it("does not let malformed retained input identity events satisfy confirmation", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "", inputUuid: "input-mic" }
+      },
+      {
+        sequence: 2,
+        eventType: "InputNameChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputUuid: "input-camera",
+          oldInputName: "Camera A",
+          inputName: "Camera B",
+          inputSettings: { secret: true }
+        }
+      }
+    ])
+
+    for (const outcome of ["removed", "renamed"] as const) {
+      await expect(confirmObsInputIdentityChange(client, {
+        target: "input",
+        outcome,
+        afterSequence: 0,
+        timeoutMs: 1
+      }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+        confirmed: false,
+        timedOut: true,
+        latestSequence: 2
+      })
+    }
+  })
+
+  it("confirms config workflow events with identity and full ordered list filters", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CurrentProfileChanging",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "Profile A" }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentProfileChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "Profile B" }
+      },
+      {
+        sequence: 3,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: ["Profile A", "Profile B"] }
+      },
+      {
+        sequence: 4,
+        eventType: "CurrentSceneCollectionChanging",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection A" }
+      },
+      {
+        sequence: 5,
+        eventType: "CurrentSceneCollectionChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection B" }
+      },
+      {
+        sequence: 6,
+        eventType: "SceneCollectionListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollections: ["Collection A", "Collection B"] }
+      }
+    ])
+
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "changing",
+      afterSequence: 0,
+      profileName: "Profile A"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 1, eventType: "CurrentProfileChanging", outcome: "changing", profileName: "Profile A" }
+    })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "changed",
+      afterSequence: 0,
+      profileName: "Profile B"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, eventType: "CurrentProfileChanged", outcome: "changed", profileName: "Profile B" }
+    })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "list_changed",
+      afterSequence: 0,
+      profiles: ["Profile A", "Profile B"]
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 3, eventType: "ProfileListChanged", outcome: "list_changed" }
+    })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "scene_collection",
+      outcome: "changing",
+      afterSequence: 0,
+      sceneCollectionName: "Collection A"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 4,
+        eventType: "CurrentSceneCollectionChanging",
+        outcome: "changing",
+        sceneCollectionName: "Collection A"
+      }
+    })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "scene_collection",
+      outcome: "changed",
+      afterSequence: 0,
+      sceneCollectionName: "Collection B"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 5,
+        eventType: "CurrentSceneCollectionChanged",
+        outcome: "changed",
+        sceneCollectionName: "Collection B"
+      }
+    })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "scene_collection",
+      outcome: "list_changed",
+      afterSequence: 0,
+      sceneCollections: ["Collection A", "Collection B"]
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 6, eventType: "SceneCollectionListChanged", outcome: "list_changed" }
+    })
+
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "list_changed",
+      afterSequence: 0,
+      profiles: ["Profile B", "Profile A"],
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 6 })
+  })
+
+  it("does not cross-match config targets, milestones, list events, or excluded events", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CurrentProfileChanging",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "Profile A" }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentProfileChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "Profile B" }
+      },
+      {
+        sequence: 3,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: ["Profile A", "Profile B"] }
+      },
+      {
+        sequence: 4,
+        eventType: "CurrentSceneCollectionChanging",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection A" }
+      },
+      {
+        sequence: 5,
+        eventType: "CurrentSceneCollectionChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection B" }
+      },
+      {
+        sequence: 6,
+        eventType: "SceneCollectionListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollections: ["Collection A", "Collection B"] }
+      },
+      {
+        sequence: 7,
+        eventType: "ExitStarted",
+        eventIntent: EventSubscription.General,
+        eventData: {}
+      },
+      {
+        sequence: 8,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+      },
+      {
+        sequence: 9,
+        eventType: "VendorEvent",
+        eventIntent: EventSubscription.Vendors,
+        eventData: { vendorName: "plugin", payload: { raw: true } }
+      }
+    ])
+    const cases = [
+      { target: "profile", outcome: "changed", afterSequence: 0, profileName: "Profile A" },
+      { target: "profile", outcome: "changing", afterSequence: 1 },
+      { target: "profile", outcome: "list_changed", afterSequence: 3 },
+      { target: "scene_collection", outcome: "changed", afterSequence: 0, sceneCollectionName: "Collection A" },
+      { target: "scene_collection", outcome: "changing", afterSequence: 4 },
+      { target: "scene_collection", outcome: "list_changed", afterSequence: 6 },
+      { target: "scene_collection", outcome: "changed", afterSequence: 0, sceneCollectionName: "Profile B" },
+      { target: "profile", outcome: "changed", afterSequence: 6 }
+    ] as const
+
+    for (const input of cases) {
+      await expect(confirmObsConfigWorkflow(client, { ...input, timeoutMs: 1 }, { maxTimeoutMs: 5 }))
+        .resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 9 })
+    }
+  })
+
+  it("does not let malformed retained config events satisfy workflow confirmation", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CurrentProfileChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "" }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentProfileChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profileName: "Profile B", profiles: ["Profile B"] }
+      },
+      {
+        sequence: 3,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: "Profile B" }
+      },
+      {
+        sequence: 4,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: ["Profile B", 1] }
+      },
+      {
+        sequence: 5,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: ["Profile B", ""] }
+      },
+      {
+        sequence: 6,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { profiles: ["Profile B"], profileName: "Profile B" }
+      },
+      {
+        sequence: 7,
+        eventType: "SceneCollectionListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollections: ["Collection B", ""] }
+      },
+      {
+        sequence: 8,
+        eventType: "CurrentSceneCollectionChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: { sceneCollectionName: "Collection B", sceneCollections: ["Collection B"] }
+      }
+    ])
+
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 8 })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "list_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 8 })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "scene_collection",
+      outcome: "list_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 8 })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "scene_collection",
+      outcome: "changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 8 })
+  })
+
+  it("propagates missed-event metadata for config workflow confirmation", async () => {
+    await expect(confirmObsConfigWorkflow(
+      bufferedEventClient([
+        {
+          sequence: 3,
+          eventType: "CurrentProfileChanged",
+          eventIntent: EventSubscription.Config,
+          eventData: { profileName: "Profile B" }
+        }
+      ], { droppedEvents: 2 }),
+      {
+        target: "profile",
+        outcome: "changed",
+        afterSequence: 0
+      },
+      { maxTimeoutMs: 10 }
+    )).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3 }
+    })
+  })
+
+  it("confirms input audio control events with identity and value filters", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "InputMuteStateChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputMuted: true }
+      },
+      {
+        sequence: 2,
+        eventType: "InputMuteStateChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic B", inputUuid: "input-mic-b", inputMuted: false }
+      },
+      {
+        sequence: 3,
+        eventType: "InputVolumeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputVolumeMul: 0.5, inputVolumeDb: -6 }
+      },
+      {
+        sequence: 4,
+        eventType: "InputAudioBalanceChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputAudioBalance: 0.25 }
+      },
+      {
+        sequence: 5,
+        eventType: "InputAudioSyncOffsetChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic A", inputUuid: "input-mic-a", inputAudioSyncOffset: -250 }
+      },
+      {
+        sequence: 6,
+        eventType: "InputAudioTracksChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputName: "Mic A",
+          inputUuid: "input-mic-a",
+          inputAudioTracks: { "1": true, "2": false, "3": true, "4": false, "5": false, "6": true }
+        }
+      },
+      {
+        sequence: 7,
+        eventType: "InputAudioMonitorTypeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputName: "Mic A",
+          inputUuid: "input-mic-a",
+          monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+        }
+      }
+    ])
+
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "muted",
+      afterSequence: 0,
+      inputName: "Mic A",
+      inputUuid: "input-mic-a"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 1, eventType: "InputMuteStateChanged", outcome: "muted", inputMuted: true }
+    })
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "unmuted",
+      afterSequence: 0,
+      inputUuid: "input-mic-b"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, eventType: "InputMuteStateChanged", outcome: "unmuted", inputMuted: false }
+    })
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "volume_changed",
+      afterSequence: 0,
+      inputVolumeMul: 0.5,
+      inputVolumeDb: -6
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 3, eventType: "InputVolumeChanged", outcome: "volume_changed" }
+    })
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "balance_changed",
+      afterSequence: 0,
+      inputAudioBalance: 0.25
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 4, eventType: "InputAudioBalanceChanged", outcome: "balance_changed" }
+    })
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "sync_offset_changed",
+      afterSequence: 0,
+      inputAudioSyncOffset: -250
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 5, eventType: "InputAudioSyncOffsetChanged", outcome: "sync_offset_changed" }
+    })
+    const tracksResult = await confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "tracks_changed",
+      afterSequence: 0,
+      inputAudioTracks: {
+        track1: true,
+        track2: false,
+        track3: true,
+        track4: false,
+        track5: false,
+        track6: true
+      }
+    }, { maxTimeoutMs: 10 })
+    expect(tracksResult).toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 6,
+        eventType: "InputAudioTracksChanged",
+        outcome: "tracks_changed",
+        inputAudioTracks: {
+          track1: true,
+          track2: false,
+          track3: true,
+          track4: false,
+          track5: false,
+          track6: true
+        }
+      }
+    })
+    expect(JSON.stringify(tracksResult.event)).not.toContain("\"1\"")
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "monitor_type_changed",
+      afterSequence: 0,
+      monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 7,
+        eventType: "InputAudioMonitorTypeChanged",
+        outcome: "monitor_type_changed",
+        monitorType: "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+      }
+    })
+  })
+
+  it("does not let excluded or malformed input audio retained events satisfy confirmation", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "InputVolumeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputName: "Mic",
+          inputUuid: "input-mic",
+          inputVolumeMul: 21,
+          inputVolumeDb: -6
+        }
+      },
+      {
+        sequence: 2,
+        eventType: "InputAudioTracksChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: {
+          inputName: "Mic",
+          inputUuid: "input-mic",
+          inputAudioTracks: { "1": true, "2": false, "3": false, "4": false, "5": false, "6": false },
+          inputSettings: { secret: true }
+        }
+      },
+      {
+        sequence: 3,
+        eventType: "InputActiveStateChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic", videoActive: true }
+      },
+      {
+        sequence: 4,
+        eventType: "InputVolumeMeters",
+        eventIntent: EventSubscription.InputVolumeMeters,
+        eventData: { inputs: [] }
+      },
+      {
+        sequence: 5,
+        eventType: "InputSettingsChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic", inputSettings: { secret: true } }
+      },
+      {
+        sequence: 6,
+        eventType: "VendorEvent",
+        eventIntent: EventSubscription.Vendors,
+        eventData: { vendorName: "plugin", payload: { raw: true } }
+      }
+    ])
+
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "volume_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 6
+    })
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "tracks_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 6
+    })
+  })
+
+  it("propagates missed-event metadata for input audio confirmation", async () => {
+    await expect(confirmObsInputAudioChange(
+      bufferedEventClient([
+        {
+          sequence: 3,
+          eventType: "InputAudioMonitorTypeChanged",
+          eventIntent: EventSubscription.Inputs,
+          eventData: {
+            inputName: "Mic",
+            inputUuid: "input-mic",
+            monitorType: "OBS_MONITORING_TYPE_NONE"
+          }
+        }
+      ], { droppedEvents: 2 }),
+      {
+        target: "input_audio",
+        outcome: "monitor_type_changed",
+        afterSequence: 0
+      },
+      { maxTimeoutMs: 10 }
+    )).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3 }
+    })
+  })
+
+  it("rejects invalid input identity confirmation input through operation schema validation", async () => {
+    const confirmObsInputIdentityChangeUnchecked = confirmObsInputIdentityChange as (
+      client: ObsClient,
+      input: unknown,
+      options: { readonly maxTimeoutMs: number }
+    ) => ReturnType<typeof confirmObsInputIdentityChange>
+    for (
+      const input of [
+        { target: "input", outcome: "created", afterSequence: 0 },
+        { target: "input", outcome: "settings_changed", afterSequence: 0 },
+        { target: "input", outcome: "removed", afterSequence: 0, oldInputName: "Old Camera" },
+        { target: "input", outcome: "renamed", afterSequence: 0, oldInputName: "" },
+        { target: "input", outcome: "removed", afterSequence: 0, inputName: "" },
+        { target: "input", outcome: "removed", afterSequence: 0, inputUuid: "" },
+        { target: "input", outcome: "removed", afterSequence: 0, eventType: "InputRemoved" },
+        { target: "input", outcome: "removed", afterSequence: 0, eventData: {} },
+        { target: "input", outcome: "removed", afterSequence: 0, settings: { secret: true } },
+        { target: "input", outcome: "removed", afterSequence: 0, inputSettings: { secret: true } },
+        { target: "input", outcome: "removed", afterSequence: 0, defaultInputSettings: { secret: false } },
+        { target: "input", outcome: "removed", afterSequence: 0, inputKind: "dshow_input" },
+        { target: "input", outcome: "removed", afterSequence: 0, unversionedInputKind: "dshow_input" },
+        { target: "input", outcome: "removed", afterSequence: 0, inputKindCaps: 1 },
+        { target: "input", outcome: "removed", afterSequence: 0, sceneItemId: 1 },
+        { target: "input", outcome: "removed", afterSequence: 0, unexpected: true }
+      ] as const
+    ) {
+      await expect(confirmObsInputIdentityChangeUnchecked(
+        fakeClient(async () => ({})),
+        input,
+        { maxTimeoutMs: 5 }
+      )).rejects.toThrow()
+    }
+  })
+
+  it("propagates missed-event metadata for input identity confirmation", async () => {
+    await expect(confirmObsInputIdentityChange(
+      bufferedEventClient([
+        {
+          sequence: 3,
+          eventType: "InputRemoved",
+          eventIntent: EventSubscription.Inputs,
+          eventData: { inputName: "Camera", inputUuid: "input-camera" }
+        }
+      ], { droppedEvents: 2 }),
+      {
+        target: "input",
+        outcome: "removed",
+        afterSequence: 0
+      },
+      { maxTimeoutMs: 10 }
+    )).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3 }
+    })
+  })
+
+  it("confirms media input workflow events with identity and action filters", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "MediaInputPlaybackStarted",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media A", inputUuid: "input-media-a" }
+      },
+      {
+        sequence: 2,
+        eventType: "MediaInputPlaybackEnded",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media B", inputUuid: "input-media-b" }
+      },
+      {
+        sequence: 3,
+        eventType: "MediaInputActionTriggered",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: {
+          inputName: "Media A",
+          inputUuid: "input-media-a",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+        }
+      }
+    ])
+
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "playback_started",
+      afterSequence: 0,
+      inputName: "Media A",
+      inputUuid: "input-media-a"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 1, eventType: "MediaInputPlaybackStarted", outcome: "playback_started" }
+    })
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "playback_ended",
+      afterSequence: 0,
+      inputUuid: "input-media-b"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, eventType: "MediaInputPlaybackEnded", outcome: "playback_ended" }
+    })
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "action_triggered",
+      afterSequence: 0,
+      inputName: "Media A",
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: {
+        sequence: 3,
+        eventType: "MediaInputActionTriggered",
+        outcome: "action_triggered",
+        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+      }
+    })
+  })
+
+  it("does not cross-match media input playback and action workflow events", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "MediaInputPlaybackStarted",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media", inputUuid: "input-media" }
+      },
+      {
+        sequence: 2,
+        eventType: "MediaInputActionTriggered",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+        }
+      },
+      {
+        sequence: 3,
+        eventType: "InputSettingsChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Media", inputUuid: "input-media", inputSettings: { secret: true } }
+      },
+      {
+        sequence: 4,
+        eventType: "VendorEvent",
+        eventIntent: EventSubscription.Vendors,
+        eventData: { vendorName: "plugin", payload: { raw: true } }
+      }
+    ])
+
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "action_triggered",
+      afterSequence: 0,
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 4
+    })
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "playback_ended",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 4
+    })
+  })
+
+  it("does not let malformed media input event summaries satisfy workflow confirmation", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "MediaInputPlaybackEnded",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaCursor: 1000
+        }
+      },
+      {
+        sequence: 2,
+        eventType: "MediaInputActionTriggered",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NONE"
+        }
+      }
+    ])
+
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "playback_ended",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 2
+    })
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "action_triggered",
+      afterSequence: 0,
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 2
+    })
+  })
+
+  it("propagates missed-event metadata for media input workflow confirmation", async () => {
+    await expect(confirmObsMediaInputWorkflow(
+      bufferedEventClient([
+        {
+          sequence: 3,
+          eventType: "MediaInputPlaybackEnded",
+          eventIntent: EventSubscription.MediaInputs,
+          eventData: { inputName: "Media", inputUuid: "input-media" }
+        }
+      ], { droppedEvents: 2 }),
+      {
+        target: "media_input",
+        outcome: "playback_ended",
+        afterSequence: 0
+      },
+      { maxTimeoutMs: 10 }
+    )).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3 }
+    })
+  })
+
+  it("confirms transition workflow events with identity and duration filters", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CurrentSceneTransitionChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration: 300 }
+      },
+      {
+        sequence: 3,
+        eventType: "SceneTransitionStarted",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Cut", transitionUuid: "transition-cut" }
+      },
+      {
+        sequence: 4,
+        eventType: "SceneTransitionEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 5,
+        eventType: "SceneTransitionVideoEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      }
+    ])
+
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "current_scene_transition",
+      outcome: "changed",
+      afterSequence: 0,
+      transitionName: "Fade",
+      transitionUuid: "transition-fade"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 1, eventType: "CurrentSceneTransitionChanged", outcome: "changed" }
+    })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "current_scene_transition",
+      outcome: "duration_changed",
+      afterSequence: 0,
+      transitionDuration: 300
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, eventType: "CurrentSceneTransitionDurationChanged", transitionDuration: 300 }
+    })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "scene_transition",
+      outcome: "started",
+      afterSequence: 0,
+      transitionUuid: "transition-cut"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 3, eventType: "SceneTransitionStarted", outcome: "started" }
+    })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "scene_transition",
+      outcome: "ended",
+      afterSequence: 0,
+      transitionName: "Fade"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 4, eventType: "SceneTransitionEnded", outcome: "ended" }
+    })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "scene_transition",
+      outcome: "video_ended",
+      afterSequence: 0,
+      transitionName: "Fade",
+      transitionUuid: "transition-fade"
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 5, eventType: "SceneTransitionVideoEnded", outcome: "video_ended" }
+    })
+  })
+
+  it("does not cross-match transition workflow outcomes or adjacent-domain events", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration: 300 }
+      },
+      {
+        sequence: 2,
+        eventType: "SceneTransitionStarted",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 3,
+        eventType: "SceneTransitionEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 4,
+        eventType: "SceneTransitionVideoEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 5,
+        eventType: "StudioModeStateChanged",
+        eventIntent: EventSubscription.Ui,
+        eventData: { studioModeEnabled: true }
+      },
+      {
+        sequence: 6,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+      },
+      {
+        sequence: 7,
+        eventType: "VendorEvent",
+        eventIntent: EventSubscription.Vendors,
+        eventData: { vendorName: "plugin", payload: { raw: true } }
+      }
+    ])
+
+    for (
+      const input of [
+        { target: "current_scene_transition", outcome: "changed", afterSequence: 0 },
+        { target: "scene_transition", outcome: "started", afterSequence: 2 },
+        { target: "scene_transition", outcome: "ended", afterSequence: 3 },
+        { target: "scene_transition", outcome: "video_ended", afterSequence: 4 },
+        { target: "current_scene_transition", outcome: "duration_changed", afterSequence: 0, transitionDuration: 301 }
+      ] as const
+    ) {
+      await expect(confirmObsTransitionWorkflow(client, input, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+        confirmed: false,
+        timedOut: true,
+        latestSequence: 7
+      })
+    }
+  })
+
+  it("does not let malformed retained transition events satisfy workflow confirmation", async () => {
+    const malformedDurations = [0, 49, 20001, 300.5] as const
+    const client = bufferedEventClient([
+      ...malformedDurations.map((transitionDuration, index) => ({
+        sequence: index + 1,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration }
+      })),
+      {
+        sequence: 5,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionDuration: 300, transitionName: "Fade" }
+      },
+      {
+        sequence: 6,
+        eventType: "SceneTransitionStarted",
+        eventIntent: EventSubscription.Transitions,
+        eventData: {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          transitionSettings: { secret: true }
+        }
+      },
+      {
+        sequence: 7,
+        eventType: "CurrentSceneTransitionChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade" }
+      }
+    ])
+
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "current_scene_transition",
+      outcome: "duration_changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 7
+    })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "scene_transition",
+      outcome: "started",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 7
+    })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "current_scene_transition",
+      outcome: "changed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({
+      confirmed: false,
+      timedOut: true,
+      latestSequence: 7
+    })
+  })
+
+  it("propagates missed-event metadata for transition workflow confirmation", async () => {
+    await expect(confirmObsTransitionWorkflow(
+      bufferedEventClient([
+        {
+          sequence: 3,
+          eventType: "SceneTransitionEnded",
+          eventIntent: EventSubscription.Transitions,
+          eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+        }
+      ], { droppedEvents: 2 }),
+      {
+        target: "scene_transition",
+        outcome: "ended",
+        afterSequence: 0
+      },
+      { maxTimeoutMs: 10 }
+    )).resolves.toMatchObject({
+      confirmed: true,
+      baselineSequence: 0,
+      latestSequence: 3,
+      missedEvents: true,
+      event: { sequence: 3 }
+    })
+  })
+
   it("returns version data with negotiated RPC version", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)

@@ -4,6 +4,7 @@ import { JSONSchema, Schema } from "effect"
 
 import { SceneLocator } from "./scenes.js"
 import {
+  ObsInputAudioTracks,
   ObsNonEmptyString,
   ObsNonNegativeInteger,
   ObsNumber,
@@ -11,6 +12,7 @@ import {
   ObsUnitInterval,
   UnknownRecord
 } from "./shared.js"
+export type { ObsInputAudioTracks } from "./shared.js"
 
 export const InputLocatorInput = Schema.Struct({
   inputName: Schema.optional(ObsNonEmptyString),
@@ -39,9 +41,19 @@ export type InputMuteOutput = typeof InputMuteOutput.Type
 export const InputMuteOutputJsonSchema = JSONSchema.make(InputMuteOutput)
 
 // OBS volume multiplier is a bounded structural scalar; floats and zero are meaningful, branding is not.
-export const InputVolumeMul = ObsNumber.pipe(Schema.greaterThanOrEqualTo(0), Schema.lessThanOrEqualTo(20))
+const InputVolumeMulMin = 0
+const InputVolumeMulMax = 20
+export const InputVolumeMul = ObsNumber.pipe(
+  Schema.greaterThanOrEqualTo(InputVolumeMulMin),
+  Schema.lessThanOrEqualTo(InputVolumeMulMax)
+)
 // OBS volume dB is a bounded structural level where negative values are expected, not a branded identity.
-export const InputVolumeDb = ObsNumber.pipe(Schema.greaterThanOrEqualTo(-100), Schema.lessThanOrEqualTo(26))
+const InputVolumeDbMin = -100
+const InputVolumeDbMax = 26
+export const InputVolumeDb = ObsNumber.pipe(
+  Schema.greaterThanOrEqualTo(InputVolumeDbMin),
+  Schema.lessThanOrEqualTo(InputVolumeDbMax)
+)
 
 export const SetInputVolumeInput = Schema.extend(
   InputLocatorInput,
@@ -130,10 +142,12 @@ export type SetInputAudioMonitorTypeOutput = typeof SetInputAudioMonitorTypeOutp
 export const SetInputAudioMonitorTypeOutputJsonSchema = JSONSchema.make(SetInputAudioMonitorTypeOutput)
 
 // Audio sync offset is a bounded millisecond delta; negative, zero, and positive values are all meaningful.
+const InputAudioSyncOffsetMin = -950
+const InputAudioSyncOffsetMax = 20000
 export const InputAudioSyncOffset = ObsNumber.pipe(
   Schema.int(),
-  Schema.greaterThanOrEqualTo(-950),
-  Schema.lessThanOrEqualTo(20000)
+  Schema.greaterThanOrEqualTo(InputAudioSyncOffsetMin),
+  Schema.lessThanOrEqualTo(InputAudioSyncOffsetMax)
 )
 
 export const SetInputAudioSyncOffsetInput = Schema.extend(
@@ -168,16 +182,6 @@ export const InputAudioTracks = Schema.Struct({
 })
 export type InputAudioTracks = typeof InputAudioTracks.Type
 export const InputAudioTracksJsonSchema = JSONSchema.make(InputAudioTracks)
-
-export const ObsInputAudioTracks = Schema.Struct({
-  "1": Schema.Boolean,
-  "2": Schema.Boolean,
-  "3": Schema.Boolean,
-  "4": Schema.Boolean,
-  "5": Schema.Boolean,
-  "6": Schema.Boolean
-})
-export type ObsInputAudioTracks = typeof ObsInputAudioTracks.Type
 
 export const ObsInputAudioTracksOutput = Schema.Struct({
   inputAudioTracks: ObsInputAudioTracks
@@ -361,12 +365,20 @@ export const ObsInputPropertiesListPropertyItemsOutput = Schema.Struct({
 export type ObsInputPropertiesListPropertyItemsOutput = typeof ObsInputPropertiesListPropertyItemsOutput.Type
 
 // Media speed is an allowlisted OBS setting percentage; branding would not add validation beyond this bounded scalar.
-const InputSpeedPercent = ObsNumber.pipe(Schema.int(), Schema.greaterThanOrEqualTo(1), Schema.lessThanOrEqualTo(200))
+const InputSpeedPercentMin = 1
+const InputSpeedPercentMax = 200
+const InputSpeedPercent = ObsNumber.pipe(
+  Schema.int(),
+  Schema.greaterThanOrEqualTo(InputSpeedPercentMin),
+  Schema.lessThanOrEqualTo(InputSpeedPercentMax)
+)
 // Reconnect delay is a local OBS setting in seconds; zero disables delay and the field name carries the unit.
+const ReconnectDelaySecondsMin = 0
+const ReconnectDelaySecondsMax = 300
 const ReconnectDelaySeconds = ObsNumber.pipe(
   Schema.int(),
-  Schema.greaterThanOrEqualTo(0),
-  Schema.lessThanOrEqualTo(300)
+  Schema.greaterThanOrEqualTo(ReconnectDelaySecondsMin),
+  Schema.lessThanOrEqualTo(ReconnectDelaySecondsMax)
 )
 
 export const InputSettingsPatch = Schema.Struct({

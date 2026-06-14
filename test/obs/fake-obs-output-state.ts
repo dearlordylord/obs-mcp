@@ -3,6 +3,12 @@ type SendFakeObsError = (code: number, comment: string) => void
 
 const RESOURCE_NOT_FOUND_STATUS_CODE = 600
 const RESOURCE_STATE_STATUS_CODE = 500
+const ACTIVE_OUTPUT_TIMECODE = "00:00:12.345"
+const INACTIVE_OUTPUT_TIMECODE = "00:00:00.000"
+const ACTIVE_OUTPUT_DURATION_MS = 12_345
+const ACTIVE_RECORD_OUTPUT_BYTES = 67_890
+const ACTIVE_STREAM_OUTPUT_BYTES = 4_096
+const ACTIVE_STREAM_TOTAL_FRAMES = 740
 
 export class FakeObsOutputState {
   private readonly outputSettings = new Map<string, Record<string, unknown>>()
@@ -139,9 +145,9 @@ export class FakeObsOutputState {
       send({
         outputActive: this.recordActive,
         outputPaused: false,
-        outputTimecode: this.recordActive ? "00:00:12.345" : "00:00:00.000",
-        outputDuration: this.recordActive ? 12345 : 0,
-        outputBytes: this.recordActive ? 67890 : 0
+        outputTimecode: this.recordActive ? ACTIVE_OUTPUT_TIMECODE : INACTIVE_OUTPUT_TIMECODE,
+        outputDuration: this.recordActive ? ACTIVE_OUTPUT_DURATION_MS : 0,
+        outputBytes: this.recordActive ? ACTIVE_RECORD_OUTPUT_BYTES : 0
       })
       return true
     }
@@ -164,12 +170,12 @@ export class FakeObsOutputState {
       send({
         outputActive: this.streamActive,
         outputReconnecting: false,
-        outputTimecode: this.streamActive ? "00:00:12.345" : "00:00:00.000",
-        outputDuration: this.streamActive ? 12345 : 0,
+        outputTimecode: this.streamActive ? ACTIVE_OUTPUT_TIMECODE : INACTIVE_OUTPUT_TIMECODE,
+        outputDuration: this.streamActive ? ACTIVE_OUTPUT_DURATION_MS : 0,
         outputCongestion: 0,
-        outputBytes: this.streamActive ? 4096 : 0,
+        outputBytes: this.streamActive ? ACTIVE_STREAM_OUTPUT_BYTES : 0,
         outputSkippedFrames: 0,
-        outputTotalFrames: this.streamActive ? 740 : 0
+        outputTotalFrames: this.streamActive ? ACTIVE_STREAM_TOTAL_FRAMES : 0
       })
       return true
     }
@@ -191,22 +197,22 @@ export class FakeObsOutputState {
       return {
         outputActive: this.streamActive,
         outputReconnecting: false,
-        outputTimecode: this.streamActive ? "00:00:12.345" : "00:00:00.000",
-        outputDuration: this.streamActive ? 12345 : 0,
+        outputTimecode: this.streamActive ? ACTIVE_OUTPUT_TIMECODE : INACTIVE_OUTPUT_TIMECODE,
+        outputDuration: this.streamActive ? ACTIVE_OUTPUT_DURATION_MS : 0,
         outputCongestion: 0,
-        outputBytes: this.streamActive ? 4096 : 0,
+        outputBytes: this.streamActive ? ACTIVE_STREAM_OUTPUT_BYTES : 0,
         outputSkippedFrames: 0,
-        outputTotalFrames: this.streamActive ? 740 : 0
+        outputTotalFrames: this.streamActive ? ACTIVE_STREAM_TOTAL_FRAMES : 0
       }
     }
     if (outputName === "adv_file_output") {
       return {
         outputActive: this.recordActive,
         outputReconnecting: false,
-        outputTimecode: this.recordActive ? "00:00:12.345" : "00:00:00.000",
-        outputDuration: this.recordActive ? 12345 : 0,
+        outputTimecode: this.recordActive ? ACTIVE_OUTPUT_TIMECODE : INACTIVE_OUTPUT_TIMECODE,
+        outputDuration: this.recordActive ? ACTIVE_OUTPUT_DURATION_MS : 0,
         outputCongestion: 0,
-        outputBytes: this.recordActive ? 67890 : 0,
+        outputBytes: this.recordActive ? ACTIVE_RECORD_OUTPUT_BYTES : 0,
         outputSkippedFrames: 0,
         outputTotalFrames: 0
       }

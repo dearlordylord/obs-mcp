@@ -58,6 +58,16 @@ Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side 
 - `trigger_hotkey_by_name`
 - `trigger_hotkey_by_key_sequence`
 - `get_recent_obs_events`
+- `confirm_obs_output_lifecycle`
+- `confirm_obs_scene_graph_change`
+- `confirm_obs_source_filter_change`
+- `confirm_obs_media_input_workflow`
+- `confirm_obs_transition_workflow`
+- `confirm_obs_input_audio_change`
+- `confirm_obs_input_identity_change`
+- `confirm_obs_canvas_inventory_change`
+- `confirm_obs_studio_mode_state_change`
+- `confirm_obs_config_workflow`
 - `list_canvases`
 - `list_profiles`
 - `list_scene_collections`
@@ -222,19 +232,33 @@ pnpm check-all
 
 Local `.env` is supported for integration tests and is ignored by git. The checked-in development template uses `host.docker.internal`, which resolves from this workspace.
 Use `.env.example` as the non-secret template; keep real passwords only in local `.env`.
+See `INTEGRATION_TESTING.md` for the full harness policy, current pass/skip baseline, and optional modes.
 
-Read-only integration tests:
+Read-only smoke integration tests:
 
 ```sh
 pnpm test:integration
 ```
 
-Mutation tests are separate because they send state-changing OBS requests. They require both
+The Huly-style full live integration harness drives the built MCP server over stdio, enables every
+toolset, and reports each public tool as passed, skipped by OBS capability/environment, or skipped by
+safety policy. It is the broad local confidence gate for real OBS parity:
+
+```sh
+pnpm test:integration:full
+```
+
+Mutation checks are separate because they send state-changing OBS requests. They require both
 `OBS_INTEGRATION_TESTS=1` and `OBS_INTEGRATION_MUTATION_TESTS=1`; `pnpm test:integration` sets
 `OBS_INTEGRATION_TESTS=1` for you. Lifecycle mutation smoke checks do not start recording or streaming.
 
 ```sh
 OBS_INTEGRATION_MUTATION_TESTS=1 pnpm test:integration
+OBS_INTEGRATION_MUTATION_TESTS=1 pnpm test:integration:full
 ```
+
+Bounded screenshot payload checks run in the full harness when the current scene has a source.
+File-writing screenshot checks are skipped unless `OBS_MCP_SCREENSHOT_OUTPUT_DIR` points to a
+directory visible to the OBS process.
 
 Default `pnpm test` remains fake-harness only and does not require OBS.

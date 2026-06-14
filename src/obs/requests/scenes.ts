@@ -1,17 +1,10 @@
 import { Schema } from "effect"
 
-import {
-  CreateSceneItemInput,
-  DuplicateSceneItemInput,
-  RemoveSceneItemInput
-} from "../../domain/schemas/scene-item-lifecycle.js"
-import {
-  GetSceneItemTransformInput,
-  GetSceneItemTransformOutput,
-  SetSceneItemTransformInput
-} from "../../domain/schemas/scene-item-transforms.js"
+import { ObsNonEmptyString, ObsNonNegativeInteger, ObsString, UnknownRecord } from "../../domain/schemas/shared.js"
 import {
   CreateSceneInput,
+  CreateSceneItemInput,
+  DuplicateSceneItemInput,
   GetSceneItemBlendModeInput,
   GetSceneItemBlendModeOutput,
   GetSceneItemEnabledInput,
@@ -24,6 +17,8 @@ import {
   GetSceneItemLockedOutput,
   GetSceneItemSourceInput,
   GetSceneItemSourceOutput,
+  GetSceneItemTransformInput,
+  GetSceneItemTransformOutput,
   GetSceneTransitionOverrideInput,
   GetSourceActiveInput,
   GetSourceActiveOutput,
@@ -34,15 +29,16 @@ import {
   ListSceneItemsOutput,
   ListScenesOutput,
   RemoveSceneInput,
+  RemoveSceneItemInput,
   SceneTransitionOverrideOutput,
   SetSceneItemBlendModeInput,
   SetSceneItemEnabledInput,
   SetSceneItemIndexInput,
   SetSceneItemLockedInput,
+  SetSceneItemTransformInput,
   SetSceneNameInput,
   SetSceneTransitionOverrideInput
-} from "../../domain/schemas/scenes.js"
-import { ObsNonEmptyString, ObsNonNegativeInteger, ObsString, UnknownRecord } from "../../domain/schemas/shared.js"
+} from "../scenes-imports.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
 
 export const GetSceneList = {

@@ -14,6 +14,7 @@ import type {
 import { ObsString } from "../../domain/schemas/shared.js"
 import type { ObsClient } from "../client.js"
 import { GetSourceScreenshot, SaveSourceScreenshot } from "../requests.js"
+import { withDefinedFields } from "./shared.js"
 
 const MAX_SCREENSHOT_BYTES = 1_500_000
 
@@ -81,15 +82,15 @@ export const saveSourceScreenshot = async (
   const decodedInput = Schema.decodeUnknownSync(ScreenshotSchemas.SaveSourceScreenshotInput)(input)
   const imageFilePath = path.resolve(directory, decodedInput.fileName)
   await client.request(SaveSourceScreenshot, {
-    ...(decodedInput.sourceName === undefined ? {} : { sourceName: decodedInput.sourceName }),
-    ...(decodedInput.sourceUuid === undefined ? {} : { sourceUuid: decodedInput.sourceUuid }),
-    ...(decodedInput.canvasUuid === undefined ? {} : { canvasUuid: decodedInput.canvasUuid }),
+    ...withDefinedFields({
+      sourceName: decodedInput.sourceName,
+      sourceUuid: decodedInput.sourceUuid,
+      canvasUuid: decodedInput.canvasUuid,
+      imageWidth: decodedInput.imageWidth,
+      imageHeight: decodedInput.imageHeight,
+      imageCompressionQuality: decodedInput.imageCompressionQuality
+    }),
     imageFormat: decodedInput.imageFormat,
-    ...(decodedInput.imageWidth === undefined ? {} : { imageWidth: decodedInput.imageWidth }),
-    ...(decodedInput.imageHeight === undefined ? {} : { imageHeight: decodedInput.imageHeight }),
-    ...(decodedInput.imageCompressionQuality === undefined
-      ? {}
-      : { imageCompressionQuality: decodedInput.imageCompressionQuality }),
     imageFilePath
   })
   return { imageFilePath, imageFormat: decodedInput.imageFormat, saved: true }

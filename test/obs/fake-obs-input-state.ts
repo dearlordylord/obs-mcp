@@ -35,6 +35,8 @@ interface FakeObsCreateInputRequestData {
   readonly inputKind: string
 }
 
+const CreatedSceneItemIdBase = 1_000
+
 export class FakeObsInputState {
   private readonly inputMuteByKey: Map<string, boolean>
   private readonly inputVolumeByKey: Map<string, FakeObsInputVolume> = new Map()
@@ -68,7 +70,7 @@ export class FakeObsInputState {
     const inputUuid = `input-${
       requestData.inputName.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-|-$/g, "")
     }`
-    const sceneItemId = 1_000 + this.inputs.length
+    const sceneItemId = CreatedSceneItemIdBase + this.inputs.length
     this.inputs.push({
       inputName: requestData.inputName,
       inputUuid,

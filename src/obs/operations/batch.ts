@@ -84,12 +84,11 @@ const outputItem = (
 }
 
 const validateUniqueRequestIds = (requests: ReadonlyArray<PreparedBatchRequest>): void => {
-  const seen = new Set<string>()
-  for (const request of requests) {
-    if (seen.has(request.requestId)) {
-      throw new Error(`Duplicate OBS batch request id ${request.requestId}`)
-    }
-    seen.add(request.requestId)
+  const duplicate = requests.find((request, index) =>
+    requests.findIndex((candidate) => candidate.requestId === request.requestId) !== index
+  )
+  if (duplicate !== undefined) {
+    throw new Error(`Duplicate OBS batch request id ${duplicate.requestId}`)
   }
 }
 
@@ -98,19 +97,18 @@ const correlateBatchResults = (
   results: ReadonlyArray<BatchRequestResult>,
   haltOnFailure: boolean
 ): ReadonlyArray<BatchResponseItem> => {
-  const byId = new Map(requests.map((request) => [request.requestId, request]))
-  const seen = new Map<string, { readonly request: PreparedBatchRequest; readonly result: BatchRequestResult }>()
+  let seen: ReadonlyArray<{ readonly request: PreparedBatchRequest; readonly result: BatchRequestResult }> = []
   let failureIndex: number | undefined
 
   for (const result of results) {
     if (result.requestId === undefined) {
       throw new Error(`OBS batch result for ${result.requestType} did not include requestId`)
     }
-    const request = byId.get(result.requestId)
+    const request = requests.find((candidate) => candidate.requestId === result.requestId)
     if (request === undefined) {
       throw new Error(`OBS returned unexpected batch result requestId ${result.requestId}`)
     }
-    if (seen.has(result.requestId)) {
+    if (seen.some(({ request }) => request.requestId === result.requestId)) {
       throw new Error(`OBS returned duplicate batch result requestId ${result.requestId}`)
     }
     if (request.requestType !== result.requestType) {
@@ -118,14 +116,14 @@ const correlateBatchResults = (
         `OBS batch result ${result.requestId} used requestType ${result.requestType}; expected ${request.requestType}`
       )
     }
-    seen.set(result.requestId, { request, result })
+    seen = [...seen, { request, result }]
     if (result.requestStatus.result === false) {
       failureIndex = failureIndex === undefined ? request.index : Math.min(failureIndex, request.index)
     }
   }
 
   if (haltOnFailure && failureIndex !== undefined) {
-    const afterFailure = [...seen.values()].find(({ request }) => request.index > failureIndex)
+    const afterFailure = seen.find(({ request }) => request.index > failureIndex)
     if (afterFailure !== undefined) {
       throw new Error(`OBS returned batch result ${afterFailure.request.requestId} after halt-on-failure item`)
     }
@@ -133,12 +131,12 @@ const correlateBatchResults = (
 
   const requiredCount = haltOnFailure && failureIndex !== undefined ? failureIndex + 1 : requests.length
   for (const request of requests.slice(0, requiredCount)) {
-    if (!seen.has(request.requestId)) {
+    if (!seen.some((item) => item.request.requestId === request.requestId)) {
       throw new Error(`OBS did not return batch result requestId ${request.requestId}`)
     }
   }
 
-  return [...seen.values()]
+  return [...seen]
     .sort((left, right) => left.request.index - right.request.index)
     .map(({ request, result }) => outputItem(request, result))
 }

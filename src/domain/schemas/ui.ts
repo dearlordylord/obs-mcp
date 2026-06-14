@@ -1,6 +1,13 @@
 import { JSONSchema, Schema } from "effect"
 
-import { ObsInteger, ObsNonEmptyString, ObsNonNegativeInteger, ObsNumber, ObsString } from "./shared.js"
+import {
+  ObsInteger,
+  ObsNonEmptyString,
+  ObsNonNegativeInteger,
+  ObsNumber,
+  ObsString,
+  RequestAcknowledgedOutput
+} from "./shared.js"
 
 import { InputLocatorInput } from "./inputs.js"
 
@@ -10,11 +17,7 @@ export const StudioModeEnabledOutput = Schema.Struct({
 export type StudioModeEnabledOutput = typeof StudioModeEnabledOutput.Type
 export const StudioModeEnabledOutputJsonSchema = JSONSchema.make(StudioModeEnabledOutput)
 
-export const UiSideEffectOutput = <RequestType extends string>(requestType: RequestType) =>
-  Schema.Struct({
-    requestType: Schema.Literal(requestType),
-    acknowledged: Schema.Literal(true)
-  })
+export const UiSideEffectOutput = RequestAcknowledgedOutput
 
 export const OpenInputPropertiesDialogInput = InputLocatorInput
 export type OpenInputPropertiesDialogInput = typeof OpenInputPropertiesDialogInput.Type
@@ -44,6 +47,9 @@ const ProjectorMonitorIndex = Schema.optional(
   ObsNumber.pipe(Schema.int(), Schema.greaterThanOrEqualTo(WindowedProjectorMonitorIndex))
 )
 const ProjectorGeometry = Schema.optional(ObsNonEmptyString)
+const hasExclusiveProjectorPlacement = (
+  input: Readonly<{ monitorIndex?: number | undefined; projectorGeometry?: string | undefined }>
+) => !(input.monitorIndex !== undefined && input.projectorGeometry !== undefined)
 
 export const MonitorSummary = Schema.Struct({
   monitorIndex: ObsNonNegativeInteger,
@@ -70,7 +76,7 @@ const ProjectorPlacementInput = Schema.Struct({
   monitorIndex: ProjectorMonitorIndex,
   projectorGeometry: ProjectorGeometry
 }).pipe(
-  Schema.filter((input) => !(input.monitorIndex !== undefined && input.projectorGeometry !== undefined), {
+  Schema.filter(hasExclusiveProjectorPlacement, {
     message: () => "monitorIndex and projectorGeometry are mutually exclusive"
   })
 )
@@ -107,7 +113,7 @@ export const OpenSourceProjectorInput = Schema.Struct({
   Schema.filter((input) => input.canvasUuid === undefined || input.sourceName !== undefined, {
     message: () => "canvasUuid can only be provided with sourceName"
   }),
-  Schema.filter((input) => !(input.monitorIndex !== undefined && input.projectorGeometry !== undefined), {
+  Schema.filter(hasExclusiveProjectorPlacement, {
     message: () => "monitorIndex and projectorGeometry are mutually exclusive"
   })
 )

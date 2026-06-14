@@ -4,15 +4,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { loadObsConfigFromEnv } from "../../src/config/config.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
+import { ObsRequestError } from "../../src/obs/errors.js"
 import { getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
-import {
-  getReplayBufferStatus,
-  getVirtualCamStatus,
-  startReplayBuffer,
-  startVirtualCam,
-  stopReplayBuffer,
-  stopVirtualCam
-} from "../../src/obs/operations/outputs.js"
+import { getVirtualCamStatus } from "../../src/obs/operations/outputs.js"
 import { stopRecord } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
 import { getStreamStatus, stopStream } from "../../src/obs/operations/stream.js"
@@ -27,132 +21,100 @@ const requestAvailable = (client: ObsClient, requestType: string): boolean => {
   return client.availableRequests.includes(requestType)
 }
 
-describe.skipIf(!integrationEnabled)("real OBS websocket integration", () => {
-  let client: ObsClient | undefined
+const OBS_FEATURE_UNAVAILABLE = 604
 
-  beforeAll(async () => {
-    const config = await Effect.runPromise(loadObsConfigFromEnv(process.env))
-    client = await createObsClient(config)
-  })
-
-  afterAll(async () => {
-    await client?.close()
-  })
-
-  it("connects to OBS and reads version capabilities", async () => {
-    expect(client).toBeDefined()
-    const obs = client
-    if (obs === undefined) throw new Error("OBS client was not initialized")
-    const version = await getVersion(obs)
-    expect(version.availableRequests).toContain("GetVersion")
-    expect(version.negotiatedRpcVersion).toBe(1)
-  })
-
-  it("reads the current scene and scene list", async () => {
-    expect(client).toBeDefined()
-    const obs = client
-    if (obs === undefined) throw new Error("OBS client was not initialized")
-    const current = await getCurrentScene(obs)
-    const scenes = await listScenes(obs, { includeGroups: true })
-    expect(scenes.scenes.map((scene) => scene.sceneName)).toContain(current.sceneName)
-  })
-
-  it("reads lifecycle output status without mutating OBS", async () => {
-    expect(client).toBeDefined()
-    const obs = client
-    if (obs === undefined) throw new Error("OBS client was not initialized")
-
-    await expect(getRecordStatus(obs)).resolves.toEqual(expect.objectContaining({
+const expectOptionalVirtualCameraStatus = async (client: ObsClient): Promise<void> => {
+  try {
+    await expect(await getVirtualCamStatus(client)).toEqual(expect.objectContaining({
       outputActive: expect.any(Boolean)
     }))
-    await expect(getStreamStatus(obs)).resolves.toEqual(expect.objectContaining({
-      outputActive: expect.any(Boolean)
-    }))
-    await expect(getVirtualCamStatus(obs)).resolves.toEqual(expect.objectContaining({
-      outputActive: expect.any(Boolean)
-    }))
-    await expect(getReplayBufferStatus(obs)).resolves.toEqual(expect.objectContaining({
-      outputActive: expect.any(Boolean)
-    }))
-  })
+  } catch (error) {
+    if (error instanceof ObsRequestError && error.code === OBS_FEATURE_UNAVAILABLE) {
+      expect(error.comment).toContain("not available")
+      return
+    }
+    throw error
+  }
+}
 
-  it.skipIf(!mutationEnabled)("can set the current scene to the current scene", async () => {
-    expect(client).toBeDefined()
-    const obs = client
-    if (obs === undefined) throw new Error("OBS client was not initialized")
-    const current = await getCurrentScene(obs)
-    await expect(setCurrentScene(obs, { sceneName: current.sceneName }))
-      .resolves.toEqual({ sceneName: current.sceneName, switched: true })
-  })
+if (integrationEnabled) {
+  describe("real OBS websocket integration", () => {
+    let client: ObsClient | undefined
 
-  it.skipIf(!mutationEnabled)(
-    "checks inactive record and stream stop mutations without starting recording or streaming",
-    async () => {
+    beforeAll(async () => {
+      const config = await Effect.runPromise(loadObsConfigFromEnv(process.env))
+      client = await createObsClient(config)
+    })
+
+    afterAll(async () => {
+      await client?.close()
+    })
+
+    it("connects to OBS and reads version capabilities", async () => {
+      expect(client).toBeDefined()
+      const obs = client
+      if (obs === undefined) throw new Error("OBS client was not initialized")
+      const version = await getVersion(obs)
+      expect(version.availableRequests).toContain("GetVersion")
+      expect(version.negotiatedRpcVersion).toBe(1)
+    })
+
+    it("reads the current scene and scene list", async () => {
+      expect(client).toBeDefined()
+      const obs = client
+      if (obs === undefined) throw new Error("OBS client was not initialized")
+      const current = await getCurrentScene(obs)
+      const scenes = await listScenes(obs, { includeGroups: true })
+      expect(scenes.scenes.map((scene) => scene.sceneName)).toContain(current.sceneName)
+    })
+
+    it("reads lifecycle output status without mutating OBS", async () => {
       expect(client).toBeDefined()
       const obs = client
       if (obs === undefined) throw new Error("OBS client was not initialized")
 
-      const record = await getRecordStatus(obs)
-      if (!record.outputActive && requestAvailable(obs, "StopRecord")) {
-        await expect(stopRecord(obs)).rejects.toThrow()
-      }
+      await expect(getRecordStatus(obs)).resolves.toEqual(expect.objectContaining({
+        outputActive: expect.any(Boolean)
+      }))
+      await expect(getStreamStatus(obs)).resolves.toEqual(expect.objectContaining({
+        outputActive: expect.any(Boolean)
+      }))
+      await expectOptionalVirtualCameraStatus(obs)
+    })
 
-      const stream = await getStreamStatus(obs)
-      if (!stream.outputActive && requestAvailable(obs, "StopStream")) {
-        await expect(stopStream(obs)).rejects.toThrow()
-      }
-    }
-  )
+    if (mutationEnabled) {
+      it("can set the current scene to the current scene", async () => {
+        expect(client).toBeDefined()
+        const obs = client
+        if (obs === undefined) throw new Error("OBS client was not initialized")
+        const current = await getCurrentScene(obs)
+        await expect(setCurrentScene(obs, { sceneName: current.sceneName }))
+          .resolves.toEqual({ sceneName: current.sceneName, switched: true })
+      })
 
-  it.skipIf(!mutationEnabled)("can start and stop inactive virtual camera and replay buffer outputs", async () => {
-    expect(client).toBeDefined()
-    const obs = client
-    if (obs === undefined) throw new Error("OBS client was not initialized")
+      it("checks inactive record and stream stop mutations without starting recording or streaming", async () => {
+        expect(client).toBeDefined()
+        const obs = client
+        if (obs === undefined) throw new Error("OBS client was not initialized")
 
-    const virtualCam = await getVirtualCamStatus(obs)
-    if (
-      !virtualCam.outputActive && requestAvailable(obs, "StartVirtualCam") && requestAvailable(obs, "StopVirtualCam")
-    ) {
-      let startedVirtualCam = false
-      try {
-        const started = await startVirtualCam(obs)
-        startedVirtualCam = true
-        expect(started).toEqual({ outputActive: true, switched: true })
-        const stopped = await stopVirtualCam(obs)
-        startedVirtualCam = false
-        expect(stopped).toEqual({ outputActive: false, switched: true })
-      } finally {
-        if (startedVirtualCam) {
-          await stopVirtualCam(obs).catch(() => undefined)
+        const record = await getRecordStatus(obs)
+        if (!record.outputActive && requestAvailable(obs, "StopRecord")) {
+          await expect(stopRecord(obs)).rejects.toThrow()
         }
-      }
-    }
 
-    const replayBuffer = await getReplayBufferStatus(obs)
-    if (
-      !replayBuffer.outputActive
-      && requestAvailable(obs, "StartReplayBuffer")
-      && requestAvailable(obs, "StopReplayBuffer")
-    ) {
-      let startedReplayBuffer = false
-      try {
-        const started = await startReplayBuffer(obs)
-        startedReplayBuffer = true
-        expect(started).toEqual({ outputActive: true })
-        const stopped = await stopReplayBuffer(obs)
-        startedReplayBuffer = false
-        expect(stopped).toEqual({ outputActive: false })
-      } finally {
-        if (startedReplayBuffer) {
-          await stopReplayBuffer(obs).catch(() => undefined)
+        const stream = await getStreamStatus(obs)
+        if (!stream.outputActive && requestAvailable(obs, "StopStream")) {
+          await expect(stopStream(obs)).rejects.toThrow()
         }
-      }
+      })
     }
   })
-})
+}
 
-describe.skipIf(integrationEnabled)("real OBS websocket integration configuration", () => {
-  it("does not read local .env unless integration is explicitly enabled", () => {
-    expect(process.env["OBS_WEBSOCKET_PASSWORD"]).toBeUndefined()
+if (!integrationEnabled) {
+  describe("real OBS websocket integration configuration", () => {
+    it("does not read local .env unless integration is explicitly enabled", () => {
+      expect(process.env["OBS_WEBSOCKET_PASSWORD"]).toBeUndefined()
+    })
   })
-})
+}

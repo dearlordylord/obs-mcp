@@ -1,6 +1,6 @@
 import { Schema } from "effect"
 
-import { ObsString } from "./shared.js"
+import { isPlainJsonObject, ObsNonEmptyString } from "./shared.js"
 
 export type JsonSafeValue =
   | null
@@ -9,12 +9,6 @@ export type JsonSafeValue =
   | string
   | ReadonlyArray<JsonSafeValue>
   | { readonly [key: string]: JsonSafeValue }
-
-const isPlainJsonObject = (value: unknown): value is { readonly [key: string]: unknown } =>
-  typeof value === "object"
-  && value !== null
-  && !Array.isArray(value)
-  && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
 
 export const isJsonSafeValue = (value: unknown): value is JsonSafeValue => {
   if (value === null || typeof value === "string" || typeof value === "boolean") {
@@ -51,7 +45,7 @@ export const PersistentDataRealm = Schema.Literal(
 )
 export type PersistentDataRealm = typeof PersistentDataRealm.Type
 
-export const PersistentDataSlotName = ObsString.pipe(Schema.minLength(1))
+export const PersistentDataSlotName = ObsNonEmptyString
 
 export const PersistentDataLocatorInput = Schema.Struct({
   realm: PersistentDataRealm,

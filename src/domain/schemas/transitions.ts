@@ -6,6 +6,7 @@ import {
   ObsNumber,
   ObsString,
   ObsUnitInterval,
+  RequestAcknowledgedOutput,
   UnknownRecord
 } from "./shared.js"
 
@@ -24,42 +25,41 @@ export const TransitionSummary = Schema.Struct({
 })
 export type TransitionSummary = typeof TransitionSummary.Type
 
-export const RawSceneTransitionListOutput = Schema.Struct({
+const CurrentSceneTransitionListFields = {
   currentSceneTransitionName: Schema.NullOr(ObsString),
   currentSceneTransitionUuid: Schema.NullOr(ObsString),
-  currentSceneTransitionKind: Schema.NullOr(ObsString),
+  currentSceneTransitionKind: Schema.NullOr(ObsString)
+} as const
+
+export const RawSceneTransitionListOutput = Schema.Struct({
+  ...CurrentSceneTransitionListFields,
   transitions: Schema.Array(UnknownRecord)
 })
 export type RawSceneTransitionListOutput = typeof RawSceneTransitionListOutput.Type
 
 export const SceneTransitionListOutput = Schema.Struct({
-  currentSceneTransitionName: Schema.NullOr(ObsString),
-  currentSceneTransitionUuid: Schema.NullOr(ObsString),
-  currentSceneTransitionKind: Schema.NullOr(ObsString),
+  ...CurrentSceneTransitionListFields,
   transitions: Schema.Array(TransitionSummary)
 })
 export type SceneTransitionListOutput = typeof SceneTransitionListOutput.Type
 export const SceneTransitionListOutputJsonSchema = JSONSchema.make(SceneTransitionListOutput)
 
-export const RawCurrentSceneTransitionOutput = Schema.Struct({
-  transitionName: ObsString,
-  transitionUuid: ObsString,
-  transitionKind: ObsString,
-  transitionFixed: Schema.Boolean,
-  transitionDuration: Schema.NullOr(ObsNumber),
-  transitionConfigurable: Schema.Boolean,
-  transitionSettings: Schema.NullOr(UnknownRecord)
-})
-export type RawCurrentSceneTransitionOutput = typeof RawCurrentSceneTransitionOutput.Type
-
-export const CurrentSceneTransitionOutput = Schema.Struct({
+const CurrentSceneTransitionFields = {
   transitionName: ObsString,
   transitionUuid: ObsString,
   transitionKind: ObsString,
   transitionFixed: Schema.Boolean,
   transitionDuration: Schema.NullOr(ObsNumber),
   transitionConfigurable: Schema.Boolean
+} as const
+
+export const RawCurrentSceneTransitionOutput = Schema.Struct({
+  ...CurrentSceneTransitionFields,
+  transitionSettings: Schema.NullOr(UnknownRecord)
 })
+export type RawCurrentSceneTransitionOutput = typeof RawCurrentSceneTransitionOutput.Type
+
+export const CurrentSceneTransitionOutput = Schema.Struct(CurrentSceneTransitionFields)
 export type CurrentSceneTransitionOutput = typeof CurrentSceneTransitionOutput.Type
 export const CurrentSceneTransitionOutputJsonSchema = JSONSchema.make(CurrentSceneTransitionOutput)
 
@@ -82,11 +82,13 @@ export const SetCurrentSceneTransitionOutput = Schema.Struct({
 export type SetCurrentSceneTransitionOutput = typeof SetCurrentSceneTransitionOutput.Type
 export const SetCurrentSceneTransitionOutputJsonSchema = JSONSchema.make(SetCurrentSceneTransitionOutput)
 
+const MinTransitionDuration = 50
+const MaxTransitionDuration = 20000
 // Transition duration is a bounded millisecond setting; branding would not add validation beyond the field name.
 export const TransitionDuration = ObsNumber.pipe(
   Schema.int(),
-  Schema.greaterThanOrEqualTo(50),
-  Schema.lessThanOrEqualTo(20000)
+  Schema.greaterThanOrEqualTo(MinTransitionDuration),
+  Schema.lessThanOrEqualTo(MaxTransitionDuration)
 )
 
 export const SetCurrentSceneTransitionDurationInput = Schema.Struct({
@@ -127,10 +129,7 @@ export const SetCurrentSceneTransitionSettingsOutputJsonSchema = JSONSchema.make
   SetCurrentSceneTransitionSettingsOutput
 )
 
-export const TriggerStudioModeTransitionOutput = Schema.Struct({
-  requestType: Schema.Literal("TriggerStudioModeTransition"),
-  acknowledged: Schema.Literal(true)
-})
+export const TriggerStudioModeTransitionOutput = RequestAcknowledgedOutput("TriggerStudioModeTransition")
 export type TriggerStudioModeTransitionOutput = typeof TriggerStudioModeTransitionOutput.Type
 export const TriggerStudioModeTransitionOutputJsonSchema = JSONSchema.make(TriggerStudioModeTransitionOutput)
 

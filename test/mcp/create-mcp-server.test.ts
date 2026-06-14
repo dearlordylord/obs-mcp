@@ -31,7 +31,10 @@ const fakeObsServers: Array<FakeObsServer> = []
 const obsClient = (
   handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>,
   availableRequests: ReadonlyArray<string> = allAvailableRequests,
-  bufferedEvents: ReturnType<ObsClient["getBufferedEvents"]> = { capacity: 0, droppedEvents: 0, events: [] }
+  bufferedEvents:
+    & Omit<ReturnType<ObsClient["getBufferedEvents"]>, "oldestSequence" | "latestSequence" | "missedEvents">
+    & Partial<Pick<ReturnType<ObsClient["getBufferedEvents"]>, "oldestSequence" | "latestSequence" | "missedEvents">> =
+      { capacity: 0, droppedEvents: 0, events: [] }
 ): ObsClient => fakeObsClient(handler, availableRequests, bufferedEvents)
 
 const connect = async (obs: ObsClient, serverConfig: ObsConfig = config): Promise<Client> => {
@@ -221,7 +224,19 @@ describe("MCP server protocol handlers", () => {
       enabledToolsets: ["events"]
     })
     const tools = await client.listTools()
-    expect(tools.tools.map((tool) => tool.name)).toEqual(["get_recent_obs_events"])
+    expect(tools.tools.map((tool) => tool.name)).toEqual([
+      "get_recent_obs_events",
+      "confirm_obs_output_lifecycle",
+      "confirm_obs_scene_graph_change",
+      "confirm_obs_source_filter_change",
+      "confirm_obs_media_input_workflow",
+      "confirm_obs_transition_workflow",
+      "confirm_obs_input_audio_change",
+      "confirm_obs_input_identity_change",
+      "confirm_obs_canvas_inventory_change",
+      "confirm_obs_studio_mode_state_change",
+      "confirm_obs_config_workflow"
+    ])
   })
 
   it("lists only the deliberate batch tool for the batch toolset and advertised OBS capabilities", async () => {
@@ -1238,6 +1253,620 @@ describe("MCP server protocol handlers", () => {
     })
   })
 
+  it("returns structured output lifecycle confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 2,
+          droppedEvents: 0,
+          events: [
+            {
+              sequence: 1,
+              eventType: "StreamStateChanged",
+              eventIntent: EventSubscription.Outputs,
+              eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+            },
+            {
+              sequence: 2,
+              eventType: "StreamStateChanged",
+              eventIntent: EventSubscription.Outputs,
+              eventData: { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED" }
+            }
+          ]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_output_lifecycle",
+      arguments: { target: "stream", outcome: "stopped", afterSequence: 1, timeoutMs: 10 }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 1,
+        latestSequence: 2,
+        missedEvents: false,
+        event: {
+          sequence: 2,
+          eventType: "StreamStateChanged",
+          category: "outputs",
+          target: "stream",
+          outcome: "stopped",
+          outputActive: false,
+          outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED"
+        }
+      }
+    })
+  })
+
+  it("returns structured scene graph confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "SceneItemEnableStateChanged",
+            eventIntent: EventSubscription.SceneItems,
+            eventData: {
+              sceneName: "Program",
+              sceneUuid: "scene-program",
+              sceneItemId: 12,
+              sceneItemEnabled: false
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_scene_graph_change",
+      arguments: {
+        target: "scene_item",
+        outcome: "disabled",
+        afterSequence: 0,
+        timeoutMs: 10,
+        sceneItemId: 12
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "SceneItemEnableStateChanged",
+          category: "scene_items",
+          target: "scene_item",
+          outcome: "disabled",
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItemId: 12,
+          sceneItemEnabled: false
+        }
+      }
+    })
+  })
+
+  it("returns structured source filter confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "SourceFilterEnableStateChanged",
+            eventIntent: EventSubscription.Filters,
+            eventData: {
+              sourceName: "Camera",
+              filterName: "Color",
+              filterEnabled: false
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_source_filter_change",
+      arguments: {
+        target: "source_filter",
+        outcome: "disabled",
+        afterSequence: 0,
+        timeoutMs: 10,
+        sourceName: "Camera",
+        filterName: "Color"
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "SourceFilterEnableStateChanged",
+          category: "filters",
+          target: "source_filter",
+          outcome: "disabled",
+          sourceName: "Camera",
+          filterName: "Color",
+          filterEnabled: false
+        }
+      }
+    })
+  })
+
+  it("returns structured media input workflow confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "MediaInputActionTriggered",
+            eventIntent: EventSubscription.MediaInputs,
+            eventData: {
+              inputName: "Media",
+              inputUuid: "input-media",
+              mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_media_input_workflow",
+      arguments: {
+        target: "media_input",
+        outcome: "action_triggered",
+        afterSequence: 0,
+        timeoutMs: 10,
+        inputName: "Media",
+        inputUuid: "input-media",
+        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "MediaInputActionTriggered",
+          category: "media_inputs",
+          target: "media_input",
+          outcome: "action_triggered",
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE"
+        }
+      }
+    })
+  })
+
+  it("returns structured transition workflow confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "SceneTransitionEnded",
+            eventIntent: EventSubscription.Transitions,
+            eventData: {
+              transitionName: "Fade",
+              transitionUuid: "transition-fade"
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_transition_workflow",
+      arguments: {
+        target: "scene_transition",
+        outcome: "ended",
+        afterSequence: 0,
+        timeoutMs: 10,
+        transitionName: "Fade",
+        transitionUuid: "transition-fade"
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "SceneTransitionEnded",
+          category: "transitions",
+          target: "scene_transition",
+          outcome: "ended",
+          transitionName: "Fade",
+          transitionUuid: "transition-fade"
+        }
+      }
+    })
+  })
+
+  it("returns structured input audio confirmation content with public track keys", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "InputAudioTracksChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: {
+              inputName: "Mic/Aux",
+              inputUuid: "input-mic",
+              inputAudioTracks: { "1": true, "2": false, "3": true, "4": false, "5": false, "6": true }
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    const result = await client.callTool({
+      name: "confirm_obs_input_audio_change",
+      arguments: {
+        target: "input_audio",
+        outcome: "tracks_changed",
+        afterSequence: 0,
+        timeoutMs: 10,
+        inputName: "Mic/Aux",
+        inputAudioTracks: {
+          track1: true,
+          track2: false,
+          track3: true,
+          track4: false,
+          track5: false,
+          track6: true
+        }
+      }
+    })
+
+    expect(result).toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "InputAudioTracksChanged",
+          category: "inputs",
+          target: "input_audio",
+          outcome: "tracks_changed",
+          inputName: "Mic/Aux",
+          inputUuid: "input-mic",
+          inputAudioTracks: {
+            track1: true,
+            track2: false,
+            track3: true,
+            track4: false,
+            track5: false,
+            track6: true
+          }
+        }
+      }
+    })
+    expect(JSON.stringify(result.structuredContent)).not.toContain("\"1\"")
+  })
+
+  it("returns structured input identity confirmation content without raw event data", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: {
+              inputUuid: "input-camera",
+              oldInputName: "Old Camera",
+              inputName: "Camera"
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    const result = await client.callTool({
+      name: "confirm_obs_input_identity_change",
+      arguments: {
+        target: "input",
+        outcome: "renamed",
+        afterSequence: 0,
+        timeoutMs: 10,
+        oldInputName: "Old Camera",
+        inputName: "Camera",
+        inputUuid: "input-camera"
+      }
+    })
+
+    expect(result).toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          target: "input",
+          outcome: "renamed",
+          oldInputName: "Old Camera",
+          inputName: "Camera",
+          inputUuid: "input-camera"
+        }
+      }
+    })
+    expect(JSON.stringify(result.structuredContent)).not.toContain("eventData")
+    expect(JSON.stringify(result.structuredContent)).not.toContain("inputSettings")
+    expect(JSON.stringify(result.structuredContent)).not.toContain("inputKind")
+  })
+
+  it("returns structured canvas inventory-change confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "CanvasNameChanged",
+            eventIntent: EventSubscription.Canvases,
+            eventData: {
+              oldCanvasName: "Canvas A",
+              canvasName: "Canvas B",
+              canvasUuid: "canvas-b"
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_canvas_inventory_change",
+      arguments: {
+        target: "canvas",
+        outcome: "renamed",
+        afterSequence: 0,
+        timeoutMs: 10,
+        oldCanvasName: "Canvas A",
+        canvasName: "Canvas B",
+        canvasUuid: "canvas-b"
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "CanvasNameChanged",
+          eventIntent: EventSubscription.Canvases,
+          category: "canvases",
+          target: "canvas",
+          outcome: "renamed",
+          oldCanvasName: "Canvas A",
+          canvasName: "Canvas B",
+          canvasUuid: "canvas-b"
+        }
+      }
+    })
+  })
+
+  it("returns structured input identity-change confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "InputNameChanged",
+            eventIntent: EventSubscription.Inputs,
+            eventData: {
+              inputUuid: "input-camera",
+              oldInputName: "Camera A",
+              inputName: "Camera B"
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_input_identity_change",
+      arguments: {
+        target: "input",
+        outcome: "renamed",
+        afterSequence: 0,
+        timeoutMs: 10,
+        oldInputName: "Camera A",
+        inputName: "Camera B",
+        inputUuid: "input-camera"
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "InputNameChanged",
+          eventIntent: EventSubscription.Inputs,
+          category: "inputs",
+          target: "input",
+          outcome: "renamed",
+          oldInputName: "Camera A",
+          inputName: "Camera B",
+          inputUuid: "input-camera"
+        }
+      }
+    })
+  })
+
+  it("returns structured studio-mode state confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 2,
+          droppedEvents: 0,
+          events: [
+            {
+              sequence: 1,
+              eventType: "ScreenshotSaved",
+              eventIntent: EventSubscription.Ui,
+              eventData: { savedScreenshotPath: "/tmp/screenshot.png" }
+            },
+            {
+              sequence: 2,
+              eventType: "StudioModeStateChanged",
+              eventIntent: EventSubscription.Ui,
+              eventData: { studioModeEnabled: true }
+            }
+          ]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_studio_mode_state_change",
+      arguments: {
+        target: "studio_mode",
+        outcome: "enabled",
+        afterSequence: 0,
+        timeoutMs: 10
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 2,
+        missedEvents: false,
+        event: {
+          sequence: 2,
+          eventType: "StudioModeStateChanged",
+          eventIntent: EventSubscription.Ui,
+          category: "ui",
+          target: "studio_mode",
+          outcome: "enabled",
+          studioModeEnabled: true
+        }
+      }
+    })
+  })
+
+  it("returns structured config workflow confirmation content", async () => {
+    const client = await connect(
+      obsClient(
+        async () => ({}),
+        allAvailableRequests,
+        {
+          capacity: 1,
+          droppedEvents: 0,
+          events: [{
+            sequence: 1,
+            eventType: "SceneCollectionListChanged",
+            eventIntent: EventSubscription.Config,
+            eventData: {
+              sceneCollections: ["Collection A", "Collection B"]
+            }
+          }]
+        }
+      ),
+      { ...config, enabledToolsets: ["events"] }
+    )
+
+    await expect(client.callTool({
+      name: "confirm_obs_config_workflow",
+      arguments: {
+        target: "scene_collection",
+        outcome: "list_changed",
+        afterSequence: 0,
+        timeoutMs: 10,
+        sceneCollections: ["Collection A", "Collection B"]
+      }
+    })).resolves.toMatchObject({
+      structuredContent: {
+        confirmed: true,
+        timedOut: false,
+        baselineSequence: 0,
+        latestSequence: 1,
+        missedEvents: false,
+        event: {
+          sequence: 1,
+          eventType: "SceneCollectionListChanged",
+          category: "config",
+          target: "scene_collection",
+          outcome: "list_changed",
+          sceneCollections: ["Collection A", "Collection B"]
+        }
+      }
+    })
+  })
+
   it("returns structured generic output content", async () => {
     const client = await connect(
       obsClient(async (requestType) => {
@@ -1361,6 +1990,166 @@ describe("MCP server protocol handlers", () => {
           }
         }
       })
+  })
+
+  it("rejects invalid scene graph confirmation input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_scene_graph_change",
+      arguments: {
+        target: "current_program_scene",
+        outcome: "changed",
+        afterSequence: 0,
+        sceneItemId: 12
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+  })
+
+  it("rejects invalid source filter confirmation input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_source_filter_change",
+      arguments: {
+        target: "source_filter",
+        outcome: "created",
+        afterSequence: 0,
+        filterSettings: { secret: true }
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+  })
+
+  it("rejects invalid transition workflow input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_transition_workflow",
+      arguments: {
+        target: "scene_transition",
+        outcome: "started",
+        afterSequence: 0,
+        transitionDuration: 300
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+  })
+
+  it("rejects invalid input audio confirmation input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_input_audio_change",
+      arguments: {
+        target: "input_audio",
+        outcome: "muted",
+        afterSequence: 0,
+        inputMuted: true
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+  })
+
+  it("rejects invalid input identity confirmation input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_input_identity_change",
+      arguments: {
+        target: "input",
+        outcome: "removed",
+        afterSequence: 0,
+        inputSettings: { secret: true }
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+  })
+
+  it("rejects invalid canvas inventory-change input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_canvas_inventory_change",
+      arguments: {
+        target: "canvas",
+        outcome: "created",
+        afterSequence: 0,
+        oldCanvasName: "Old Canvas"
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+  })
+
+  it("rejects invalid studio-mode state confirmation input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_studio_mode_state_change",
+      arguments: {
+        target: "studio_mode",
+        outcome: "enabled",
+        afterSequence: 0,
+        studioModeEnabled: true
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
+  })
+
+  it("rejects invalid config workflow input before reading the buffer", async () => {
+    const client = await connect(obsClient(async () => ({})), { ...config, enabledToolsets: ["events"] })
+    await expect(client.callTool({
+      name: "confirm_obs_config_workflow",
+      arguments: {
+        target: "profile",
+        outcome: "changed",
+        afterSequence: 0,
+        profiles: ["Profile A"]
+      }
+    })).resolves.toMatchObject({
+      isError: true,
+      _meta: {
+        error: {
+          code: ErrorCode.InvalidParams
+        }
+      }
+    })
   })
 
   it("returns structured request batch results and rejects invalid Sleep batches before OBS", async () => {

@@ -19,6 +19,7 @@ import {
   TriggerHotkeyByKeySequence,
   TriggerHotkeyByName
 } from "../requests.js"
+import { withDefinedFields } from "./shared.js"
 
 export const getVersion = async (client: ObsClient): Promise<VersionOutput> => {
   const response = await client.request(GetVersion)
@@ -49,7 +50,7 @@ export const triggerHotkeyByName = async (
   await client.request(TriggerHotkeyByName, decodedInput)
   return Schema.decodeUnknownSync(TriggerHotkeyByNameOutput)({
     hotkeyName: decodedInput.hotkeyName,
-    ...(decodedInput.contextName === undefined ? {} : { contextName: decodedInput.contextName }),
+    ...withDefinedFields({ contextName: decodedInput.contextName }),
     triggered: true
   })
 }
@@ -61,8 +62,10 @@ export const triggerHotkeyByKeySequence = async (
   const decodedInput = Schema.decodeUnknownSync(TriggerHotkeyByKeySequenceInput)(input)
   await client.request(TriggerHotkeyByKeySequence, decodedInput)
   return Schema.decodeUnknownSync(TriggerHotkeyByKeySequenceOutput)({
-    ...(decodedInput.keyId === undefined ? {} : { keyId: decodedInput.keyId }),
-    ...(decodedInput.keyModifiers === undefined ? {} : { keyModifiers: decodedInput.keyModifiers }),
+    ...withDefinedFields({
+      keyId: decodedInput.keyId,
+      keyModifiers: decodedInput.keyModifiers
+    }),
     triggered: true
   })
 }

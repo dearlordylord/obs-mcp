@@ -6,7 +6,14 @@ import { type ObsConfig, redactedObsWebSocketUrl } from "../config/config.js"
 import { ObsNumber, ObsString, UnknownRecord } from "../domain/schemas/shared.js"
 import { calculateObsAuthentication } from "./auth.js"
 import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "./errors.js"
-import { createObsEventBuffer, type ObsEventBufferSnapshot } from "./events.js"
+import {
+  createObsEventBuffer,
+  type ObsEventBufferSnapshot,
+  type ObsEventBufferSnapshotInput,
+  type ObsEventMatcher,
+  type ObsEventWaitOptions,
+  type ObsEventWaitResult
+} from "./events.js"
 import {
   decodeEventEnvelope,
   decodeJsonTextEnvelope,
@@ -72,7 +79,8 @@ interface ObsClientCommands {
     requestData?: Record<string, unknown>
   ): Promise<Output>
   requestBatch(batch: BatchRequestPayload): Promise<ReadonlyArray<BatchRequestResult>>
-  getBufferedEvents(): ObsEventBufferSnapshot
+  getBufferedEvents(input?: ObsEventBufferSnapshotInput): ObsEventBufferSnapshot
+  waitForBufferedEvent(match: ObsEventMatcher, options: ObsEventWaitOptions): Promise<ObsEventWaitResult>
   close(): Promise<void>
 }
 
@@ -88,19 +96,20 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     eventBufferCapacity === undefined ? {} : { capacity: eventBufferCapacity }
   )
   const ws = new WebSocket(config.url, "obswebsocket.json")
-  const pending = new Map<string, PendingRequest>()
-  const pendingBatches = new Map<string, PendingRequestCallbacks & { readonly timer: NodeJS.Timeout }>()
-  const queuedMessages: Array<{ readonly data: WebSocket.RawData; readonly isBinary: boolean }> = []
-  const messageWaiters: Array<{
+  let pending = new Map<string, PendingRequest>()
+  let pendingBatches = new Map<string, PendingRequestCallbacks & { readonly timer: NodeJS.Timeout }>()
+  let queuedMessages: ReadonlyArray<{ readonly data: WebSocket.RawData; readonly isBinary: boolean }> = []
+  let messageWaiters: ReadonlyArray<{
     readonly resolve: (message: { readonly data: WebSocket.RawData; readonly isBinary: boolean }) => void
   }> = []
   let negotiatedRpcVersion = 0
   let closed = false
 
   const onBufferedMessage = (data: WebSocket.RawData, isBinary: boolean): void => {
-    const waiter = messageWaiters.shift()
+    const [waiter, ...remainingWaiters] = messageWaiters
+    messageWaiters = remainingWaiters
     if (waiter === undefined) {
-      queuedMessages.push({ data, isBinary })
+      queuedMessages = [...queuedMessages, { data, isBinary }]
       return
     }
     waiter.resolve({ data, isBinary })
@@ -112,12 +121,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
       clearTimeout(request.timer)
       request.reject(error)
     }
-    pending.clear()
+    pending = new Map()
     for (const request of pendingBatches.values()) {
       clearTimeout(request.timer)
       request.reject(error)
     }
-    pendingBatches.clear()
+    pendingBatches = new Map()
   }
 
   const handleResponse = (response: RequestResponseEnvelope): void => {
@@ -125,7 +134,7 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     if (pendingRequest === undefined) {
       return
     }
-    pending.delete(response.d.requestId)
+    pending = new Map([...pending].filter(([requestId]) => requestId !== response.d.requestId))
     clearTimeout(pendingRequest.timer)
     if (response.d.requestStatus.result === false) {
       pendingRequest.reject(
@@ -141,7 +150,7 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     if (pendingRequest === undefined) {
       return
     }
-    pendingBatches.delete(response.d.requestId)
+    pendingBatches = new Map([...pendingBatches].filter(([requestId]) => requestId !== response.d.requestId))
     clearTimeout(pendingRequest.timer)
     pendingRequest.resolve({ results: response.d.results })
   }
@@ -222,12 +231,13 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         }
         resolve(data.toString("utf8"))
       }
-      const queued = queuedMessages.shift()
+      const [queued, ...remainingQueuedMessages] = queuedMessages
       if (queued !== undefined) {
+        queuedMessages = remainingQueuedMessages
         handleMessage(queued.data, queued.isBinary)
         return
       }
-      messageWaiters.push({ resolve: (message) => handleMessage(message.data, message.isBinary) })
+      messageWaiters = [...messageWaiters, { resolve: (message) => handleMessage(message.data, message.isBinary) }]
       ws.once("close", onClose)
       ws.once("error", onError)
     })
@@ -246,15 +256,17 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     const eventSubscriptions = config.enabledToolsets.includes("events")
       ? SAFE_EVENT_SUBSCRIPTION_MASK
       : EventSubscription.None
-    const identifyData: Record<string, unknown> = {
-      rpcVersion: SUPPORTED_RPC_VERSION,
-      eventSubscriptions
-    }
+    let authentication: string | undefined
     if (hello.d.authentication !== undefined) {
       if (password === undefined || password.length === 0) {
         throw new ObsProtocolError("OBS requires authentication but OBS_WEBSOCKET_PASSWORD is not configured")
       }
-      identifyData["authentication"] = calculateObsAuthentication(password, hello.d.authentication)
+      authentication = calculateObsAuthentication(password, hello.d.authentication)
+    }
+    const identifyData: Record<string, unknown> = {
+      rpcVersion: SUPPORTED_RPC_VERSION,
+      eventSubscriptions,
+      ...(authentication === undefined ? {} : { authentication })
     }
     ws.send(JSON.stringify({ op: OP_IDENTIFY, d: identifyData }))
 
@@ -265,7 +277,9 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     negotiatedRpcVersion = identified.d.negotiatedRpcVersion
     ws.off("message", onBufferedMessage)
     ws.on("message", handlePostHandshakeMessage)
-    for (const queued of queuedMessages.splice(0)) {
+    const bufferedMessages = queuedMessages
+    queuedMessages = []
+    for (const queued of bufferedMessages) {
       handlePostHandshakeMessage(queued.data, queued.isBinary)
     }
   } catch (error) {
@@ -278,10 +292,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
 
   ws.on("close", () => {
     closed = true
+    eventBuffer.close(new ObsProtocolError("OBS websocket closed"))
     rejectAll(new ObsProtocolError("OBS websocket closed"))
   })
   /* v8 ignore next 3 */
   ws.on("error", (error) => {
+    eventBuffer.close(error)
     rejectAll(error)
   })
 
@@ -296,10 +312,10 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
       }
       const requestId = randomUUID()
       const timer = setTimeout(() => {
-        pending.delete(requestId)
+        pending = new Map([...pending].filter(([pendingRequestId]) => pendingRequestId !== requestId))
         reject(new ObsTimeoutError(`Timed out waiting for OBS ${requestType} response`))
       }, config.connectionTimeoutMs)
-      pending.set(requestId, { requestType, resolve, reject, timer })
+      pending = new Map([...pending, [requestId, { requestType, resolve, reject, timer }]])
       ws.send(JSON.stringify({
         op: OP_REQUEST,
         d: requestData === undefined
@@ -328,28 +344,34 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
       }
       const requestId = randomUUID()
       const timer = setTimeout(() => {
-        pendingBatches.delete(requestId)
+        pendingBatches = new Map([...pendingBatches].filter(([pendingRequestId]) => pendingRequestId !== requestId))
         reject(new ObsTimeoutError("Timed out waiting for OBS request batch response"))
       }, config.connectionTimeoutMs)
-      pendingBatches.set(requestId, {
-        timer,
-        resolve: (value) => {
-          const decoded = Schema.decodeUnknownSync(Schema.Struct({
-            results: Schema.Array(Schema.Struct({
-              requestType: ObsString,
-              requestId: Schema.optional(ObsString),
-              requestStatus: Schema.Struct({
-                result: Schema.Boolean,
-                code: ObsNumber,
-                comment: Schema.optional(ObsString)
-              }),
-              responseData: Schema.optional(UnknownRecord)
-            }))
-          }))(value)
-          resolve(decoded.results)
-        },
-        reject
-      })
+      pendingBatches = new Map([
+        ...pendingBatches,
+        [
+          requestId,
+          {
+            timer,
+            resolve: (value) => {
+              const decoded = Schema.decodeUnknownSync(Schema.Struct({
+                results: Schema.Array(Schema.Struct({
+                  requestType: ObsString,
+                  requestId: Schema.optional(ObsString),
+                  requestStatus: Schema.Struct({
+                    result: Schema.Boolean,
+                    code: ObsNumber,
+                    comment: Schema.optional(ObsString)
+                  }),
+                  responseData: Schema.optional(UnknownRecord)
+                }))
+              }))(value)
+              resolve(decoded.results)
+            },
+            reject
+          }
+        ]
+      ])
       ws.send(JSON.stringify({
         op: OP_REQUEST_BATCH,
         d: {
@@ -369,8 +391,10 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     availableRequests,
     request,
     requestBatch,
-    getBufferedEvents: () => eventBuffer.snapshot(),
+    getBufferedEvents: (input) => eventBuffer.snapshot(input),
+    waitForBufferedEvent: (match, options) => eventBuffer.waitFor(match, options),
     close: async () => {
+      eventBuffer.close(new ObsProtocolError("OBS client closed"))
       rejectAll(new ObsProtocolError("OBS client closed"))
       if (ws.readyState === WebSocket.CLOSED) {
         return

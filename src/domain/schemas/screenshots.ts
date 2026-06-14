@@ -5,12 +5,20 @@ import { ObsNonEmptyString, ObsNonNegativeInteger, ObsNumber, ObsString } from "
 import { SourceLocatorInput } from "./scenes.js"
 
 // Screenshot dimensions are bounded structural pixels, not branded image identities.
-const ImageDimension = ObsNumber.pipe(Schema.int(), Schema.greaterThanOrEqualTo(8), Schema.lessThanOrEqualTo(4_096))
+const ImageDimensionMin = 8
+const ImageDimensionMax = 4_096
+const ImageDimension = ObsNumber.pipe(
+  Schema.int(),
+  Schema.greaterThanOrEqualTo(ImageDimensionMin),
+  Schema.lessThanOrEqualTo(ImageDimensionMax)
+)
 // OBS accepts -1 as "use default quality", so this remains a structural option value instead of a brand.
+const ImageCompressionQualityDefault = -1
+const ImageCompressionQualityMax = 100
 const ImageCompressionQuality = ObsNumber.pipe(
   Schema.int(),
-  Schema.greaterThanOrEqualTo(-1),
-  Schema.lessThanOrEqualTo(100)
+  Schema.greaterThanOrEqualTo(ImageCompressionQualityDefault),
+  Schema.lessThanOrEqualTo(ImageCompressionQualityMax)
 )
 // A byte limit is a transport safety bound; branding would not add meaning beyond positive integer validation.
 const PositiveByteLimit = ObsNumber.pipe(Schema.int(), Schema.greaterThan(0))

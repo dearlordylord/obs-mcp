@@ -9,9 +9,10 @@ interface DiagnosticStreams {
 
 export const reportStdioStartupFailure = (
   error: unknown,
-  streams: DiagnosticStreams
+  streams: DiagnosticStreams,
+  exit: (code: number) => unknown
 ): void => {
   const message = error instanceof Error ? error.message : String(error)
   streams.stderr.write(`obs-mcp failed: ${message}\n`)
-  process.exitCode = 1
+  exit(1)
 }

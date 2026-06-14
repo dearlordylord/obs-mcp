@@ -1,6 +1,6 @@
 import { JSONSchema, Schema } from "effect"
 
-import { ObsNonEmptyString, ObsNumber, ObsString, StringArray } from "./shared.js"
+import { ObsNonEmptyString, ObsNumber, ObsString, requireAtLeastOneField, StringArray } from "./shared.js"
 
 export const VersionOutput = Schema.Struct({
   obsVersion: ObsString,
@@ -15,6 +15,8 @@ export const VersionOutput = Schema.Struct({
 
 export type VersionOutput = typeof VersionOutput.Type
 export const VersionOutputJsonSchema = JSONSchema.make(VersionOutput)
+export const VersionResponse = VersionOutput.omit("negotiatedRpcVersion")
+export type VersionResponse = typeof VersionResponse.Type
 
 export const ObsStatsOutput = Schema.Struct({
   cpuUsage: ObsNumber,
@@ -65,15 +67,14 @@ export const TriggerHotkeyByNameOutput = Schema.Struct({
 export type TriggerHotkeyByNameOutput = typeof TriggerHotkeyByNameOutput.Type
 export const TriggerHotkeyByNameOutputJsonSchema = JSONSchema.make(TriggerHotkeyByNameOutput)
 
-export const HotkeyModifiers = Schema.Struct({
-  shift: Schema.optional(Schema.Boolean),
-  control: Schema.optional(Schema.Boolean),
-  alt: Schema.optional(Schema.Boolean),
-  command: Schema.optional(Schema.Boolean)
-}).pipe(
-  Schema.filter((modifiers) => Object.keys(modifiers).length > 0, {
-    message: () => "At least one key modifier field is required when keyModifiers is provided"
-  })
+export const HotkeyModifiers = requireAtLeastOneField(
+  Schema.Struct({
+    shift: Schema.optional(Schema.Boolean),
+    control: Schema.optional(Schema.Boolean),
+    alt: Schema.optional(Schema.Boolean),
+    command: Schema.optional(Schema.Boolean)
+  }),
+  "At least one key modifier field is required when keyModifiers is provided"
 )
 export type HotkeyModifiers = typeof HotkeyModifiers.Type
 export const HotkeyModifiersJsonSchema = JSONSchema.make(HotkeyModifiers)

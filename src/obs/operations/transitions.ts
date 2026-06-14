@@ -27,6 +27,7 @@ import {
   SetTBarPosition,
   TriggerStudioModeTransition
 } from "../requests.js"
+import { withDefinedFields } from "./shared.js"
 
 const stringField = (transition: Readonly<Record<string, unknown>>, field: string): string | undefined =>
   typeof transition[field] === "string" ? transition[field] : undefined
@@ -51,19 +52,13 @@ export const listSceneTransitions = async (client: ObsClient): Promise<SceneTran
     currentSceneTransitionUuid: response.currentSceneTransitionUuid,
     currentSceneTransitionKind: response.currentSceneTransitionKind,
     transitions: response.transitions.map((transition) => ({
-      ...(stringField(transition, "transitionName") === undefined
-        ? {}
-        : { transitionName: stringField(transition, "transitionName") }),
-      ...(stringField(transition, "transitionUuid") === undefined
-        ? {}
-        : { transitionUuid: stringField(transition, "transitionUuid") }),
-      ...(stringField(transition, "transitionKind") === undefined
-        ? {}
-        : { transitionKind: stringField(transition, "transitionKind") }),
-      ...(booleanField(transition, "transitionFixed") === undefined
-        ? {}
-        : { transitionFixed: booleanField(transition, "transitionFixed") }),
-      ...(durationField(transition) === undefined ? {} : { transitionDuration: durationField(transition) })
+      ...withDefinedFields({
+        transitionName: stringField(transition, "transitionName"),
+        transitionUuid: stringField(transition, "transitionUuid"),
+        transitionKind: stringField(transition, "transitionKind"),
+        transitionFixed: booleanField(transition, "transitionFixed"),
+        transitionDuration: durationField(transition)
+      })
     }))
   })
 }

@@ -55,15 +55,25 @@ export interface FakeObsInputVolume {
 }
 
 export const DEFAULT_INPUT_VOLUME: FakeObsInputVolume = { inputVolumeMul: 1, inputVolumeDb: 0 }
+const DecibelAmplitudeBase = 10
+const DecibelsPerAmplitudeLogUnit = 20
+const SilentInputVolumeDb = -100
 
 export const fakeInputVolumeFromRequest = (
   requestData: { readonly inputVolumeMul?: number; readonly inputVolumeDb?: number }
 ): FakeObsInputVolume =>
   requestData.inputVolumeMul === undefined
-    ? { inputVolumeMul: 10 ** ((requestData.inputVolumeDb ?? 0) / 20), inputVolumeDb: requestData.inputVolumeDb ?? 0 }
+    ? {
+      inputVolumeMul: DecibelAmplitudeBase ** (
+        (requestData.inputVolumeDb ?? 0) / DecibelsPerAmplitudeLogUnit
+      ),
+      inputVolumeDb: requestData.inputVolumeDb ?? 0
+    }
     : {
       inputVolumeMul: requestData.inputVolumeMul,
-      inputVolumeDb: requestData.inputVolumeMul === 0 ? -100 : 20 * Math.log10(requestData.inputVolumeMul)
+      inputVolumeDb: requestData.inputVolumeMul === 0
+        ? SilentInputVolumeDb
+        : DecibelsPerAmplitudeLogUnit * Math.log10(requestData.inputVolumeMul)
     }
 
 export type FakeObsInputAudioMonitorType =
