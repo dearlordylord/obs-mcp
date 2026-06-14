@@ -229,6 +229,7 @@ const fakeClient = (handler: (requestType: ObsRequestType, requestData: unknown)
       events: []
     }
   }),
+  addEventListener: () => () => undefined,
   close: async () => undefined
 })
 
@@ -265,6 +266,7 @@ const bufferedEventClient = (
         ...(event === undefined ? {} : { event })
       }
     },
+    addEventListener: () => () => undefined,
     close: async () => undefined
   }
 }

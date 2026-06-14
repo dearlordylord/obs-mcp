@@ -25,6 +25,7 @@ export interface ObsEventBufferSnapshotInput {
 }
 
 export type ObsEventMatcher = (event: BufferedObsEvent) => boolean
+export type ObsEventListener = (event: BufferedObsEvent) => void
 
 export interface ObsEventWaitOptions {
   readonly afterSequence: number

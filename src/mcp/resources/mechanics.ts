@@ -14,6 +14,8 @@ import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js"
 
 import type { ObsConfig } from "../../config/config.js"
 import type { ObsClient } from "../../obs/client.js"
+import type { BufferedObsEvent } from "../../obs/events.js"
+import { EventSubscription } from "../../obs/protocol.js"
 
 export interface ResourceContext {
   readonly config: ObsConfig
@@ -282,6 +284,9 @@ export const invalidationGroupsForTool = (
   toolName: string,
   category: string
 ): ReadonlyArray<ResourceInvalidationGroup> => {
+  if (toolName === "get_source_screenshot") {
+    return ["screenshots", "state"]
+  }
   if (isReadOnlyToolName(toolName)) {
     return []
   }
@@ -313,4 +318,46 @@ export const invalidationGroupsForTool = (
     default:
       return []
   }
+}
+
+const uniqueGroups = (
+  groups: ReadonlyArray<ResourceInvalidationGroup>
+): ReadonlyArray<ResourceInvalidationGroup> => [...new Set(groups)]
+
+export const invalidationGroupsForObsEvent = (
+  event: BufferedObsEvent
+): ReadonlyArray<ResourceInvalidationGroup> => {
+  const groups: Array<ResourceInvalidationGroup> = ["events"]
+  const intent = event.eventIntent
+  if ((intent & EventSubscription.Config) !== 0) {
+    groups.push("config", "profiles", "scene_collections", "state")
+  }
+  if ((intent & EventSubscription.Scenes) !== 0) {
+    groups.push("scenes", "transitions", "state")
+  }
+  if ((intent & EventSubscription.Inputs) !== 0) {
+    groups.push("inputs", "state")
+  }
+  if ((intent & EventSubscription.Transitions) !== 0) {
+    groups.push("transitions", "scenes", "state")
+  }
+  if ((intent & EventSubscription.Filters) !== 0) {
+    groups.push("filters", "inputs", "scenes", "state")
+  }
+  if ((intent & EventSubscription.Outputs) !== 0) {
+    groups.push("outputs", "record", "stream", "state")
+  }
+  if ((intent & EventSubscription.SceneItems) !== 0) {
+    groups.push("scene_items", "scenes", "state")
+  }
+  if ((intent & EventSubscription.MediaInputs) !== 0) {
+    groups.push("inputs", "state")
+  }
+  if ((intent & EventSubscription.Ui) !== 0) {
+    groups.push("state")
+  }
+  if ((intent & EventSubscription.Canvases) !== 0) {
+    groups.push("canvases", "state")
+  }
+  return uniqueGroups(groups)
 }

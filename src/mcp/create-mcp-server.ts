@@ -18,12 +18,15 @@ import type { ObsConfig } from "../config/config.js"
 import { JsonRecordKey } from "../domain/schemas/shared.js"
 import type { ObsClient } from "../obs/client.js"
 import { packageVersion } from "../version.js"
+import { toMcpError } from "./error-mapping.js"
 import { resourceDefinitions, resourceLinksForTool, resourceTemplateDefinitions } from "./resources/index.js"
 import {
   createScreenshotResourceStore,
+  invalidationGroupsForObsEvent,
   invalidationGroupsForTool,
   ResourceManager,
-  type ScreenshotMetadata
+  type ScreenshotMetadata,
+  type ScreenshotResourceStore
 } from "./resources/mechanics.js"
 import { executeTool, getEnabledTools } from "./tools/index.js"
 
@@ -108,7 +111,25 @@ const errorResult = (error: McpError): CallToolResult => {
 const unknownToolError = (toolName: string): McpError =>
   new McpError(ErrorCode.InvalidParams, `Unknown tool: ${toolName}`)
 
-export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server => {
+interface ObsMcpResourceState {
+  readonly screenshots: ScreenshotResourceStore
+}
+
+export const createObsMcpResourceState = (): ObsMcpResourceState => ({
+  screenshots: createScreenshotResourceStore()
+})
+
+interface CreateObsMcpServerOptions {
+  readonly resourceState?: ObsMcpResourceState | undefined
+  readonly enableResourceSubscriptions?: boolean | undefined
+}
+
+export const createObsMcpServer = (
+  config: ObsConfig,
+  client: ObsClient,
+  options: CreateObsMcpServerOptions = {}
+): Server => {
+  const enableResourceSubscriptions = options.enableResourceSubscriptions ?? true
   const server = new Server(
     {
       name: "io.github.dearlordylord/obs-mcp",
@@ -116,9 +137,7 @@ export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server
     },
     {
       capabilities: {
-        resources: {
-          subscribe: true
-        },
+        resources: enableResourceSubscriptions ? { subscribe: true } : {},
         tools: {}
       }
     }
@@ -126,12 +145,22 @@ export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server
 
   const tools = getEnabledTools(config.enabledToolsets, client.availableRequests)
   const byName = new Map(tools.map((tool) => [tool.name, tool]))
-  const screenshots = createScreenshotResourceStore()
+  const resourceState = options.resourceState ?? createObsMcpResourceState()
+  const screenshots = resourceState.screenshots
   const resources = new ResourceManager(
     resourceDefinitions,
     resourceTemplateDefinitions,
     async (uri) => server.sendResourceUpdated({ uri })
   )
+  const removeEventListener = enableResourceSubscriptions
+    ? client.addEventListener((event) => resources.invalidate(invalidationGroupsForObsEvent(event)))
+    : undefined
+  const closeServer = server.close.bind(server)
+  // eslint-disable-next-line functional/immutable-data -- wrap SDK close to unregister the OBS event listener.
+  server.close = async (): Promise<void> => {
+    removeEventListener?.()
+    await closeServer()
+  }
 
   server.setRequestHandler(ListResourcesRequestSchema, () => resources.listResources(client.availableRequests))
 
@@ -139,18 +168,26 @@ export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server
 
   server.setRequestHandler(
     ReadResourceRequestSchema,
-    async (request) => resources.read(request.params.uri, { config, client, screenshots })
+    async (request) => {
+      try {
+        return await resources.read(request.params.uri, { config, client, screenshots })
+      } catch (error) {
+        throw toMcpError(error)
+      }
+    }
   )
 
-  server.setRequestHandler(SubscribeRequestSchema, (request) => {
-    resources.subscribe(request.params.uri, client.availableRequests)
-    return {}
-  })
+  if (enableResourceSubscriptions) {
+    server.setRequestHandler(SubscribeRequestSchema, (request) => {
+      resources.subscribe(request.params.uri, client.availableRequests)
+      return {}
+    })
 
-  server.setRequestHandler(UnsubscribeRequestSchema, (request) => {
-    resources.unsubscribe(request.params.uri)
-    return {}
-  })
+    server.setRequestHandler(UnsubscribeRequestSchema, (request) => {
+      resources.unsubscribe(request.params.uri)
+      return {}
+    })
+  }
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: tools.map((tool) => ({

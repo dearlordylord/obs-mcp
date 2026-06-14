@@ -253,7 +253,7 @@ Tool results use MCP structured content rather than textified JSON. Relevant too
 
 ## Resources
 
-Resources expose read-only OBS state as JSON. They are filtered by the request types OBS advertises during the websocket handshake, and can be subscribed to with standard MCP `resources/subscribe` update notifications. Update notifications are reread signals; they do not push OBS payloads.
+Resources expose read-only OBS state as JSON. They are filtered by the request types OBS advertises during the websocket handshake. On transports that advertise `resources.subscribe`, clients can subscribe with standard MCP update notifications. Update notifications are reread signals; they do not push OBS payloads. Stateless HTTP exposes resource reads but does not advertise subscriptions.
 
 Static resources:
 

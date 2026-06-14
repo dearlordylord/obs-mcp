@@ -1,7 +1,12 @@
 import { Schema } from "effect"
 
 import type { BatchRequestResult, ObsClient } from "../../src/obs/client.js"
-import type { ObsEventBufferSnapshot, ObsEventBufferSnapshotInput, ObsEventMatcher } from "../../src/obs/events.js"
+import type {
+  ObsEventBufferSnapshot,
+  ObsEventBufferSnapshotInput,
+  ObsEventListener,
+  ObsEventMatcher
+} from "../../src/obs/events.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { DEFAULT_AVAILABLE_REQUESTS } from "../obs/fake-obs-fixtures.js"
 
@@ -44,23 +49,36 @@ export const fakeObsClient = (
   handler: FakeObsRequestHandler,
   availableRequests: ReadonlyArray<string> = allAvailableRequests,
   bufferedEvents: FakeObsEventSnapshotInput = { capacity: 0, droppedEvents: 0, events: [] },
-  batchHandler: FakeObsBatchHandler = async () => []
-): ObsClient => ({
-  negotiatedRpcVersion: 1,
-  availableRequests,
-  request: async (descriptor, requestData) =>
-    Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
-  requestBatch: batchHandler,
-  getBufferedEvents: (input) => normalizeSnapshot(bufferedEvents, input),
-  waitForBufferedEvent: async (match: ObsEventMatcher, options) => {
-    const snapshot = normalizeSnapshot(bufferedEvents, { sinceSequence: options.afterSequence })
-    const event = snapshot.events.find(match)
-    return {
-      timedOut: event === undefined,
-      baselineSequence: options.afterSequence,
-      snapshot,
-      ...(event === undefined ? {} : { event })
+  batchHandler: FakeObsBatchHandler = async () => [],
+  eventListeners: Array<ObsEventListener> = []
+): ObsClient => {
+  const addEventListener = (listener: ObsEventListener): () => void => {
+    eventListeners.push(listener)
+    return () => {
+      const index = eventListeners.indexOf(listener)
+      if (index >= 0) {
+        eventListeners.splice(index, 1)
+      }
     }
-  },
-  close: async () => undefined
-})
+  }
+  return {
+    negotiatedRpcVersion: 1,
+    availableRequests,
+    request: async (descriptor, requestData) =>
+      Schema.decodeUnknownSync(descriptor.responseSchema)(await handler(descriptor.requestType, requestData)),
+    requestBatch: batchHandler,
+    getBufferedEvents: (input) => normalizeSnapshot(bufferedEvents, input),
+    waitForBufferedEvent: async (match: ObsEventMatcher, options) => {
+      const snapshot = normalizeSnapshot(bufferedEvents, { sinceSequence: options.afterSequence })
+      const event = snapshot.events.find(match)
+      return {
+        timedOut: event === undefined,
+        baselineSequence: options.afterSequence,
+        snapshot,
+        ...(event === undefined ? {} : { event })
+      }
+    },
+    addEventListener,
+    close: async () => undefined
+  }
+}

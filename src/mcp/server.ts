@@ -13,7 +13,7 @@ import {
   startCapabilityDiscoveryObsServer
 } from "../obs/capability-discovery-server.js"
 import { createObsClient, type ObsClient } from "../obs/client.js"
-import { createObsMcpServer } from "./create-mcp-server.js"
+import { createObsMcpResourceState, createObsMcpServer } from "./create-mcp-server.js"
 import { startHttpTransport, stopHttpTransport } from "./http-transport.js"
 
 interface ObsRuntime {
@@ -93,11 +93,16 @@ const waitForShutdownSignal = async (): Promise<void> =>
 const runHttpServer = async (config: ObsRuntime["config"]): Promise<void> => {
   const runtime = await createObsRuntime(config)
   const { client } = runtime
+  const resourceState = createObsMcpResourceState()
   const transport = await startHttpTransport({
     host: config.mcpHttpHost ?? DEFAULT_MCP_HTTP_HOST,
     port: config.mcpHttpPort ?? DEFAULT_MCP_HTTP_PORT,
     authToken: config.mcpHttpAuthToken
-  }, () => createObsMcpServer(config, client))
+  }, () =>
+    createObsMcpServer(config, client, {
+      enableResourceSubscriptions: false,
+      resourceState
+    }))
 
   process.stderr.write(`obs-mcp connected to ${redactedObsWebSocketUrl(runtime.config.url)}\n`)
   if (runtime.discoveryServer !== undefined) {

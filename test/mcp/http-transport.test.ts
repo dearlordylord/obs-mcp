@@ -5,7 +5,7 @@ import { Option } from "effect"
 import { afterEach, describe, expect, it } from "vitest"
 
 import type { ObsConfig } from "../../src/config/config.js"
-import { createObsMcpServer } from "../../src/mcp/create-mcp-server.js"
+import { createObsMcpResourceState, createObsMcpServer } from "../../src/mcp/create-mcp-server.js"
 import { type RunningHttpTransport, startHttpTransport, stopHttpTransport } from "../../src/mcp/http-transport.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
@@ -69,6 +69,45 @@ describe("HTTP MCP transport", () => {
     ])
     await expect(client.callTool({ name: "get_version", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { obsVersion: "31.0.0" } })
+  })
+
+  it("shares resource state across stateless HTTP requests without advertising subscriptions", async () => {
+    const obs = fakeObsClient(async (requestType) =>
+      requestType === "GetSourceScreenshot"
+        ? { imageData: "data:image/png;base64,dGVzdA==" }
+        : {}
+    )
+    const resourceState = createObsMcpResourceState()
+    const running = await startHttpTransport({
+      host: "127.0.0.1",
+      port: 0
+    }, () =>
+      createObsMcpServer(
+        {
+          ...config,
+          enabledToolsets: ["screenshots"]
+        },
+        obs,
+        {
+          enableResourceSubscriptions: false,
+          resourceState
+        }
+      ))
+    runningTransports.push(running)
+
+    const client = new Client({ name: "http-resource-test-client", version: "0.0.0" })
+    clients.push(client)
+    await client.connect(new StreamableHTTPClientTransport(new URL(running.url)) as Transport)
+
+    expect(client.getServerCapabilities()?.resources).toEqual({})
+    await client.callTool({
+      name: "get_source_screenshot",
+      arguments: { imageFormat: "png", sourceName: "Intro" }
+    })
+    const latest = await client.readResource({ uri: "obs://screenshots/latest" })
+    expect(latest.contents).toContainEqual(expect.objectContaining({
+      text: expect.stringContaining("\"base64Data\":\"dGVzdA==\"")
+    }))
   })
 
   it("accepts bearer auth and rejects missing bearer auth", async () => {

@@ -56,14 +56,14 @@ afterEach(async () => {
 })
 
 describe("OBS websocket client", () => {
-  it("connects without event subscriptions when the events toolset is disabled", async () => {
+  it("subscribes to safe events even when the events toolset is disabled", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
     expect(client.negotiatedRpcVersion).toBe(1)
     expect(client.availableRequests).toContain("GetSceneList")
-    expect(server.lastIdentifyEventSubscriptions).toBe(EventSubscription.None)
+    expect(server.lastIdentifyEventSubscriptions).toBe(SAFE_EVENT_SUBSCRIPTION_MASK)
   })
 
   it("subscribes to safe events and keeps raw vendor/custom/high-volume subscriptions disabled for the events toolset", async () => {

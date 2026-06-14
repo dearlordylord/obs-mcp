@@ -10,6 +10,7 @@ import {
   createObsEventBuffer,
   type ObsEventBufferSnapshot,
   type ObsEventBufferSnapshotInput,
+  type ObsEventListener,
   type ObsEventMatcher,
   type ObsEventWaitOptions,
   type ObsEventWaitResult
@@ -17,7 +18,6 @@ import {
 import {
   decodeEventEnvelope,
   decodeJsonTextEnvelope,
-  EventSubscription,
   OP_EVENT,
   OP_IDENTIFIED,
   OP_IDENTIFY,
@@ -81,6 +81,7 @@ interface ObsClientCommands {
   requestBatch(batch: BatchRequestPayload): Promise<ReadonlyArray<BatchRequestResult>>
   getBufferedEvents(input?: ObsEventBufferSnapshotInput): ObsEventBufferSnapshot
   waitForBufferedEvent(match: ObsEventMatcher, options: ObsEventWaitOptions): Promise<ObsEventWaitResult>
+  addEventListener(listener: ObsEventListener): () => void
   close(): Promise<void>
 }
 
@@ -104,6 +105,7 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
   }> = []
   let negotiatedRpcVersion = 0
   let closed = false
+  let eventListeners: ReadonlyArray<ObsEventListener> = []
 
   const onBufferedMessage = (data: WebSocket.RawData, isBinary: boolean): void => {
     const [waiter, ...remainingWaiters] = messageWaiters
@@ -173,7 +175,14 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         return
       }
       if (envelope.op === OP_EVENT) {
+        const before = eventBuffer.snapshot().latestSequence
         eventBuffer.record(decodeEventEnvelope(text))
+        const [bufferedEvent] = eventBuffer.snapshot({ sinceSequence: before }).events
+        if (bufferedEvent !== undefined) {
+          for (const listener of eventListeners) {
+            listener(bufferedEvent)
+          }
+        }
       }
     } catch (error) {
       /* v8 ignore next */
@@ -253,9 +262,7 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     }
 
     const password = Option.getOrUndefined(config.password)
-    const eventSubscriptions = config.enabledToolsets.includes("events")
-      ? SAFE_EVENT_SUBSCRIPTION_MASK
-      : EventSubscription.None
+    const eventSubscriptions = SAFE_EVENT_SUBSCRIPTION_MASK
     let authentication: string | undefined
     if (hello.d.authentication !== undefined) {
       if (password === undefined || password.length === 0) {
@@ -393,6 +400,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     requestBatch,
     getBufferedEvents: (input) => eventBuffer.snapshot(input),
     waitForBufferedEvent: (match, options) => eventBuffer.waitFor(match, options),
+    addEventListener: (listener) => {
+      eventListeners = [...eventListeners, listener]
+      return () => {
+        eventListeners = eventListeners.filter((entry) => entry !== listener)
+      }
+    },
     close: async () => {
       eventBuffer.close(new ObsProtocolError("OBS client closed"))
       rejectAll(new ObsProtocolError("OBS client closed"))

@@ -17,10 +17,14 @@ import {
 import {
   filterReadableResources,
   filterReadableTemplates,
+  invalidationGroupsForObsEvent,
   invalidationGroupsForTool,
   ResourceManager
 } from "../../src/mcp/resources/mechanics.js"
 import type { ObsClient } from "../../src/obs/client.js"
+import { ObsRequestError } from "../../src/obs/errors.js"
+import type { ObsEventListener } from "../../src/obs/events.js"
+import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import {
   DEFAULT_AVAILABLE_REQUESTS,
@@ -186,6 +190,7 @@ describe("MCP resources", () => {
   it("records latest screenshot metadata and returns resource links from screenshot tools", async () => {
     const client = await connect()
 
+    await expect(readJson(client, "obs://screenshots/latest")).resolves.toEqual({ latest: null })
     const result = await client.callTool({
       name: "get_source_screenshot",
       arguments: { sourceName: "Intro", imageFormat: "png" }
@@ -203,6 +208,36 @@ describe("MCP resources", () => {
         imageBytes: 4,
         base64Data: "dGVzdA=="
       }
+    })
+  })
+
+  it("returns partial aggregate resources when optional OBS reads fail", async () => {
+    const client = await connect(fakeObsClient(async (requestType, requestData) => {
+      if (requestType === "GetStats") {
+        throw new Error("stats unavailable")
+      }
+      return await resourceRequestHandler(requestType, requestData)
+    }))
+
+    const payload = await readJson(client, "obs://state/current")
+    expect(payload).toMatchObject({ version: { obsVersion: "32.0.0" } })
+    expect(payload).not.toHaveProperty("stats")
+  })
+
+  it("maps OBS request errors from required resource reads", async () => {
+    const client = await connect(fakeObsClient(async (requestType, requestData) => {
+      if (requestType === "GetRecordStatus") {
+        throw new ObsRequestError("GetRecordStatus", 600, "record output unavailable")
+      }
+      return await resourceRequestHandler(requestType, requestData)
+    }))
+
+    await expect(client.readResource({ uri: "obs://recording" })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: expect.objectContaining({
+        obsStatusCode: 600,
+        requestType: "GetRecordStatus"
+      })
     })
   })
 
@@ -323,6 +358,42 @@ describe("MCP resources", () => {
     ])
     expect(invalidationGroupsForTool("set_vendor", "vendor")).toEqual([])
     expect(invalidationGroupsForTool("list_inputs", "inputs")).toEqual([])
+    expect(invalidationGroupsForObsEvent({
+      eventData: undefined,
+      eventIntent: EventSubscription.None,
+      eventType: "Unknown",
+      sequence: 1
+    })).toEqual(["events"])
+    expect(invalidationGroupsForObsEvent({
+      eventData: undefined,
+      eventIntent: EventSubscription.Config
+        | EventSubscription.Scenes
+        | EventSubscription.Inputs
+        | EventSubscription.Transitions
+        | EventSubscription.Filters
+        | EventSubscription.Outputs
+        | EventSubscription.SceneItems
+        | EventSubscription.MediaInputs
+        | EventSubscription.Ui
+        | EventSubscription.Canvases,
+      eventType: "EverythingChanged",
+      sequence: 2
+    })).toEqual([
+      "events",
+      "config",
+      "profiles",
+      "scene_collections",
+      "state",
+      "scenes",
+      "transitions",
+      "inputs",
+      "filters",
+      "outputs",
+      "record",
+      "stream",
+      "scene_items",
+      "canvases"
+    ])
 
     expect(resourceLinksForTool("get_obs_context", {}).map((link) => link.uri)).toEqual(["obs://state/current"])
     expect(resourceLinksForTool("list_scenes", {}).map((link) => link.uri)).toEqual(["obs://scenes"])
@@ -362,6 +433,26 @@ describe("MCP resources", () => {
 
     await expect(updated).resolves.toBe("obs://scenes")
     await client.unsubscribeResource({ uri: "obs://scenes" })
+  })
+
+  it("sends subscribed resource update notifications after OBS events", async () => {
+    const eventListeners: Array<ObsEventListener> = []
+    const client = await connect(fakeObsClient(resourceRequestHandler, undefined, undefined, undefined, eventListeners))
+    const updated = new Promise<string>((resolve) => {
+      client.setNotificationHandler(ResourceUpdatedNotificationSchema, (notification) => {
+        resolve(notification.params.uri)
+      })
+    })
+
+    await client.subscribeResource({ uri: "obs://scenes" })
+    eventListeners[0]?.({
+      eventData: { sceneName: "Main", sceneUuid: "scene-main" },
+      eventIntent: EventSubscription.Scenes,
+      eventType: "CurrentProgramSceneChanged",
+      sequence: 1
+    })
+
+    await expect(updated).resolves.toBe("obs://scenes")
   })
 
   it("returns structured tool errors for unknown tools", async () => {

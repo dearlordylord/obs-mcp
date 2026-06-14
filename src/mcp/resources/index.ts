@@ -82,7 +82,16 @@ const maybeRequest = async <T>(
   context: ResourceContext,
   requestType: string,
   read: () => Promise<T>
-): Promise<T | undefined> => isAvailable(context, requestType) ? await read() : undefined
+): Promise<T | undefined> => {
+  if (!isAvailable(context, requestType)) {
+    return undefined
+  }
+  try {
+    return await read()
+  } catch {
+    return undefined
+  }
+}
 
 const withDefinedValues = (record: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> =>
   Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined))

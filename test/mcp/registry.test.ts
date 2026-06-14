@@ -531,6 +531,7 @@ const eventClient = (events: EventClientSnapshot): ObsClient => ({
       ...(event === undefined ? {} : { event })
     }
   },
+  addEventListener: () => () => undefined,
   close: async () => undefined
 })
 
