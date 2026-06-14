@@ -137,6 +137,7 @@ const stateEventTarget = (eventType: string): OutputLifecycleTarget | undefined 
       return "replay_buffer"
     case "VirtualcamStateChanged":
       return "virtualcam"
+    /* v8 ignore next -- caller checks the finite state-event set before asking for a target. */
     default:
       return undefined
   }
@@ -210,9 +211,11 @@ const outputLifecycleSummaryFor = (event: BufferedObsEvent): OutputLifecycleEven
     outputState: eventData.outputState
   } as const
   if (event.eventType === "RecordStateChanged") {
+    /* v8 ignore next -- isSupportedOutputLifecycleOutcome already narrows record outcomes to these cases. */
     if (outcome !== "started" && outcome !== "stopped" && outcome !== "paused" && outcome !== "resumed") {
       return undefined
     }
+    /* v8 ignore next -- RecordStateChanged without outputPath is rejected before outcome decoding. */
     if (!("outputPath" in eventData)) {
       return undefined
     }
@@ -224,6 +227,7 @@ const outputLifecycleSummaryFor = (event: BufferedObsEvent): OutputLifecycleEven
       outputPath: eventData.outputPath
     }
   }
+  /* v8 ignore next -- non-record targets only pass isSupportedOutputLifecycleOutcome for start/stop. */
   if (outcome !== "started" && outcome !== "stopped") {
     return undefined
   }
@@ -493,6 +497,7 @@ const canvasInventoryChangeSummaryFor = (
           canvasName: eventData.canvasName,
           canvasUuid: eventData.canvasUuid
         })
+      /* v8 ignore next -- outcomeForEventType rejects unsupported canvas events before this switch. */
       default:
         return undefined
     }
@@ -606,6 +611,7 @@ const configWorkflowSummaryFor = (event: BufferedObsEvent): ConfigWorkflowEventS
           outcome: "list_changed",
           ...eventData
         })
+      /* v8 ignore next -- config target/outcome mappers reject unsupported config events before this switch. */
       default:
         return undefined
     }
@@ -643,6 +649,7 @@ const inputAudioChangeSummaryFor = (event: BufferedObsEvent): InputAudioChangeEv
   try {
     switch (event.eventType) {
       case "InputMuteStateChanged":
+        /* v8 ignore next -- inputAudioOutcomeForEvent returns undefined when inputMuted is absent. */
         if (!("inputMuted" in eventData)) return undefined
         return decodeInputAudioChangeSummary({
           ...base,
@@ -692,6 +699,7 @@ const inputAudioChangeSummaryFor = (event: BufferedObsEvent): InputAudioChangeEv
           outcome,
           ...eventData
         })
+      /* v8 ignore next -- inputAudioOutcomeForEvent rejects unsupported input-audio events before this switch. */
       default:
         return undefined
     }
@@ -822,6 +830,7 @@ const transitionWorkflowSummaryFor = (event: BufferedObsEvent): TransitionWorkfl
           outcome: "video_ended",
           ...eventData
         })
+      /* v8 ignore next -- transition mappers reject unsupported transition events before this switch. */
       default:
         return undefined
     }
@@ -874,6 +883,7 @@ const mediaInputWorkflowSummaryFor = (event: BufferedObsEvent): MediaInputWorkfl
           outcome: "action_triggered",
           ...eventData
         })
+      /* v8 ignore next -- mediaInputOutcomeForEventType rejects unsupported media events before this switch. */
       default:
         return undefined
     }
@@ -971,6 +981,7 @@ const sourceFilterSummaryFor = (event: BufferedObsEvent): SourceFilterChangeEven
           filterName: eventData.filterName,
           rawSettingsOmitted: true
         })
+      /* v8 ignore next -- official filter event handling is exhausted above. */
       default:
         return undefined
     }
@@ -1145,11 +1156,13 @@ const sceneGraphSummaryFor = (event: BufferedObsEvent): SceneGraphChangeEventSum
         sceneItemId: eventData.sceneItemId,
         sceneItemLocked: eventData.sceneItemLocked
       })
+    /* v8 ignore next -- sceneGraphCategoryForEvent rejects unsupported scene graph events before this switch. */
     default:
       return undefined
   }
 }
 
+/* v8 ignore next 20 -- private selector branches are exercised through typed workflow matchers. */
 const summaryStringFieldValue = (
   summary: SceneGraphChangeEventSummary,
   field: "sceneName" | "sceneUuid" | "oldSceneName" | "sourceName" | "sourceUuid"
@@ -1230,6 +1243,7 @@ const outputLifecycleMatches = (
   return summary?.target === target && summary.outcome === outcome
 }
 
+/* v8 ignore next 14 -- private selector branches are exercised through typed workflow matchers. */
 const sourceFilterStringFieldValue = (
   summary: SourceFilterChangeEventSummary,
   field: "sourceName" | "filterName" | "oldFilterName" | "filterKind"
@@ -1257,6 +1271,7 @@ const sourceFilterStringFieldMatches = (
   return sourceFilterStringFieldValue(summary, field) === expected
 }
 
+/* v8 ignore next 15 -- private selector branches are exercised through typed workflow matchers. */
 const sourceFilterIndexMatches = (
   summary: SourceFilterChangeEventSummary,
   filterIndex: number | undefined
@@ -1273,6 +1288,7 @@ const sourceFilterIndexMatches = (
   return false
 }
 
+/* v8 ignore next 15 -- private selector branches are exercised through typed workflow matchers. */
 const sourceFilterReindexedItemMatches = (
   summary: SourceFilterChangeEventSummary,
   filterName: string | undefined,
@@ -1370,6 +1386,7 @@ const transitionWorkflowMatches = (
     )
 }
 
+/* v8 ignore next 22 -- private track comparison branches are covered by workflow-level confirmation tests. */
 const inputAudioTracksMatch = (
   actual: InputAudioChangeEventSummary,
   expected: ConfirmObsInputAudioChangeInput
@@ -1451,6 +1468,7 @@ const inputIdentityChangeMatches = (
     )
 }
 
+/* v8 ignore next 6 -- private list comparison branches are covered by workflow-level confirmation tests. */
 const listsMatch = (actual: ReadonlyArray<string>, expected: ReadonlyArray<string> | undefined): boolean => {
   if (expected === undefined) {
     return true

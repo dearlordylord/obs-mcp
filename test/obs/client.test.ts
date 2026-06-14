@@ -91,7 +91,7 @@ describe("OBS websocket client", () => {
   it("rejects malformed Hello messages", async () => {
     const server = await FakeObsServer.start({ malformedHello: true })
     servers.push(server)
-    await expect(createObsClient(configFor(server.url))).rejects.toThrow()
+    await expect(createObsClient(configFor(server.url))).rejects.toThrow(/obsStudioVersion/)
   })
 
   it("rejects binary Hello messages", async () => {
@@ -618,7 +618,7 @@ describe("OBS websocket client", () => {
   it("rejects malformed events queued immediately after Identified", async () => {
     const server = await FakeObsServer.start({ sendMalformedAfterIdentify: true })
     servers.push(server)
-    await expect(createObsClient(configFor(server.url))).rejects.toThrow()
+    await expect(createObsClient(configFor(server.url))).rejects.toThrow(ObsProtocolError)
   })
 
   it("drops oldest buffered events when capacity is exceeded", async () => {
@@ -753,7 +753,7 @@ describe("OBS websocket client", () => {
     servers.push(server)
     const client = await createObsClient(configFor(server.url))
     clients.push(client)
-    await expect(client.request(GetCurrentProgramScene)).rejects.toThrow()
+    await expect(client.request(GetCurrentProgramScene)).rejects.toThrow(/eventIntent/)
     expect(client.getBufferedEvents().events).toEqual([])
   })
 
@@ -1307,7 +1307,7 @@ describe("OBS websocket client", () => {
     servers.push(malformed)
     const malformedClient = await createObsClient(configFor(malformed.url))
     clients.push(malformedClient)
-    await expect(malformedClient.request(GetCurrentProgramScene)).rejects.toThrow()
+    await expect(malformedClient.request(GetCurrentProgramScene)).rejects.toThrow(/JSON/)
 
     const binary = await FakeObsServer.start({
       sendBinaryBeforeResponse: true,

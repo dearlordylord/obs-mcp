@@ -2,6 +2,7 @@ import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
 import { RunObsRequestBatchInput } from "../../src/domain/schemas/batch.js"
+import { expectSchemaDecodeFailure } from "../support/effect-assertions.js"
 
 describe("batch schemas", () => {
   it("accepts schema-limited serial realtime batches with Sleep milliseconds", () => {
@@ -20,22 +21,28 @@ describe("batch schemas", () => {
   })
 
   it("rejects unsupported sleep execution combinations and excessive batch size", () => {
-    expect(() =>
-      Schema.decodeUnknownSync(RunObsRequestBatchInput)({
+    expectSchemaDecodeFailure(
+      RunObsRequestBatchInput,
+      {
         executionType: "serial_realtime",
         requests: [{ kind: "sleep", sleepFrames: 1 }]
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(RunObsRequestBatchInput)({
+      },
+      /Sleep requests must match the batch execution type/
+    )
+    expectSchemaDecodeFailure(
+      RunObsRequestBatchInput,
+      {
         executionType: "parallel",
         requests: [{ kind: "sleep", sleepMillis: 1 }]
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(RunObsRequestBatchInput)({
+      },
+      /Sleep requests must match the batch execution type/
+    )
+    expectSchemaDecodeFailure(
+      RunObsRequestBatchInput,
+      {
         requests: Array.from({ length: 21 }, () => ({ kind: "get_current_scene" }))
-      })
-    ).toThrow()
+      },
+      /20/
+    )
   })
 })

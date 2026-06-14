@@ -87,6 +87,7 @@ import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/ob
 import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { DEFAULT_AVAILABLE_REQUESTS } from "../obs/fake-obs-fixtures.js"
+import { expectSchemaDecodeFailure } from "../support/effect-assertions.js"
 import { allAvailableRequests, fakeObsClient } from "./fake-obs-client.js"
 
 const config: ObsConfig = {
@@ -1138,8 +1139,12 @@ describe("MCP tool registry", () => {
       input: { sourceName: "Camera", imageFormat: "png", fileName: "../camera.png" }
     }
   ])("rejects broad raw passthrough for $toolName", ({ input, toolName }) => {
-    expect(() => Schema.decodeUnknownSync(toolByName(toolName).inputSchema, { onExcessProperty: "error" })(input))
-      .toThrow()
+    expectSchemaDecodeFailure(
+      toolByName(toolName).inputSchema,
+      input,
+      /raw|privatePath|imageFormat|fileName/,
+      { onExcessProperty: "error" }
+    )
   })
 
   it("filters unavailable input requests by negotiated OBS capabilities", () => {
@@ -1333,34 +1338,38 @@ describe("MCP tool registry", () => {
     expect(Schema.decodeUnknownSync(ToggleRecordOutput)({ outputActive: true })).toEqual({ outputActive: true })
     expect(Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "SplitRecordFile", acknowledged: true }))
       .toEqual({ requestType: "SplitRecordFile", acknowledged: true })
-    expect(() =>
-      Schema.decodeUnknownSync(SplitRecordFileOutput)({ requestType: "CreateRecordChapter", acknowledged: true })
-    ).toThrow()
+    expectSchemaDecodeFailure(
+      SplitRecordFileOutput,
+      { requestType: "CreateRecordChapter", acknowledged: true },
+      /SplitRecordFile/
+    )
     expect(
       Schema.decodeUnknownSync(CreateRecordChapterOutput)({
         requestType: "CreateRecordChapter",
         acknowledged: true
       })
     ).toEqual({ requestType: "CreateRecordChapter", acknowledged: true })
-    expect(() =>
-      Schema.decodeUnknownSync(StopRecordOutput)({
+    expectSchemaDecodeFailure(
+      StopRecordOutput,
+      {
         requestType: "StopRecord",
         acknowledged: true
-      })
-    ).toThrow()
+      },
+      /outputPath/
+    )
   })
 
   it("validates record chapter input schemas", () => {
     expect(Schema.decodeUnknownSync(CreateRecordChapterInput)({})).toEqual({})
     expect(Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "Act 1" }))
       .toEqual({ chapterName: "Act 1" })
-    expect(() => Schema.decodeUnknownSync(CreateRecordChapterInput)({ chapterName: "" })).toThrow()
+    expectSchemaDecodeFailure(CreateRecordChapterInput, { chapterName: "" }, /chapterName/)
   })
 
   it("validates stream caption input schemas", () => {
     expect(Schema.decodeUnknownSync(SendStreamCaptionInput)({ captionText: "Live caption" }))
       .toEqual({ captionText: "Live caption" })
-    expect(() => Schema.decodeUnknownSync(SendStreamCaptionInput)({ captionText: "" })).toThrow()
+    expectSchemaDecodeFailure(SendStreamCaptionInput, { captionText: "" }, /captionText/)
   })
 
   it("accepts no-arg tools with empty or missing args", async () => {
@@ -1780,7 +1789,7 @@ describe("MCP tool registry", () => {
       }, {
         config: screenshotConfig,
         client: fakeClient
-      })).rejects.toThrow()
+      })).rejects.toThrow(/fileName/)
     } finally {
       await rm(outputDirectory, { force: true, recursive: true })
     }
@@ -2644,40 +2653,50 @@ describe("MCP tool registry", () => {
       imageFormat: "jpg",
       saved: true
     })
-    expect(() =>
-      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+    expectSchemaDecodeFailure(
+      GetSourceScreenshotInput,
+      {
         sourceName: "Camera",
         imageFormat: "gif"
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+      },
+      /imageFormat/
+    )
+    expectSchemaDecodeFailure(
+      GetSourceScreenshotInput,
+      {
         sourceName: "Camera",
         imageFormat: "png",
         imageWidth: 7
-      })
-    ).toThrow("Expected a number greater than or equal to 8")
-    expect(() =>
-      Schema.decodeUnknownSync(GetSourceScreenshotInput)({
+      },
+      /greater than or equal to 8/
+    )
+    expectSchemaDecodeFailure(
+      GetSourceScreenshotInput,
+      {
         sourceName: "Camera",
         imageFormat: "png",
         imageCompressionQuality: 101
-      })
-    ).toThrow("Expected a number less than or equal to 100")
-    expect(() =>
-      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+      },
+      /less than or equal to 100/
+    )
+    expectSchemaDecodeFailure(
+      SaveSourceScreenshotInput,
+      {
         sourceName: "Camera",
         imageFormat: "png",
         fileName: "../camera.png"
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(SaveSourceScreenshotInput)({
+      },
+      /fileName/
+    )
+    expectSchemaDecodeFailure(
+      SaveSourceScreenshotInput,
+      {
         sourceName: "Camera",
         imageFormat: "png",
         fileName: "."
-      })
-    ).toThrow()
+      },
+      /fileName/
+    )
   })
 
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {

@@ -42,6 +42,7 @@ import {
   confirmObsInputAudioChange,
   confirmObsInputIdentityChange,
   confirmObsMediaInputWorkflow,
+  confirmObsOutputLifecycle,
   confirmObsSceneGraphChange,
   confirmObsSourceFilterChange,
   confirmObsStudioModeStateChange,
@@ -188,6 +189,7 @@ import {
 import { broadcastCustomEvent, callVendorRequest } from "../../src/obs/operations/vendor.js"
 import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
+import { expectSchemaDecodeFailure } from "../support/effect-assertions.js"
 import { handleFakeObsSceneItemReadRequest } from "./fake-obs-scene-item-requests.js"
 import { FakeObsServer } from "./fake-obs-server.js"
 
@@ -1432,7 +1434,9 @@ describe("OBS operations", () => {
         fakeClient(async () => ({})),
         input,
         { maxTimeoutMs: 5 }
-      )).rejects.toThrow()
+      )).rejects.toThrow(
+        /target|outcome|afterSequence|inputName|inputUuid|oldInputName|eventType|eventData|settings|inputSettings|defaultInputSettings|inputKind|unversionedInputKind|inputKindCaps|sceneItemId|unexpected/
+      )
     }
   })
 
@@ -1882,6 +1886,485 @@ describe("OBS operations", () => {
     })
   })
 
+  it("ignores retained workflow events that are missing required summary fields", async () => {
+    const missingFieldEvents: ReadonlyArray<BufferedObsEvent> = [
+      {
+        sequence: 1,
+        eventType: "CanvasCreated",
+        eventIntent: EventSubscription.Canvases,
+        eventData: { canvasUuid: "canvas-a" }
+      },
+      {
+        sequence: 2,
+        eventType: "CurrentProfileChanging",
+        eventIntent: EventSubscription.Config,
+        eventData: {}
+      },
+      {
+        sequence: 3,
+        eventType: "CurrentProfileChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: {}
+      },
+      {
+        sequence: 4,
+        eventType: "ProfileListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: {}
+      },
+      {
+        sequence: 5,
+        eventType: "CurrentSceneCollectionChanging",
+        eventIntent: EventSubscription.Config,
+        eventData: {}
+      },
+      {
+        sequence: 6,
+        eventType: "CurrentSceneCollectionChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: {}
+      },
+      {
+        sequence: 7,
+        eventType: "SceneCollectionListChanged",
+        eventIntent: EventSubscription.Config,
+        eventData: {}
+      },
+      {
+        sequence: 8,
+        eventType: "InputVolumeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputUuid: "input-mic", inputVolumeMul: 0.5, inputVolumeDb: -6 }
+      },
+      {
+        sequence: 9,
+        eventType: "InputMuteStateChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic" }
+      },
+      {
+        sequence: 10,
+        eventType: "InputVolumeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic", inputVolumeMul: 0.5 }
+      },
+      {
+        sequence: 11,
+        eventType: "InputAudioBalanceChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic" }
+      },
+      {
+        sequence: 12,
+        eventType: "InputAudioSyncOffsetChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic" }
+      },
+      {
+        sequence: 13,
+        eventType: "InputAudioTracksChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic" }
+      },
+      {
+        sequence: 14,
+        eventType: "InputAudioMonitorTypeChanged",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic" }
+      },
+      {
+        sequence: 15,
+        eventType: "InputRemoved",
+        eventIntent: EventSubscription.Inputs,
+        eventData: { inputName: "Mic", inputUuid: "input-mic", inputKind: "wasapi_input_capture" }
+      },
+      {
+        sequence: 16,
+        eventType: "SceneTransitionStarted",
+        eventIntent: EventSubscription.General,
+        eventData: { transitionName: "Fade", transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 17,
+        eventType: "CurrentSceneTransitionDurationChanged",
+        eventIntent: EventSubscription.Transitions,
+        eventData: {}
+      },
+      {
+        sequence: 18,
+        eventType: "SceneTransitionStarted",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade" }
+      },
+      {
+        sequence: 19,
+        eventType: "SceneTransitionEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionUuid: "transition-fade" }
+      },
+      {
+        sequence: 20,
+        eventType: "SceneTransitionVideoEnded",
+        eventIntent: EventSubscription.Transitions,
+        eventData: { transitionName: "Fade" }
+      },
+      {
+        sequence: 21,
+        eventType: "MediaInputPlaybackStarted",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputUuid: "input-media" }
+      },
+      {
+        sequence: 22,
+        eventType: "MediaInputActionTriggered",
+        eventIntent: EventSubscription.MediaInputs,
+        eventData: { inputName: "Media", inputUuid: "input-media" }
+      },
+      {
+        sequence: 23,
+        eventType: "SourceFilterCreated",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filterName: "Color", filterKind: "color_filter" }
+      },
+      {
+        sequence: 24,
+        eventType: "SourceFilterRemoved",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera" }
+      },
+      {
+        sequence: 25,
+        eventType: "SourceFilterNameChanged",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filterName: "Color" }
+      },
+      {
+        sequence: 26,
+        eventType: "SourceFilterListReindexed",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera" }
+      },
+      {
+        sequence: 27,
+        eventType: "SourceFilterListReindexed",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filters: [{ filterName: "Color", filterIndex: -1 }] }
+      },
+      {
+        sequence: 28,
+        eventType: "SourceFilterEnableStateChanged",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera", filterName: "Color" }
+      },
+      {
+        sequence: 29,
+        eventType: "SourceFilterSettingsChanged",
+        eventIntent: EventSubscription.Filters,
+        eventData: { sourceName: "Camera" }
+      },
+      {
+        sequence: 30,
+        eventType: "SceneCreated",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+      },
+      {
+        sequence: 31,
+        eventType: "SceneRemoved",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+      },
+      {
+        sequence: 32,
+        eventType: "SceneNameChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+      },
+      {
+        sequence: 33,
+        eventType: "CurrentProgramSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneName: "Program" }
+      },
+      {
+        sequence: 34,
+        eventType: "CurrentPreviewSceneChanged",
+        eventIntent: EventSubscription.Scenes,
+        eventData: { sceneUuid: "scene-preview" }
+      },
+      {
+        sequence: 35,
+        eventType: "SceneItemCreated",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 1
+        }
+      },
+      {
+        sequence: 36,
+        eventType: "SceneItemRemoved",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera"
+        }
+      },
+      {
+        sequence: 37,
+        eventType: "SceneItemListReindexed",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program" }
+      },
+      {
+        sequence: 38,
+        eventType: "SceneItemEnableStateChanged",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 1 }
+      },
+      {
+        sequence: 39,
+        eventType: "SceneItemLockStateChanged",
+        eventIntent: EventSubscription.SceneItems,
+        eventData: { sceneName: "Program", sceneUuid: "scene-program", sceneItemId: 1 }
+      }
+    ]
+    const client = bufferedEventClient(missingFieldEvents)
+
+    await expect(confirmObsCanvasInventoryChange(client, {
+      target: "canvas",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+    await expect(confirmObsConfigWorkflow(client, {
+      target: "profile",
+      outcome: "changing",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+    await expect(confirmObsInputAudioChange(client, {
+      target: "input_audio",
+      outcome: "muted",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+    await expect(confirmObsInputIdentityChange(client, {
+      target: "input",
+      outcome: "removed",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+    await expect(confirmObsTransitionWorkflow(client, {
+      target: "scene_transition",
+      outcome: "started",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+    await expect(confirmObsMediaInputWorkflow(client, {
+      target: "media_input",
+      outcome: "action_triggered",
+      afterSequence: 0,
+      mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY",
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+    await expect(confirmObsSourceFilterChange(client, {
+      target: "source_filter",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+    await expect(confirmObsSceneGraphChange(client, {
+      target: "scene",
+      outcome: "created",
+      afterSequence: 0,
+      timeoutMs: 1
+    }, { maxTimeoutMs: 5 })).resolves.toMatchObject({ confirmed: false, latestSequence: 39 })
+  })
+
+  it("confirms output lifecycle events across output targets and outcomes", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "StreamStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+      },
+      {
+        sequence: 2,
+        eventType: "RecordStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: {
+          outputActive: true,
+          outputState: "OBS_WEBSOCKET_OUTPUT_PAUSED",
+          outputPath: "/tmp/recording.mkv"
+        }
+      },
+      {
+        sequence: 3,
+        eventType: "RecordStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: {
+          outputActive: true,
+          outputState: "OBS_WEBSOCKET_OUTPUT_RESUMED",
+          outputPath: "/tmp/recording.mkv"
+        }
+      },
+      {
+        sequence: 4,
+        eventType: "RecordFileChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { newOutputPath: "/tmp/recording-2.mkv" }
+      },
+      {
+        sequence: 5,
+        eventType: "ReplayBufferStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED" }
+      },
+      {
+        sequence: 6,
+        eventType: "ReplayBufferSaved",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { savedReplayPath: "/tmp/replay.mkv" }
+      },
+      {
+        sequence: 7,
+        eventType: "VirtualcamStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+      }
+    ])
+
+    await expect(confirmObsOutputLifecycle(client, {
+      target: "stream",
+      outcome: "started",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 1, eventType: "StreamStateChanged", target: "stream", outcome: "started" }
+    })
+    await expect(confirmObsOutputLifecycle(client, {
+      target: "record",
+      outcome: "paused",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 2, eventType: "RecordStateChanged", target: "record", outcome: "paused" }
+    })
+    await expect(confirmObsOutputLifecycle(client, {
+      target: "record",
+      outcome: "resumed",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 3, eventType: "RecordStateChanged", target: "record", outcome: "resumed" }
+    })
+    await expect(confirmObsOutputLifecycle(client, {
+      target: "record",
+      outcome: "file_changed",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 4, eventType: "RecordFileChanged", newOutputPath: "/tmp/recording-2.mkv" }
+    })
+    await expect(confirmObsOutputLifecycle(client, {
+      target: "replay_buffer",
+      outcome: "stopped",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 5, eventType: "ReplayBufferStateChanged", target: "replay_buffer", outcome: "stopped" }
+    })
+    await expect(confirmObsOutputLifecycle(client, {
+      target: "replay_buffer",
+      outcome: "replay_saved",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 6, eventType: "ReplayBufferSaved", savedReplayPath: "/tmp/replay.mkv" }
+    })
+    await expect(confirmObsOutputLifecycle(client, {
+      target: "virtualcam",
+      outcome: "started",
+      afterSequence: 0
+    }, { maxTimeoutMs: 10 })).resolves.toMatchObject({
+      confirmed: true,
+      event: { sequence: 7, eventType: "VirtualcamStateChanged", target: "virtualcam", outcome: "started" }
+    })
+  })
+
+  it("does not let unsupported or malformed output lifecycle events satisfy confirmation", async () => {
+    const client = bufferedEventClient([
+      {
+        sequence: 1,
+        eventType: "StreamStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_UNKNOWN" }
+      },
+      {
+        sequence: 2,
+        eventType: "StreamStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_PAUSED" }
+      },
+      {
+        sequence: 3,
+        eventType: "RecordStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputActive: false, outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED" }
+      },
+      {
+        sequence: 4,
+        eventType: "RecordFileChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputPath: "/tmp/old.mkv" }
+      },
+      {
+        sequence: 5,
+        eventType: "ReplayBufferSaved",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { newOutputPath: "/tmp/replay.mkv" }
+      },
+      {
+        sequence: 6,
+        eventType: "VirtualcamStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+      },
+      {
+        sequence: 7,
+        eventType: "OutputStateChanged",
+        eventIntent: EventSubscription.Outputs,
+        eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+      },
+      {
+        sequence: 8,
+        eventType: "StreamStateChanged",
+        eventIntent: EventSubscription.General,
+        eventData: { outputActive: true, outputState: "OBS_WEBSOCKET_OUTPUT_STARTED" }
+      }
+    ])
+
+    for (
+      const input of [
+        { target: "record", outcome: "stopped", afterSequence: 0 },
+        { target: "record", outcome: "file_changed", afterSequence: 0 },
+        { target: "replay_buffer", outcome: "replay_saved", afterSequence: 0 },
+        { target: "virtualcam", outcome: "started", afterSequence: 0 },
+        { target: "stream", outcome: "started", afterSequence: 0 }
+      ] as const
+    ) {
+      await expect(confirmObsOutputLifecycle(client, { ...input, timeoutMs: 1 }, { maxTimeoutMs: 5 }))
+        .resolves.toMatchObject({ confirmed: false, timedOut: true, latestSequence: 8 })
+    }
+  })
+
   it("returns version data with negotiated RPC version", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
@@ -2175,36 +2658,46 @@ describe("OBS operations", () => {
   })
 
   it("validates config read and mutation schemas", () => {
-    expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "", parameterName: "Mode" }))
-      .toThrow()
-    expect(() => Schema.decodeUnknownSync(ProfileParameterInput)({ parameterCategory: "Output", parameterName: "" }))
-      .toThrow()
-    expect(() => Schema.decodeUnknownSync(ProfileNameInput)({ profileName: "" })).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(SetProfileParameterInput)({
+    expectSchemaDecodeFailure(
+      ProfileParameterInput,
+      { parameterCategory: "", parameterName: "Mode" },
+      /parameterCategory/
+    )
+    expectSchemaDecodeFailure(
+      ProfileParameterInput,
+      { parameterCategory: "Output", parameterName: "" },
+      /parameterName/
+    )
+    expectSchemaDecodeFailure(ProfileNameInput, { profileName: "" }, /profileName/)
+    expectSchemaDecodeFailure(
+      SetProfileParameterInput,
+      {
         parameterCategory: "Output",
         parameterName: "Mode"
-      })
-    ).toThrow()
-    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ baseWidth: 1920 })).toThrow()
-    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputHeight: 720 })).toThrow()
-    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ fpsNumerator: 60 })).toThrow()
-    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ baseWidth: 4097, baseHeight: 1080 }))
-      .toThrow()
-    expect(() => Schema.decodeUnknownSync(SetVideoSettingsInput)({ outputWidth: 1920, outputHeight: 4097 }))
-      .toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(SetStreamServiceSettingsInput)({
+      },
+      /parameterValue/
+    )
+    expectSchemaDecodeFailure(SetVideoSettingsInput, { baseWidth: 1920 }, /baseHeight/)
+    expectSchemaDecodeFailure(SetVideoSettingsInput, { outputHeight: 720 }, /outputWidth/)
+    expectSchemaDecodeFailure(SetVideoSettingsInput, { fpsNumerator: 60 }, /fpsDenominator/)
+    expectSchemaDecodeFailure(SetVideoSettingsInput, { baseWidth: 4097, baseHeight: 1080 }, /baseWidth/)
+    expectSchemaDecodeFailure(SetVideoSettingsInput, { outputWidth: 1920, outputHeight: 4097 }, /outputHeight/)
+    expectSchemaDecodeFailure(
+      SetStreamServiceSettingsInput,
+      {
         streamServiceType: "rtmp_custom",
         streamServiceSettings: { fields: { server: "rtmp://example.invalid/live" } }
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(SetStreamServiceSettingsInput)({
+      },
+      /key/
+    )
+    expectSchemaDecodeFailure(
+      SetStreamServiceSettingsInput,
+      {
         streamServiceType: "rtmp_custom",
         streamServiceSettings: { server: "rtmp://example.invalid/live", key: "" }
-      })
-    ).toThrow()
+      },
+      /key/
+    )
   })
 
   it("surfaces OBS config read and mutation request failures", async () => {
@@ -4681,7 +5174,7 @@ describe("OBS operations", () => {
         sourceUuid: "source-camera",
         imageFormat: "png",
         fileName: "../camera.png"
-      }, outputDirectory)).rejects.toThrow()
+      }, outputDirectory)).rejects.toThrow(/fileName/)
     } finally {
       await rm(outputDirectory, { recursive: true, force: true })
     }
@@ -4727,12 +5220,12 @@ describe("OBS operations", () => {
     await expect(getSourceScreenshotUnchecked(client, {
       sourceName: "Camera",
       imageFormat: "gif"
-    })).rejects.toThrow()
+    })).rejects.toThrow(/imageFormat/)
     await expect(getSourceScreenshotUnchecked(client, {
       sourceName: "Camera",
       imageFormat: "png",
       imageWidth: 7
-    })).rejects.toThrow()
+    })).rejects.toThrow(/imageWidth/)
     await expect(getSourceScreenshot(client, {
       sourceName: "Camera",
       imageFormat: "png"

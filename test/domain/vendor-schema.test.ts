@@ -2,6 +2,7 @@ import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 
 import { BroadcastCustomEventInput, CallVendorRequestInput } from "../../src/domain/schemas/vendor.js"
+import { expectSchemaDecodeFailure } from "../support/effect-assertions.js"
 
 describe("vendor schemas", () => {
   it("accepts explicit JSON-safe vendor and custom event objects", () => {
@@ -36,29 +37,37 @@ describe("vendor schemas", () => {
   })
 
   it("rejects empty identifiers and non JSON-safe values", () => {
-    expect(() =>
-      Schema.decodeUnknownSync(CallVendorRequestInput)({
+    expectSchemaDecodeFailure(
+      CallVendorRequestInput,
+      {
         vendorName: "",
         requestType: "DoThing",
         requestData: {}
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(CallVendorRequestInput)({
+      },
+      /vendorName/
+    )
+    expectSchemaDecodeFailure(
+      CallVendorRequestInput,
+      {
         vendorName: "example.vendor",
         requestType: "DoThing",
         requestData: { missing: undefined }
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(BroadcastCustomEventInput)({
+      },
+      /missing/
+    )
+    expectSchemaDecodeFailure(
+      BroadcastCustomEventInput,
+      {
         eventData: { callback: () => undefined }
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(BroadcastCustomEventInput)({
+      },
+      /callback/
+    )
+    expectSchemaDecodeFailure(
+      BroadcastCustomEventInput,
+      {
         eventData: new Date("2026-06-13T00:00:00.000Z")
-      })
-    ).toThrow()
+      },
+      /eventData/
+    )
   })
 })

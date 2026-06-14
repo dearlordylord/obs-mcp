@@ -99,12 +99,12 @@ if (integrationEnabled) {
 
         const record = await getRecordStatus(obs)
         if (!record.outputActive && requestAvailable(obs, "StopRecord")) {
-          await expect(stopRecord(obs)).rejects.toThrow()
+          await expect(stopRecord(obs)).rejects.toThrow(ObsRequestError)
         }
 
         const stream = await getStreamStatus(obs)
         if (!stream.outputActive && requestAvailable(obs, "StopStream")) {
-          await expect(stopStream(obs)).rejects.toThrow()
+          await expect(stopStream(obs)).rejects.toThrow(ObsRequestError)
         }
       })
     }

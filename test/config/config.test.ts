@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 
 import { loadObsConfigFromEnv, normalizeObsWebSocketUrl, redactedObsWebSocketUrl } from "../../src/config/config.js"
 import { getSanitizedObsContext } from "../../src/config/obs-runtime-context.js"
+import { expectEffectFailure } from "../support/effect-assertions.js"
 
 describe("OBS config", () => {
   it("normalizes bare host urls and preserves ws/wss urls", () => {
@@ -44,13 +45,62 @@ describe("OBS config", () => {
     ])
   })
 
+  it("decodes all toolsets, lazy-env defaults, and boolean flags", async () => {
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: "all" })))
+      .resolves.toMatchObject({
+        lazyEnvs: false,
+        enabledToolsets: [
+          "admin_raw",
+          "batch",
+          "canvases",
+          "config",
+          "events",
+          "filters",
+          "general",
+          "inputs",
+          "outputs",
+          "record",
+          "scenes",
+          "screenshots",
+          "stream",
+          "transitions",
+          "ui",
+          "vendor"
+        ]
+      })
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ LAZY_ENVS: "true", MCP_AUTO_EXIT: "true" })))
+      .resolves.toMatchObject({
+        lazyEnvs: true,
+        mcpAutoExit: true,
+        enabledToolsets: [
+          "admin_raw",
+          "batch",
+          "canvases",
+          "config",
+          "events",
+          "filters",
+          "general",
+          "inputs",
+          "outputs",
+          "record",
+          "scenes",
+          "screenshots",
+          "stream",
+          "transitions",
+          "ui",
+          "vendor"
+        ]
+      })
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ MCP_AUTO_EXIT: "FALSE" })))
+      .resolves.toMatchObject({ mcpAutoExit: false })
+    await expectEffectFailure(loadObsConfigFromEnv({ MCP_AUTO_EXIT: "yes" }), /MCP_AUTO_EXIT must be true or false/)
+  })
+
   it("decodes optional OBS event buffer capacity", async () => {
     await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "7" })))
       .resolves.toMatchObject({ eventBufferCapacity: 7 })
-    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "0" })))
-      .rejects.toThrow()
-    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "nope" })))
-      .rejects.toThrow()
+    await expectEffectFailure(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "0" }), /eventBufferCapacity/)
+    await expectEffectFailure(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "nope" }), /eventBufferCapacity/)
   })
 
   it("decodes optional HTTP MCP transport configuration", async () => {
@@ -65,8 +115,8 @@ describe("OBS config", () => {
       mcpHttpPort: 3010,
       mcpHttpAuthToken: "secret-token"
     })
-    await expect(Effect.runPromise(loadObsConfigFromEnv({ MCP_TRANSPORT: "sse" }))).rejects.toThrow()
-    await expect(Effect.runPromise(loadObsConfigFromEnv({ MCP_HTTP_PORT: "0" }))).rejects.toThrow()
+    await expectEffectFailure(loadObsConfigFromEnv({ MCP_TRANSPORT: "sse" }), /mcpTransport/)
+    await expectEffectFailure(loadObsConfigFromEnv({ MCP_HTTP_PORT: "0" }), /mcpHttpPort/)
   })
 
   it("loads screenshot save output directory policy from the environment", async () => {
@@ -78,8 +128,7 @@ describe("OBS config", () => {
   it("defaults blank toolsets and rejects non-websocket URLs", async () => {
     await expect(Effect.runPromise(loadObsConfigFromEnv({ TOOLSETS: " , " })))
       .resolves.toMatchObject({ enabledToolsets: ["general", "record", "scenes", "inputs"] })
-    await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_WEBSOCKET_CONNECTION_TIMEOUT: "nope" })))
-      .rejects.toThrow()
+    await expectEffectFailure(loadObsConfigFromEnv({ OBS_WEBSOCKET_CONNECTION_TIMEOUT: "nope" }), /connectionTimeoutMs/)
     expect(() => normalizeObsWebSocketUrl("http://localhost:4455")).toThrow("ws:// or wss://")
     expect(() => normalizeObsWebSocketUrl("ws://user:secret@localhost:4455")).toThrow("must not include")
     expect(redactedObsWebSocketUrl("ws://user:secret@localhost:4455/")).toBe("ws://localhost:4455/")
