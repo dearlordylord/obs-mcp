@@ -53,8 +53,7 @@
     "check-all": "pnpm build && pnpm verify-version && pnpm typecheck && pnpm circular && pnpm verify-registry-metadata && pnpm verify-protocol-parity && pnpm verify-readme && pnpm lint && pnpm test:coverage"
   },
   "bin": {
-    "obs-mcp": "./dist/index.cjs",
-    "@firfi/obs-mcp": "./dist/index.cjs"
+    "obs-mcp": "dist/index.cjs"
   },
   "keywords": [
     "mcp",
