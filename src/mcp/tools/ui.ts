@@ -10,6 +10,8 @@ import {
   OpenSourceProjectorOutput,
   OpenVideoMixProjectorInput,
   OpenVideoMixProjectorOutput,
+  SetStudioModeEnabledInput,
+  SetStudioModeEnabledOutput,
   StudioModeEnabledOutput
 } from "../../domain/schemas/index.js"
 import { EmptyInput } from "../../domain/schemas/shared.js"
@@ -20,7 +22,8 @@ import {
   openInputInteractDialog,
   openInputPropertiesDialog,
   openSourceProjector,
-  openVideoMixProjector
+  openVideoMixProjector,
+  setStudioModeEnabled
 } from "../../obs/operations/ui.js"
 import {
   GetMonitorList,
@@ -29,7 +32,8 @@ import {
   OpenInputInteractDialog,
   OpenInputPropertiesDialog,
   OpenSourceProjector,
-  OpenVideoMixProjector
+  OpenVideoMixProjector,
+  SetStudioModeEnabled
 } from "../../obs/requests.js"
 import { defineTool, type ToolDefinition } from "./mechanics.js"
 
@@ -45,6 +49,16 @@ export const uiTools: ReadonlyArray<ToolDefinition> = [
     inputSchema: EmptyInput,
     outputSchema: StudioModeEnabledOutput,
     handler: async (_input, context) => getStudioModeEnabled(context.client)
+  }),
+  defineTool({
+    name: "set_studio_mode_enabled",
+    title: "Set OBS Studio Mode",
+    description: "Local OBS UI side effect: enable or disable OBS studio mode.",
+    category: CATEGORY,
+    requiredObsRequests: [SetStudioModeEnabled.requestType],
+    inputSchema: SetStudioModeEnabledInput,
+    outputSchema: SetStudioModeEnabledOutput,
+    handler: async (input, context) => setStudioModeEnabled(context.client, input)
   }),
   defineTool({
     name: "open_input_properties_dialog",

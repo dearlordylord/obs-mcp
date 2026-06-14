@@ -7,6 +7,7 @@ import {
   OpenSourceProjectorInput,
   OpenVideoMixProjectorInput,
   RawMonitorListOutput,
+  SetStudioModeEnabledInput,
   StudioModeEnabledOutput
 } from "../../domain/schemas/ui.js"
 import { EmptyRequestData, type ObsRequestDescriptor } from "./shared.js"
@@ -18,6 +19,12 @@ export const GetStudioModeEnabled = {
   requestDataSchema: EmptyRequestData,
   responseSchema: StudioModeEnabledOutput
 } satisfies ObsRequestDescriptor<StudioModeEnabledOutput>
+
+export const SetStudioModeEnabled = {
+  requestType: "SetStudioModeEnabled",
+  requestDataSchema: SetStudioModeEnabledInput,
+  responseSchema: EmptyResponseData
+} satisfies ObsRequestDescriptor<typeof EmptyResponseData.Type>
 
 export const OpenInputPropertiesDialog = {
   requestType: "OpenInputPropertiesDialog",

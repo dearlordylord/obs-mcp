@@ -182,7 +182,8 @@ import {
   openInputInteractDialog,
   openInputPropertiesDialog,
   openSourceProjector,
-  openVideoMixProjector
+  openVideoMixProjector,
+  setStudioModeEnabled
 } from "../../src/obs/operations/ui.js"
 import { broadcastCustomEvent, callVendorRequest } from "../../src/obs/operations/vendor.js"
 import { EventSubscription } from "../../src/obs/protocol.js"
@@ -2303,6 +2304,10 @@ describe("OBS operations", () => {
       ]
     })
     await expect(getStudioModeEnabled(client)).resolves.toEqual({ studioModeEnabled: true })
+    await expect(setStudioModeEnabled(client, { studioModeEnabled: false })).resolves.toEqual({
+      requestType: "SetStudioModeEnabled",
+      acknowledged: true
+    })
     await expect(openInputPropertiesDialog(client, { inputName: "Camera" })).resolves.toEqual({
       requestType: "OpenInputPropertiesDialog",
       acknowledged: true
@@ -2337,7 +2342,12 @@ describe("OBS operations", () => {
       sourceUuid: "source-camera",
       projectorGeometry: "AdnQyw=="
     })).resolves.toEqual({ requestType: "OpenSourceProjector", acknowledged: true })
-    expect(server.requests.filter((request) => request.requestType.startsWith("Open"))).toEqual([
+    expect(
+      server.requests.filter((request) =>
+        request.requestType.startsWith("Open") || request.requestType === "SetStudioModeEnabled"
+      )
+    ).toEqual([
+      { requestType: "SetStudioModeEnabled", requestData: { studioModeEnabled: false } },
       { requestType: "OpenInputPropertiesDialog", requestData: { inputName: "Camera" } },
       { requestType: "OpenInputFiltersDialog", requestData: { inputUuid: "input-camera" } },
       { requestType: "OpenInputInteractDialog", requestData: { inputName: "Browser" } },

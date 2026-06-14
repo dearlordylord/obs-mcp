@@ -136,6 +136,7 @@ export const ObsRequestType = Schema.Literal(
   "ToggleStream",
   "SendStreamCaption",
   "GetStudioModeEnabled",
+  "SetStudioModeEnabled",
   "OpenInputPropertiesDialog",
   "OpenInputFiltersDialog",
   "OpenInputInteractDialog",

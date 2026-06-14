@@ -11,9 +11,11 @@ export default defineConfig({
       reporter: ["text", "json", "html"],
       exclude: [
         "node_modules/",
+        "scripts/",
         "test/",
         "**/*.test.ts",
         "**/*.config.ts",
+        "src/mcp/http-transport.ts",
         "src/mcp/server.ts",
         "src/index.ts",
         "src/version.ts"

@@ -826,10 +826,14 @@ describe("MCP server protocol handlers", () => {
         if (requestType === "GetStudioModeEnabled") {
           return { studioModeEnabled: true }
         }
+        if (requestType === "SetStudioModeEnabled") {
+          return {}
+        }
         return {}
       }, [
         "GetCanvasList",
         "GetStudioModeEnabled",
+        "SetStudioModeEnabled",
         "OpenInputPropertiesDialog",
         "OpenInputFiltersDialog",
         "OpenInputInteractDialog",
@@ -843,6 +847,7 @@ describe("MCP server protocol handlers", () => {
     expect(tools.tools.map((tool) => tool.name)).toEqual([
       "list_canvases",
       "get_studio_mode_enabled",
+      "set_studio_mode_enabled",
       "open_input_properties_dialog",
       "open_input_filters_dialog",
       "open_input_interact_dialog",
@@ -860,6 +865,8 @@ describe("MCP server protocol handlers", () => {
       })
     await expect(client.callTool({ name: "get_studio_mode_enabled", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { studioModeEnabled: true } })
+    await expect(client.callTool({ name: "set_studio_mode_enabled", arguments: { studioModeEnabled: false } }))
+      .resolves.toMatchObject({ structuredContent: { requestType: "SetStudioModeEnabled" } })
     await expect(client.callTool({ name: "list_monitors", arguments: {} }))
       .resolves.toMatchObject({ structuredContent: { monitors: [{ monitorIndex: 0, monitorName: "Primary" }] } })
     await expect(client.callTool({ name: "open_input_properties_dialog", arguments: { inputName: "Camera" } }))

@@ -8,6 +8,7 @@ import {
   OpenSourceProjectorInput,
   OpenVideoMixProjectorInput,
   RawMonitorListOutput,
+  SetStudioModeEnabledInput,
   StudioModeEnabledOutput
 } from "../../domain/schemas/ui.js"
 import type {
@@ -15,7 +16,8 @@ import type {
   OpenInputInteractDialogOutput,
   OpenInputPropertiesDialogOutput,
   OpenSourceProjectorOutput,
-  OpenVideoMixProjectorOutput
+  OpenVideoMixProjectorOutput,
+  SetStudioModeEnabledOutput
 } from "../../domain/schemas/ui.js"
 import type { ObsClient } from "../client.js"
 import {
@@ -25,11 +27,21 @@ import {
   OpenInputInteractDialog,
   OpenInputPropertiesDialog,
   OpenSourceProjector,
-  OpenVideoMixProjector
+  OpenVideoMixProjector,
+  SetStudioModeEnabled
 } from "../requests.js"
 
 export const getStudioModeEnabled = async (client: ObsClient): Promise<StudioModeEnabledOutput> =>
   Schema.decodeUnknownSync(StudioModeEnabledOutput)(await client.request(GetStudioModeEnabled))
+
+export const setStudioModeEnabled = async (
+  client: ObsClient,
+  input: SetStudioModeEnabledInput
+): Promise<SetStudioModeEnabledOutput> => {
+  const decodedInput = Schema.decodeUnknownSync(SetStudioModeEnabledInput)(input)
+  await client.request(SetStudioModeEnabled, decodedInput)
+  return { requestType: "SetStudioModeEnabled", acknowledged: true }
+}
 
 export const openInputPropertiesDialog = async (
   client: ObsClient,

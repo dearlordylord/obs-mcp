@@ -28,6 +28,10 @@ const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes",
 
 const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
 const DEFAULT_OBS_CONNECTION_TIMEOUT = 30_000
+export const DEFAULT_MCP_HTTP_HOST = "127.0.0.1"
+export const DEFAULT_MCP_HTTP_PORT = 3000
+
+const McpTransport = Schema.Literal("stdio", "http")
 
 export const ObsConfig = Schema.Struct({
   url: ObsString,
@@ -35,7 +39,11 @@ export const ObsConfig = Schema.Struct({
   connectionTimeoutMs: ObsPositiveInteger,
   enabledToolsets: Schema.Array(Toolset),
   eventBufferCapacity: Schema.optional(EventBufferCapacity),
-  screenshotOutputDirectory: Schema.optional(ObsNonEmptyString)
+  screenshotOutputDirectory: Schema.optional(ObsNonEmptyString),
+  mcpTransport: Schema.optional(McpTransport),
+  mcpHttpHost: Schema.optional(ObsNonEmptyString),
+  mcpHttpPort: Schema.optional(ObsPositiveInteger),
+  mcpHttpAuthToken: Schema.optional(ObsNonEmptyString)
 })
 export type ObsConfig = typeof ObsConfig.Type
 
@@ -96,6 +104,7 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
       const timeoutRaw = env["OBS_WEBSOCKET_CONNECTION_TIMEOUT"]
       const timeout = timeoutRaw === undefined ? DEFAULT_OBS_CONNECTION_TIMEOUT : Number.parseInt(timeoutRaw, 10)
       const eventBufferCapacityRaw = env["OBS_EVENT_BUFFER_CAPACITY"]
+      const httpPortRaw = env["MCP_HTTP_PORT"]
       return Schema.decodeUnknownSync(ObsConfig)({
         url: normalizeObsWebSocketUrl(env["OBS_WEBSOCKET_URL"] ?? DEFAULT_OBS_WEBSOCKET_URL),
         password: env["OBS_WEBSOCKET_PASSWORD"] ?? null,
@@ -106,7 +115,11 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
           : { eventBufferCapacity: Number.parseInt(eventBufferCapacityRaw, 10) }),
         ...(env["OBS_MCP_SCREENSHOT_OUTPUT_DIR"] === undefined
           ? {}
-          : { screenshotOutputDirectory: env["OBS_MCP_SCREENSHOT_OUTPUT_DIR"] })
+          : { screenshotOutputDirectory: env["OBS_MCP_SCREENSHOT_OUTPUT_DIR"] }),
+        mcpTransport: env["MCP_TRANSPORT"] ?? "stdio",
+        mcpHttpHost: env["MCP_HTTP_HOST"] ?? DEFAULT_MCP_HTTP_HOST,
+        mcpHttpPort: httpPortRaw === undefined ? DEFAULT_MCP_HTTP_PORT : Number.parseInt(httpPortRaw, 10),
+        ...(env["MCP_HTTP_AUTH_TOKEN"] === undefined ? {} : { mcpHttpAuthToken: env["MCP_HTTP_AUTH_TOKEN"] })
       })
     },
     catch: (error) => {

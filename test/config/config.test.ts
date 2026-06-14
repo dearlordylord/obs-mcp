@@ -21,6 +21,9 @@ describe("OBS config", () => {
     expect(config.url).toBe("ws://localhost:4455/")
     expect(config.connectionTimeoutMs).toBe(30_000)
     expect(config.eventBufferCapacity).toBeUndefined()
+    expect(config.mcpTransport).toBe("stdio")
+    expect(config.mcpHttpHost).toBe("127.0.0.1")
+    expect(config.mcpHttpPort).toBe(3000)
     expect(config.enabledToolsets).toEqual([
       "scenes",
       "general",
@@ -48,6 +51,22 @@ describe("OBS config", () => {
       .rejects.toThrow()
     await expect(Effect.runPromise(loadObsConfigFromEnv({ OBS_EVENT_BUFFER_CAPACITY: "nope" })))
       .rejects.toThrow()
+  })
+
+  it("decodes optional HTTP MCP transport configuration", async () => {
+    await expect(Effect.runPromise(loadObsConfigFromEnv({
+      MCP_TRANSPORT: "http",
+      MCP_HTTP_HOST: "0.0.0.0",
+      MCP_HTTP_PORT: "3010",
+      MCP_HTTP_AUTH_TOKEN: "secret-token"
+    }))).resolves.toMatchObject({
+      mcpTransport: "http",
+      mcpHttpHost: "0.0.0.0",
+      mcpHttpPort: 3010,
+      mcpHttpAuthToken: "secret-token"
+    })
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ MCP_TRANSPORT: "sse" }))).rejects.toThrow()
+    await expect(Effect.runPromise(loadObsConfigFromEnv({ MCP_HTTP_PORT: "0" }))).rejects.toThrow()
   })
 
   it("loads screenshot save output directory policy from the environment", async () => {
@@ -80,5 +99,11 @@ describe("OBS config", () => {
       }
     })
     expect(JSON.stringify(getSanitizedObsContext(config))).not.toContain("secret")
+    const httpConfig = await Effect.runPromise(loadObsConfigFromEnv({
+      MCP_TRANSPORT: "http",
+      MCP_HTTP_AUTH_TOKEN: "secret"
+    }))
+    expect(getSanitizedObsContext(httpConfig)).toMatchObject({ transport: "http" })
+    expect(JSON.stringify(getSanitizedObsContext(httpConfig))).not.toContain("secret")
   })
 })

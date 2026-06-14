@@ -5,7 +5,7 @@ import { type ObsConfig, protocolReferencePath } from "./config.js"
 
 interface SanitizedObsContext {
   readonly packageVersion: string
-  readonly transport: "stdio"
+  readonly transport: "stdio" | "http"
   readonly obs: {
     readonly url: {
       readonly origin: string
@@ -23,7 +23,7 @@ export const getSanitizedObsContext = (config: ObsConfig): SanitizedObsContext =
   const url = new URL(config.url)
   return {
     packageVersion,
-    transport: "stdio",
+    transport: config.mcpTransport ?? "stdio",
     obs: {
       url: {
         origin: url.origin,

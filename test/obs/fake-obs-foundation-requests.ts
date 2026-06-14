@@ -49,6 +49,10 @@ export const handleFakeObsFoundationRequest = (
     send({ studioModeEnabled: options.studioModeEnabled ?? false })
     return true
   }
+  if (requestType === "SetStudioModeEnabled") {
+    send({})
+    return true
+  }
   if (requestType === "GetMonitorList") {
     send({
       monitors: [{

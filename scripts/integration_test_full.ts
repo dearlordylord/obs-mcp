@@ -578,6 +578,18 @@ const readOnlyCases: ReadonlyArray<TestCase> = [
     }
   },
   {
+    name: "set_studio_mode_enabled(no-op)",
+    toolName: "set_studio_mode_enabled",
+    run: async (context) => {
+      if (!MUTATION_ENABLED) {
+        throw new Error("SKIP: mutation checks require OBS_INTEGRATION_MUTATION_TESTS=1")
+      }
+      const studioMode = getRecord<Record<string, unknown>>(context, "studioMode")
+      const studioModeEnabled = requireBoolean(studioMode?.["studioModeEnabled"], "studioModeEnabled")
+      await callTool("set_studio_mode_enabled", { studioModeEnabled })
+    }
+  },
+  {
     name: "get_current_preview_scene",
     toolName: "get_current_preview_scene",
     run: async (context) => {

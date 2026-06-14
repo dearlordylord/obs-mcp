@@ -56,10 +56,10 @@ such as replay buffer status when OBS reports the feature as unavailable.
 Current verified read-only result against a local OBS profile:
 
 ```text
-73 passed, 0 failed, 86 skipped (of 159)
+73 passed, 0 failed, 87 skipped (of 160)
 ```
 
-The total includes the protocol `tools/list` check plus the 158 public tools in the registry.
+The total includes the protocol `tools/list` check plus the 159 public tools in the registry.
 
 ## Optional Modes
 
@@ -72,7 +72,7 @@ OBS_INTEGRATION_MUTATION_TESTS=1 pnpm test:integration:full
 Current verified mutation-enabled result against the same local OBS profile:
 
 ```text
-149 passed, 0 failed, 10 skipped (of 159)
+150 passed, 0 failed, 10 skipped (of 160)
 ```
 
 With an OBS-visible screenshot directory on this host:
@@ -84,7 +84,7 @@ OBS_MCP_SCREENSHOT_OUTPUT_DIR=/tmp OBS_INTEGRATION_MUTATION_TESTS=1 pnpm test:in
 the verified result is:
 
 ```text
-150 passed, 0 failed, 9 skipped (of 159)
+151 passed, 0 failed, 9 skipped (of 160)
 ```
 
 Global OBS config writes are behind an additional opt-in flag because they create and switch to a
@@ -103,7 +103,7 @@ OBS_INTEGRATION_GLOBAL_CONFIG_TESTS=1 OBS_INTEGRATION_STREAM_OUTPUT_TESTS=1 OBS_
 The verified isolated global-config and stream-output result is:
 
 ```text
-155 passed, 0 failed, 4 skipped (of 159)
+156 passed, 0 failed, 4 skipped (of 160)
 ```
 
 With both isolated modes and an OBS-visible screenshot directory:
@@ -115,7 +115,7 @@ OBS_MCP_SCREENSHOT_OUTPUT_DIR=/tmp OBS_INTEGRATION_GLOBAL_CONFIG_TESTS=1 OBS_INT
 the verified result is camera-only skipped:
 
 ```text
-156 passed, 0 failed, 3 skipped (of 159)
+157 passed, 0 failed, 3 skipped (of 160)
 ```
 
 Bounded `get_source_screenshot` payload checks run in the default full suite when the current scene has

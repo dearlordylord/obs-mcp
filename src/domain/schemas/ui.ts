@@ -19,6 +19,15 @@ export const StudioModeEnabledOutputJsonSchema = JSONSchema.make(StudioModeEnabl
 
 export const UiSideEffectOutput = RequestAcknowledgedOutput
 
+export const SetStudioModeEnabledInput = Schema.Struct({
+  studioModeEnabled: Schema.Boolean
+})
+export type SetStudioModeEnabledInput = typeof SetStudioModeEnabledInput.Type
+export const SetStudioModeEnabledInputJsonSchema = JSONSchema.make(SetStudioModeEnabledInput)
+export const SetStudioModeEnabledOutput = UiSideEffectOutput("SetStudioModeEnabled")
+export type SetStudioModeEnabledOutput = typeof SetStudioModeEnabledOutput.Type
+export const SetStudioModeEnabledOutputJsonSchema = JSONSchema.make(SetStudioModeEnabledOutput)
+
 export const OpenInputPropertiesDialogInput = InputLocatorInput
 export type OpenInputPropertiesDialogInput = typeof OpenInputPropertiesDialogInput.Type
 export const OpenInputPropertiesDialogInputJsonSchema = JSONSchema.make(OpenInputPropertiesDialogInput)

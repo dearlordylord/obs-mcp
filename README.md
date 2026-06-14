@@ -1,6 +1,6 @@
 # OBS MCP
 
-`@firfi/obs-mcp` is a stdio-only Model Context Protocol server for OBS Studio.
+`@firfi/obs-mcp` is a Model Context Protocol server for OBS Studio. Stdio is the default transport; stateless Streamable HTTP is available as an opt-in transport.
 
 This first slice implements read-only OBS status plus the scenes exemplar vertical. It proves the repo pattern for future OBS areas with strict schemas, a small MCP registry, a scoped obs-websocket protocol client, and fake OBS websocket tests.
 
@@ -20,15 +20,19 @@ Environment variables:
 - `OBS_WEBSOCKET_URL`: OBS websocket URL. Defaults to `ws://localhost:4455`. Bare `host:port` values are normalized to `ws://host:port`.
 - `OBS_WEBSOCKET_PASSWORD`: optional OBS websocket password.
 - `OBS_WEBSOCKET_CONNECTION_TIMEOUT`: connection and request timeout in milliseconds. Defaults to `30000`.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `canvases`, `config`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, `stream`, `transitions`, and `ui`; the default enables `general`, `record`, `scenes`, and `inputs`.
+- `MCP_TRANSPORT`: `stdio` or `http`. Defaults to `stdio`.
+- `MCP_HTTP_HOST`: HTTP bind host when `MCP_TRANSPORT=http`. Defaults to `127.0.0.1`.
+- `MCP_HTTP_PORT`: HTTP bind port when `MCP_TRANSPORT=http`. Defaults to `3000`.
+- `MCP_HTTP_AUTH_TOKEN`: optional bearer token required by the HTTP `/mcp` endpoint.
+- `TOOLSETS`: optional comma-separated category filter. Available categories are `admin_raw`, `batch`, `canvases`, `config`, `events`, `filters`, `general`, `inputs`, `outputs`, `record`, `scenes`, `screenshots`, `stream`, `transitions`, `ui`, and `vendor`; the default enables `general`, `record`, `scenes`, and `inputs`.
 - `OBS_EVENT_BUFFER_CAPACITY`: optional maximum number of recent safe OBS events retained for `get_recent_obs_events`. Defaults to the built-in bounded buffer size.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `admin_raw`, `batch`, `events`, `general`, `inputs`, `outputs`, `record`, `scenes`, `stream`, and `vendor`; the default enables `general`, `record`, `scenes`, and `inputs`.
-- `TOOLSETS`: optional comma-separated category filter. Available categories are `events`, `filters`, `general`, `inputs`, `outputs`, `record`, `scenes`, `screenshots`, and `stream`; the default enables `general`, `record`, `scenes`, and `inputs`.
 - `OBS_MCP_SCREENSHOT_OUTPUT_DIR`: optional existing directory allowlist for `save_source_screenshot`. Screenshot save tools are disabled unless the `screenshots` toolset is enabled, and saves require a simple filename, not a path. Directories are never created implicitly.
 - `OBS_INTEGRATION_TESTS`: set to `1` to run real OBS websocket integration tests.
 - `OBS_INTEGRATION_MUTATION_TESTS`: set to `1` to enable integration tests that send state-changing OBS requests.
 
 The server logs diagnostics to stderr. Stdout is reserved for MCP JSON-RPC.
+
+For HTTP transport, run with `MCP_TRANSPORT=http`. The endpoint is `http://<MCP_HTTP_HOST>:<MCP_HTTP_PORT>/mcp`; if `MCP_HTTP_AUTH_TOKEN` is set, clients must send `Authorization: Bearer <token>`.
 
 Set `TOOLSETS=events` to expose `get_recent_obs_events`, a bounded recent-event snapshot. It returns typed payloads for safe low-volume OBS events, while vendor/custom and high-volume events remain excluded from the default safe event policy.
 
@@ -47,7 +51,7 @@ Input settings, filter settings, and screenshots use explicit MCP boundary schem
 
 Tools in the `config` toolset can read or change global OBS configuration such as profiles, scene collections, video settings, record directories, and stream service settings. They are opt-in via `TOOLSETS=config`.
 
-Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side effects. They are opt-in via `TOOLSETS=ui` and do not capture screenshots, manage OS windows, or perform filesystem actions.
+Tools in the `ui` toolset that enable/disable studio mode or open dialogs/projectors are local OBS UI side effects. They are opt-in via `TOOLSETS=ui` and do not capture screenshots, manage OS windows, or perform filesystem actions.
 
 <!-- tools:start -->
 - `run_obs_request_batch`
@@ -198,6 +202,7 @@ Tools in the `ui` toolset that open dialogs or projectors are local OBS UI side 
 - `trigger_studio_mode_transition`
 - `set_tbar_position`
 - `get_studio_mode_enabled`
+- `set_studio_mode_enabled`
 - `open_input_properties_dialog`
 - `open_input_filters_dialog`
 - `open_input_interact_dialog`
@@ -227,6 +232,8 @@ Send MCP JSON-RPC on stdin from an MCP client. For local development without rea
 ```sh
 pnpm check-all
 ```
+
+`pnpm verify-readme` checks the generated tool list, and `pnpm verify-protocol-parity` compares local OBS request/event coverage with the official obs-websocket protocol JSON. The pre-commit hook runs `pnpm update-readme` and stages the generated README tool list.
 
 ## Real OBS Integration
 

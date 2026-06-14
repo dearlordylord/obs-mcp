@@ -320,6 +320,7 @@ const configToolNames = [
 ]
 const uiToolNames = [
   "get_studio_mode_enabled",
+  "set_studio_mode_enabled",
   "open_input_properties_dialog",
   "open_input_filters_dialog",
   "open_input_interact_dialog",
@@ -342,6 +343,7 @@ const transitionToolNames = [
 const laneOwnedRequestTools = [
   ["GetCanvasList", "list_canvases", "canvases"],
   ["GetStudioModeEnabled", "get_studio_mode_enabled", "ui"],
+  ["SetStudioModeEnabled", "set_studio_mode_enabled", "ui"],
   ["GetTransitionKindList", "list_transition_kinds", "transitions"],
   ["GetSceneTransitionList", "list_scene_transitions", "transitions"],
   ["GetCurrentSceneTransition", "get_current_scene_transition", "transitions"],
@@ -377,11 +379,7 @@ const laneOwnedRequestTools = [
   ["OpenSourceProjector", "open_source_projector", "ui"]
 ] satisfies ReadonlyArray<readonly [ObsRequestType, string, string]>
 
-const deferredLaneOwnedRequests = [{
-  requestType: "SetStudioModeEnabled",
-  reason:
-    "Deferred intentionally: studio mode writes are not exposed as a public tool in this lane; transition triggering remains in the transitions toolset."
-}] as const
+const deferredLaneOwnedRequests: ReadonlyArray<{ readonly requestType: ObsRequestType; readonly reason: string }> = []
 
 const client = (handler: (requestType: ObsRequestType, requestData: unknown) => Promise<unknown>): ObsClient =>
   fakeObsClient(handler, allAvailableRequests)
@@ -598,7 +596,6 @@ describe("MCP tool registry", () => {
     expect(new Set(laneRequestNames).size).toBe(laneRequestNames.length)
     expect(new Set(laneOwnedRequestTools.map(([, toolName]) => toolName)).size).toBe(laneOwnedRequestTools.length)
     expect(allTools.map((tool) => tool.name)).not.toContain("send_raw_obs_request")
-    expect(allTools.map((tool) => tool.name)).not.toContain("set_studio_mode_enabled")
   })
 
   it("capability-gates every studio-admin lane tool by its represented OBS request", () => {
@@ -1861,6 +1858,14 @@ describe("MCP tool registry", () => {
         return { studioModeEnabled: true }
       })
     })).resolves.toEqual({ studioModeEnabled: true })
+    await expect(executeTool(toolByName("set_studio_mode_enabled"), { studioModeEnabled: false }, {
+      config: { ...config, enabledToolsets: ["ui"] },
+      client: clientWithData(async (requestType, requestData) => {
+        expect(requestType).toBe("SetStudioModeEnabled")
+        expect(requestData).toEqual({ studioModeEnabled: false })
+        return {}
+      })
+    })).resolves.toEqual({ requestType: "SetStudioModeEnabled", acknowledged: true })
     await expect(executeTool(toolByName("list_monitors"), {}, {
       config: { ...config, enabledToolsets: ["ui"] },
       client: clientWithData(async (requestType) => {

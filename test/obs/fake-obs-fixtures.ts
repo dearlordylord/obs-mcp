@@ -393,6 +393,7 @@ export const DEFAULT_AVAILABLE_REQUESTS = [
   "ToggleStream",
   "SendStreamCaption",
   "GetStudioModeEnabled",
+  "SetStudioModeEnabled",
   "OpenInputPropertiesDialog",
   "OpenInputFiltersDialog",
   "OpenInputInteractDialog",
