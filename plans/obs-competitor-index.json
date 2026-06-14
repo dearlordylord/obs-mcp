@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
   "status": "proposed-draft",
-  "date": "2026-06-12",
+  "date": "2026-06-13",
   "description": "Auditable draft index of OBS MCP competitors, distribution wrappers, registry mirrors, and official obs-websocket protocol categories for cleanroom OBS MCP planning.",
+  "githubStarsFetchedAt": "2026-06-13",
   "sourceOfTruth": {
     "protocol": {
       "name": "obsproject/obs-websocket generated protocol",
@@ -29,6 +30,7 @@
       ],
       "runtime": "TypeScript/Node plus legacy Python",
       "license": "GPL-2.0",
+      "githubStars": 94,
       "distribution": "npx -y obs-mcp@latest",
       "transport": "stdio",
       "toolSurface": "125 npm / 127 repo tools across general, scenes, sources, scene-items, inputs, outputs, record, stream, transitions, filters, UI, and config.",
@@ -52,6 +54,7 @@
       ],
       "runtime": "Dart core with compiled JavaScript npm distribution",
       "license": "MIT",
+      "githubStars": 18,
       "distribution": "dart pub global activate obs_mcp, Homebrew, or npx @unngh/obs-mcp",
       "transport": "stdio",
       "toolSurface": "Two top-level code-mode tools, search and execute, backed by 134 internal OBS operations.",
@@ -72,6 +75,7 @@
       ],
       "runtime": "C#/.NET server with TypeScript VS Code wrapper",
       "license": "MIT",
+      "githubStars": 8,
       "distribution": "VS Code Marketplace extension, GitHub release zip, or dotnet server execution",
       "transport": "stdio",
       "toolSurface": "Seven action-multiplexed tools: connection, recording, streaming, scene, source, audio, media.",
@@ -91,6 +95,7 @@
       ],
       "runtime": "Go",
       "license": "MIT",
+      "githubStars": 15,
       "distribution": "go install github.com/ironystock/agentic-obs@latest",
       "transport": "stdio plus local HTTP dashboard/screenshot serving",
       "toolSurface": "81 tools in 9 groups plus 4 meta-tools, resources, prompts, TUI, and web dashboard.",
@@ -112,6 +117,7 @@
       ],
       "runtime": "JavaScript/Node",
       "license": "MIT",
+      "githubStars": 1,
       "distribution": "npx -y obs-mcp-server",
       "transport": "stdio",
       "toolSurface": "26 tools covering status, scenes, record/stream, sources, audio, canvas, scene collections, profiles, and screenshots.",
@@ -132,6 +138,7 @@
       ],
       "runtime": "TypeScript/Node",
       "license": "MIT in npm metadata; no license file found during discovery",
+      "githubStars": 0,
       "distribution": "npx obs-showrunner-mcp",
       "transport": "stdio",
       "toolSurface": "18 higher-level tools for show flow, safety, audio mood, effects, overlays, snapshots, content, and scenes.",
@@ -151,12 +158,74 @@
       ],
       "runtime": "TypeScript/Node",
       "license": "MIT",
+      "githubStars": 2,
       "distribution": "clone/build/run",
       "transport": "stdio",
       "toolSurface": "23 JSON-defined OBS actions for scenes, stream/record, source visibility/transform, screenshots, media, and filters.",
       "coverageStatus": "prototype-reference",
       "matrixLocation": "Competitor Landscape",
       "rationale": "Useful as low-priority idea source. Do not treat as parity authority."
+    },
+    {
+      "id": "juliencr-obs-live-suite",
+      "name": "JulienCr/obs-live-suite",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/JulienCr/obs-live-suite"
+      ],
+      "localPaths": [
+        ".references/competitors/obs-live-suite"
+      ],
+      "runtime": "TypeScript/Node plus local app stack",
+      "license": "Unknown",
+      "githubStars": 1,
+      "distribution": "GitHub clone/run",
+      "transport": "stdio MCP plus local app services",
+      "toolSurface": "36 source-registered MCP tools in local scan; README says 26. Tools control live-production overlays, guests, posters, countdowns, chat, text presets, and overlay reload/clear.",
+      "coverageStatus": "adjacent-workflow-product-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Strong live-production workflow signal. Useful for user-facing show-production expectations, not for core obs-websocket parity."
+    },
+    {
+      "id": "skaggsxyz-moltstream",
+      "name": "skaggsxyz/moltstream",
+      "status": "true-competitor",
+      "urls": [
+        "https://github.com/skaggsxyz/moltstream",
+        "https://www.npmjs.com/package/moltstream"
+      ],
+      "localPaths": [
+        ".references/competitors/moltstream"
+      ],
+      "runtime": "TypeScript/Node package",
+      "license": "MIT",
+      "githubStars": 68,
+      "distribution": "npm package moltstream",
+      "transport": "MCP runtime surface plus application services",
+      "toolSurface": "9 MCP tools including get_status, start_stream, stop_stream, chat, traces, personality/config, and one obs_control multiplexer.",
+      "coverageStatus": "adjacent-ai-streaming-runtime-reference",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Strong AI-streamer product signal. Useful for chat/runtime/personality expectations, not direct OBS protocol parity."
+    },
+    {
+      "id": "rhobs-obs-mcp",
+      "name": "rhobs/obs-mcp",
+      "status": "name-collision",
+      "urls": [
+        "https://github.com/rhobs/obs-mcp"
+      ],
+      "localPaths": [
+        ".references/competitors/rhobs-obs-mcp"
+      ],
+      "runtime": "Go",
+      "license": "Apache-2.0",
+      "githubStars": 8,
+      "distribution": "GitHub clone/run",
+      "transport": "MCP",
+      "toolSurface": "Observability MCP tools for Prometheus, Thanos, Alertmanager, and Tempo; not OBS Studio.",
+      "coverageStatus": "not-obs-studio",
+      "matrixLocation": "Competitor Landscape",
+      "rationale": "Track to avoid marketplace/name confusion. Exclude from OBS Studio feature parity."
     },
     {
       "id": "danielrosehill-claude-obs-plugin",
@@ -170,6 +239,7 @@
       ],
       "runtime": "Claude Code plugin",
       "license": "MIT",
+      "githubStars": 0,
       "distribution": "claude plugins install obs-mgmt@danielrosehill",
       "transport": "Launches bundled obs-mcp over stdio",
       "toolSurface": "No independent OBS MCP server; setup and management workflow around Roy's package.",
@@ -189,6 +259,7 @@
       ],
       "runtime": "TypeScript/Node package",
       "license": "GPL-2.0",
+      "githubStars": null,
       "distribution": "npx @iflow-mcp/obs-mcp",
       "transport": "stdio",
       "toolSurface": "127 tools, closely matching Roy/Zeke package.",
@@ -206,6 +277,7 @@
       "localPaths": [],
       "runtime": "Unknown",
       "license": "Unknown",
+      "githubStars": null,
       "distribution": "Registry listing only during research",
       "transport": "Unknown",
       "toolSurface": "LobeHub lists OBS+Twitch MCP with 21 tools, but source was not publicly cloneable and no npm package was found.",

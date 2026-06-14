@@ -2,7 +2,7 @@
 
 Status: proposed draft.
 
-Date: 2026-06-12.
+Date: 2026-06-13.
 
 Scope: public OBS Studio / obs-websocket MCP implementations, package distributions, marketplace mirrors, and official obs-websocket protocol surfaces that should inform a cleanroom OBS MCP implementation.
 
@@ -17,22 +17,26 @@ Audit guard draft: `plans/obs-competitor-index.json` classifies every tracked co
 - Saved official protocol file: `.references/protocol/obs-websocket/docs/generated/protocol.md`, refreshed from `https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md`.
 - Existing OBS MCP reference clone: `.references/obs_websocket_workspace`.
 - Competitor clones and tarballs: `.references/competitors`.
+- GitHub star counts fetched from the GitHub API on 2026-06-13; they are point-in-time popularity signals, not quality scores.
 
 ## Competitor Landscape
 
-| Project | Class | Runtime / license | Distribution | Tool shape | Coverage signal | Cleanroom takeaways |
-|---|---|---|---|---|---|---|
-| `royshil/obs-mcp` | True competitor | TypeScript/Node, GPL-2.0 | GitHub, `npx -y obs-mcp@latest` | 125 npm / 127 repo tools across broad OBS categories | Broadest handwritten low-level parity among direct TS competitors | Track parity categories, request names, and user expectations. Avoid GPL contamination, text-only JSON results, weak tests, and broad filesystem/vendor tools without policy. |
-| `cdavis-code/obs_websocket_workspace` / `@unngh/obs-mcp` | True competitor plus npm/pub distribution | Dart core, compiled JS npm, MIT | GitHub, pub.dev, Homebrew, `npx @unngh/obs-mcp` | Code mode with `search` and `execute`; 134 internal OBS operations | Broad internal operation registry, v5.7-aware | Use for parity discovery only. Reject generated code-mode/eval/static-client architecture. |
-| `sbroenne/mcp-server-obs` | True competitor plus VS Code distribution | C#/.NET server, TypeScript VS Code wrapper, MIT | GitHub release zip, VS Code Marketplace | 7 action-multiplexed tools | Strong Windows/VS Code packaging, screenshots, window capture, virtual camera, real OBS integration tests | Adopt packaging lessons, stdout/stderr discipline, window-capture and screenshot parity. Avoid static singleton client and action-multiplexed schemas. |
-| `ironystock/agentic-obs` | True competitor | Go, MIT | `go install`, stdio MCP plus local HTTP/TUI | 81 tools in 9 groups plus 4 meta-tools, resources, prompts | Strong workflow/product layer and better tests than most competitors | Adopt typed OBS capability interface, resources/prompts where useful, lifecycle handling, error-injection tests, screenshot retention. Avoid unauthenticated HTTP exposure and config toggles that do not actually gate handlers. |
-| `LarsCanGit/OBS-MCP` | True competitor | JavaScript/Node, MIT | GitHub, `npx -y obs-mcp-server` | 26 tools | Compact direct-control surface including canvas, profiles, screenshots | Useful baseline for small first release scope. Need deeper review before implementation. |
-| `takurot/obs-showrunner-mcp` | True competitor, higher-level abstraction | TypeScript/Node, npm metadata MIT | GitHub, `npx obs-showrunner-mcp` | 18 higher-level showrunner tools | Show-flow, safety, effects, overlays, snapshots | Useful for later workflow tools and naming. Not a source for core protocol layer. |
-| `yshk-mrt/obs-mcp` | Prototype competitor | TypeScript/Node, MIT | GitHub clone/build | 23 JSON-defined actions | Hackathon/prototype scene/media/filter automation | Useful as low-priority idea source. Do not use as parity authority. |
-| `danielrosehill/Claude-OBS-Plugin` | Distribution wrapper | Claude Code plugin, MIT | Claude plugin install | Bundles/launches Roy's `obs-mcp` | Setup, backup, plugin management workflows around OBS | Track for install/setup UX, not MCP implementation parity. |
-| `@iflow-mcp/obs-mcp` | Registry/package mirror or redistribution | TypeScript/Node package, GPL-2.0 | npm | 127 tools, closely matching Roy package | Not proven independent | Track as package ecosystem signal only. |
-| Registry mirrors: LobeHub, MCP Market, Shyft, Glama, LangDB, MCP.so | Registry mirror | N/A | Web registries | Mirror Roy/Lars metadata | Discovery/SEO only | Do not treat as independent implementations. |
-| `consigcody94/stream-pilot` | Stale or unavailable listing | Unknown | LobeHub listing only | Listed as OBS+Twitch MCP with 21 tools | Source not publicly cloneable during research | Revisit only if source or package becomes available. |
+| Project | GitHub stars | Class | Runtime / license | Distribution | Tool shape | Coverage signal | Cleanroom takeaways |
+|---|---:|---|---|---|---|---|---|
+| `royshil/obs-mcp` | 94 | True competitor | TypeScript/Node, GPL-2.0 | GitHub, `npx -y obs-mcp@latest` | 125 npm / 127 repo tools across broad OBS categories | Broad handwritten low-level parity among direct TS competitors | Track parity categories, request names, and user expectations. Avoid GPL contamination, text-only JSON results, weak tests, and broad filesystem/vendor tools without policy. |
+| `cdavis-code/obs_websocket_workspace` / `@unngh/obs-mcp` | 18 | True competitor plus npm/pub distribution | Dart core, compiled JS npm, MIT | GitHub, pub.dev, Homebrew, `npx @unngh/obs-mcp` | Code mode with `search` and `execute`; 134 internal OBS operations | Broad internal operation registry, v5.7-aware | Use for parity discovery only. Reject generated code-mode/eval/static-client architecture. |
+| `sbroenne/mcp-server-obs` | 8 | True competitor plus VS Code distribution | C#/.NET server, TypeScript VS Code wrapper, MIT | GitHub release zip, VS Code Marketplace | 7 action-multiplexed tools | Strong Windows/VS Code packaging, screenshots, window capture, virtual camera, real OBS integration tests | Adopt packaging lessons, stdout/stderr discipline, window-capture and screenshot parity. Avoid static singleton client and action-multiplexed schemas. |
+| `ironystock/agentic-obs` | 15 | True competitor | Go, MIT | `go install`, stdio MCP plus local HTTP/TUI | 81 tools in 9 groups plus 4 meta-tools, resources, prompts | Strong workflow/product layer and better tests than most competitors | Adopt typed OBS capability interface, resources/prompts where useful, lifecycle handling, error-injection tests, screenshot retention. Avoid unauthenticated HTTP exposure and config toggles that do not actually gate handlers. |
+| `LarsCanGit/OBS-MCP` | 1 | True competitor | JavaScript/Node, MIT | GitHub, `npx -y obs-mcp-server` | 26 tools | Compact direct-control surface including canvas, profiles, screenshots | Useful baseline for small first release scope. Need deeper review before implementation. |
+| `takurot/obs-showrunner-mcp` | 0 | True competitor, higher-level abstraction | TypeScript/Node, npm metadata MIT | GitHub, `npx obs-showrunner-mcp` | 18 higher-level showrunner tools | Show-flow, safety, effects, overlays, snapshots | Useful for later workflow tools and naming. Not a source for core protocol layer. |
+| `yshk-mrt/obs-mcp` | 2 | Prototype competitor | TypeScript/Node, MIT | GitHub clone/build | 23 JSON-defined actions | Hackathon/prototype scene/media/filter automation | Useful as low-priority idea source. Do not use as parity authority. |
+| `JulienCr/obs-live-suite` | 1 | Adjacent workflow/product competitor | TypeScript/Node plus local app stack, mixed app tooling | GitHub clone/run | 36 source-registered MCP tools in local scan; README says 26 | Live-production overlays, guests, posters, countdowns, chat, Stream Deck | Track user-facing show-production workflows. Not a source for low-level OBS protocol parity. |
+| `skaggsxyz/moltstream` | 68 | Adjacent AI streaming runtime | TypeScript/Node package, MIT | npm package `moltstream` | 9 MCP tools including one `obs_control` multiplexer | AI streamer runtime: chat, TTS, traces, personality, runtime config | Track AI-streamer product expectations. Not a direct OBS protocol parity server. |
+| `danielrosehill/Claude-OBS-Plugin` | 0 | Distribution wrapper | Claude Code plugin, MIT | Claude plugin install | Bundles/launches Roy's `obs-mcp` | Setup, backup, plugin management workflows around OBS | Track for install/setup UX, not MCP implementation parity. |
+| `rhobs/obs-mcp` | 8 | Name collision | Go, Apache-2.0 | GitHub | Observability MCP tools, not OBS Studio | Prometheus/Thanos/Alertmanager/Tempo domain | Exclude from OBS Studio feature parity; track only to avoid marketplace/name confusion. |
+| `@iflow-mcp/obs-mcp` | N/A | Registry/package mirror or redistribution | TypeScript/Node package, GPL-2.0 | npm | 127 tools, closely matching Roy package | Not proven independent | Track as package ecosystem signal only. |
+| Registry mirrors: LobeHub, MCP Market, Shyft, Glama, LangDB, MCP.so | N/A | Registry mirror | N/A | Web registries | Mirror Roy/Lars metadata | Discovery/SEO only | Do not treat as independent implementations. |
+| `consigcody94/stream-pilot` | Unavailable | Stale or unavailable listing | Unknown | LobeHub listing only | Listed as OBS+Twitch MCP with 21 tools | Source not publicly cloneable during research; GitHub repo returned 404 on 2026-06-13 | Revisit only if source or package becomes available. |
 
 ## Official Protocol Parity Baseline
 
