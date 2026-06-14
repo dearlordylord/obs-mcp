@@ -1,8 +1,11 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js"
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js"
 import { config as loadDotEnv } from "dotenv"
 import { Effect } from "effect"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { loadObsConfigFromEnv } from "../../src/config/config.js"
+import { createObsMcpServer } from "../../src/mcp/create-mcp-server.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
 import { getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
@@ -80,6 +83,34 @@ if (integrationEnabled) {
         outputActive: expect.any(Boolean)
       }))
       await expectOptionalVirtualCameraStatus(obs)
+    })
+
+    it("lists and reads OBS MCP resources through the protocol", async () => {
+      expect(client).toBeDefined()
+      const obs = client
+      if (obs === undefined) throw new Error("OBS client was not initialized")
+      const config = await Effect.runPromise(loadObsConfigFromEnv(process.env))
+      const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
+      const server = createObsMcpServer(config, obs)
+      const mcpClient = new Client({ name: "integration-resource-client", version: "0.0.0" })
+
+      try {
+        await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
+        const resources = await mcpClient.listResources()
+        expect(resources.resources.map((resource) => resource.uri)).toContain("obs://state/current")
+        await expect(mcpClient.readResource({ uri: "obs://state/current" })).resolves.toEqual(
+          expect.objectContaining({
+            contents: expect.arrayContaining([
+              expect.objectContaining({ uri: "obs://state/current", mimeType: "application/json" })
+            ])
+          })
+        )
+      } finally {
+        await Promise.all([
+          mcpClient.close().catch(() => undefined),
+          server.close().catch(() => undefined)
+        ])
+      }
     })
 
     if (mutationEnabled) {

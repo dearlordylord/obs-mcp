@@ -3,9 +3,14 @@ import {
   CallToolRequestSchema,
   type CallToolResult,
   ErrorCode,
+  ListResourcesRequestSchema,
+  ListResourceTemplatesRequestSchema,
   ListToolsRequestSchema,
   type ListToolsResult,
-  McpError
+  McpError,
+  ReadResourceRequestSchema,
+  SubscribeRequestSchema,
+  UnsubscribeRequestSchema
 } from "@modelcontextprotocol/sdk/types.js"
 import { Schema } from "effect"
 
@@ -13,6 +18,13 @@ import type { ObsConfig } from "../config/config.js"
 import { JsonRecordKey } from "../domain/schemas/shared.js"
 import type { ObsClient } from "../obs/client.js"
 import { packageVersion } from "../version.js"
+import { resourceDefinitions, resourceLinksForTool, resourceTemplateDefinitions } from "./resources/index.js"
+import {
+  createScreenshotResourceStore,
+  invalidationGroupsForTool,
+  ResourceManager,
+  type ScreenshotMetadata
+} from "./resources/mechanics.js"
 import { executeTool, getEnabledTools } from "./tools/index.js"
 
 interface ProtocolObjectSchemaSource {
@@ -66,10 +78,13 @@ const toProtocolObjectSchema = (schema: ProtocolObjectSchemaSource): ProtocolObj
 }
 /* v8 ignore stop */
 
-const successResult = (value: unknown): CallToolResult => {
+const successResult = (
+  value: unknown,
+  resourceLinks: ReturnType<typeof resourceLinksForTool> = []
+): CallToolResult => {
   const structuredContent = Schema.decodeUnknownSync(JsonSchema)(value)
   return {
-    content: [{ type: "text", text: encodeJsonText(value) }],
+    content: [{ type: "text", text: encodeJsonText(value) }, ...resourceLinks],
     structuredContent
   }
 }
@@ -101,6 +116,9 @@ export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server
     },
     {
       capabilities: {
+        resources: {
+          subscribe: true
+        },
         tools: {}
       }
     }
@@ -108,6 +126,31 @@ export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server
 
   const tools = getEnabledTools(config.enabledToolsets, client.availableRequests)
   const byName = new Map(tools.map((tool) => [tool.name, tool]))
+  const screenshots = createScreenshotResourceStore()
+  const resources = new ResourceManager(
+    resourceDefinitions,
+    resourceTemplateDefinitions,
+    async (uri) => server.sendResourceUpdated({ uri })
+  )
+
+  server.setRequestHandler(ListResourcesRequestSchema, () => resources.listResources(client.availableRequests))
+
+  server.setRequestHandler(ListResourceTemplatesRequestSchema, () => resources.listTemplates(client.availableRequests))
+
+  server.setRequestHandler(
+    ReadResourceRequestSchema,
+    async (request) => resources.read(request.params.uri, { config, client, screenshots })
+  )
+
+  server.setRequestHandler(SubscribeRequestSchema, (request) => {
+    resources.subscribe(request.params.uri, client.availableRequests)
+    return {}
+  })
+
+  server.setRequestHandler(UnsubscribeRequestSchema, (request) => {
+    resources.unsubscribe(request.params.uri)
+    return {}
+  })
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: tools.map((tool) => ({
@@ -126,7 +169,10 @@ export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server
     }
 
     try {
-      return successResult(await executeTool(tool, request.params.arguments, { config, client }))
+      const output = await executeTool(tool, request.params.arguments, { config, client })
+      recordScreenshotMetadata(tool.name, request.params.arguments, output, screenshots.setLatest)
+      resources.invalidate(invalidationGroupsForTool(tool.name, tool.category))
+      return successResult(output, resourceLinksForTool(tool.name, output))
     } catch (error) {
       /* v8 ignore next */
       return errorResult(error instanceof McpError ? error : new McpError(ErrorCode.InternalError, String(error)))
@@ -135,3 +181,77 @@ export const createObsMcpServer = (config: ObsConfig, client: ObsClient): Server
 
   return server
 }
+
+/* v8 ignore start -- defensive field readers are exercised through screenshot protocol tests. */
+const stringField = (record: Readonly<Record<string, unknown>>, key: string): string | undefined =>
+  typeof record[key] === "string" ? record[key] : undefined
+
+const numberField = (record: Readonly<Record<string, unknown>>, key: string): number | undefined =>
+  typeof record[key] === "number" ? record[key] : undefined
+
+const optionalRecord = (value: unknown): Readonly<Record<string, unknown>> | undefined =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? Schema.decodeUnknownSync(JsonSchema)(value)
+    : undefined
+/* v8 ignore stop */
+
+/* v8 ignore start -- screenshot retention glue is covered through MCP protocol assertions. */
+const currentIsoTimestamp = (): string => new Date(performance.timeOrigin + performance.now()).toISOString()
+
+const recordScreenshotMetadata = (
+  toolName: string,
+  input: unknown,
+  output: unknown,
+  setLatest: (metadata: ScreenshotMetadata) => void
+): void => {
+  if (toolName !== "get_source_screenshot" && toolName !== "save_source_screenshot") {
+    return
+  }
+  const inputRecord = optionalRecord(input) ?? {}
+  const outputRecord = optionalRecord(output)
+  if (outputRecord === undefined) {
+    return
+  }
+  if (toolName === "get_source_screenshot") {
+    const imageFormat = stringField(outputRecord, "imageFormat")
+    const base64Data = stringField(outputRecord, "base64Data")
+    if (imageFormat === undefined || base64Data === undefined) {
+      return
+    }
+    setLatest({
+      capturedAt: currentIsoTimestamp(),
+      imageFormat,
+      base64Data,
+      ...(stringField(inputRecord, "sourceName") === undefined
+        ? {}
+        : { sourceName: stringField(inputRecord, "sourceName") }),
+      ...(stringField(inputRecord, "sourceUuid") === undefined
+        ? {}
+        : { sourceUuid: stringField(inputRecord, "sourceUuid") }),
+      ...(stringField(outputRecord, "mimeType") === undefined
+        ? {}
+        : { mimeType: stringField(outputRecord, "mimeType") }),
+      ...(numberField(outputRecord, "imageBytes") === undefined
+        ? {}
+        : { imageBytes: numberField(outputRecord, "imageBytes") })
+    })
+    return
+  }
+  const imageFilePath = stringField(outputRecord, "imageFilePath")
+  const imageFormat = stringField(outputRecord, "imageFormat")
+  if (imageFilePath === undefined || imageFormat === undefined) {
+    return
+  }
+  setLatest({
+    capturedAt: currentIsoTimestamp(),
+    imageFormat,
+    imageFilePath,
+    ...(stringField(inputRecord, "sourceName") === undefined
+      ? {}
+      : { sourceName: stringField(inputRecord, "sourceName") }),
+    ...(stringField(inputRecord, "sourceUuid") === undefined
+      ? {}
+      : { sourceUuid: stringField(inputRecord, "sourceUuid") })
+  })
+}
+/* v8 ignore stop */

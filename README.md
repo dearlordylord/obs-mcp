@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![MCP Server](https://badge.mcpx.dev?type=server&features=tools)](https://github.com/dearlordylord/obs-mcp)
 
-MCP server for OBS Studio automation through obs-websocket.
+MCP server for OBS Studio automation and read-only resources through obs-websocket.
 
 ## Installation
 
@@ -229,6 +229,8 @@ By default, the server exposes `general`, `record`, `scenes`, and `inputs`. Addi
 
 Use `TOOLSETS=all` when you want the full supported OBS surface. Use a comma-separated allowlist such as `TOOLSETS=general,scenes,inputs,events` when an MCP client should only see a narrower tool surface.
 
+MCP resources are always enabled when the underlying OBS websocket requests are available. `TOOLSETS` controls tools only; it does not hide read-only resources.
+
 Some categories are intentionally opt-in:
 
 | Toolset | Why it is opt-in |
@@ -247,7 +249,40 @@ Diagnostics are written to stderr. Stdout is reserved for MCP JSON-RPC.
 
 Input settings, filter settings, output settings, and screenshots use explicit MCP boundary schemas instead of raw OBS object passthroughs. Read-only settings tools return stable setting metadata and mark raw settings as deferred. Mutation tools accept only allowlisted setting fields that have narrow schemas. Screenshot reads return bounded base64 data with MIME and byte metadata, while screenshot saves require the `screenshots` toolset plus an existing `OBS_MCP_SCREENSHOT_OUTPUT_DIR` allowlist.
 
-Tool results use MCP structured content rather than textified JSON.
+Tool results use MCP structured content rather than textified JSON. Relevant tool calls also include MCP resource links so clients can reread current state through the matching resource.
+
+## Resources
+
+Resources expose read-only OBS state as JSON. They are filtered by the request types OBS advertises during the websocket handshake, and can be subscribed to with standard MCP `resources/subscribe` update notifications. Update notifications are reread signals; they do not push OBS payloads.
+
+Static resources:
+
+| URI | Description |
+|-----|-------------|
+| `obs://state/current` | Aggregate OBS version, client capability, scene, output, recording, streaming, and transition state when available. |
+| `obs://scenes` | Current program/preview scenes and ordered scene summaries. |
+| `obs://inputs` | Current OBS input/source summaries. |
+| `obs://recording` | Current recording output status. |
+| `obs://streaming` | Current stream output status. |
+| `obs://outputs` | Current OBS output summaries. |
+| `obs://config` | Sanitized video, recording directory, stream service, profile, and scene collection configuration when available. |
+| `obs://profiles` | Current profile and profile names. |
+| `obs://scene-collections` | Current scene collection and scene collection names. |
+| `obs://canvases` | OBS canvas inventory when supported by OBS. |
+| `obs://transitions` | Transition inventory, current transition, cursor, and kinds when available. |
+| `obs://hotkeys` | OBS hotkey names. |
+| `obs://events/recent` | Recent safe OBS events retained by this server process. |
+| `obs://screenshots/latest` | Latest screenshot metadata captured by this server process, or `null` before one is captured. |
+
+Resource templates:
+
+| Template | Description |
+|----------|-------------|
+| `obs://scenes/by-name/{sceneName}` | Scene summary, scene items, and transition override for a URL-encoded scene name. |
+| `obs://inputs/by-name/{inputName}` | Input summary plus optional audio, settings, mute, and volume details for a URL-encoded input name. |
+| `obs://outputs/by-name/{outputName}` | Output summary plus optional status and sanitized settings for a URL-encoded output name. |
+| `obs://filters/{sourceName}` | Source filter list for a URL-encoded source name. |
+| `obs://media/by-name/{inputName}` | Media input status and sanitized settings for a URL-encoded input name. |
 
 <!-- tools:start -->
 ## Available Tools
