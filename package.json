@@ -75,7 +75,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
     "@effect/eslint-plugin": "^0.3.2",
-    "@effect/language-service": "^0.73.1",
+    "@effect/language-service": "^0.86.2",
     "@eslint/compat": "^2.0.2",
     "@types/node": "^25.1.0",
     "@types/ws": "^8.18.1",
