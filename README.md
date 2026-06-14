@@ -2,7 +2,7 @@
 
 `@firfi/obs-mcp` is a Model Context Protocol server for OBS Studio. Stdio is the default transport; stateless Streamable HTTP is available as an opt-in transport.
 
-This first slice implements read-only OBS status plus the scenes exemplar vertical. It proves the repo pattern for future OBS areas with strict schemas, a small MCP registry, a scoped obs-websocket protocol client, and fake OBS websocket tests.
+This first slice implements read-only OBS status plus the scenes exemplar vertical. It proves the repo pattern for future OBS areas with strict schemas, a small MCP registry, a scoped obs-websocket protocol client, and deterministic OBS protocol tests.
 
 ## Install
 
@@ -225,7 +225,7 @@ Start OBS Studio with obs-websocket enabled, then run:
 OBS_WEBSOCKET_URL=ws://localhost:4455 pnpm start
 ```
 
-Send MCP JSON-RPC on stdin from an MCP client. For local development without real OBS, the automated test harness starts a fake OBS websocket server.
+Send MCP JSON-RPC on stdin from an MCP client. For local development without real OBS, the automated test harness starts a deterministic OBS protocol endpoint.
 
 ## Verify
 
@@ -268,4 +268,4 @@ Bounded screenshot payload checks run in the full harness when the current scene
 File-writing screenshot checks are skipped unless `OBS_MCP_SCREENSHOT_OUTPUT_DIR` points to a
 directory visible to the OBS process.
 
-Default `pnpm test` remains fake-harness only and does not require OBS.
+Default `pnpm test` remains deterministic-harness only and does not require OBS.

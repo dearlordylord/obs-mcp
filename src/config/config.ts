@@ -5,7 +5,7 @@ import { ObsNonEmptyString, ObsPositiveInteger, ObsString } from "../domain/sche
 
 export const protocolReferencePath = ".references/protocol/obs-websocket/docs/generated/protocol.md"
 
-const Toolset = Schema.Literal(
+const TOOLSETS = [
   "admin_raw",
   "batch",
   "canvases",
@@ -22,8 +22,11 @@ const Toolset = Schema.Literal(
   "transitions",
   "ui",
   "vendor"
-)
+] as const
+
+const Toolset = Schema.Literal(...TOOLSETS)
 type Toolset = typeof Toolset.Type
+const ALL_TOOLSETS: ReadonlyArray<Toolset> = TOOLSETS
 const DEFAULT_TOOLSETS: ReadonlyArray<Toolset> = ["general", "record", "scenes", "inputs"]
 
 const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
@@ -43,38 +46,39 @@ export const ObsConfig = Schema.Struct({
   mcpTransport: Schema.optional(McpTransport),
   mcpHttpHost: Schema.optional(ObsNonEmptyString),
   mcpHttpPort: Schema.optional(ObsPositiveInteger),
-  mcpHttpAuthToken: Schema.optional(ObsNonEmptyString)
+  mcpHttpAuthToken: Schema.optional(ObsNonEmptyString),
+  lazyEnvs: Schema.optional(Schema.Boolean),
+  mcpAutoExit: Schema.optional(Schema.Boolean)
 })
 export type ObsConfig = typeof ObsConfig.Type
 
-const parseToolsets = (value: string | undefined): ReadonlyArray<Toolset> => {
+const parseConfigBoolean = (value: string | undefined, name: string): boolean => {
+  if (value === undefined) return false
+  const normalized = value.toLowerCase()
+  if (normalized === "true") return true
+  if (normalized === "false") return false
+  throw new Error(`${name} must be true or false`)
+}
+
+const lazyEnvsEnabled = (value: string | undefined): boolean => value?.toLowerCase() === "true"
+
+const parseToolsets = (
+  value: string | undefined,
+  defaultToolsets: ReadonlyArray<Toolset>
+): ReadonlyArray<Toolset> => {
   if (value === undefined || value.trim() === "") {
-    return DEFAULT_TOOLSETS
+    return defaultToolsets
   }
 
   const values = value.split(",").map((entry) => entry.trim()).filter((entry) => entry.length > 0)
   if (values.length === 0) {
-    return DEFAULT_TOOLSETS
+    return defaultToolsets
+  }
+  if (values.some((entry) => entry.toLowerCase() === "all")) {
+    return ALL_TOOLSETS
   }
 
-  const allowed = new Set<string>([
-    "admin_raw",
-    "batch",
-    "canvases",
-    "config",
-    "events",
-    "filters",
-    "general",
-    "inputs",
-    "outputs",
-    "record",
-    "scenes",
-    "screenshots",
-    "stream",
-    "transitions",
-    "ui",
-    "vendor"
-  ])
+  const allowed = new Set<string>(TOOLSETS)
   return values.filter((entry): entry is Toolset => allowed.has(entry))
 }
 
@@ -105,11 +109,12 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
       const timeout = timeoutRaw === undefined ? DEFAULT_OBS_CONNECTION_TIMEOUT : Number.parseInt(timeoutRaw, 10)
       const eventBufferCapacityRaw = env["OBS_EVENT_BUFFER_CAPACITY"]
       const httpPortRaw = env["MCP_HTTP_PORT"]
+      const lazyEnvs = lazyEnvsEnabled(env["LAZY_ENVS"])
       return Schema.decodeUnknownSync(ObsConfig)({
         url: normalizeObsWebSocketUrl(env["OBS_WEBSOCKET_URL"] ?? DEFAULT_OBS_WEBSOCKET_URL),
         password: env["OBS_WEBSOCKET_PASSWORD"] ?? null,
         connectionTimeoutMs: timeout,
-        enabledToolsets: parseToolsets(env["TOOLSETS"]),
+        enabledToolsets: parseToolsets(env["TOOLSETS"], lazyEnvs ? ALL_TOOLSETS : DEFAULT_TOOLSETS),
         ...(eventBufferCapacityRaw === undefined
           ? {}
           : { eventBufferCapacity: Number.parseInt(eventBufferCapacityRaw, 10) }),
@@ -119,7 +124,9 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
         mcpTransport: env["MCP_TRANSPORT"] ?? "stdio",
         mcpHttpHost: env["MCP_HTTP_HOST"] ?? DEFAULT_MCP_HTTP_HOST,
         mcpHttpPort: httpPortRaw === undefined ? DEFAULT_MCP_HTTP_PORT : Number.parseInt(httpPortRaw, 10),
-        ...(env["MCP_HTTP_AUTH_TOKEN"] === undefined ? {} : { mcpHttpAuthToken: env["MCP_HTTP_AUTH_TOKEN"] })
+        ...(env["MCP_HTTP_AUTH_TOKEN"] === undefined ? {} : { mcpHttpAuthToken: env["MCP_HTTP_AUTH_TOKEN"] }),
+        lazyEnvs,
+        mcpAutoExit: parseConfigBoolean(env["MCP_AUTO_EXIT"], "MCP_AUTO_EXIT")
       })
     },
     catch: (error) => {

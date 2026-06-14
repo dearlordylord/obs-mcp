@@ -1,0 +1,59 @@
+name: Package Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packed-package:
+    name: Packed package (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 22.x
+          - 24.x
+          - 26.x
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Verify bundled version
+        run: pnpm verify-version
+
+      - name: Pack package
+        run: |
+          mkdir -p .package-smoke
+          npm_config_ignore_scripts=true pnpm pack --pack-destination .package-smoke
+
+      - name: Install and initialize packed package
+        run: |
+          set -euo pipefail
+          tarball="$(realpath "$(ls .package-smoke/*.tgz | head -n 1)")"
+          pnpm exec tsx scripts/package-smoke.ts "$tarball"

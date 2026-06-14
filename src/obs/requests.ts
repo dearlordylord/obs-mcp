@@ -1,6 +1,6 @@
 import { Schema } from "effect"
 
-export const ObsRequestType = Schema.Literal(
+export const OBS_REQUEST_TYPES = [
   "GetVersion",
   "GetStats",
   "GetHotkeyList",
@@ -148,7 +148,9 @@ export const ObsRequestType = Schema.Literal(
   "CallVendorRequest",
   "BroadcastCustomEvent",
   "Sleep"
-)
+] as const
+
+export const ObsRequestType = Schema.Literal(...OBS_REQUEST_TYPES)
 export type ObsRequestType = typeof ObsRequestType.Type
 
 export * from "./requests/canvases.js"

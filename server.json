@@ -41,7 +41,49 @@
         },
         {
           "name": "TOOLSETS",
-          "description": "Optional comma-separated toolset filter. The initial supported toolset is scenes.",
+          "description": "Optional comma-separated toolset filter. Supported values: admin_raw, batch, canvases, config, events, filters, general, inputs, outputs, record, scenes, screenshots, stream, transitions, ui, vendor.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "MCP_TRANSPORT",
+          "description": "MCP transport mode: stdio or http. Omit to use stdio.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "MCP_HTTP_HOST",
+          "description": "HTTP bind host when MCP_TRANSPORT=http. Omit to use 127.0.0.1.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "MCP_HTTP_PORT",
+          "description": "HTTP bind port when MCP_TRANSPORT=http. Omit to use 3000.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "MCP_HTTP_AUTH_TOKEN",
+          "description": "Optional bearer token required by HTTP MCP clients when MCP_TRANSPORT=http.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "OBS_EVENT_BUFFER_CAPACITY",
+          "description": "Optional event buffer capacity for event tools.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "OBS_MCP_SCREENSHOT_OUTPUT_DIR",
+          "description": "Optional directory used by screenshot save tools.",
           "isRequired": false,
           "format": "string",
           "isSecret": false

@@ -124,9 +124,11 @@ export const parseOfficialProtocol = (value: unknown): OfficialProtocol => {
 
 export const readLocalProtocolSurface = (): LocalProtocolSurface => {
   const requestSource = readFileSync(requestSourcePath, "utf8")
-  const requestLiteral = /Schema\.Literal\(([\s\S]*?)\)\nexport type ObsRequestType/u.exec(requestSource)?.[1]
-  if (requestLiteral === undefined) {
-    throw new Error("Could not locate ObsRequestType Schema.Literal in src/obs/requests.ts")
+  const requestList =
+    /OBS_REQUEST_TYPES = \[([\s\S]*?)\] as const/u.exec(requestSource)?.[1]
+    ?? /Schema\.Literal\(([\s\S]*?)\)\nexport type ObsRequestType/u.exec(requestSource)?.[1]
+  if (requestList === undefined) {
+    throw new Error("Could not locate ObsRequestType literals in src/obs/requests.ts")
   }
 
   const protocolSource = readFileSync(protocolSourcePath, "utf8")
@@ -136,7 +138,7 @@ export const readLocalProtocolSurface = (): LocalProtocolSurface => {
   }
 
   return {
-    requestTypes: sortedUnique(quotedStrings(requestLiteral)),
+    requestTypes: sortedUnique(quotedStrings(requestList)),
     eventTypes: sortedUnique(Array.from(eventMap.matchAll(/\["([^"]+)"/gu), (match) => match[1] ?? "")),
     toolRequestTypes: sortedUnique(allTools.flatMap((tool) => tool.requiredObsRequests))
   }
