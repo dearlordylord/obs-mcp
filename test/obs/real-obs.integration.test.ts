@@ -9,6 +9,7 @@ import { createObsMcpServer } from "../../src/mcp/create-mcp-server.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
 import { ObsRequestError } from "../../src/obs/errors.js"
 import { getRecordStatus, getVersion } from "../../src/obs/operations/general.js"
+import { listInputs } from "../../src/obs/operations/inputs.js"
 import { getVirtualCamStatus } from "../../src/obs/operations/outputs.js"
 import { stopRecord } from "../../src/obs/operations/record.js"
 import { getCurrentScene, listScenes, setCurrentScene } from "../../src/obs/operations/scenes.js"
@@ -98,13 +99,48 @@ if (integrationEnabled) {
         await Promise.all([server.connect(serverTransport), mcpClient.connect(clientTransport)])
         const resources = await mcpClient.listResources()
         expect(resources.resources.map((resource) => resource.uri)).toContain("obs://state/current")
-        await expect(mcpClient.readResource({ uri: "obs://state/current" })).resolves.toEqual(
-          expect.objectContaining({
-            contents: expect.arrayContaining([
-              expect.objectContaining({ uri: "obs://state/current", mimeType: "application/json" })
-            ])
-          })
-        )
+        const templates = await mcpClient.listResourceTemplates()
+        const templateUris = templates.resourceTemplates.map((template) => template.uriTemplate)
+        const expectedTemplateUris = [
+          ...(requestAvailable(obs, "GetSceneList") ? ["obs://scenes/by-name/{sceneName}"] : []),
+          ...(requestAvailable(obs, "GetInputList") ? ["obs://inputs/by-name/{inputName}"] : [])
+        ]
+        expect(templateUris).toEqual(expect.arrayContaining(expectedTemplateUris))
+        const state = await mcpClient.readResource({ uri: "obs://state/current" })
+        expect(state).toEqual(expect.objectContaining({
+          contents: expect.arrayContaining([
+            expect.objectContaining({ uri: "obs://state/current", mimeType: "application/json" })
+          ])
+        }))
+        expect(JSON.stringify(state)).toContain("availableRequests")
+
+        if (requestAvailable(obs, "GetSceneList")) {
+          const scenes = await listScenes(obs, { includeGroups: true })
+          const scene = scenes.scenes[0]
+          if (scene !== undefined) {
+            await expect(mcpClient.readResource({
+              uri: `obs://scenes/by-name/${encodeURIComponent(scene.sceneName)}`
+            })).resolves.toEqual(expect.objectContaining({
+              contents: expect.arrayContaining([
+                expect.objectContaining({ mimeType: "application/json" })
+              ])
+            }))
+          }
+        }
+
+        if (requestAvailable(obs, "GetInputList")) {
+          const inputs = await listInputs(obs, {})
+          const input = inputs.inputs[0]
+          if (input !== undefined) {
+            await expect(mcpClient.readResource({
+              uri: `obs://inputs/by-name/${encodeURIComponent(input.inputName)}`
+            })).resolves.toEqual(expect.objectContaining({
+              contents: expect.arrayContaining([
+                expect.objectContaining({ mimeType: "application/json" })
+              ])
+            }))
+          }
+        }
       } finally {
         await Promise.all([
           mcpClient.close().catch(() => undefined),

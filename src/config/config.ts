@@ -33,8 +33,10 @@ const DEFAULT_OBS_WEBSOCKET_URL = "ws://localhost:4455"
 const DEFAULT_OBS_CONNECTION_TIMEOUT = 30_000
 export const DEFAULT_MCP_HTTP_HOST = "127.0.0.1"
 export const DEFAULT_MCP_HTTP_PORT = 3000
+export const DEFAULT_MCP_HTTP_SESSION_IDLE_TIMEOUT_MS = 1_800_000
 
 const McpTransport = Schema.Literal("stdio", "http")
+const McpHttpSessionMode = Schema.Literal("stateful", "stateless")
 
 export const ObsConfig = Schema.Struct({
   url: ObsString,
@@ -47,6 +49,8 @@ export const ObsConfig = Schema.Struct({
   mcpHttpHost: Schema.optional(ObsNonEmptyString),
   mcpHttpPort: Schema.optional(ObsPositiveInteger),
   mcpHttpAuthToken: Schema.optional(ObsNonEmptyString),
+  mcpHttpSessionMode: Schema.optional(McpHttpSessionMode),
+  mcpHttpSessionIdleTimeoutMs: Schema.optional(ObsPositiveInteger),
   lazyEnvs: Schema.optional(Schema.Boolean),
   mcpAutoExit: Schema.optional(Schema.Boolean)
 })
@@ -109,6 +113,7 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
       const timeout = timeoutRaw === undefined ? DEFAULT_OBS_CONNECTION_TIMEOUT : Number.parseInt(timeoutRaw, 10)
       const eventBufferCapacityRaw = env["OBS_EVENT_BUFFER_CAPACITY"]
       const httpPortRaw = env["MCP_HTTP_PORT"]
+      const httpSessionIdleTimeoutRaw = env["MCP_HTTP_SESSION_IDLE_TIMEOUT_MS"]
       const lazyEnvs = lazyEnvsEnabled(env["LAZY_ENVS"])
       return Schema.decodeUnknownSync(ObsConfig)({
         url: normalizeObsWebSocketUrl(env["OBS_WEBSOCKET_URL"] ?? DEFAULT_OBS_WEBSOCKET_URL),
@@ -125,6 +130,10 @@ export const loadObsConfigFromEnv = (env: NodeJS.ProcessEnv): Effect.Effect<ObsC
         mcpHttpHost: env["MCP_HTTP_HOST"] ?? DEFAULT_MCP_HTTP_HOST,
         mcpHttpPort: httpPortRaw === undefined ? DEFAULT_MCP_HTTP_PORT : Number.parseInt(httpPortRaw, 10),
         ...(env["MCP_HTTP_AUTH_TOKEN"] === undefined ? {} : { mcpHttpAuthToken: env["MCP_HTTP_AUTH_TOKEN"] }),
+        mcpHttpSessionMode: env["MCP_HTTP_SESSION_MODE"] ?? "stateful",
+        mcpHttpSessionIdleTimeoutMs: httpSessionIdleTimeoutRaw === undefined
+          ? DEFAULT_MCP_HTTP_SESSION_IDLE_TIMEOUT_MS
+          : Number.parseInt(httpSessionIdleTimeoutRaw, 10),
         lazyEnvs,
         mcpAutoExit: parseConfigBoolean(env["MCP_AUTO_EXIT"], "MCP_AUTO_EXIT")
       })

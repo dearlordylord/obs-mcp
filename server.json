@@ -75,6 +75,20 @@
           "isSecret": true
         },
         {
+          "name": "MCP_HTTP_SESSION_MODE",
+          "description": "HTTP session mode when MCP_TRANSPORT=http: stateful or stateless. Omit to use stateful.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "MCP_HTTP_SESSION_IDLE_TIMEOUT_MS",
+          "description": "Idle timeout in milliseconds for stateful HTTP sessions. Omit to use 1800000.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
           "name": "OBS_EVENT_BUFFER_CAPACITY",
           "description": "Optional event buffer capacity for event tools.",
           "isRequired": false,

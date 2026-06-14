@@ -59,6 +59,25 @@ const readJson = async (client: Client, uri: string): Promise<unknown> => {
   return JSON.parse(content.text)
 }
 
+const WRITE_REQUEST_PREFIXES = [
+  "Create",
+  "Offset",
+  "Pause",
+  "Press",
+  "Remove",
+  "Resume",
+  "Save",
+  "Set",
+  "Split",
+  "Start",
+  "Stop",
+  "Toggle",
+  "Trigger"
+] as const
+
+const isWriteObsRequest = (requestType: string): boolean =>
+  WRITE_REQUEST_PREFIXES.some((prefix) => requestType.startsWith(prefix))
+
 const connect = async (
   obs: ObsClient = fakeObsClient(resourceRequestHandler),
   serverConfig: ObsConfig = config
@@ -148,6 +167,22 @@ describe("MCP resources", () => {
     })
   })
 
+  it("does not issue write OBS requests while listing or reading resources", async () => {
+    const requestTypes: Array<ObsRequestType> = []
+    const client = await connect(fakeObsClient(async (requestType, requestData) => {
+      requestTypes.push(requestType)
+      return await resourceRequestHandler(requestType, requestData)
+    }))
+
+    for (const resource of (await client.listResources()).resources) {
+      await readJson(client, resource.uri)
+    }
+    await readJson(client, "obs://scenes/by-name/Intro")
+    await readJson(client, "obs://inputs/by-name/Mic%2FAux")
+
+    expect([...new Set(requestTypes)].filter(isWriteObsRequest)).toEqual([])
+  })
+
   it("returns InvalidParams for unknown resources and missing template entities", async () => {
     const client = await connect()
 
@@ -203,6 +238,7 @@ describe("MCP resources", () => {
     await expect(readJson(client, "obs://screenshots/latest")).resolves.toMatchObject({
       latest: {
         sourceName: "Intro",
+        capturedAt: expect.any(String),
         imageFormat: "png",
         mimeType: "image/png",
         imageBytes: 4,
@@ -222,6 +258,19 @@ describe("MCP resources", () => {
     const payload = await readJson(client, "obs://state/current")
     expect(payload).toMatchObject({ version: { obsVersion: "32.0.0" } })
     expect(payload).not.toHaveProperty("stats")
+  })
+
+  it("keeps aggregate config resources partial when optional OBS reads fail", async () => {
+    const client = await connect(fakeObsClient(async (requestType, requestData) => {
+      if (requestType === "GetRecordDirectory") {
+        throw new Error("record directory unavailable")
+      }
+      return await resourceRequestHandler(requestType, requestData)
+    }))
+
+    const payload = await readJson(client, "obs://config")
+    expect(payload).toMatchObject({ videoSettings: { baseWidth: 1920 } })
+    expect(payload).not.toHaveProperty("recordDirectory")
   })
 
   it("maps OBS request errors from required resource reads", async () => {
@@ -257,9 +306,48 @@ describe("MCP resources", () => {
     await expect(readJson(client, "obs://screenshots/latest")).resolves.toMatchObject({
       latest: {
         sourceUuid: "scene-intro",
+        capturedAt: expect.any(String),
         imageFormat: "png",
         imageFilePath: path.join(directory, "capture.png")
       }
+    })
+  })
+
+  it("keeps resource cache entries inside TTL and invalidates only matching groups", async () => {
+    let readCount = 0
+    const manager = new ResourceManager(
+      [{
+        uri: "obs://cache",
+        name: "cache",
+        title: "Cache",
+        description: "Cache resource",
+        mimeType: "application/json",
+        requiredObsRequests: [],
+        groups: ["inputs"],
+        read: async () => ({ readCount: ++readCount })
+      }],
+      [],
+      async () => undefined
+    )
+    const context = {
+      config,
+      client: fakeObsClient(resourceRequestHandler),
+      screenshots: { getLatest: () => undefined, setLatest: () => undefined }
+    }
+
+    await expect(manager.read("obs://cache", context)).resolves.toMatchObject({
+      contents: [{ text: "{\"readCount\":1}" }]
+    })
+    await expect(manager.read("obs://cache", context)).resolves.toMatchObject({
+      contents: [{ text: "{\"readCount\":1}" }]
+    })
+    manager.invalidate(["scenes"])
+    await expect(manager.read("obs://cache", context)).resolves.toMatchObject({
+      contents: [{ text: "{\"readCount\":1}" }]
+    })
+    manager.invalidate(["inputs"])
+    await expect(manager.read("obs://cache", context)).resolves.toMatchObject({
+      contents: [{ text: "{\"readCount\":2}" }]
     })
   })
 

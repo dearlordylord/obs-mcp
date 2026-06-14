@@ -94,15 +94,22 @@ const runHttpServer = async (config: ObsRuntime["config"]): Promise<void> => {
   const runtime = await createObsRuntime(config)
   const { client } = runtime
   const resourceState = createObsMcpResourceState()
-  const transport = await startHttpTransport({
-    host: config.mcpHttpHost ?? DEFAULT_MCP_HTTP_HOST,
-    port: config.mcpHttpPort ?? DEFAULT_MCP_HTTP_PORT,
-    authToken: config.mcpHttpAuthToken
-  }, () =>
-    createObsMcpServer(config, client, {
-      enableResourceSubscriptions: false,
-      resourceState
-    }))
+  const transport = await startHttpTransport(
+    {
+      host: config.mcpHttpHost ?? DEFAULT_MCP_HTTP_HOST,
+      port: config.mcpHttpPort ?? DEFAULT_MCP_HTTP_PORT,
+      authToken: config.mcpHttpAuthToken,
+      sessionMode: config.mcpHttpSessionMode,
+      sessionIdleTimeoutMs: config.mcpHttpSessionIdleTimeoutMs
+    },
+    (config.mcpHttpSessionMode ?? "stateful") === "stateful"
+      ? () => createObsMcpServer(config, client)
+      : () =>
+        createObsMcpServer(config, client, {
+          enableResourceSubscriptions: false,
+          resourceState
+        })
+  )
 
   process.stderr.write(`obs-mcp connected to ${redactedObsWebSocketUrl(runtime.config.url)}\n`)
   if (runtime.discoveryServer !== undefined) {

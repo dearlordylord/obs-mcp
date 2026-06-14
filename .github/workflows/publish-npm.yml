@@ -1,0 +1,79 @@
+name: Publish npm
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check npm token
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NPM_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN secret is required to publish @firfi/obs-mcp"
+            exit 1
+          fi
+
+      - name: Check package version is unpublished
+        run: |
+          set -euo pipefail
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          if npm view "${package_name}@${package_version}" version > /tmp/npm-view-version.txt 2> /tmp/npm-view-error.txt; then
+            echo "::error::${package_name}@${package_version} is already published on npm"
+            cat /tmp/npm-view-version.txt
+            exit 1
+          fi
+          if ! grep -q "E404" /tmp/npm-view-error.txt; then
+            cat /tmp/npm-view-error.txt
+            exit 1
+          fi
+
+      - name: Run release gate
+        run: pnpm check-all
+
+      - name: Run package smoke test
+        run: pnpm package-smoke
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+
+      - name: Verify published version
+        run: |
+          set -euo pipefail
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          published_version="$(npm view "${package_name}" version)"
+          if [ "${published_version}" != "${package_version}" ]; then
+            echo "::error::npm reports ${package_name}@${published_version}, expected ${package_version}"
+            exit 1
+          fi

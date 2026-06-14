@@ -25,6 +25,8 @@ describe("OBS config", () => {
     expect(config.mcpTransport).toBe("stdio")
     expect(config.mcpHttpHost).toBe("127.0.0.1")
     expect(config.mcpHttpPort).toBe(3000)
+    expect(config.mcpHttpSessionMode).toBe("stateful")
+    expect(config.mcpHttpSessionIdleTimeoutMs).toBe(1_800_000)
     expect(config.enabledToolsets).toEqual([
       "scenes",
       "general",
@@ -108,15 +110,21 @@ describe("OBS config", () => {
       MCP_TRANSPORT: "http",
       MCP_HTTP_HOST: "0.0.0.0",
       MCP_HTTP_PORT: "3010",
-      MCP_HTTP_AUTH_TOKEN: "secret-token"
+      MCP_HTTP_AUTH_TOKEN: "secret-token",
+      MCP_HTTP_SESSION_MODE: "stateless",
+      MCP_HTTP_SESSION_IDLE_TIMEOUT_MS: "1000"
     }))).resolves.toMatchObject({
       mcpTransport: "http",
       mcpHttpHost: "0.0.0.0",
       mcpHttpPort: 3010,
-      mcpHttpAuthToken: "secret-token"
+      mcpHttpAuthToken: "secret-token",
+      mcpHttpSessionMode: "stateless",
+      mcpHttpSessionIdleTimeoutMs: 1000
     })
     await expectEffectFailure(loadObsConfigFromEnv({ MCP_TRANSPORT: "sse" }), /mcpTransport/)
     await expectEffectFailure(loadObsConfigFromEnv({ MCP_HTTP_PORT: "0" }), /mcpHttpPort/)
+    await expectEffectFailure(loadObsConfigFromEnv({ MCP_HTTP_SESSION_MODE: "sticky" }), /mcpHttpSessionMode/)
+    await expectEffectFailure(loadObsConfigFromEnv({ MCP_HTTP_SESSION_IDLE_TIMEOUT_MS: "0" }), /mcpHttpSession/)
   })
 
   it("loads screenshot save output directory policy from the environment", async () => {

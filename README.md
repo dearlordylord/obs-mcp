@@ -198,6 +198,8 @@ Authorization: Bearer <MCP_HTTP_AUTH_TOKEN>
 
 `MCP_HTTP_AUTH_TOKEN` protects only the MCP HTTP `/mcp` endpoint. It is unrelated to `OBS_WEBSOCKET_PASSWORD`, does not authenticate to OBS, and is not used by stdio deployments.
 
+HTTP uses stateful Streamable HTTP sessions by default, so clients can subscribe to resource updates. Set `MCP_HTTP_SESSION_MODE=stateless` to preserve one-server-per-POST behavior for simple/raw clients. Stateless HTTP does not support resource subscriptions and continues to reject GET/DELETE with 405.
+
 ## Environment Variables
 
 | Variable | Required | Description |
@@ -209,6 +211,8 @@ Authorization: Bearer <MCP_HTTP_AUTH_TOKEN>
 | `MCP_HTTP_HOST` | No | HTTP bind host. Defaults to `127.0.0.1`. |
 | `MCP_HTTP_PORT` | No | HTTP bind port. Defaults to `3000`. |
 | `MCP_HTTP_AUTH_TOKEN` | No | Optional bearer token required by HTTP clients for `/mcp`. |
+| `MCP_HTTP_SESSION_MODE` | No | HTTP session mode: `stateful` (default) or `stateless`. |
+| `MCP_HTTP_SESSION_IDLE_TIMEOUT_MS` | No | Idle timeout for stateful HTTP sessions. Defaults to `1800000`. |
 | `TOOLSETS` | No | Comma-separated tool categories to expose. Defaults to `general,record,scenes,inputs`. Use `all` to expose every supported category. |
 | `OBS_EVENT_BUFFER_CAPACITY` | No | Maximum number of recent safe OBS events retained for `get_recent_obs_events`. |
 | `OBS_MCP_SCREENSHOT_OUTPUT_DIR` | Screenshots* | Existing directory allowlist for `save_source_screenshot`. |
