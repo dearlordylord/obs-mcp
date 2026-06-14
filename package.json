@@ -38,7 +38,7 @@
     "check-format": "eslint src test --rule '@effect/dprint: error'",
     "format": "eslint src test --fix --rule '@effect/dprint: error'",
     "circular": "madge --extensions ts --circular src",
-    "gitleaks": "gitleaks detect --no-git --source . --redact --verbose",
+    "gitleaks": "gitleaks detect --redact --verbose",
     "verify-version": "node scripts/verify-version.mjs",
     "verify-registry-metadata": "node scripts/sync-registry-metadata.mjs --check",
     "sync-registry-metadata": "node scripts/sync-registry-metadata.mjs",
