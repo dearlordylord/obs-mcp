@@ -47,6 +47,7 @@ import {
   SAFE_EVENT_SUBSCRIPTION_MASK,
   shouldSurfaceSafeEvent
 } from "../../src/obs/protocol.js"
+import { expectParseError, expectSchemaDecodeFailure } from "../support/effect-assertions.js"
 
 type EventLedgerStatus = "typed-safe" | "high-volume" | "raw-only" | "deferred"
 
@@ -507,138 +508,191 @@ describe("OBS event protocol foundation", () => {
   })
 
   it("rejects malformed typed low-volume event payloads", () => {
-    expect(() => decodeTypedObsEventData("CanvasNameChanged", { canvasName: "Canvas A" })).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("CanvasCreated", {
-        canvasName: "Canvas A",
-        canvasUuid: "canvas-a",
-        rawCanvasField: true
-      })
-    ).toThrow()
-    expect(() => decodeTypedObsEventData("SceneCollectionListChanged", { sceneCollections: [1] })).toThrow()
-    expect(() => decodeTypedObsEventData("CurrentProfileChanged", { sceneCollectionName: "Profile" })).toThrow()
+    expectParseError(
+      () => decodeTypedObsEventData("CanvasNameChanged", { canvasName: "Canvas A" }),
+      /oldCanvasName/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("CanvasCreated", {
+          canvasName: "Canvas A",
+          canvasUuid: "canvas-a",
+          rawCanvasField: true
+        }),
+      /rawCanvasField/
+    )
+    expectParseError(
+      () => decodeTypedObsEventData("SceneCollectionListChanged", { sceneCollections: [1] }),
+      /sceneCollections/
+    )
+    expectParseError(
+      () => decodeTypedObsEventData("CurrentProfileChanged", { sceneCollectionName: "Profile" }),
+      /profileName/
+    )
     for (const filterIndex of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
-      expect(() =>
-        decodeTypedObsEventData("SourceFilterCreated", {
+      expectParseError(
+        () =>
+          decodeTypedObsEventData("SourceFilterCreated", {
+            sourceName: "Camera",
+            filterName: "Color",
+            filterKind: "color_filter",
+            filterIndex
+          }),
+        /filterIndex/
+      )
+      expectParseError(
+        () =>
+          decodeTypedObsEventData("SourceFilterListReindexed", {
+            sourceName: "Camera",
+            filters: [{ filterName: "Color", filterIndex }]
+          }),
+        /filterIndex/
+      )
+    }
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("SourceFilterEnableStateChanged", {
           sourceName: "Camera",
           filterName: "Color",
-          filterKind: "color_filter",
-          filterIndex
-        })
-      ).toThrow()
-      expect(() =>
-        decodeTypedObsEventData("SourceFilterListReindexed", {
+          filterEnabled: "yes"
+        }),
+      /filterEnabled/
+    )
+    expectParseError(() => decodeTypedObsEventData("ExitStarted", { raw: true }), /Expected no ExitStarted event data/)
+    expectParseError(
+      () => decodeTypedObsEventData("SceneCreated", { sceneName: "Program", sceneUuid: "scene-program" }),
+      /isGroup/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("SceneItemListReindexed", {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItems: [{ sceneItemId: 12, rawIndex: 0 }]
+        }),
+      /sceneItemIndex/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("SceneItemCreated", {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
           sourceName: "Camera",
-          filters: [{ filterName: "Color", filterIndex }]
-        })
-      ).toThrow()
-    }
-    expect(() =>
-      decodeTypedObsEventData("SourceFilterEnableStateChanged", {
-        sourceName: "Camera",
-        filterName: "Color",
-        filterEnabled: "yes"
-      })
-    ).toThrow()
-    expect(() => decodeTypedObsEventData("ExitStarted", { raw: true })).toThrow()
-    expect(() => decodeTypedObsEventData("SceneCreated", { sceneName: "Program", sceneUuid: "scene-program" }))
-      .toThrow()
-    expect(() =>
-      decodeTypedObsEventData("SceneItemListReindexed", {
-        sceneName: "Program",
-        sceneUuid: "scene-program",
-        sceneItems: [{ sceneItemId: 12, rawIndex: 0 }]
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("SceneItemCreated", {
-        sceneName: "Program",
-        sceneUuid: "scene-program",
-        sourceName: "Camera",
-        sourceUuid: "source-camera",
-        sceneItemId: -1,
-        sceneItemIndex: 0
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("SceneItemRemoved", {
-        sceneName: "Program",
-        sceneUuid: "scene-program",
-        sourceName: "Camera",
-        sourceUuid: "source-camera",
-        sceneItemId: 1.25
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("SceneItemListReindexed", {
-        sceneName: "Program",
-        sceneUuid: "scene-program",
-        sceneItems: [{ sceneItemId: 12, sceneItemIndex: -1 }]
-      })
-    ).toThrow()
-    expect(() => decodeTypedObsEventData("InputNameChanged", { inputUuid: "input-camera", inputName: "Camera" }))
-      .toThrow()
-    expect(() =>
-      decodeTypedObsEventData("InputRemoved", {
-        inputName: "Camera",
-        inputUuid: "input-camera",
-        inputSettings: { secret: true }
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("InputNameChanged", {
-        inputUuid: "input-camera",
-        oldInputName: "Old Camera",
-        inputName: "Camera",
-        inputKind: "dshow_input"
-      })
-    ).toThrow()
-    expect(() => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true })).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("InputVolumeChanged", {
-        inputName: "Mic",
-        inputUuid: "input-mic",
-        inputVolumeMul: 0.5,
-        inputVolumeDb: -6,
-        inputSettings: { secret: true }
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("InputAudioTracksChanged", {
-        inputName: "Mic",
-        inputUuid: "input-mic",
-        inputAudioTracks: { "1": true, "2": false, "3": false, "4": false, "5": false, "6": false, "7": true }
-      })
-    ).toThrow()
-    expect(() => decodeTypedObsEventData("RecordFileChanged", { outputPath: "/tmp/recording.mkv" })).toThrow()
-    expect(() => decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", { transitionDuration: -1 }))
-      .toThrow()
+          sourceUuid: "source-camera",
+          sceneItemId: -1,
+          sceneItemIndex: 0
+        }),
+      /sceneItemId/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("SceneItemRemoved", {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sourceName: "Camera",
+          sourceUuid: "source-camera",
+          sceneItemId: 1.25
+        }),
+      /sceneItemId/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("SceneItemListReindexed", {
+          sceneName: "Program",
+          sceneUuid: "scene-program",
+          sceneItems: [{ sceneItemId: 12, sceneItemIndex: -1 }]
+        }),
+      /sceneItemIndex/
+    )
+    expectParseError(
+      () => decodeTypedObsEventData("InputNameChanged", { inputUuid: "input-camera", inputName: "Camera" }),
+      /oldInputName/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("InputRemoved", {
+          inputName: "Camera",
+          inputUuid: "input-camera",
+          inputSettings: { secret: true }
+        }),
+      /inputSettings/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("InputNameChanged", {
+          inputUuid: "input-camera",
+          oldInputName: "Old Camera",
+          inputName: "Camera",
+          inputKind: "dshow_input"
+        }),
+      /inputKind/
+    )
+    expectParseError(
+      () => decodeTypedObsEventData("InputMuteStateChanged", { inputName: "Mic", inputMuted: true }),
+      /inputUuid/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("InputVolumeChanged", {
+          inputName: "Mic",
+          inputUuid: "input-mic",
+          inputVolumeMul: 0.5,
+          inputVolumeDb: -6,
+          inputSettings: { secret: true }
+        }),
+      /inputSettings/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("InputAudioTracksChanged", {
+          inputName: "Mic",
+          inputUuid: "input-mic",
+          inputAudioTracks: { "1": true, "2": false, "3": false, "4": false, "5": false, "6": false, "7": true }
+        }),
+      /inputAudioTracks/
+    )
+    expectParseError(
+      () => decodeTypedObsEventData("RecordFileChanged", { outputPath: "/tmp/recording.mkv" }),
+      /newOutputPath/
+    )
+    expectParseError(
+      () => decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", { transitionDuration: -1 }),
+      /transitionDuration/
+    )
     for (const transitionDuration of [0, 49, 20001]) {
       expect(() => decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", { transitionDuration }))
         .not.toThrow()
     }
-    expect(() => decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", { transitionDuration: 300.5 }))
-      .toThrow()
-    expect(() =>
-      decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", {
-        transitionDuration: 300,
-        transitionName: "Fade"
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("SceneTransitionStarted", {
-        transitionName: "Fade",
-        transitionUuid: "transition-fade",
-        position: 0.5
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("MediaInputActionTriggered", {
-        inputName: "Media",
-        inputUuid: "input-media",
-        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_UNKNOWN"
-      })
-    ).toThrow()
+    expectParseError(
+      () => decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", { transitionDuration: 300.5 }),
+      /transitionDuration/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("CurrentSceneTransitionDurationChanged", {
+          transitionDuration: 300,
+          transitionName: "Fade"
+        }),
+      /transitionName/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("SceneTransitionStarted", {
+          transitionName: "Fade",
+          transitionUuid: "transition-fade",
+          position: 0.5
+        }),
+      /position/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("MediaInputActionTriggered", {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_UNKNOWN"
+        }),
+      /mediaAction/
+    )
     expect(() =>
       decodeTypedObsEventData("MediaInputActionTriggered", {
         inputName: "Media",
@@ -646,27 +700,33 @@ describe("OBS event protocol foundation", () => {
         mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_NONE"
       })
     ).not.toThrow()
-    expect(() =>
-      decodeTypedObsEventData("MediaInputPlaybackEnded", {
-        inputName: "Media",
-        inputUuid: "input-media",
-        mediaCursor: 1000
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("MediaInputActionTriggered", {
-        inputName: "Media",
-        inputUuid: "input-media",
-        mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY",
-        mediaState: "OBS_MEDIA_STATE_PLAYING"
-      })
-    ).toThrow()
-    expect(() =>
-      decodeTypedObsEventData("StudioModeStateChanged", {
-        studioModeEnabled: true,
-        savedScreenshotPath: "/tmp/screenshot.png"
-      })
-    ).toThrow()
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("MediaInputPlaybackEnded", {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaCursor: 1000
+        }),
+      /mediaCursor/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("MediaInputActionTriggered", {
+          inputName: "Media",
+          inputUuid: "input-media",
+          mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY",
+          mediaState: "OBS_MEDIA_STATE_PLAYING"
+        }),
+      /mediaState/
+    )
+    expectParseError(
+      () =>
+        decodeTypedObsEventData("StudioModeStateChanged", {
+          studioModeEnabled: true,
+          savedScreenshotPath: "/tmp/screenshot.png"
+        }),
+      /savedScreenshotPath/
+    )
   })
 
   it("matches event types to their official event subscriptions", () => {
@@ -740,25 +800,29 @@ describe("OBS event protocol foundation", () => {
   })
 
   it("rejects malformed event envelopes", () => {
-    expect(() =>
-      decodeEventEnvelope(JSON.stringify({
-        op: 5,
-        d: {
-          eventType: "CurrentProgramSceneChanged",
-          eventIntent: "Scenes"
-        }
-      }))
-    ).toThrow()
-    expect(() =>
-      decodeEventEnvelope(JSON.stringify({
-        op: 5,
-        d: {
-          eventType: "CurrentProgramSceneChanged",
-          eventIntent: EventSubscription.Scenes,
-          eventData: "not-an-object"
-        }
-      }))
-    ).toThrow()
+    expectParseError(
+      () =>
+        decodeEventEnvelope(JSON.stringify({
+          op: 5,
+          d: {
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: "Scenes"
+          }
+        })),
+      /eventIntent/
+    )
+    expectParseError(
+      () =>
+        decodeEventEnvelope(JSON.stringify({
+          op: 5,
+          d: {
+            eventType: "CurrentProgramSceneChanged",
+            eventIntent: EventSubscription.Scenes,
+            eventData: "not-an-object"
+          }
+        })),
+      /eventData/
+    )
   })
 
   it("keeps high-volume subscriptions disabled by default", () => {
@@ -816,6 +880,14 @@ describe("OBS event protocol foundation", () => {
       baselineSequence: 0,
       event: { sequence: 1, eventType: "RecordStateChanged" },
       snapshot: { latestSequence: 1, missedEvents: false }
+    })
+    await expect(buffer.waitFor((entry) => entry.eventType === "RecordStateChanged", {
+      afterSequence: 0,
+      timeoutMs: 50
+    })).resolves.toMatchObject({
+      timedOut: false,
+      baselineSequence: 0,
+      event: { sequence: 1, eventType: "RecordStateChanged" }
     })
 
     const closed = buffer.waitFor(() => false, { afterSequence: 1, timeoutMs: 50 })
@@ -890,10 +962,13 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(() => Schema.decodeUnknownSync(ConfirmObsSceneGraphChangeInput)(input), JSON.stringify(input))
-        .toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsSceneGraphChangeInput,
+        input,
+        /target|outcome|afterSequence|oldSceneName|sourceName|sourceUuid|sceneName|sceneItemId|eventType|eventIntent|payload|regex/
+      )
     }
-    expect(() => Schema.decodeUnknownSync(EventSequence)(0)).toThrow()
+    expectSchemaDecodeFailure(EventSequence, 0, /Expected a positive number/)
     expect(() =>
       Schema.decodeUnknownSync(ConfirmObsSceneGraphChangeInput)({
         target: "scene",
@@ -948,14 +1023,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsCanvasInventoryChangeInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsCanvasInventoryChangeInput,
+        input,
+        /target|outcome|afterSequence|oldCanvasName|canvasName|canvasUuid|eventType|eventIntent|eventData|payload|regex|sceneName|sourceName|inputName|transitionName|profileName|savedScreenshotPath|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
     expect(() =>
       Schema.decodeUnknownSync(ConfirmObsCanvasInventoryChangeInput)({
@@ -1000,14 +1073,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsStudioModeStateChangeInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsStudioModeStateChangeInput,
+        input,
+        /target|outcome|afterSequence|studioModeEnabled|eventType|eventIntent|eventData|payload|regex|savedScreenshotPath|sceneName|inputName|transitionName|canvasName|filterName|outputState|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -1095,15 +1166,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsSourceFilterChangeInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
+      expectSchemaDecodeFailure(
+        ConfirmObsSourceFilterChangeInput,
+        input,
+        /target|outcome|afterSequence|oldFilterName|filterKind|filterIndex|sourceName|filterName|eventType|eventIntent|eventData|payload|regex|sourceUuid|canvasUuid|filterSettings|defaultFilterSettings|filterEnabled|unexpected/,
+        { onExcessProperty: "error" }
       )
-        .toThrow()
     }
     expect(() =>
       Schema.decodeUnknownSync(ConfirmObsSourceFilterChangeInput)({
@@ -1189,14 +1257,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsMediaInputWorkflowInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsMediaInputWorkflowInput,
+        input,
+        /target|outcome|afterSequence|mediaAction|inputName|inputUuid|eventType|eventIntent|eventData|payload|regex|mediaState|mediaCursor|mediaDuration|mediaCursorOffset|inputSettings|defaultInputSettings|inputKind|sceneItemId|filterName|sourceName|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
     expect(() =>
       Schema.decodeUnknownSync(ConfirmObsMediaInputWorkflowInput)({
@@ -1336,14 +1402,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsTransitionWorkflowInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsTransitionWorkflowInput,
+        input,
+        /target|outcome|afterSequence|transitionName|transitionUuid|transitionDuration|eventType|eventIntent|eventData|payload|regex|transitionSettings|overlay|position|release|sceneName|sceneUuid|inputName|sourceName|filterName|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
     expect(() =>
       Schema.decodeUnknownSync(ConfirmObsTransitionWorkflowInput)({
@@ -1418,14 +1482,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsConfigWorkflowInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsConfigWorkflowInput,
+        input,
+        /target|outcome|afterSequence|profileName|profiles|sceneCollectionName|sceneCollections|eventType|eventIntent|eventData|payload|regex|parameterCategory|parameterName|parameterValue|sceneName|sourceName|inputName|transitionName|outputState|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -1518,14 +1580,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsInputAudioChangeInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsInputAudioChangeInput,
+        input,
+        /target|outcome|afterSequence|inputMuted|inputVolumeMul|inputVolumeDb|inputAudioBalance|inputAudioSyncOffset|inputAudioTracks|monitorType|inputName|inputUuid|eventType|eventIntent|eventData|payload|regex|inputSettings|defaultInputSettings|inputKind|inputKindCaps|mediaState|mediaCursor|sourceName|filterName|sceneItemId|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
     expect(() =>
       Schema.decodeUnknownSync(ConfirmObsInputAudioChangeInput)({
@@ -1661,8 +1721,12 @@ describe("OBS event protocol foundation", () => {
       { ...validOutput.event, unexpected: true }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(() => Schema.decodeUnknownSync(InputAudioChangeEventSummary, { onExcessProperty: "error" })(summary))
-        .toThrow()
+      expectSchemaDecodeFailure(
+        InputAudioChangeEventSummary,
+        summary,
+        /outcome|inputMuted|inputVolumeMul|inputVolumeDb|inputAudioBalance|inputAudioSyncOffset|inputAudioTracks|monitorType|eventIntent|sequence|inputSettings|eventData|payload|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -1718,14 +1782,12 @@ describe("OBS event protocol foundation", () => {
     ] as const
 
     for (const input of invalidInputs) {
-      expect(
-        () =>
-          Schema.decodeUnknownSync(
-            ConfirmObsInputIdentityChangeInput,
-            { onExcessProperty: "error" }
-          )(input),
-        JSON.stringify(input)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        ConfirmObsInputIdentityChangeInput,
+        input,
+        /target|outcome|afterSequence|inputName|inputUuid|oldInputName|eventType|eventIntent|eventData|payload|regex|settings|inputSettings|defaultSettings|defaultInputSettings|inputKind|unversionedInputKind|inputKindCaps|sceneItemId|sceneName|sourceName|filterName|transitionName|canvasName|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -1789,9 +1851,12 @@ describe("OBS event protocol foundation", () => {
       { ...validOutput.event, unexpected: true }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(
-        () => Schema.decodeUnknownSync(InputIdentityChangeEventSummary, { onExcessProperty: "error" })(summary)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        InputIdentityChangeEventSummary,
+        summary,
+        /outcome|target|category|inputName|inputUuid|oldInputName|eventType|eventIntent|sequence|inputSettings|defaultInputSettings|inputKind|inputKindCaps|eventData|payload|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -1869,8 +1934,12 @@ describe("OBS event protocol foundation", () => {
       }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(() => Schema.decodeUnknownSync(MediaInputWorkflowEventSummary, { onExcessProperty: "error" })(summary))
-        .toThrow()
+      expectSchemaDecodeFailure(
+        MediaInputWorkflowEventSummary,
+        summary,
+        /outcome|mediaAction|mediaState|mediaCursor|mediaDuration|payload|inputSettings|unexpected|eventIntent|sequence/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -1967,8 +2036,12 @@ describe("OBS event protocol foundation", () => {
       }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(() => Schema.decodeUnknownSync(TransitionWorkflowEventSummary, { onExcessProperty: "error" })(summary))
-        .toThrow()
+      expectSchemaDecodeFailure(
+        TransitionWorkflowEventSummary,
+        summary,
+        /outcome|target|transitionDuration|transitionName|transitionUuid|transitionSettings|eventData|payload|unexpected|eventIntent|sequence/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -2038,8 +2111,12 @@ describe("OBS event protocol foundation", () => {
       { ...validOutput.event, unexpected: true }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(() => Schema.decodeUnknownSync(CanvasInventoryChangeEventSummary, { onExcessProperty: "error" })(summary))
-        .toThrow()
+      expectSchemaDecodeFailure(
+        CanvasInventoryChangeEventSummary,
+        summary,
+        /outcome|target|category|canvasName|canvasUuid|oldCanvasName|eventType|eventIntent|sequence|eventData|payload|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -2093,9 +2170,12 @@ describe("OBS event protocol foundation", () => {
       { ...validOutput.event, unexpected: true }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(
-        () => Schema.decodeUnknownSync(StudioModeStateChangeEventSummary, { onExcessProperty: "error" })(summary)
-      ).toThrow()
+      expectSchemaDecodeFailure(
+        StudioModeStateChangeEventSummary,
+        summary,
+        /outcome|studioModeEnabled|eventType|eventIntent|category|target|sequence|savedScreenshotPath|eventData|payload|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -2195,8 +2275,12 @@ describe("OBS event protocol foundation", () => {
       { ...validOutput.event, unexpected: true }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(() => Schema.decodeUnknownSync(ConfigWorkflowEventSummary, { onExcessProperty: "error" })(summary))
-        .toThrow()
+      expectSchemaDecodeFailure(
+        ConfigWorkflowEventSummary,
+        summary,
+        /outcome|profileName|profiles|sceneCollectionName|sceneCollections|parameterCategory|parameterName|eventData|payload|eventIntent|sequence|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -2350,8 +2434,12 @@ describe("OBS event protocol foundation", () => {
       }
     ] as const
     for (const summary of invalidSummaries) {
-      expect(() => Schema.decodeUnknownSync(SourceFilterChangeEventSummary, { onExcessProperty: "error" })(summary))
-        .toThrow()
+      expectSchemaDecodeFailure(
+        SourceFilterChangeEventSummary,
+        summary,
+        /outcome|filterKind|filterIndex|oldFilterName|filterName|sourceName|filterEnabled|filterSettings|defaultFilterSettings|rawSettingsOmitted|eventType|eventIntent|sequence|eventData|payload|unexpected/,
+        { onExcessProperty: "error" }
+      )
     }
   })
 
@@ -2377,14 +2465,17 @@ describe("OBS event protocol foundation", () => {
     } as const
     expect(Schema.decodeUnknownSync(ConfirmObsSceneGraphChangeOutput)(validOutput)).toEqual(validOutput)
 
-    expect(() =>
-      Schema.decodeUnknownSync(SceneGraphChangeEventSummary)({
+    expectSchemaDecodeFailure(
+      SceneGraphChangeEventSummary,
+      {
         ...validOutput.event,
         outcome: "locked"
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(SceneGraphChangeEventSummary)({
+      },
+      /outcome/
+    )
+    expectSchemaDecodeFailure(
+      SceneGraphChangeEventSummary,
+      {
         sequence: 1,
         eventType: "CurrentProgramSceneChanged",
         eventIntent: EventSubscription.Scenes,
@@ -2393,10 +2484,12 @@ describe("OBS event protocol foundation", () => {
         outcome: "changed",
         sceneName: "Program",
         sceneUuid: "scene-program"
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(SceneGraphChangeEventSummary)({
+      },
+      /target/
+    )
+    expectSchemaDecodeFailure(
+      SceneGraphChangeEventSummary,
+      {
         sequence: 1,
         eventType: "SceneItemListReindexed",
         eventIntent: EventSubscription.SceneItems,
@@ -2406,19 +2499,23 @@ describe("OBS event protocol foundation", () => {
         sceneName: "Program",
         sceneUuid: "scene-program",
         sceneItems: [{ sceneItemId: 12, sceneItemIndex: -1 }]
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(ConfirmObsSceneGraphChangeOutput)({
+      },
+      /sceneItemIndex/
+    )
+    expectSchemaDecodeFailure(
+      ConfirmObsSceneGraphChangeOutput,
+      {
         ...validOutput,
         event: { ...validOutput.event, sequence: 0 }
-      })
-    ).toThrow()
+      },
+      /sequence/
+    )
   })
 
   it("rejects malformed output lifecycle event summaries", () => {
-    expect(() =>
-      Schema.decodeUnknownSync(OutputLifecycleEventSummary)({
+    expectSchemaDecodeFailure(
+      OutputLifecycleEventSummary,
+      {
         sequence: 1,
         eventType: "RecordStateChanged",
         eventIntent: EventSubscription.Outputs,
@@ -2427,10 +2524,12 @@ describe("OBS event protocol foundation", () => {
         outcome: "stopped",
         outputActive: false,
         outputState: "OBS_WEBSOCKET_OUTPUT_STOPPED"
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(OutputLifecycleEventSummary)({
+      },
+      /outputPath/
+    )
+    expectSchemaDecodeFailure(
+      OutputLifecycleEventSummary,
+      {
         sequence: 1,
         eventType: "ReplayBufferSaved",
         eventIntent: EventSubscription.Outputs,
@@ -2438,10 +2537,12 @@ describe("OBS event protocol foundation", () => {
         target: "replay_buffer",
         outcome: "replay_saved",
         newOutputPath: "/tmp/replay.mkv"
-      })
-    ).toThrow()
-    expect(() =>
-      Schema.decodeUnknownSync(OutputLifecycleEventSummary)({
+      },
+      /savedReplayPath/
+    )
+    expectSchemaDecodeFailure(
+      OutputLifecycleEventSummary,
+      {
         sequence: 0,
         eventType: "StreamStateChanged",
         eventIntent: EventSubscription.Outputs,
@@ -2450,8 +2551,9 @@ describe("OBS event protocol foundation", () => {
         outcome: "started",
         outputActive: true,
         outputState: "OBS_WEBSOCKET_OUTPUT_STARTED"
-      })
-    ).toThrow()
+      },
+      /sequence/
+    )
   })
 
   it("defines local safe-all without vendor, custom, or high-volume events", () => {
