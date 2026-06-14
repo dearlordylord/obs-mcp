@@ -1,5 +1,11 @@
 # @firfi/obs-mcp
 
+## 0.2.0
+
+### Minor Changes
+
+- Add MCP resources for read-only OBS state, including static resources, resource templates, subscriptions over stateful transports, screenshot retention, cache invalidation, OBS-event-backed update notifications, tool resource links, and documentation.
+
 ## 0.1.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@firfi/obs-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for OBS Studio websocket automation and read-only resources",
   "mcpName": "io.github.dearlordylord/obs-mcp",
   "type": "module",
