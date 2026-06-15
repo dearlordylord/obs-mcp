@@ -1,3 +1,5 @@
+/* eslint-disable max-lines -- OBS websocket protocol client keeps handshake, request, event, and lifecycle plumbing together. */
+
 import { Option, Schema } from "effect"
 import { randomUUID } from "node:crypto"
 import WebSocket from "ws"
@@ -82,6 +84,7 @@ interface ObsClientCommands {
   getBufferedEvents(input?: ObsEventBufferSnapshotInput): ObsEventBufferSnapshot
   waitForBufferedEvent(match: ObsEventMatcher, options: ObsEventWaitOptions): Promise<ObsEventWaitResult>
   addEventListener(listener: ObsEventListener): () => void
+  onConnectionClosed?(listener: (error: Error) => void): () => void
   close(): Promise<void>
 }
 
@@ -89,6 +92,7 @@ export type ObsClient = ObsClientState & ObsClientCommands
 
 interface ObsClientOptions {
   readonly eventBufferCapacity?: number
+  readonly signal?: AbortSignal | undefined
 }
 
 export const createObsClient = async (config: ObsConfig, options: ObsClientOptions = {}): Promise<ObsClient> => {
@@ -106,6 +110,22 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
   let negotiatedRpcVersion = 0
   let closed = false
   let eventListeners: ReadonlyArray<ObsEventListener> = []
+  let connectionClosed = false
+  let connectionClosedError: Error | undefined
+  let connectionClosedListeners: ReadonlyArray<(error: Error) => void> = []
+
+  const notifyConnectionClosed = (error: Error): void => {
+    /* v8 ignore next 3 -- duplicate websocket error/close notifications are collapsed defensively. */
+    if (connectionClosed) {
+      return
+    }
+    connectionClosed = true
+    connectionClosedError = error
+    for (const listener of connectionClosedListeners) {
+      listener(error)
+    }
+    connectionClosedListeners = []
+  }
 
   const onBufferedMessage = (data: WebSocket.RawData, isBinary: boolean): void => {
     const [waiter, ...remainingWaiters] = messageWaiters
@@ -117,6 +137,16 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
     waiter.resolve({ data, isBinary })
   }
   ws.on("message", onBufferedMessage)
+
+  const closeWebSocket = async (): Promise<void> => {
+    if (ws.readyState === WebSocket.CLOSED) {
+      return
+    }
+    await new Promise<void>((resolve) => {
+      ws.once("close", () => resolve())
+      ws.close()
+    })
+  }
 
   const rejectAll = (error: Error): void => {
     for (const request of pending.values()) {
@@ -199,13 +229,28 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         reject(new ObsTimeoutError(`Timed out connecting to OBS at ${redactedObsWebSocketUrl(config.url)}`))
         ws.close()
       }, config.connectionTimeoutMs)
-      ws.once("open", () => {
+      const cleanup = (): void => {
         clearTimeout(timer)
+        options.signal?.removeEventListener("abort", onAbort)
+      }
+      const onAbort = (): void => {
+        cleanup()
+        reject(new ObsProtocolError("OBS client connection aborted"))
+        ws.close()
+      }
+      /* v8 ignore next 4 -- callers abort after the connection attempt installs its abort listener. */
+      if (options.signal?.aborted === true) {
+        onAbort()
+        return
+      }
+      options.signal?.addEventListener("abort", onAbort, { once: true })
+      ws.once("open", () => {
+        cleanup()
         resolve()
       })
       /* v8 ignore next 4 */
       ws.once("error", (error) => {
-        clearTimeout(timer)
+        cleanup()
         reject(error)
       })
     })
@@ -231,6 +276,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         clearTimeout(timer)
         ws.off("close", onClose)
         ws.off("error", onError)
+        options.signal?.removeEventListener("abort", onAbort)
+      }
+      const onAbort = (): void => {
+        cleanup()
+        reject(new ObsProtocolError("OBS client connection aborted"))
+        ws.close()
       }
       const handleMessage = (data: WebSocket.RawData, isBinary: boolean): void => {
         cleanup()
@@ -246,6 +297,12 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         handleMessage(queued.data, queued.isBinary)
         return
       }
+      /* v8 ignore next 4 -- callers abort after the handshake wait installs its abort listener. */
+      if (options.signal?.aborted === true) {
+        onAbort()
+        return
+      }
+      options.signal?.addEventListener("abort", onAbort, { once: true })
       messageWaiters = [...messageWaiters, { resolve: (message) => handleMessage(message.data, message.isBinary) }]
       ws.once("close", onClose)
       ws.once("error", onError)
@@ -299,13 +356,16 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
 
   ws.on("close", () => {
     closed = true
-    eventBuffer.close(new ObsProtocolError("OBS websocket closed"))
-    rejectAll(new ObsProtocolError("OBS websocket closed"))
+    const error = new ObsProtocolError("OBS websocket closed")
+    eventBuffer.close(error)
+    rejectAll(error)
+    notifyConnectionClosed(error)
   })
   /* v8 ignore next 3 */
   ws.on("error", (error) => {
     eventBuffer.close(error)
     rejectAll(error)
+    notifyConnectionClosed(error)
   })
 
   const sendRawRequest = async (
@@ -318,11 +378,43 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         return
       }
       const requestId = randomUUID()
+      const removeAbortListener = (): void => {
+        options.signal?.removeEventListener("abort", onAbort)
+      }
+      const onAbort = (): void => {
+        clearTimeout(timer)
+        pending = new Map([...pending].filter(([pendingRequestId]) => pendingRequestId !== requestId))
+        removeAbortListener()
+        reject(new ObsProtocolError("OBS client connection aborted"))
+        ws.close()
+      }
+      /* v8 ignore next 4 -- setup pre-aborts are handled before the initial GetVersion request is sent. */
+      if (options.signal?.aborted === true) {
+        reject(new ObsProtocolError("OBS client connection aborted"))
+        ws.close()
+        return
+      }
       const timer = setTimeout(() => {
         pending = new Map([...pending].filter(([pendingRequestId]) => pendingRequestId !== requestId))
+        removeAbortListener()
         reject(new ObsTimeoutError(`Timed out waiting for OBS ${requestType} response`))
       }, config.connectionTimeoutMs)
-      pending = new Map([...pending, [requestId, { requestType, resolve, reject, timer }]])
+      options.signal?.addEventListener("abort", onAbort, { once: true })
+      pending = new Map([...pending, [
+        requestId,
+        {
+          requestType,
+          resolve: (value) => {
+            removeAbortListener()
+            resolve(value)
+          },
+          reject: (error) => {
+            removeAbortListener()
+            reject(error)
+          },
+          timer
+        }
+      ]])
       ws.send(JSON.stringify({
         op: OP_REQUEST,
         d: requestData === undefined
@@ -390,10 +482,16 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
       }))
     })
 
-  const getVersion = await request(GetVersion)
-  const availableRequests = Schema.decodeUnknownSync(Schema.Array(ObsString))(getVersion["availableRequests"])
+  let availableRequests: ReadonlyArray<string>
+  try {
+    const getVersion = await request(GetVersion)
+    availableRequests = Schema.decodeUnknownSync(Schema.Array(ObsString))(getVersion["availableRequests"])
+  } catch (error) {
+    await closeWebSocket()
+    throw error
+  }
 
-  return {
+  const client: ObsClient & { readonly onConnectionClosed: (listener: (error: Error) => void) => () => void } = {
     negotiatedRpcVersion,
     availableRequests,
     request,
@@ -406,16 +504,24 @@ export const createObsClient = async (config: ObsConfig, options: ObsClientOptio
         eventListeners = eventListeners.filter((entry) => entry !== listener)
       }
     },
+    onConnectionClosed: (listener) => {
+      if (connectionClosedError !== undefined) {
+        listener(connectionClosedError)
+        return () => undefined
+      }
+      connectionClosedListeners = [...connectionClosedListeners, listener]
+      return () => {
+        connectionClosedListeners = connectionClosedListeners.filter((entry) => entry !== listener)
+      }
+    },
     close: async () => {
       eventBuffer.close(new ObsProtocolError("OBS client closed"))
       rejectAll(new ObsProtocolError("OBS client closed"))
       if (ws.readyState === WebSocket.CLOSED) {
         return
       }
-      await new Promise<void>((resolve) => {
-        ws.once("close", () => resolve())
-        ws.close()
-      })
+      await closeWebSocket()
     }
   }
+  return client
 }

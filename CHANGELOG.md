@@ -1,5 +1,11 @@
 # @firfi/obs-mcp
 
+## 0.3.3
+
+### Patch Changes
+
+- Reconnect to OBS after websocket disconnects with Effect-backed backoff, preserving event cursors and resource subscription invalidation while avoiding retries for in-flight requests.
+
 ## 0.3.2
 
 ### Patch Changes

@@ -13,6 +13,7 @@ import {
   startCapabilityDiscoveryObsServer
 } from "../obs/capability-discovery-server.js"
 import { createObsClient, type ObsClient } from "../obs/client.js"
+import { createReconnectingObsClient } from "../obs/reconnecting-client.js"
 import { createObsMcpResourceState, createObsMcpServer } from "./create-mcp-server.js"
 import { startHttpTransport, stopHttpTransport } from "./http-transport.js"
 
@@ -26,7 +27,7 @@ const createObsRuntime = async (
   config: ObsRuntime["config"]
 ): Promise<ObsRuntime> => {
   if (config.lazyEnvs !== true) {
-    return { config, client: await createObsClient(config) }
+    return { config, client: await createReconnectingObsClient(config) }
   }
   const discoveryServer = await startCapabilityDiscoveryObsServer()
   const discoveryConfig = { ...config, url: discoveryServer.url }

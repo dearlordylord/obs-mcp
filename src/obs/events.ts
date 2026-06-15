@@ -27,6 +27,8 @@ export interface ObsEventBufferSnapshotInput {
 export type ObsEventMatcher = (event: BufferedObsEvent) => boolean
 export type ObsEventListener = (event: BufferedObsEvent) => void
 
+type DecodedObsEventInput = Pick<BufferedObsEvent, "eventType" | "eventIntent" | "eventData">
+
 export interface ObsEventWaitOptions {
   readonly afterSequence: number
   readonly timeoutMs: number
@@ -41,6 +43,7 @@ export interface ObsEventWaitResult {
 
 interface ObsEventBuffer {
   record(event: EventEnvelope): void
+  recordDecoded(event: DecodedObsEventInput): BufferedObsEvent
   snapshot(input?: ObsEventBufferSnapshotInput): ObsEventBufferSnapshot
   waitFor(match: ObsEventMatcher, options: ObsEventWaitOptions): Promise<ObsEventWaitResult>
   close(error: Error): void
@@ -102,36 +105,44 @@ export const createObsEventBuffer = (options: ObsEventBufferOptions = {}): ObsEv
     })
   }
 
+  const recordDecoded = (event: DecodedObsEventInput): BufferedObsEvent => {
+    const bufferedEvent: BufferedObsEvent = {
+      sequence: nextSequence,
+      eventType: event.eventType,
+      eventIntent: event.eventIntent,
+      eventData: event.eventData
+    }
+    nextSequence += 1
+    if (events.length >= capacity) {
+      droppedEvents += 1
+      events = [...events.slice(1), bufferedEvent]
+    } else {
+      events = [...events, bufferedEvent]
+    }
+    for (const waiter of waiters) {
+      if (bufferedEvent.sequence > waiter.options.afterSequence && waiter.match(bufferedEvent)) {
+        resolveWaiter(waiter, bufferedEvent, false)
+      }
+    }
+    return bufferedEvent
+  }
+
+  const record = (event: EventEnvelope): void => {
+    if (!shouldSurfaceSafeEvent(event) || !eventMatchesOfficialSubscription(event.d.eventType, event.d.eventIntent)) {
+      return
+    }
+    let eventData: TypedObsEventData | undefined
+    try {
+      eventData = decodeTypedObsEventData(event.d.eventType, event.d.eventData)
+    } catch {
+      return
+    }
+    recordDecoded({ eventType: event.d.eventType, eventIntent: event.d.eventIntent, eventData })
+  }
+
   return {
-    record: (event) => {
-      if (!shouldSurfaceSafeEvent(event) || !eventMatchesOfficialSubscription(event.d.eventType, event.d.eventIntent)) {
-        return
-      }
-      let eventData: TypedObsEventData | undefined
-      try {
-        eventData = decodeTypedObsEventData(event.d.eventType, event.d.eventData)
-      } catch {
-        return
-      }
-      const bufferedEvent: BufferedObsEvent = {
-        sequence: nextSequence,
-        eventType: event.d.eventType,
-        eventIntent: event.d.eventIntent,
-        eventData
-      }
-      nextSequence += 1
-      if (events.length >= capacity) {
-        droppedEvents += 1
-        events = [...events.slice(1), bufferedEvent]
-      } else {
-        events = [...events, bufferedEvent]
-      }
-      for (const waiter of waiters) {
-        if (bufferedEvent.sequence > waiter.options.afterSequence && waiter.match(bufferedEvent)) {
-          resolveWaiter(waiter, bufferedEvent, false)
-        }
-      }
-    },
+    record,
+    recordDecoded,
     snapshot,
     waitFor: async (match, options) => {
       if (closedError !== undefined) {

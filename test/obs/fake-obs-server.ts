@@ -1,7 +1,7 @@
 /* eslint-disable max-lines -- fake OBS websocket protocol harness covers many request handlers in one place. */
 
 import { createHash } from "node:crypto"
-import { type WebSocket, WebSocketServer } from "ws"
+import { WebSocket, WebSocketServer } from "ws"
 
 import { FakeObsConfigState } from "./fake-obs-config-requests.js"
 import {
@@ -52,8 +52,11 @@ interface FakeObsServerOptions {
   readonly helloOp?: number
   readonly identifiedOp?: number
   readonly closeOnIdentify?: boolean
+  readonly skipIdentified?: boolean
   readonly delayResponsesMs?: number
   readonly skipResponsesFor?: ReadonlyArray<string>
+  readonly closeAfterReceivingRequestFor?: string
+  readonly closeAfterReceivingBatch?: boolean
   readonly sendUnrelatedResponseBeforeReal?: boolean
   readonly sendBinaryAfterIdentify?: boolean
   readonly sendMalformedAfterIdentify?: boolean
@@ -155,6 +158,8 @@ export class FakeObsServer {
   private readonly sceneItems: FakeObsSceneItems = new Map()
   private readonly sceneItemTransforms: FakeObsSceneItemTransforms = new Map()
   private transitionState: FakeObsTransitionState = new FakeObsTransitionState([], 1)
+  private closedAfterReceivingRequest = false
+  private closedAfterReceivingBatch = false
   public lastIdentifyEventSubscriptions: unknown
 
   private constructor(server: WebSocketServer, url: string, currentSceneName: string) {
@@ -199,12 +204,23 @@ export class FakeObsServer {
   }
 
   public async stop(): Promise<void> {
-    for (const client of this.server.clients) {
-      client.close()
-    }
+    await this.disconnectClients()
     await new Promise<void>((resolve, reject) => {
       this.server.close((error) => error === undefined ? resolve() : reject(error))
     })
+  }
+
+  public async disconnectClients(): Promise<void> {
+    await Promise.all([...this.server.clients].map((client) =>
+      new Promise<void>((resolve) => {
+        if (client.readyState === WebSocket.CLOSED) {
+          resolve()
+          return
+        }
+        client.once("close", () => resolve())
+        client.close()
+      })
+    ))
   }
 
   public get connectedClientCount(): number {
@@ -262,6 +278,9 @@ export class FakeObsServer {
           socket.close(AUTH_FAILURE_CLOSE_CODE, "Authentication failed")
           return
         }
+        if (options.skipIdentified === true) {
+          return
+        }
         socket.send(JSON.stringify({ op: options.identifiedOp ?? OP_IDENTIFIED, d: { negotiatedRpcVersion: 1 } }))
         if (options.eventAfterIdentify !== undefined) {
           socket.send(JSON.stringify({ op: OP_EVENT, d: options.eventAfterIdentify }))
@@ -311,6 +330,11 @@ export class FakeObsServer {
       ...this.receivedRequests,
       { requestType, ...(envelope.d.requestData === undefined ? {} : { requestData: envelope.d.requestData }) }
     ]
+    if (options.closeAfterReceivingRequestFor === requestType && !this.closedAfterReceivingRequest) {
+      this.closedAfterReceivingRequest = true
+      socket.close()
+      return
+    }
     if (options.skipResponsesFor?.includes(requestType) === true) {
       return
     }
@@ -673,6 +697,11 @@ export class FakeObsServer {
         requestStatus: { result: true, code: REQUEST_STATUS_SUCCESS },
         responseData
       })
+    }
+    if (options.closeAfterReceivingBatch === true && !this.closedAfterReceivingBatch) {
+      this.closedAfterReceivingBatch = true
+      socket.close()
+      return
     }
     const orderedResults = options.reverseBatchResults === true ? [...results].reverse() : results
     const responseResults = options.mismatchFirstBatchResultType === true && orderedResults[0] !== undefined
