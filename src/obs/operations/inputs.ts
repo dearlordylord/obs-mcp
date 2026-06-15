@@ -1,5 +1,3 @@
-/* eslint-disable max-lines */
-
 import { Schema } from "effect"
 
 import type {
@@ -7,9 +5,6 @@ import type {
   ObsInputAudioTracks,
   OffsetMediaInputCursorOutput,
   PressInputPropertiesButtonOutput,
-  SanitizedInputPropertyItem,
-  SanitizedInputSetting,
-  SanitizedInputValueType,
   SetInputAudioBalanceOutput,
   SetInputAudioMonitorTypeOutput,
   SetInputAudioSyncOffsetOutput,
@@ -287,75 +282,6 @@ export const setInputDeinterlaceFieldOrder = async (
   return { inputDeinterlaceFieldOrder: decodedInput.inputDeinterlaceFieldOrder, acknowledged: true }
 }
 
-const VALUE_PREVIEW_MAX_LENGTH = 160
-
-const sanitizedValueType = (value: unknown): SanitizedInputValueType =>
-  value === null
-    ? "null"
-    : Array.isArray(value)
-    ? "array"
-    : typeof value === "string"
-    ? "string"
-    : typeof value === "number"
-    ? "number"
-    : typeof value === "boolean"
-    ? "boolean"
-    : typeof value === "object"
-    ? "object"
-    : "unknown"
-
-const sanitizedValuePreview = (value: unknown): string | undefined => {
-  if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean" && value !== null) {
-    return undefined
-  }
-  const preview = String(value)
-  return preview.length > VALUE_PREVIEW_MAX_LENGTH ? `${preview.slice(0, VALUE_PREVIEW_MAX_LENGTH)}...` : preview
-}
-
-const sanitizeSettingsRecord = (settings: Readonly<Record<string, unknown>>): ReadonlyArray<SanitizedInputSetting> =>
-  Object.entries(settings)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([settingName, value]) => ({
-      settingName,
-      valueType: sanitizedValueType(value)
-    }))
-
-const optionalStringField = (
-  record: Readonly<Record<string, unknown>>,
-  keys: ReadonlyArray<string>
-): string | undefined => {
-  const value = keys.map((key) => record[key]).find((entry) => typeof entry === "string")
-  return typeof value === "string" ? value : undefined
-}
-
-const optionalBooleanField = (
-  record: Readonly<Record<string, unknown>>,
-  keys: ReadonlyArray<string>
-): boolean | undefined => {
-  const value = keys.map((key) => record[key]).find((entry) => typeof entry === "boolean")
-  return typeof value === "boolean" ? value : undefined
-}
-
-const sanitizePropertyItem = (
-  propertyItem: Readonly<Record<string, unknown>>,
-  itemIndex: number
-): SanitizedInputPropertyItem => {
-  const itemValue = propertyItem.itemValue
-  const itemName = optionalStringField(propertyItem, ["itemName", "name"])
-  const itemEnabled = optionalBooleanField(propertyItem, ["itemEnabled", "enabled"])
-  const itemValuePreview = sanitizedValuePreview(itemValue)
-  return {
-    itemIndex,
-    ...withDefinedFields({
-      itemName,
-      itemValueType: itemValue === undefined ? undefined : sanitizedValueType(itemValue),
-      itemValuePreview,
-      itemEnabled
-    }),
-    fields: sanitizeSettingsRecord(propertyItem)
-  }
-}
-
 export const getInputDefaultSettings = async (
   client: ObsClient,
   input: InputKindInput
@@ -364,8 +290,7 @@ export const getInputDefaultSettings = async (
   const response = await client.request(GetInputDefaultSettings, decodedInput)
   return Schema.decodeUnknownSync(InputDefaultSettingsOutput)({
     inputKind: decodedInput.inputKind,
-    defaultInputSettings: sanitizeSettingsRecord(response.defaultInputSettings),
-    rawSettingsDeferred: true
+    defaultInputSettings: response.defaultInputSettings
   })
 }
 
@@ -375,11 +300,7 @@ export const getInputSettings = async (
 ): Promise<InputSettingsOutput> => {
   const decodedInput = Schema.decodeUnknownSync(InputLocatorInput)(input)
   const response = await client.request(GetInputSettings, decodedInput)
-  return Schema.decodeUnknownSync(InputSettingsOutput)({
-    inputKind: response.inputKind,
-    inputSettings: sanitizeSettingsRecord(response.inputSettings),
-    rawSettingsDeferred: true
-  })
+  return Schema.decodeUnknownSync(InputSettingsOutput)(response)
 }
 
 export const getInputPropertiesListPropertyItems = async (
@@ -390,24 +311,9 @@ export const getInputPropertiesListPropertyItems = async (
   const response = await client.request(GetInputPropertiesListPropertyItems, decodedInput)
   return Schema.decodeUnknownSync(InputPropertiesListPropertyItemsOutput)({
     propertyName: decodedInput.propertyName,
-    propertyItems: response.propertyItems.map(sanitizePropertyItem),
-    rawPropertyItemsDeferred: true
+    propertyItems: response.propertyItems
   })
 }
-
-const inputSettingsPatchToObsSettings = (
-  settings: SetInputSettingsInput["inputSettings"]
-): Readonly<Record<string, unknown>> =>
-  withDefinedFields({
-    is_local_file: settings.isLocalFile,
-    looping: settings.looping,
-    restart_on_activate: settings.restartOnActivate,
-    close_when_inactive: settings.closeWhenInactive,
-    clear_on_media_end: settings.clearOnMediaEnd,
-    hw_decode: settings.hwDecode,
-    speed_percent: settings.speedPercent,
-    reconnect_delay_sec: settings.reconnectDelaySec
-  })
 
 export const setInputSettings = async (
   client: ObsClient,
@@ -419,7 +325,7 @@ export const setInputSettings = async (
     ...withDefinedFields({
       inputName: decodedInput.inputName,
       inputUuid: decodedInput.inputUuid,
-      inputSettings: inputSettingsPatchToObsSettings(decodedInput.inputSettings)
+      inputSettings: decodedInput.inputSettings
     }),
     overlay
   })
@@ -437,15 +343,11 @@ export const pressInputPropertiesButton = async (
 
 export const createInput = async (client: ObsClient, input: CreateInputInput): Promise<CreateInputOutput> => {
   const decodedInput = Schema.decodeUnknownSync(CreateInputInput)(input)
-  const inputSettings = decodedInput.inputSettings === undefined
-    ? undefined
-    : inputSettingsPatchToObsSettings(decodedInput.inputSettings)
   const response = await client.request(CreateInput, {
     ...withDefinedFields({
       sceneName: decodedInput.sceneName,
       sceneUuid: decodedInput.sceneUuid,
-      canvasUuid: decodedInput.canvasUuid,
-      inputSettings
+      inputSettings: decodedInput.inputSettings
     }),
     inputName: decodedInput.inputName,
     inputKind: decodedInput.inputKind,

@@ -2,7 +2,6 @@
 
 import { JSONSchema, Schema } from "effect"
 
-import { SceneLocator } from "./scenes.js"
 import {
   ObsInputAudioTracks,
   ObsNonEmptyString,
@@ -24,6 +23,19 @@ export const InputLocatorInput = Schema.Struct({
 )
 export type InputLocatorInput = typeof InputLocatorInput.Type
 export const InputLocatorInputJsonSchema = JSONSchema.make(InputLocatorInput)
+
+const ForbiddenInputLocatorField = Schema.optional(Schema.Never)
+
+const StrictInputLocatorInput = Schema.Union(
+  Schema.Struct({
+    inputName: ObsNonEmptyString,
+    inputUuid: ForbiddenInputLocatorField
+  }),
+  Schema.Struct({
+    inputName: ForbiddenInputLocatorField,
+    inputUuid: ObsNonEmptyString
+  })
+)
 
 export const SetInputMuteInput = Schema.extend(
   InputLocatorInput,
@@ -287,36 +299,16 @@ export const InputKindInput = Schema.Struct({
 export type InputKindInput = typeof InputKindInput.Type
 export const InputKindInputJsonSchema = JSONSchema.make(InputKindInput)
 
-export const SanitizedInputValueType = Schema.Literal(
-  "string",
-  "number",
-  "boolean",
-  "null",
-  "array",
-  "object",
-  "unknown"
-)
-export type SanitizedInputValueType = typeof SanitizedInputValueType.Type
-
-export const SanitizedInputSetting = Schema.Struct({
-  settingName: ObsString,
-  valueType: SanitizedInputValueType,
-  valuePreview: Schema.optional(ObsString)
-})
-export type SanitizedInputSetting = typeof SanitizedInputSetting.Type
-
 export const InputDefaultSettingsOutput = Schema.Struct({
   inputKind: ObsString,
-  defaultInputSettings: Schema.Array(SanitizedInputSetting),
-  rawSettingsDeferred: Schema.Literal(true)
+  defaultInputSettings: UnknownRecord
 })
 export type InputDefaultSettingsOutput = typeof InputDefaultSettingsOutput.Type
 export const InputDefaultSettingsOutputJsonSchema = JSONSchema.make(InputDefaultSettingsOutput)
 
 export const InputSettingsOutput = Schema.Struct({
   inputKind: ObsString,
-  inputSettings: Schema.Array(SanitizedInputSetting),
-  rawSettingsDeferred: Schema.Literal(true)
+  inputSettings: UnknownRecord
 })
 export type InputSettingsOutput = typeof InputSettingsOutput.Type
 export const InputSettingsOutputJsonSchema = JSONSchema.make(InputSettingsOutput)
@@ -330,20 +322,9 @@ export const InputPropertiesListPropertyItemsInput = Schema.extend(
 export type InputPropertiesListPropertyItemsInput = typeof InputPropertiesListPropertyItemsInput.Type
 export const InputPropertiesListPropertyItemsInputJsonSchema = JSONSchema.make(InputPropertiesListPropertyItemsInput)
 
-export const SanitizedInputPropertyItem = Schema.Struct({
-  itemIndex: ObsNonNegativeInteger,
-  itemName: Schema.optional(ObsString),
-  itemValueType: Schema.optional(SanitizedInputValueType),
-  itemValuePreview: Schema.optional(ObsString),
-  itemEnabled: Schema.optional(Schema.Boolean),
-  fields: Schema.Array(SanitizedInputSetting)
-})
-export type SanitizedInputPropertyItem = typeof SanitizedInputPropertyItem.Type
-
 export const InputPropertiesListPropertyItemsOutput = Schema.Struct({
   propertyName: ObsString,
-  propertyItems: Schema.Array(SanitizedInputPropertyItem),
-  rawPropertyItemsDeferred: Schema.Literal(true)
+  propertyItems: Schema.Array(UnknownRecord)
 })
 export type InputPropertiesListPropertyItemsOutput = typeof InputPropertiesListPropertyItemsOutput.Type
 export const InputPropertiesListPropertyItemsOutputJsonSchema = JSONSchema.make(InputPropertiesListPropertyItemsOutput)
@@ -364,46 +345,25 @@ export const ObsInputPropertiesListPropertyItemsOutput = Schema.Struct({
 })
 export type ObsInputPropertiesListPropertyItemsOutput = typeof ObsInputPropertiesListPropertyItemsOutput.Type
 
-// Media speed is an allowlisted OBS setting percentage; branding would not add validation beyond this bounded scalar.
-const InputSpeedPercentMin = 1
-const InputSpeedPercentMax = 200
-const InputSpeedPercent = ObsNumber.pipe(
-  Schema.int(),
-  Schema.greaterThanOrEqualTo(InputSpeedPercentMin),
-  Schema.lessThanOrEqualTo(InputSpeedPercentMax)
-)
-// Reconnect delay is a local OBS setting in seconds; zero disables delay and the field name carries the unit.
-const ReconnectDelaySecondsMin = 0
-const ReconnectDelaySecondsMax = 300
-const ReconnectDelaySeconds = ObsNumber.pipe(
-  Schema.int(),
-  Schema.greaterThanOrEqualTo(ReconnectDelaySecondsMin),
-  Schema.lessThanOrEqualTo(ReconnectDelaySecondsMax)
-)
+const ForbiddenCreateInputSceneLocatorField = Schema.optional(Schema.Never)
 
-export const InputSettingsPatch = Schema.Struct({
-  isLocalFile: Schema.optional(Schema.Boolean),
-  looping: Schema.optional(Schema.Boolean),
-  restartOnActivate: Schema.optional(Schema.Boolean),
-  closeWhenInactive: Schema.optional(Schema.Boolean),
-  clearOnMediaEnd: Schema.optional(Schema.Boolean),
-  hwDecode: Schema.optional(Schema.Boolean),
-  speedPercent: Schema.optional(InputSpeedPercent),
-  reconnectDelaySec: Schema.optional(ReconnectDelaySeconds)
-}).pipe(
-  Schema.filter((settings) => Object.values(settings).some((value) => value !== undefined), {
-    message: () => "At least one allowlisted input setting is required"
+const CreateInputSceneLocator = Schema.Union(
+  Schema.Struct({
+    sceneName: ObsNonEmptyString,
+    sceneUuid: ForbiddenCreateInputSceneLocatorField
+  }),
+  Schema.Struct({
+    sceneName: ForbiddenCreateInputSceneLocatorField,
+    sceneUuid: ObsNonEmptyString
   })
 )
-export type InputSettingsPatch = typeof InputSettingsPatch.Type
-export const InputSettingsPatchJsonSchema = JSONSchema.make(InputSettingsPatch)
 
 export const CreateInputInput = Schema.extend(
-  SceneLocator,
+  CreateInputSceneLocator,
   Schema.Struct({
     inputName: ObsNonEmptyString,
     inputKind: ObsNonEmptyString,
-    inputSettings: Schema.optional(InputSettingsPatch),
+    inputSettings: Schema.optional(UnknownRecord),
     sceneItemEnabled: Schema.optional(Schema.Boolean)
   })
 )
@@ -411,7 +371,7 @@ export type CreateInputInput = typeof CreateInputInput.Type
 export const CreateInputInputJsonSchema = JSONSchema.make(CreateInputInput)
 
 export const ObsCreateInputInput = Schema.extend(
-  SceneLocator,
+  CreateInputSceneLocator,
   Schema.Struct({
     inputName: ObsNonEmptyString,
     inputKind: ObsNonEmptyString,
@@ -429,9 +389,9 @@ export type CreateInputOutput = typeof CreateInputOutput.Type
 export const CreateInputOutputJsonSchema = JSONSchema.make(CreateInputOutput)
 
 export const SetInputSettingsInput = Schema.extend(
-  InputLocatorInput,
+  StrictInputLocatorInput,
   Schema.Struct({
-    inputSettings: InputSettingsPatch,
+    inputSettings: UnknownRecord,
     overlay: Schema.optional(Schema.Boolean)
   })
 )
@@ -439,7 +399,7 @@ export type SetInputSettingsInput = typeof SetInputSettingsInput.Type
 export const SetInputSettingsInputJsonSchema = JSONSchema.make(SetInputSettingsInput)
 
 export const SetInputSettingsOutput = Schema.Struct({
-  inputSettings: InputSettingsPatch,
+  inputSettings: UnknownRecord,
   overlay: Schema.Boolean,
   acknowledged: Schema.Literal(true)
 })
@@ -447,7 +407,7 @@ export type SetInputSettingsOutput = typeof SetInputSettingsOutput.Type
 export const SetInputSettingsOutputJsonSchema = JSONSchema.make(SetInputSettingsOutput)
 
 export const ObsSetInputSettingsInput = Schema.extend(
-  InputLocatorInput,
+  StrictInputLocatorInput,
   Schema.Struct({
     inputSettings: UnknownRecord,
     overlay: Schema.optionalWith(Schema.Boolean, { default: () => true })

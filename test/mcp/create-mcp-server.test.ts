@@ -400,7 +400,6 @@ describe("MCP server protocol handlers", () => {
 
   it("lists and calls input discovery tools through in-memory MCP handlers", async () => {
     const longDeviceName = "x".repeat(170)
-    const truncatedLongDeviceName = `${"x".repeat(160)}...`
     const client = await connect(
       obsClient(async (requestType) => {
         if (requestType === "GetInputList") {
@@ -502,23 +501,21 @@ describe("MCP server protocol handlers", () => {
     })).resolves.toMatchObject({
       structuredContent: {
         inputKind: "wasapi_input_capture",
-        defaultInputSettings: [
-          { settingName: "active", valueType: "boolean" },
-          { settingName: "device_id", valueType: "string" },
-          { settingName: "nested_policy", valueType: "object" }
-        ],
-        rawSettingsDeferred: true
+        defaultInputSettings: {
+          active: true,
+          device_id: longDeviceName,
+          nested_policy: { omitted: true }
+        }
       }
     })
     await expect(client.callTool({ name: "get_input_settings", arguments: { inputName: "Mic/Aux" } }))
       .resolves.toMatchObject({
         structuredContent: {
           inputKind: "wasapi_input_capture",
-          inputSettings: [
-            { settingName: "device_id", valueType: "string" },
-            { settingName: "gain", valueType: "number" }
-          ],
-          rawSettingsDeferred: true
+          inputSettings: {
+            device_id: "mic-device",
+            gain: 1
+          }
         }
       })
     await expect(client.callTool({
@@ -528,25 +525,22 @@ describe("MCP server protocol handlers", () => {
       structuredContent: {
         propertyName: "device_id",
         propertyItems: [{
-          itemIndex: 0,
           itemName: "Primary",
-          itemValueType: "string",
-          itemValuePreview: truncatedLongDeviceName,
+          itemValue: longDeviceName,
           itemEnabled: true
-        }],
-        rawPropertyItemsDeferred: true
+        }]
       }
     })
     await expect(client.callTool({
       name: "set_input_settings",
       arguments: {
         inputName: "Media Source",
-        inputSettings: { looping: true, speedPercent: 125 },
+        inputSettings: { looping: true, speed_percent: 125, url: "https://example.invalid" },
         overlay: false
       }
     })).resolves.toMatchObject({
       structuredContent: {
-        inputSettings: { looping: true, speedPercent: 125 },
+        inputSettings: { looping: true, speed_percent: 125, url: "https://example.invalid" },
         overlay: false,
         acknowledged: true
       }

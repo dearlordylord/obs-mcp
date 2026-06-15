@@ -1,5 +1,11 @@
 # @firfi/obs-mcp
 
+## 0.3.0
+
+### Minor Changes
+
+- Make OBS input settings fully source-kind-specific: `set_input_settings` and `create_input` now pass raw `inputSettings` objects through verbatim, while input settings discovery tools return raw OBS values instead of sanitized summaries.
+
 ## 0.2.0
 
 ### Minor Changes

@@ -470,7 +470,7 @@ export const resourceTemplateDefinitions: ReadonlyArray<ResourceTemplateDefiniti
     uriTemplate: "obs://media/by-name/{inputName}",
     name: "obs_media_input_by_name",
     title: "OBS Media Input By Name",
-    description: "Media status and sanitized settings for a URL-encoded OBS input name.",
+    description: "Media status and raw settings for a URL-encoded OBS input name.",
     mimeType: MIME,
     requiredObsRequests: [GetInputList.requestType, GetMediaInputStatus.requestType],
     groups: ["inputs", "state"],

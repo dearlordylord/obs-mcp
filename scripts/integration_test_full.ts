@@ -1461,7 +1461,7 @@ const mutationCases: ReadonlyArray<TestCase> = [
         sceneName,
         inputName,
         inputKind,
-        inputSettings: { isLocalFile: false, looping: false },
+        inputSettings: { is_local_file: false, looping: false },
         sceneItemEnabled: false
       })
       context.data.set("integrationMediaInputName", inputName)
@@ -1473,7 +1473,7 @@ const mutationCases: ReadonlyArray<TestCase> = [
       })
       await callTool("set_input_settings", {
         inputName,
-        inputSettings: { isLocalFile: false, looping: false },
+        inputSettings: { is_local_file: false, looping: false },
         overlay: true
       })
     }

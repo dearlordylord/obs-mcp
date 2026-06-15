@@ -104,7 +104,7 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
   defineTool({
     name: "list_input_kinds",
     title: "List OBS Input Kinds",
-    description: "Return OBS input kinds, with optional unversioned kind names.",
+    description: "Return input kinds available on this OBS install, with optional unversioned kind names.",
     category: CATEGORY,
     requiredObsRequests: [ObsRequests.GetInputKindList.requestType],
     inputSchema: ListInputKindsInput,
@@ -293,8 +293,9 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
   }),
   defineTool({
     name: "get_input_default_settings",
-    title: "Get OBS Input Default Settings Summary",
-    description: "Return sanitized default setting names and value types for an OBS input kind.",
+    title: "Get OBS Input Default Settings",
+    description:
+      "Return raw default inputSettings for an OBS input kind. Keys and values are source-kind-specific; use this with list_input_kinds before writing settings.",
     category: CATEGORY,
     requiredObsRequests: [ObsRequests.GetInputDefaultSettings.requestType],
     inputSchema: InputKindInput,
@@ -303,8 +304,9 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
   }),
   defineTool({
     name: "get_input_settings",
-    title: "Get OBS Input Settings Summary",
-    description: "Return sanitized setting names and value types for an OBS input.",
+    title: "Get OBS Input Settings",
+    description:
+      "Return raw inputKind and inputSettings for an OBS input. Keys and values are source-kind-specific and reflect the current OBS/plugin/OS surface.",
     category: CATEGORY,
     requiredObsRequests: [ObsRequests.GetInputSettings.requestType],
     inputSchema: InputLocatorInput,
@@ -313,8 +315,9 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
   }),
   defineTool({
     name: "get_input_properties_list_property_items",
-    title: "Get OBS Input Property List Items Summary",
-    description: "Return sanitized list-property item fields for an OBS input property.",
+    title: "Get OBS Input Property List Items",
+    description:
+      "Return raw OBS list-property items for an input property, including item names, values, and enabled flags when OBS provides them.",
     category: CATEGORY,
     requiredObsRequests: [ObsRequests.GetInputPropertiesListPropertyItems.requestType],
     inputSchema: InputPropertiesListPropertyItemsInput,
@@ -324,7 +327,8 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
   defineTool({
     name: "set_input_settings",
     title: "Set OBS Input Settings",
-    description: "Apply a narrow allowlisted OBS input settings patch. Arbitrary raw settings are not accepted.",
+    description:
+      "Apply free-form, source-kind-specific OBS inputSettings verbatim. Use snake_case OBS keys discovered from get_input_default_settings, get_input_properties_list_property_items, and get_input_settings; there is no universal key list.",
     category: CATEGORY,
     requiredObsRequests: [ObsRequests.SetInputSettings.requestType],
     inputSchema: SetInputSettingsInput,
@@ -344,7 +348,8 @@ export const inputTools: ReadonlyArray<ToolDefinition> = [
   defineTool({
     name: "create_input",
     title: "Create OBS Input",
-    description: "Create an OBS input in a scene. Optional inputSettings uses the narrow allowlisted settings patch.",
+    description:
+      "Create an OBS input in a scene. Optional inputSettings is free-form and source-kind-specific, using the same verbatim snake_case OBS keys as set_input_settings.",
     category: CATEGORY,
     requiredObsRequests: [ObsRequests.CreateInput.requestType],
     inputSchema: CreateInputInput,

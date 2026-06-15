@@ -1106,19 +1106,6 @@ describe("MCP tool registry", () => {
 
   it.each([
     {
-      toolName: "set_input_settings",
-      input: { inputName: "Camera", inputSettings: { privatePath: "/tmp/secret" } }
-    },
-    {
-      toolName: "create_input",
-      input: {
-        sceneName: "Scene",
-        inputName: "Camera",
-        inputKind: "ffmpeg_source",
-        inputSettings: { privatePath: "/tmp/secret" }
-      }
-    },
-    {
       toolName: "set_source_filter_settings",
       input: { sourceName: "Camera", filterName: "Color Correction", filterSettings: { privatePath: "/tmp/secret" } }
     },
@@ -2787,19 +2774,17 @@ describe("MCP tool registry", () => {
         decode: Schema.decodeUnknownSync(InputDefaultSettingsOutput),
         input: {
           inputKind: "wasapi_input_capture",
-          defaultInputSettings: [
-            { settingName: "device_id", valueType: "string", valuePreview: "mic" },
-            { settingName: "nested_policy", valueType: "object" }
-          ],
-          rawSettingsDeferred: true
+          defaultInputSettings: {
+            device_id: "mic",
+            nested_policy: { plugin_specific: true }
+          }
         }
       },
       {
         decode: Schema.decodeUnknownSync(InputSettingsOutput),
         input: {
           inputKind: "wasapi_input_capture",
-          inputSettings: [{ settingName: "active", valueType: "boolean", valuePreview: "true" }],
-          rawSettingsDeferred: true
+          inputSettings: { active: true, device_id: "mic" }
         }
       },
       {
@@ -2811,14 +2796,10 @@ describe("MCP tool registry", () => {
         input: {
           propertyName: "device_id",
           propertyItems: [{
-            itemIndex: 0,
             itemName: "Primary",
-            itemValueType: "string",
-            itemValuePreview: "primary-device",
-            itemEnabled: true,
-            fields: [{ settingName: "itemValue", valueType: "string", valuePreview: "primary-device" }]
-          }],
-          rawPropertyItemsDeferred: true
+            itemValue: "primary-device",
+            itemEnabled: true
+          }]
         }
       },
       {
@@ -2826,14 +2807,15 @@ describe("MCP tool registry", () => {
         input: {
           inputName: "Media Source",
           inputSettings: {
-            isLocalFile: true,
+            is_local_file: true,
             looping: false,
-            restartOnActivate: true,
-            closeWhenInactive: false,
-            clearOnMediaEnd: true,
-            hwDecode: false,
-            speedPercent: 100,
-            reconnectDelaySec: 5
+            restart_on_activate: true,
+            close_when_inactive: false,
+            clear_on_media_end: true,
+            hw_decode: false,
+            speed_percent: 100,
+            reconnect_delay_sec: 5,
+            custom_plugin_object: { enabled: true }
           }
         }
       },
@@ -2949,7 +2931,6 @@ describe("MCP tool registry", () => {
         extra: { inputDeinterlaceFieldOrder: "OBS_DEINTERLACE_FIELD_ORDER_TOP" }
       },
       { decode: Schema.decodeUnknownSync(InputPropertiesListPropertyItemsInput), extra: { propertyName: "device_id" } },
-      { decode: Schema.decodeUnknownSync(SetInputSettingsInput), extra: { inputSettings: { looping: true } } },
       { decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput), extra: { propertyName: "refreshnocache" } },
       { decode: Schema.decodeUnknownSync(SetInputNameInput), extra: { newInputName: "Renamed Media" } },
       { decode: Schema.decodeUnknownSync(SetMediaInputCursorInput), extra: { mediaCursor: 1 } },
@@ -2964,6 +2945,11 @@ describe("MCP tool registry", () => {
       expect(() => decode(extra)).toThrow("Exactly one")
       expect(() => decode({ ...duplicateLocator, ...extra })).toThrow("Exactly one")
     }
+    const decodeSetInputSettingsInput = Schema.decodeUnknownSync(SetInputSettingsInput)
+    expect(() => decodeSetInputSettingsInput({ inputSettings: { looping: true } })).toThrow("is missing")
+    expect(() => decodeSetInputSettingsInput({ ...duplicateLocator, inputSettings: { looping: true } })).toThrow(
+      "Expected undefined"
+    )
 
     const invalidCases = [
       {
@@ -3054,25 +3040,9 @@ describe("MCP tool registry", () => {
         decode: Schema.decodeUnknownSync(InputDefaultSettingsOutput),
         input: {
           inputKind: "wasapi_input_capture",
-          defaultInputSettings: [{ settingName: "device_id", valueType: "raw", valuePreview: "mic" }],
-          rawSettingsDeferred: true
+          defaultInputSettings: "device_id"
         },
         message: "Expected"
-      },
-      {
-        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
-        input: { inputName: "Media Source", inputSettings: {} },
-        message: "At least one allowlisted input setting is required"
-      },
-      {
-        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
-        input: { inputName: "Media Source", inputSettings: { speedPercent: 0 } },
-        message: "Expected a number greater than or equal to 1"
-      },
-      {
-        decode: Schema.decodeUnknownSync(SetInputSettingsInput),
-        input: { inputName: "Media Source", inputSettings: { reconnectDelaySec: 301 } },
-        message: "Expected a number less than or equal to 300"
       },
       {
         decode: Schema.decodeUnknownSync(PressInputPropertiesButtonInput),
@@ -3091,8 +3061,23 @@ describe("MCP tool registry", () => {
       },
       {
         decode: Schema.decodeUnknownSync(CreateInputInput),
-        input: { sceneName: "Main", inputName: "Media Source", inputKind: "ffmpeg_source", inputSettings: {} },
-        message: "At least one allowlisted input setting is required"
+        input: { sceneName: "Main", inputName: "Media Source", inputKind: "", inputSettings: {} },
+        message: "Expected a non empty string"
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: { inputName: "Media Source", inputKind: "ffmpeg_source" },
+        message: "is missing"
+      },
+      {
+        decode: Schema.decodeUnknownSync(CreateInputInput),
+        input: {
+          sceneName: "Main",
+          sceneUuid: "scene-main",
+          inputName: "Media Source",
+          inputKind: "ffmpeg_source"
+        },
+        message: "Expected undefined"
       },
       {
         decode: Schema.decodeUnknownSync(SetInputNameInput),
@@ -3158,8 +3143,7 @@ describe("MCP tool registry", () => {
         inputKind: "wasapi_input_capture",
         inputSettings: {
           device_id: "mic-device",
-          nested_policy: { omitted: true },
-          unsupported: undefined
+          nested_policy: { omitted: true }
         }
       },
       GetInputPropertiesListPropertyItems: {
@@ -3291,12 +3275,11 @@ describe("MCP tool registry", () => {
         input: { inputKind: "wasapi_input_capture" },
         expected: {
           inputKind: "wasapi_input_capture",
-          defaultInputSettings: [
-            { settingName: "active", valueType: "boolean" },
-            { settingName: "device_id", valueType: "string" },
-            { settingName: "nested_policy", valueType: "object" }
-          ],
-          rawSettingsDeferred: true
+          defaultInputSettings: {
+            active: true,
+            device_id: "default-device",
+            nested_policy: { omitted: true }
+          }
         }
       },
       {
@@ -3304,12 +3287,10 @@ describe("MCP tool registry", () => {
         input: { inputName: "Mic/Aux" },
         expected: {
           inputKind: "wasapi_input_capture",
-          inputSettings: [
-            { settingName: "device_id", valueType: "string" },
-            { settingName: "nested_policy", valueType: "object" },
-            { settingName: "unsupported", valueType: "unknown" }
-          ],
-          rawSettingsDeferred: true
+          inputSettings: {
+            device_id: "mic-device",
+            nested_policy: { omitted: true }
+          }
         }
       },
       {
@@ -3318,19 +3299,11 @@ describe("MCP tool registry", () => {
         expected: {
           propertyName: "device_id",
           propertyItems: [{
-            itemIndex: 0,
             itemName: "Primary",
-            itemValueType: "string",
-            itemValuePreview: "primary-device",
+            itemValue: "primary-device",
             itemEnabled: true,
-            fields: [
-              { settingName: "itemEnabled", valueType: "boolean" },
-              { settingName: "itemName", valueType: "string" },
-              { settingName: "itemValue", valueType: "string" },
-              { settingName: "metadata", valueType: "object" }
-            ]
-          }],
-          rawPropertyItemsDeferred: true
+            metadata: { omitted: true }
+          }]
         }
       },
       {
@@ -3339,16 +3312,18 @@ describe("MCP tool registry", () => {
           inputName: "Media Source",
           inputSettings: {
             looping: true,
-            restartOnActivate: false,
-            speedPercent: 125
+            restart_on_activate: false,
+            speed_percent: 125,
+            url: "https://example.invalid"
           },
           overlay: false
         },
         expected: {
           inputSettings: {
             looping: true,
-            restartOnActivate: false,
-            speedPercent: 125
+            restart_on_activate: false,
+            speed_percent: 125,
+            url: "https://example.invalid"
           },
           overlay: false,
           acknowledged: true
@@ -3405,6 +3380,25 @@ describe("MCP tool registry", () => {
       await expect(executeTool(toolByName(toolName), input, { config: inputConfig, client: fakeClient }))
         .resolves.toEqual(expected)
     }
+  })
+
+  it("maps raw input settings OBS errors with metadata", async () => {
+    await expect(executeTool(toolByName("set_input_settings"), {
+      inputName: "Browser",
+      inputSettings: { url: "https://example.invalid" }
+    }, {
+      config: { ...config, enabledToolsets: ["inputs"] },
+      client: fakeObsClient(async () => {
+        throw new ObsRequestError("SetInputSettings", 608, "Settings rejected")
+      })
+    })).rejects.toMatchObject({
+      code: ErrorCode.InvalidParams,
+      data: {
+        requestType: "SetInputSettings",
+        obsStatusCode: 608,
+        comment: "Settings rejected"
+      }
+    })
   })
 
   it("executes record pause handlers with structured action outputs", async () => {

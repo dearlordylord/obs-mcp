@@ -251,7 +251,7 @@ Diagnostics are written to stderr. Stdout is reserved for MCP JSON-RPC.
 
 ## Payload and Settings Policy
 
-Input settings, filter settings, output settings, and screenshots use explicit MCP boundary schemas instead of raw OBS object passthroughs. Read-only settings tools return stable setting metadata and mark raw settings as deferred. Mutation tools accept only allowlisted setting fields that have narrow schemas. Screenshot reads return bounded base64 data with MIME and byte metadata, while screenshot saves require the `screenshots` toolset plus an existing `OBS_MCP_SCREENSHOT_OUTPUT_DIR` allowlist.
+Input settings follow obs-websocket's source-kind-specific contract: `set_input_settings` and `create_input` pass free-form `inputSettings` objects through verbatim, and input discovery tools return raw defaults, current settings, and property-list values so callers can discover valid keys on the current OBS install. Filter settings, output settings, and screenshots still use explicit MCP boundary schemas instead of raw object passthroughs. Screenshot reads return bounded base64 data with MIME and byte metadata, while screenshot saves require the `screenshots` toolset plus an existing `OBS_MCP_SCREENSHOT_OUTPUT_DIR` allowlist.
 
 Tool results use MCP structured content rather than textified JSON. Relevant tool calls also include MCP resource links so clients can reread current state through the matching resource.
 
@@ -286,7 +286,7 @@ Resource templates:
 | `obs://inputs/by-name/{inputName}` | Input summary plus optional audio, settings, mute, and volume details for a URL-encoded input name. |
 | `obs://outputs/by-name/{outputName}` | Output summary plus optional status and sanitized settings for a URL-encoded output name. |
 | `obs://filters/{sourceName}` | Source filter list for a URL-encoded source name. |
-| `obs://media/by-name/{inputName}` | Media input status and sanitized settings for a URL-encoded input name. |
+| `obs://media/by-name/{inputName}` | Media input status and raw settings for a URL-encoded input name. |
 
 <!-- tools:start -->
 ## Available Tools
@@ -415,7 +415,7 @@ Resource templates:
 | Tool | Description |
 |------|-------------|
 | `list_inputs` | Return OBS inputs, optionally restricted to one input kind. |
-| `list_input_kinds` | Return OBS input kinds, with optional unversioned kind names. |
+| `list_input_kinds` | Return input kinds available on this OBS install, with optional unversioned kind names. |
 | `get_special_inputs` | Return OBS desktop and microphone special input names. |
 | `get_input_mute` | Return whether an OBS input is muted. |
 | `set_input_mute` | Set whether an OBS input is muted. |
@@ -434,12 +434,12 @@ Resource templates:
 | `set_input_deinterlace_mode` | Set an OBS input deinterlace mode. OBS restricts deinterlacing to async inputs. |
 | `get_input_deinterlace_field_order` | Return an OBS input deinterlace field order. OBS restricts deinterlacing to async inputs. |
 | `set_input_deinterlace_field_order` | Set an OBS input deinterlace field order. OBS restricts deinterlacing to async inputs. |
-| `get_input_default_settings` | Return sanitized default setting names and value types for an OBS input kind. |
-| `get_input_settings` | Return sanitized setting names and value types for an OBS input. |
-| `get_input_properties_list_property_items` | Return sanitized list-property item fields for an OBS input property. |
-| `set_input_settings` | Apply a narrow allowlisted OBS input settings patch. Arbitrary raw settings are not accepted. |
+| `get_input_default_settings` | Return raw default inputSettings for an OBS input kind. Keys and values are source-kind-specific; use this with list_input_kinds before writing settings. |
+| `get_input_settings` | Return raw inputKind and inputSettings for an OBS input. Keys and values are source-kind-specific and reflect the current OBS/plugin/OS surface. |
+| `get_input_properties_list_property_items` | Return raw OBS list-property items for an input property, including item names, values, and enabled flags when OBS provides them. |
+| `set_input_settings` | Apply free-form, source-kind-specific OBS inputSettings verbatim. Use snake_case OBS keys discovered from get_input_default_settings, get_input_properties_list_property_items, and get_input_settings; there is no universal key list. |
 | `press_input_properties_button` | Press a named OBS input properties button. This is an OBS-side effect. |
-| `create_input` | Create an OBS input in a scene. Optional inputSettings uses the narrow allowlisted settings patch. |
+| `create_input` | Create an OBS input in a scene. Optional inputSettings is free-form and source-kind-specific, using the same verbatim snake_case OBS keys as set_input_settings. |
 | `remove_input` | Remove an OBS input by name or UUID. |
 | `set_input_name` | Rename an OBS input by name or UUID. |
 | `get_media_input_status` | Return an OBS media input status with duration and cursor data. |

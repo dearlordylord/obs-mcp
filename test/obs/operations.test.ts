@@ -4182,32 +4182,30 @@ describe("OBS operations", () => {
     )
   })
 
-  it("reads sanitized input settings summaries over the OBS protocol", async () => {
+  it("reads raw input settings discovery values over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
     clients.push(client)
     await expect(getInputDefaultSettings(client, { inputKind: "wasapi_input_capture" })).resolves.toEqual({
       inputKind: "wasapi_input_capture",
-      defaultInputSettings: [
-        { settingName: "active", valueType: "boolean" },
-        { settingName: "choices", valueType: "array" },
-        { settingName: "device_id", valueType: "string" },
-        { settingName: "empty_value", valueType: "null" },
-        { settingName: "nested_policy", valueType: "object" },
-        { settingName: "reconnect_delay_sec", valueType: "number" }
-      ],
-      rawSettingsDeferred: true
+      defaultInputSettings: {
+        active: true,
+        choices: ["primary", "secondary"],
+        device_id: "wasapi_input_capture-default-device",
+        empty_value: null,
+        reconnect_delay_sec: 5,
+        nested_policy: { omitted: true }
+      }
     })
     await expect(getInputSettings(client, { inputName: "Mic/Aux" })).resolves.toEqual({
       inputKind: "wasapi_input_capture",
-      inputSettings: [
-        { settingName: "device_id", valueType: "string" },
-        { settingName: "muted_by_default", valueType: "boolean" },
-        { settingName: "nested_policy", valueType: "object" },
-        { settingName: "reconnect_delay_sec", valueType: "number" }
-      ],
-      rawSettingsDeferred: true
+      inputSettings: {
+        device_id: "mic-aux-device",
+        muted_by_default: false,
+        reconnect_delay_sec: 10,
+        nested_policy: { omitted: true }
+      }
     })
     await expect(getInputPropertiesListPropertyItems(client, {
       inputUuid: "input-mic-aux",
@@ -4215,39 +4213,10 @@ describe("OBS operations", () => {
     })).resolves.toEqual({
       propertyName: "device_id",
       propertyItems: [
-        {
-          itemIndex: 0,
-          itemName: "Primary",
-          itemValueType: "string",
-          itemValuePreview: "primary-device",
-          itemEnabled: true,
-          fields: [
-            { settingName: "itemEnabled", valueType: "boolean" },
-            { settingName: "itemName", valueType: "string" },
-            { settingName: "itemValue", valueType: "string" },
-            { settingName: "metadata", valueType: "object" }
-          ]
-        },
-        {
-          itemIndex: 1,
-          itemName: "Secondary",
-          itemValueType: "number",
-          itemValuePreview: "2",
-          itemEnabled: false,
-          fields: [
-            { settingName: "itemEnabled", valueType: "boolean" },
-            { settingName: "itemName", valueType: "string" },
-            { settingName: "itemValue", valueType: "number" }
-          ]
-        },
-        {
-          itemIndex: 2,
-          fields: [
-            { settingName: "metadata", valueType: "object" }
-          ]
-        }
-      ],
-      rawPropertyItemsDeferred: true
+        { itemName: "Primary", itemValue: "primary-device", itemEnabled: true, metadata: { omitted: true } },
+        { itemName: "Secondary", itemValue: 2, itemEnabled: false },
+        { metadata: { omitted: true } }
+      ]
     })
     expect(server.requests.filter((request) =>
       request.requestType === "GetInputDefaultSettings"
@@ -4284,7 +4253,7 @@ describe("OBS operations", () => {
     )
   })
 
-  it("applies guarded input settings and presses property buttons over the OBS protocol", async () => {
+  it("passes raw input settings and presses property buttons over the OBS protocol", async () => {
     const server = await FakeObsServer.start()
     servers.push(server)
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
@@ -4292,18 +4261,24 @@ describe("OBS operations", () => {
     await expect(setInputSettings(client, {
       inputName: "Media Source",
       inputSettings: {
+        url: "https://example.invalid/browser",
+        css: "body { background: transparent; }",
+        device_id: "mic-device",
         looping: true,
-        restartOnActivate: false,
-        speedPercent: 125,
-        reconnectDelaySec: 10
+        restart_on_activate: false,
+        reconnect_delay_sec: 10,
+        nested_policy: { plugin_specific: true }
       },
       overlay: false
     })).resolves.toEqual({
       inputSettings: {
+        url: "https://example.invalid/browser",
+        css: "body { background: transparent; }",
+        device_id: "mic-device",
         looping: true,
-        restartOnActivate: false,
-        speedPercent: 125,
-        reconnectDelaySec: 10
+        restart_on_activate: false,
+        reconnect_delay_sec: 10,
+        nested_policy: { plugin_specific: true }
       },
       overlay: false,
       acknowledged: true
@@ -4332,10 +4307,13 @@ describe("OBS operations", () => {
         requestData: {
           inputName: "Media Source",
           inputSettings: {
+            url: "https://example.invalid/browser",
+            css: "body { background: transparent; }",
+            device_id: "mic-device",
             looping: true,
-            reconnect_delay_sec: 10,
             restart_on_activate: false,
-            speed_percent: 125
+            reconnect_delay_sec: 10,
+            nested_policy: { plugin_specific: true }
           },
           overlay: false
         }
@@ -4355,7 +4333,7 @@ describe("OBS operations", () => {
     ])
   })
 
-  it("surfaces OBS failures for guarded input settings mutations", async () => {
+  it("surfaces OBS failures for raw input settings mutations", async () => {
     const server = await FakeObsServer.start({
       failRequests: {
         SetInputSettings: { code: 608, comment: "Settings rejected" },
@@ -4365,25 +4343,13 @@ describe("OBS operations", () => {
     servers.push(server)
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
     clients.push(client)
-    const setInputSettingsUnchecked = setInputSettings as (
-      client: ObsClient,
-      input: unknown
-    ) => ReturnType<typeof setInputSettings>
-    await expect(setInputSettingsUnchecked(client, {
-      inputName: "Media Source",
-      inputSettings: {}
-    })).rejects.toThrow("At least one allowlisted input setting is required")
-    await expect(setInputSettingsUnchecked(client, {
-      inputName: "Media Source",
-      inputSettings: { url: "https://example.invalid" }
-    })).rejects.toThrow("At least one allowlisted input setting is required")
     await expect(pressInputPropertiesButton(client, {
       inputName: "Browser",
       propertyName: ""
     })).rejects.toThrow("Expected a non empty string")
     await expect(setInputSettings(client, {
       inputName: "Media Source",
-      inputSettings: { looping: true }
+      inputSettings: { url: "https://example.invalid", looping: true }
     })).rejects.toMatchObject(
       {
         requestType: "SetInputSettings",
@@ -4410,10 +4376,9 @@ describe("OBS operations", () => {
     clients.push(client)
     await expect(createInput(client, {
       sceneName: "Main",
-      canvasUuid: "canvas-main",
       inputName: "Media Source",
       inputKind: "ffmpeg_source",
-      inputSettings: { looping: true, reconnectDelaySec: 10 },
+      inputSettings: { looping: true, reconnect_delay_sec: 10 },
       sceneItemEnabled: false
     })).resolves.toEqual({ inputUuid: "input-media-source", sceneItemId: 1002 })
     await expect(listInputs(client, { inputKind: "ffmpeg_source" })).resolves.toEqual({
@@ -4447,7 +4412,6 @@ describe("OBS operations", () => {
         requestType: "CreateInput",
         requestData: {
           sceneName: "Main",
-          canvasUuid: "canvas-main",
           inputName: "Media Source",
           inputKind: "ffmpeg_source",
           inputSettings: { looping: true, reconnect_delay_sec: 10 },
@@ -4476,14 +4440,7 @@ describe("OBS operations", () => {
     servers.push(server)
     const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
     clients.push(client)
-    const createInputUnchecked = createInput as (client: ObsClient, input: unknown) => ReturnType<typeof createInput>
     const setInputNameUnchecked = setInputName as (client: ObsClient, input: unknown) => ReturnType<typeof setInputName>
-    await expect(createInputUnchecked(client, {
-      sceneName: "Main",
-      inputName: "Media Source",
-      inputKind: "ffmpeg_source",
-      inputSettings: {}
-    })).rejects.toThrow("At least one allowlisted input setting is required")
     await expect(setInputNameUnchecked(client, {
       inputName: "Media Source",
       newInputName: ""
