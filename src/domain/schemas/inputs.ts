@@ -37,6 +37,10 @@ const StrictInputLocatorInput = Schema.Union(
   })
 )
 
+const OpenInputSettings = Schema.Record({ key: Schema.String, value: Schema.Unknown }).annotations({
+  jsonSchema: { type: "object", additionalProperties: true }
+})
+
 export const SetInputMuteInput = Schema.extend(
   InputLocatorInput,
   Schema.Struct({
@@ -363,7 +367,7 @@ export const CreateInputInput = Schema.extend(
   Schema.Struct({
     inputName: ObsNonEmptyString,
     inputKind: ObsNonEmptyString,
-    inputSettings: Schema.optional(UnknownRecord),
+    inputSettings: Schema.optional(OpenInputSettings),
     sceneItemEnabled: Schema.optional(Schema.Boolean)
   })
 )
@@ -391,7 +395,7 @@ export const CreateInputOutputJsonSchema = JSONSchema.make(CreateInputOutput)
 export const SetInputSettingsInput = Schema.extend(
   StrictInputLocatorInput,
   Schema.Struct({
-    inputSettings: UnknownRecord,
+    inputSettings: OpenInputSettings,
     overlay: Schema.optional(Schema.Boolean)
   })
 )

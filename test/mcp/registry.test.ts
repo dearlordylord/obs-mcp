@@ -132,6 +132,23 @@ const inputToolNames = [
   "trigger_media_input_action"
 ]
 
+const inputSettingsSchemasFrom = (
+  schema: unknown
+): ReadonlyArray<unknown> => {
+  const objectSchema = schema as {
+    readonly anyOf?: ReadonlyArray<{ readonly properties?: Readonly<Record<string, unknown>> }>
+    readonly properties?: Readonly<Record<string, unknown>>
+  }
+  const rootInputSettings = objectSchema.properties?.["inputSettings"]
+  return [
+    ...(rootInputSettings === undefined ? [] : [rootInputSettings]),
+    ...(objectSchema.anyOf ?? []).flatMap((variant) => {
+      const inputSettings = variant.properties?.["inputSettings"]
+      return inputSettings === undefined ? [] : [inputSettings]
+    })
+  ]
+}
+
 const generalToolNames = [
   "get_obs_context",
   "get_version",
@@ -2688,6 +2705,19 @@ describe("MCP tool registry", () => {
   })
 
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {
+    const openInputSettingsJsonSchema = { type: "object", additionalProperties: true }
+    const rawSettingsInputSchemas = [
+      JSONSchema.make(SetInputSettingsInput),
+      JSONSchema.make(CreateInputInput)
+    ].flatMap(inputSettingsSchemasFrom)
+
+    expect(rawSettingsInputSchemas.length).toBeGreaterThan(0)
+    for (const inputSettingsJsonSchema of rawSettingsInputSchemas) {
+      expect(inputSettingsJsonSchema).toEqual(openInputSettingsJsonSchema)
+      expect(JSON.stringify(inputSettingsJsonSchema)).not.toContain("$id")
+      expect(JSON.stringify(inputSettingsJsonSchema)).not.toContain("$ref")
+    }
+
     const validCases = [
       { decode: Schema.decodeUnknownSync(InputLocatorInput), input: { inputName: "Mic/Aux" } },
       { decode: Schema.decodeUnknownSync(InputLocatorInput), input: { inputUuid: "input-mic-aux" } },

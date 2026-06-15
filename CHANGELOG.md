@@ -1,5 +1,11 @@
 # @firfi/obs-mcp
 
+## 0.3.1
+
+### Patch Changes
+
+- Fix MCP client registration for raw input settings tools by emitting a clean open-object JSON schema for `inputSettings`.
+
 ## 0.3.0
 
 ### Minor Changes
