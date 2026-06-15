@@ -23,6 +23,14 @@ export class ObsRequestError extends Error {
   }
 }
 
+export class ObsValidationError extends Error {
+  public readonly kind = "ObsValidationError"
+
+  public constructor(message: string) {
+    super(message)
+  }
+}
+
 export class ObsTimeoutError extends Error {
   public readonly kind = "ObsTimeoutError"
 

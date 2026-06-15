@@ -1,6 +1,6 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js"
 
-import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../obs/errors.js"
+import { ObsProtocolError, ObsRequestError, ObsTimeoutError, ObsValidationError } from "../obs/errors.js"
 
 const MISSING_OR_UNKNOWN_REQUEST_MIN = 203
 const MISSING_OR_UNKNOWN_REQUEST_MAX = 204
@@ -51,6 +51,9 @@ export const toMcpError = (error: unknown): McpError => {
       comment: error.comment,
       retryable: obsStatusIsRetryable(error.code)
     })
+  }
+  if (error instanceof ObsValidationError) {
+    return new McpError(ErrorCode.InvalidParams, error.message)
   }
   if (error instanceof ObsTimeoutError || error instanceof ObsProtocolError) {
     return new McpError(ErrorCode.InternalError, error.message)

@@ -1,5 +1,11 @@
 # @firfi/obs-mcp
 
+## 0.3.2
+
+### Patch Changes
+
+- Fix MCP client registration for `set_input_settings` and `create_input` by making their tool input schemas top-level object schemas without strict-locator `anyOf`/`Never` branches.
+
 ## 0.3.1
 
 ### Patch Changes

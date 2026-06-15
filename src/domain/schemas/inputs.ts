@@ -363,7 +363,10 @@ const CreateInputSceneLocator = Schema.Union(
 )
 
 export const CreateInputInput = Schema.extend(
-  CreateInputSceneLocator,
+  Schema.Struct({
+    sceneName: Schema.optional(ObsNonEmptyString),
+    sceneUuid: Schema.optional(ObsNonEmptyString)
+  }),
   Schema.Struct({
     inputName: ObsNonEmptyString,
     inputKind: ObsNonEmptyString,
@@ -393,7 +396,10 @@ export type CreateInputOutput = typeof CreateInputOutput.Type
 export const CreateInputOutputJsonSchema = JSONSchema.make(CreateInputOutput)
 
 export const SetInputSettingsInput = Schema.extend(
-  StrictInputLocatorInput,
+  Schema.Struct({
+    inputName: Schema.optional(ObsNonEmptyString),
+    inputUuid: Schema.optional(ObsNonEmptyString)
+  }),
   Schema.Struct({
     inputSettings: OpenInputSettings,
     overlay: Schema.optional(Schema.Boolean)

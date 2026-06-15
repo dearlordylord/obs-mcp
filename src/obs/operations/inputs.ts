@@ -56,6 +56,7 @@ import {
   TriggerMediaInputActionInput
 } from "../../domain/schemas/inputs.js"
 import type { ObsClient } from "../client.js"
+import { ObsValidationError } from "../errors.js"
 import {
   CreateInput,
   GetInputAudioBalance,
@@ -91,6 +92,17 @@ import {
   TriggerMediaInputAction
 } from "../requests.js"
 import { withDefinedFields } from "./shared.js"
+
+const assertExactlyOneLocator = (
+  firstName: string,
+  firstValue: unknown,
+  secondName: string,
+  secondValue: unknown
+): void => {
+  if ((firstValue === undefined) === (secondValue === undefined)) {
+    throw new ObsValidationError(`Exactly one of ${firstName} or ${secondName} is required`)
+  }
+}
 
 export const listInputs = async (client: ObsClient, input: ListInputsInput): Promise<ListInputsOutput> => {
   const decodedInput = Schema.decodeUnknownSync(ListInputsInput)(input)
@@ -320,6 +332,7 @@ export const setInputSettings = async (
   input: SetInputSettingsInput
 ): Promise<SetInputSettingsOutput> => {
   const decodedInput = Schema.decodeUnknownSync(SetInputSettingsInput)(input)
+  assertExactlyOneLocator("inputName", decodedInput.inputName, "inputUuid", decodedInput.inputUuid)
   const overlay = decodedInput.overlay ?? true
   await client.request(SetInputSettings, {
     ...withDefinedFields({
@@ -343,6 +356,7 @@ export const pressInputPropertiesButton = async (
 
 export const createInput = async (client: ObsClient, input: CreateInputInput): Promise<CreateInputOutput> => {
   const decodedInput = Schema.decodeUnknownSync(CreateInputInput)(input)
+  assertExactlyOneLocator("sceneName", decodedInput.sceneName, "sceneUuid", decodedInput.sceneUuid)
   const response = await client.request(CreateInput, {
     ...withDefinedFields({
       sceneName: decodedInput.sceneName,

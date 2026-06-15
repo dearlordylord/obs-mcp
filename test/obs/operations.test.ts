@@ -15,7 +15,7 @@ import {
 } from "../../src/domain/schemas/config.js"
 import { getEnabledTools } from "../../src/mcp/tools/registry.js"
 import { createObsClient, type ObsClient } from "../../src/obs/client.js"
-import { type ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
+import { type ObsRequestError, ObsTimeoutError, type ObsValidationError } from "../../src/obs/errors.js"
 import type { BufferedObsEvent } from "../../src/obs/events.js"
 import { runObsRequestBatch } from "../../src/obs/operations/batch.js"
 import { listCanvases } from "../../src/obs/operations/canvases.js"
@@ -4331,6 +4331,57 @@ describe("OBS operations", () => {
         }
       }
     ])
+  })
+
+  it("validates loose raw input and create-input locators before OBS requests", async () => {
+    const server = await FakeObsServer.start()
+    servers.push(server)
+    const client = await createObsClient({ ...configFor(server.url), enabledToolsets: ["inputs"] })
+    clients.push(client)
+
+    await expect(setInputSettings(client, {
+      inputSettings: { looping: true }
+    })).rejects.toMatchObject(
+      {
+        kind: "ObsValidationError",
+        message: "Exactly one of inputName or inputUuid is required"
+      } satisfies Partial<ObsValidationError>
+    )
+    await expect(setInputSettings(client, {
+      inputName: "Media Source",
+      inputUuid: "input-media-source",
+      inputSettings: { looping: true }
+    })).rejects.toMatchObject(
+      {
+        kind: "ObsValidationError",
+        message: "Exactly one of inputName or inputUuid is required"
+      } satisfies Partial<ObsValidationError>
+    )
+    await expect(createInput(client, {
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    })).rejects.toMatchObject(
+      {
+        kind: "ObsValidationError",
+        message: "Exactly one of sceneName or sceneUuid is required"
+      } satisfies Partial<ObsValidationError>
+    )
+    await expect(createInput(client, {
+      sceneName: "Main",
+      sceneUuid: "scene-main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    })).rejects.toMatchObject(
+      {
+        kind: "ObsValidationError",
+        message: "Exactly one of sceneName or sceneUuid is required"
+      } satisfies Partial<ObsValidationError>
+    )
+    expect(
+      server.requests.filter((request) =>
+        request.requestType === "SetInputSettings" || request.requestType === "CreateInput"
+      )
+    ).toEqual([])
   })
 
   it("surfaces OBS failures for raw input settings mutations", async () => {

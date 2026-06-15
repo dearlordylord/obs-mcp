@@ -83,7 +83,7 @@ import { toMcpError } from "../../src/mcp/error-mapping.js"
 import { allTools, executeTool, getEnabledTools } from "../../src/mcp/tools/registry.js"
 import type { ToolDefinition } from "../../src/mcp/tools/registry.js"
 import type { ObsClient } from "../../src/obs/client.js"
-import { ObsProtocolError, ObsRequestError, ObsTimeoutError } from "../../src/obs/errors.js"
+import { ObsProtocolError, ObsRequestError, ObsTimeoutError, ObsValidationError } from "../../src/obs/errors.js"
 import { EventSubscription } from "../../src/obs/protocol.js"
 import type { ObsRequestType } from "../../src/obs/requests.js"
 import { DEFAULT_AVAILABLE_REQUESTS } from "../obs/fake-obs-fixtures.js"
@@ -132,21 +132,17 @@ const inputToolNames = [
   "trigger_media_input_action"
 ]
 
-const inputSettingsSchemasFrom = (
-  schema: unknown
-): ReadonlyArray<unknown> => {
-  const objectSchema = schema as {
-    readonly anyOf?: ReadonlyArray<{ readonly properties?: Readonly<Record<string, unknown>> }>
+const expectClaudeCompatibleToolInputSchema = (schema: unknown): void => {
+  const schemaRecord = schema as {
+    readonly anyOf?: unknown
     readonly properties?: Readonly<Record<string, unknown>>
+    readonly type?: unknown
   }
-  const rootInputSettings = objectSchema.properties?.["inputSettings"]
-  return [
-    ...(rootInputSettings === undefined ? [] : [rootInputSettings]),
-    ...(objectSchema.anyOf ?? []).flatMap((variant) => {
-      const inputSettings = variant.properties?.["inputSettings"]
-      return inputSettings === undefined ? [] : [inputSettings]
-    })
-  ]
+
+  expect(schemaRecord.type).toBe("object")
+  expect(schemaRecord).not.toHaveProperty("anyOf")
+  expect(JSON.stringify(schemaRecord)).not.toContain("/schemas/never")
+  expect(schemaRecord.properties?.["inputSettings"]).toEqual({ type: "object", additionalProperties: true })
 }
 
 const generalToolNames = [
@@ -1324,6 +1320,21 @@ describe("MCP tool registry", () => {
       expect(tool.inputJsonSchema).toEqual(JSONSchema.make(tool.inputSchema))
       expect(tool.outputJsonSchema).toEqual(JSONSchema.make(tool.outputSchema))
     }
+  })
+
+  it("keeps input tool schemas compatible with strict MCP clients", () => {
+    const inputToolNamesSet = new Set(inputToolNames)
+    const incompatibleInputSchemas = allTools
+      .filter((tool) => inputToolNamesSet.has(tool.name))
+      .map((tool) => ({
+        name: tool.name,
+        hasNeverSchema: JSON.stringify(tool.inputJsonSchema).includes("/schemas/never"),
+        hasTopLevelAnyOf: Array.isArray((tool.inputJsonSchema as { readonly anyOf?: unknown }).anyOf),
+        type: (tool.inputJsonSchema as { readonly type?: unknown }).type
+      }))
+      .filter((schema) => schema.type !== "object" || schema.hasTopLevelAnyOf || schema.hasNeverSchema)
+
+    expect(incompatibleInputSchemas).toEqual([])
   })
 
   it("decodes record lifecycle output schemas", () => {
@@ -2705,18 +2716,8 @@ describe("MCP tool registry", () => {
   })
 
   it("enforces input locator exactly-one boundary and input-kind defaults", () => {
-    const openInputSettingsJsonSchema = { type: "object", additionalProperties: true }
-    const rawSettingsInputSchemas = [
-      JSONSchema.make(SetInputSettingsInput),
-      JSONSchema.make(CreateInputInput)
-    ].flatMap(inputSettingsSchemasFrom)
-
-    expect(rawSettingsInputSchemas.length).toBeGreaterThan(0)
-    for (const inputSettingsJsonSchema of rawSettingsInputSchemas) {
-      expect(inputSettingsJsonSchema).toEqual(openInputSettingsJsonSchema)
-      expect(JSON.stringify(inputSettingsJsonSchema)).not.toContain("$id")
-      expect(JSON.stringify(inputSettingsJsonSchema)).not.toContain("$ref")
-    }
+    expectClaudeCompatibleToolInputSchema(JSONSchema.make(SetInputSettingsInput))
+    expectClaudeCompatibleToolInputSchema(JSONSchema.make(CreateInputInput))
 
     const validCases = [
       { decode: Schema.decodeUnknownSync(InputLocatorInput), input: { inputName: "Mic/Aux" } },
@@ -2975,11 +2976,36 @@ describe("MCP tool registry", () => {
       expect(() => decode(extra)).toThrow("Exactly one")
       expect(() => decode({ ...duplicateLocator, ...extra })).toThrow("Exactly one")
     }
-    const decodeSetInputSettingsInput = Schema.decodeUnknownSync(SetInputSettingsInput)
-    expect(() => decodeSetInputSettingsInput({ inputSettings: { looping: true } })).toThrow("is missing")
-    expect(() => decodeSetInputSettingsInput({ ...duplicateLocator, inputSettings: { looping: true } })).toThrow(
-      "Expected undefined"
-    )
+    expect(Schema.decodeUnknownSync(SetInputSettingsInput)({ inputSettings: { looping: true } }))
+      .toEqual({ inputSettings: { looping: true } })
+    expect(
+      Schema.decodeUnknownSync(SetInputSettingsInput)({
+        ...duplicateLocator,
+        inputSettings: { looping: true }
+      })
+    ).toEqual({ ...duplicateLocator, inputSettings: { looping: true } })
+    expect(
+      Schema.decodeUnknownSync(CreateInputInput)({
+        inputName: "Media Source",
+        inputKind: "ffmpeg_source"
+      })
+    ).toEqual({
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    })
+    expect(
+      Schema.decodeUnknownSync(CreateInputInput)({
+        sceneName: "Main",
+        sceneUuid: "scene-main",
+        inputName: "Media Source",
+        inputKind: "ffmpeg_source"
+      })
+    ).toEqual({
+      sceneName: "Main",
+      sceneUuid: "scene-main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    })
 
     const invalidCases = [
       {
@@ -3093,21 +3119,6 @@ describe("MCP tool registry", () => {
         decode: Schema.decodeUnknownSync(CreateInputInput),
         input: { sceneName: "Main", inputName: "Media Source", inputKind: "", inputSettings: {} },
         message: "Expected a non empty string"
-      },
-      {
-        decode: Schema.decodeUnknownSync(CreateInputInput),
-        input: { inputName: "Media Source", inputKind: "ffmpeg_source" },
-        message: "is missing"
-      },
-      {
-        decode: Schema.decodeUnknownSync(CreateInputInput),
-        input: {
-          sceneName: "Main",
-          sceneUuid: "scene-main",
-          inputName: "Media Source",
-          inputKind: "ffmpeg_source"
-        },
-        message: "Expected undefined"
       },
       {
         decode: Schema.decodeUnknownSync(SetInputNameInput),
@@ -3429,6 +3440,46 @@ describe("MCP tool registry", () => {
         comment: "Settings rejected"
       }
     })
+  })
+
+  it("validates loose raw input settings locators at runtime", async () => {
+    const client = fakeObsClient(async () => {
+      throw new Error("OBS should not receive invalid locator requests")
+    })
+    const context = {
+      config: { ...config, enabledToolsets: ["inputs"] as const },
+      client
+    }
+
+    const missingInputLocator = executeTool(toolByName("set_input_settings"), {
+      inputSettings: { looping: true }
+    }, context)
+    await expect(missingInputLocator).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(missingInputLocator).rejects.toThrow("Exactly one of inputName or inputUuid is required")
+
+    const duplicateInputLocator = executeTool(toolByName("set_input_settings"), {
+      inputName: "Media Source",
+      inputUuid: "input-media-source",
+      inputSettings: { looping: true }
+    }, context)
+    await expect(duplicateInputLocator).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(duplicateInputLocator).rejects.toThrow("Exactly one of inputName or inputUuid is required")
+
+    const missingSceneLocator = executeTool(toolByName("create_input"), {
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    }, context)
+    await expect(missingSceneLocator).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(missingSceneLocator).rejects.toThrow("Exactly one of sceneName or sceneUuid is required")
+
+    const duplicateSceneLocator = executeTool(toolByName("create_input"), {
+      sceneName: "Main",
+      sceneUuid: "scene-main",
+      inputName: "Media Source",
+      inputKind: "ffmpeg_source"
+    }, context)
+    await expect(duplicateSceneLocator).rejects.toMatchObject({ code: ErrorCode.InvalidParams })
+    await expect(duplicateSceneLocator).rejects.toThrow("Exactly one of sceneName or sceneUuid is required")
   })
 
   it("executes record pause handlers with structured action outputs", async () => {
@@ -7307,6 +7358,9 @@ describe("MCP tool registry", () => {
     expect(toMcpError(existing)).toBe(existing)
     expect(toMcpError(new ObsTimeoutError("slow"))).toMatchObject({ code: ErrorCode.InternalError })
     expect(toMcpError(new ObsProtocolError("bad"))).toMatchObject({ code: ErrorCode.InternalError })
+    const validationError = toMcpError(new ObsValidationError("bad input"))
+    expect(validationError).toMatchObject({ code: ErrorCode.InvalidParams })
+    expect(validationError.message).toContain("bad input")
     expect(toMcpError(new Error("generic"))).toMatchObject({ code: ErrorCode.InternalError })
     expect(toMcpError("string error")).toMatchObject({ code: ErrorCode.InternalError })
     expect(toMcpError(new ObsRequestError("GetVersion", 207, "OBS is busy"))).toMatchObject({
