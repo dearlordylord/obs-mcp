@@ -1,0 +1,11 @@
+{
+  "command": [
+    "pnpm",
+    "check-all"
+  ],
+  "implementationCommit": "587e356b00d9269dcd124969ee36aad9635f2db8",
+  "exitCode": 0,
+  "elapsedSeconds": 335.36,
+  "environment": "allowlisted; integration disabled; isolated HOME",
+  "log": "local-check-all.log"
+}

@@ -1,0 +1,4692 @@
+{
+  "implementationCommit": "587e356b00d9269dcd124969ee36aad9635f2db8",
+  "limitations": "Static top-level field-name comparison only. Union properties are combined; aliases, derived outputs, intentional policy, schema constraints, nested fields, and runtime forwarding require manual review. An absent field is a review lead, not automatically a bug.",
+  "rows": [
+    {
+      "requestType": "GetCanvasList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "canvases"
+      ],
+      "descriptorResponseFields": [
+        "canvases"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_canvases",
+          "inputFields": [],
+          "outputFields": [
+            "canvases"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetPersistentData",
+      "officialInputFields": [
+        "realm",
+        "slotName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "realm",
+        "slotName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "slotValue"
+      ],
+      "descriptorResponseFields": [
+        "slotValue"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_persistent_data",
+          "inputFields": [
+            "realm",
+            "slotName"
+          ],
+          "outputFields": [
+            "realm",
+            "slotName",
+            "slotValue"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetPersistentData",
+      "officialInputFields": [
+        "realm",
+        "slotName",
+        "slotValue"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "realm",
+        "slotName",
+        "slotValue"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_persistent_data",
+          "inputFields": [
+            "realm",
+            "slotName",
+            "slotValue"
+          ],
+          "outputFields": [
+            "realm",
+            "slotName",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneCollectionList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "currentSceneCollectionName",
+        "sceneCollections"
+      ],
+      "descriptorResponseFields": [
+        "currentSceneCollectionName",
+        "sceneCollections"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_scene_collections",
+          "inputFields": [],
+          "outputFields": [
+            "currentSceneCollectionName",
+            "sceneCollections"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetCurrentSceneCollection",
+      "officialInputFields": [
+        "sceneCollectionName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "sceneCollectionName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_current_scene_collection",
+          "inputFields": [
+            "sceneCollectionName"
+          ],
+          "outputFields": [
+            "sceneCollectionName",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CreateSceneCollection",
+      "officialInputFields": [
+        "sceneCollectionName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "sceneCollectionName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "create_scene_collection",
+          "inputFields": [
+            "sceneCollectionName"
+          ],
+          "outputFields": [
+            "created",
+            "sceneCollectionName",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetProfileList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "currentProfileName",
+        "profiles"
+      ],
+      "descriptorResponseFields": [
+        "currentProfileName",
+        "profiles"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_profiles",
+          "inputFields": [],
+          "outputFields": [
+            "currentProfileName",
+            "profiles"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetCurrentProfile",
+      "officialInputFields": [
+        "profileName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "profileName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_current_profile",
+          "inputFields": [
+            "profileName"
+          ],
+          "outputFields": [
+            "profileName",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CreateProfile",
+      "officialInputFields": [
+        "profileName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "profileName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "create_profile",
+          "inputFields": [
+            "profileName"
+          ],
+          "outputFields": [
+            "created",
+            "profileName",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "RemoveProfile",
+      "officialInputFields": [
+        "profileName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "profileName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "remove_profile",
+          "inputFields": [
+            "profileName"
+          ],
+          "outputFields": [
+            "profileName",
+            "removed"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetProfileParameter",
+      "officialInputFields": [
+        "parameterCategory",
+        "parameterName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "parameterCategory",
+        "parameterName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "parameterValue",
+        "defaultParameterValue"
+      ],
+      "descriptorResponseFields": [
+        "defaultParameterValue",
+        "parameterValue"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_profile_parameter",
+          "inputFields": [
+            "parameterCategory",
+            "parameterName"
+          ],
+          "outputFields": [
+            "defaultParameterValue",
+            "parameterValue"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetProfileParameter",
+      "officialInputFields": [
+        "parameterCategory",
+        "parameterName",
+        "parameterValue"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "parameterCategory",
+        "parameterName",
+        "parameterValue"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_profile_parameter",
+          "inputFields": [
+            "parameterCategory",
+            "parameterName",
+            "parameterValue"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "parameterCategory",
+            "parameterName",
+            "parameterValue"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetVideoSettings",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "fpsNumerator",
+        "fpsDenominator",
+        "baseWidth",
+        "baseHeight",
+        "outputWidth",
+        "outputHeight"
+      ],
+      "descriptorResponseFields": [
+        "baseHeight",
+        "baseWidth",
+        "fpsDenominator",
+        "fpsNumerator",
+        "outputHeight",
+        "outputWidth"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_video_settings",
+          "inputFields": [],
+          "outputFields": [
+            "baseHeight",
+            "baseWidth",
+            "fpsDenominator",
+            "fpsNumerator",
+            "outputHeight",
+            "outputWidth"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetVideoSettings",
+      "officialInputFields": [
+        "fpsNumerator",
+        "fpsDenominator",
+        "baseWidth",
+        "baseHeight",
+        "outputWidth",
+        "outputHeight"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "baseHeight",
+        "baseWidth",
+        "fpsDenominator",
+        "fpsNumerator",
+        "outputHeight",
+        "outputWidth"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_video_settings",
+          "inputFields": [
+            "baseHeight",
+            "baseWidth",
+            "fpsDenominator",
+            "fpsNumerator",
+            "outputHeight",
+            "outputWidth"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "baseHeight",
+            "baseWidth",
+            "fpsDenominator",
+            "fpsNumerator",
+            "outputHeight",
+            "outputWidth"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetStreamServiceSettings",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "streamServiceType",
+        "streamServiceSettings"
+      ],
+      "descriptorResponseFields": [
+        "streamServiceSettings",
+        "streamServiceType"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_stream_service_settings",
+          "inputFields": [],
+          "outputFields": [
+            "streamServiceSettings",
+            "streamServiceType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetStreamServiceSettings",
+      "officialInputFields": [
+        "streamServiceType",
+        "streamServiceSettings"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "streamServiceSettings",
+        "streamServiceType"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_stream_service_settings",
+          "inputFields": [
+            "streamServiceSettings",
+            "streamServiceType"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "streamServiceSettings",
+            "streamServiceType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetRecordDirectory",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "recordDirectory"
+      ],
+      "descriptorResponseFields": [
+        "recordDirectory"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_record_directory",
+          "inputFields": [],
+          "outputFields": [
+            "recordDirectory"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetRecordDirectory",
+      "officialInputFields": [
+        "recordDirectory"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "recordDirectory"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_record_directory",
+          "inputFields": [
+            "recordDirectory"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "recordDirectory"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSourceFilterKindList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sourceFilterKinds"
+      ],
+      "descriptorResponseFields": [
+        "sourceFilterKinds"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_source_filter_kinds",
+          "inputFields": [],
+          "outputFields": [
+            "sourceFilterKinds"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSourceFilterList",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "filters"
+      ],
+      "descriptorResponseFields": [
+        "filters"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_source_filters",
+          "inputFields": [
+            "canvasUuid",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "filters"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSourceFilterDefaultSettings",
+      "officialInputFields": [
+        "filterKind"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "filterKind"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "defaultFilterSettings"
+      ],
+      "descriptorResponseFields": [
+        "defaultFilterSettings"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_source_filter_default_settings",
+          "inputFields": [
+            "filterKind"
+          ],
+          "outputFields": [
+            "defaultFilterSettings",
+            "filterKind",
+            "rawSettingsDeferred"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CreateSourceFilter",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "filterName",
+        "filterKind",
+        "filterSettings"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "filterKind",
+        "filterName",
+        "filterSettings",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "create_source_filter",
+          "inputFields": [
+            "canvasUuid",
+            "filterKind",
+            "filterName",
+            "filterSettings",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "filterKind",
+            "filterName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "RemoveSourceFilter",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "filterName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "filterName",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "remove_source_filter",
+          "inputFields": [
+            "canvasUuid",
+            "filterName",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "filterName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSourceFilterName",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "filterName",
+        "newFilterName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "filterName",
+        "newFilterName",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_source_filter_name",
+          "inputFields": [
+            "canvasUuid",
+            "filterName",
+            "newFilterName",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "filterName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSourceFilter",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "filterName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "filterName",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "filterEnabled",
+        "filterIndex",
+        "filterKind",
+        "filterSettings"
+      ],
+      "descriptorResponseFields": [
+        "filterEnabled",
+        "filterIndex",
+        "filterKind",
+        "filterSettings"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_source_filter",
+          "inputFields": [
+            "canvasUuid",
+            "filterName",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "filterEnabled",
+            "filterIndex",
+            "filterKind",
+            "filterName",
+            "filterSettings",
+            "rawSettingsDeferred"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSourceFilterIndex",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "filterName",
+        "filterIndex"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "filterIndex",
+        "filterName",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_source_filter_index",
+          "inputFields": [
+            "canvasUuid",
+            "filterIndex",
+            "filterName",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "filterIndex",
+            "filterName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSourceFilterSettings",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "filterName",
+        "filterSettings",
+        "overlay"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "filterName",
+        "filterSettings",
+        "overlay",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_source_filter_settings",
+          "inputFields": [
+            "canvasUuid",
+            "filterName",
+            "filterSettings",
+            "overlay",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "filterName",
+            "filterSettings",
+            "overlay"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSourceFilterEnabled",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "filterName",
+        "filterEnabled"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "filterEnabled",
+        "filterName",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_source_filter_enabled",
+          "inputFields": [
+            "canvasUuid",
+            "filterEnabled",
+            "filterName",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "filterEnabled",
+            "filterName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetVersion",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "obsVersion",
+        "obsWebSocketVersion",
+        "rpcVersion",
+        "availableRequests",
+        "supportedImageFormats",
+        "platform",
+        "platformDescription"
+      ],
+      "descriptorResponseFields": [
+        "availableRequests",
+        "obsVersion",
+        "obsWebSocketVersion",
+        "platform",
+        "platformDescription",
+        "rpcVersion",
+        "supportedImageFormats"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_version",
+          "inputFields": [],
+          "outputFields": [
+            "availableRequests",
+            "negotiatedRpcVersion",
+            "obsVersion",
+            "obsWebSocketVersion",
+            "platform",
+            "platformDescription",
+            "rpcVersion",
+            "supportedImageFormats"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetStats",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "cpuUsage",
+        "memoryUsage",
+        "availableDiskSpace",
+        "activeFps",
+        "averageFrameRenderTime",
+        "renderSkippedFrames",
+        "renderTotalFrames",
+        "outputSkippedFrames",
+        "outputTotalFrames",
+        "webSocketSessionIncomingMessages",
+        "webSocketSessionOutgoingMessages"
+      ],
+      "descriptorResponseFields": [
+        "activeFps",
+        "availableDiskSpace",
+        "averageFrameRenderTime",
+        "cpuUsage",
+        "memoryUsage",
+        "outputSkippedFrames",
+        "outputTotalFrames",
+        "renderSkippedFrames",
+        "renderTotalFrames",
+        "webSocketSessionIncomingMessages",
+        "webSocketSessionOutgoingMessages"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_obs_stats",
+          "inputFields": [],
+          "outputFields": [
+            "activeFps",
+            "availableDiskSpace",
+            "averageFrameRenderTime",
+            "cpuUsage",
+            "memoryUsage",
+            "outputSkippedFrames",
+            "outputTotalFrames",
+            "renderSkippedFrames",
+            "renderTotalFrames",
+            "webSocketSessionIncomingMessages",
+            "webSocketSessionOutgoingMessages"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "BroadcastCustomEvent",
+      "officialInputFields": [
+        "eventData"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "eventData"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "broadcast_custom_event",
+          "inputFields": [
+            "eventData"
+          ],
+          "outputFields": [
+            "broadcasted",
+            "provenance"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CallVendorRequest",
+      "officialInputFields": [
+        "vendorName",
+        "requestType",
+        "requestData"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "requestData",
+        "requestType",
+        "vendorName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "vendorName",
+        "requestType",
+        "responseData"
+      ],
+      "descriptorResponseFields": [
+        "requestType",
+        "responseData",
+        "vendorName"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "call_vendor_request",
+          "inputFields": [
+            "requestData",
+            "requestType",
+            "vendorName"
+          ],
+          "outputFields": [
+            "provenance",
+            "requestType",
+            "responseData",
+            "vendorName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetHotkeyList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "hotkeys"
+      ],
+      "descriptorResponseFields": [
+        "hotkeys"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_hotkeys",
+          "inputFields": [],
+          "outputFields": [
+            "hotkeys"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "TriggerHotkeyByName",
+      "officialInputFields": [
+        "hotkeyName",
+        "contextName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "contextName",
+        "hotkeyName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "trigger_hotkey_by_name",
+          "inputFields": [
+            "contextName",
+            "hotkeyName"
+          ],
+          "outputFields": [
+            "contextName",
+            "hotkeyName",
+            "triggered"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "TriggerHotkeyByKeySequence",
+      "officialInputFields": [
+        "keyId",
+        "keyModifiers"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [
+        "keyModifiers.shift",
+        "keyModifiers.control",
+        "keyModifiers.alt",
+        "keyModifiers.command"
+      ],
+      "descriptorInputFields": [
+        "keyId",
+        "keyModifiers"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "trigger_hotkey_by_key_sequence",
+          "inputFields": [
+            "keyId",
+            "keyModifiers"
+          ],
+          "outputFields": [
+            "keyId",
+            "keyModifiers",
+            "triggered"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "Sleep",
+      "descriptorAbsent": true
+    },
+    {
+      "requestType": "GetInputList",
+      "officialInputFields": [
+        "inputKind"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputKind"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputs"
+      ],
+      "descriptorResponseFields": [
+        "inputs"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_inputs",
+          "inputFields": [
+            "inputKind"
+          ],
+          "outputFields": [
+            "inputs"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputKindList",
+      "officialInputFields": [
+        "unversioned"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "unversioned"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputKinds"
+      ],
+      "descriptorResponseFields": [
+        "inputKinds"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_input_kinds",
+          "inputFields": [
+            "unversioned"
+          ],
+          "outputFields": [
+            "inputKinds"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSpecialInputs",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "desktop1",
+        "desktop2",
+        "mic1",
+        "mic2",
+        "mic3",
+        "mic4"
+      ],
+      "descriptorResponseFields": [
+        "desktop1",
+        "desktop2",
+        "mic1",
+        "mic2",
+        "mic3",
+        "mic4"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_special_inputs",
+          "inputFields": [],
+          "outputFields": [
+            "desktop1",
+            "desktop2",
+            "mic1",
+            "mic2",
+            "mic3",
+            "mic4"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CreateInput",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "inputName",
+        "inputKind",
+        "inputSettings",
+        "sceneItemEnabled"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputKind",
+        "inputName",
+        "inputSettings",
+        "sceneItemEnabled",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [
+        "canvasUuid"
+      ],
+      "officialResponseFields": [
+        "inputUuid",
+        "sceneItemId"
+      ],
+      "descriptorResponseFields": [
+        "inputUuid",
+        "sceneItemId"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "create_input",
+          "inputFields": [
+            "inputKind",
+            "inputName",
+            "inputSettings",
+            "sceneItemEnabled",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "inputUuid",
+            "sceneItemId"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "RemoveInput",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "remove_input",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputName",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "newInputName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "newInputName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_name",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "newInputName"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputDefaultSettings",
+      "officialInputFields": [
+        "inputKind"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputKind"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "defaultInputSettings"
+      ],
+      "descriptorResponseFields": [
+        "defaultInputSettings"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_default_settings",
+          "inputFields": [
+            "inputKind"
+          ],
+          "outputFields": [
+            "defaultInputSettings",
+            "inputKind"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputSettings",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputSettings",
+        "inputKind"
+      ],
+      "descriptorResponseFields": [
+        "inputKind",
+        "inputSettings"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_settings",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputKind",
+            "inputSettings"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputSettings",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputSettings",
+        "overlay"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputSettings",
+        "inputUuid",
+        "overlay"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_settings",
+          "inputFields": [
+            "inputName",
+            "inputSettings",
+            "inputUuid",
+            "overlay"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputSettings",
+            "overlay"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputMute",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputMuted"
+      ],
+      "descriptorResponseFields": [
+        "inputMuted"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_mute",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputMuted"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputMute",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputMuted"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputMuted",
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_mute",
+          "inputFields": [
+            "inputMuted",
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputMuted"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ToggleInputMute",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputMuted"
+      ],
+      "descriptorResponseFields": [
+        "inputMuted"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "toggle_input_mute",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputMuted"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputVolume",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputVolumeMul",
+        "inputVolumeDb"
+      ],
+      "descriptorResponseFields": [
+        "inputVolumeDb",
+        "inputVolumeMul"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_volume",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputVolumeDb",
+            "inputVolumeMul"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputVolume",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputVolumeMul",
+        "inputVolumeDb"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputVolumeDb",
+        "inputVolumeMul"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_volume",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "inputVolumeDb",
+            "inputVolumeMul"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputVolumeDb",
+            "inputVolumeMul"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputAudioBalance",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputAudioBalance"
+      ],
+      "descriptorResponseFields": [
+        "inputAudioBalance"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_audio_balance",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputAudioBalance"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputAudioBalance",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputAudioBalance"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputAudioBalance",
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_audio_balance",
+          "inputFields": [
+            "inputAudioBalance",
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputAudioBalance"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputAudioSyncOffset",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputAudioSyncOffset"
+      ],
+      "descriptorResponseFields": [
+        "inputAudioSyncOffset"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_audio_sync_offset",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputAudioSyncOffset"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputAudioSyncOffset",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputAudioSyncOffset"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputAudioSyncOffset",
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_audio_sync_offset",
+          "inputFields": [
+            "inputAudioSyncOffset",
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputAudioSyncOffset"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputAudioMonitorType",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "monitorType"
+      ],
+      "descriptorResponseFields": [
+        "monitorType"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_audio_monitor_type",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "monitorType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputAudioMonitorType",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "monitorType"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "monitorType"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_audio_monitor_type",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "monitorType"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "monitorType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputAudioTracks",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputAudioTracks"
+      ],
+      "descriptorResponseFields": [
+        "inputAudioTracks"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_audio_tracks",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputAudioTracks"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputAudioTracks",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputAudioTracks"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputAudioTracks",
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_audio_tracks",
+          "inputFields": [
+            "inputAudioTracks",
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputAudioTracks"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputDeinterlaceMode",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputDeinterlaceMode"
+      ],
+      "descriptorResponseFields": [
+        "inputDeinterlaceMode"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_deinterlace_mode",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputDeinterlaceMode"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputDeinterlaceMode",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputDeinterlaceMode"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputDeinterlaceMode",
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_deinterlace_mode",
+          "inputFields": [
+            "inputDeinterlaceMode",
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputDeinterlaceMode"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputDeinterlaceFieldOrder",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "inputDeinterlaceFieldOrder"
+      ],
+      "descriptorResponseFields": [
+        "inputDeinterlaceFieldOrder"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_deinterlace_field_order",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "inputDeinterlaceFieldOrder"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetInputDeinterlaceFieldOrder",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "inputDeinterlaceFieldOrder"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputDeinterlaceFieldOrder",
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_input_deinterlace_field_order",
+          "inputFields": [
+            "inputDeinterlaceFieldOrder",
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "inputDeinterlaceFieldOrder"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetInputPropertiesListPropertyItems",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "propertyName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "propertyName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "propertyItems"
+      ],
+      "descriptorResponseFields": [
+        "propertyItems"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_input_properties_list_property_items",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "propertyName"
+          ],
+          "outputFields": [
+            "propertyItems",
+            "propertyName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "PressInputPropertiesButton",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "propertyName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "propertyName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "press_input_properties_button",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "propertyName"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "propertyName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetMediaInputStatus",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "mediaState",
+        "mediaDuration",
+        "mediaCursor"
+      ],
+      "descriptorResponseFields": [
+        "mediaCursor",
+        "mediaDuration",
+        "mediaState"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_media_input_status",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "mediaCursor",
+            "mediaDuration",
+            "mediaState"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetMediaInputCursor",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "mediaCursor"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "mediaCursor"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_media_input_cursor",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "mediaCursor"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "mediaCursor"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "OffsetMediaInputCursor",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "mediaCursorOffset"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "mediaCursorOffset"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "offset_media_input_cursor",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "mediaCursorOffset"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "mediaCursorOffset"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "TriggerMediaInputAction",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid",
+        "mediaAction"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid",
+        "mediaAction"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "trigger_media_input_action",
+          "inputFields": [
+            "inputName",
+            "inputUuid",
+            "mediaAction"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "mediaAction"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetVirtualCamStatus",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive"
+      ],
+      "descriptorResponseFields": [
+        "outputActive"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_virtual_cam_status",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ToggleVirtualCam",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive"
+      ],
+      "descriptorResponseFields": [
+        "outputActive"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "toggle_virtual_cam",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StartVirtualCam",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "start_virtual_cam",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StopVirtualCam",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "stop_virtual_cam",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetReplayBufferStatus",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive"
+      ],
+      "descriptorResponseFields": [
+        "outputActive"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_replay_buffer_status",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ToggleReplayBuffer",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive"
+      ],
+      "descriptorResponseFields": [
+        "outputActive"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "toggle_replay_buffer",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StartReplayBuffer",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "start_replay_buffer",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StopReplayBuffer",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "stop_replay_buffer",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SaveReplayBuffer",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "save_replay_buffer",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetLastReplayBufferReplay",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "savedReplayPath"
+      ],
+      "descriptorResponseFields": [
+        "savedReplayPath"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_last_replay_buffer_replay",
+          "inputFields": [],
+          "outputFields": [
+            "savedReplayPath"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetOutputList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputs"
+      ],
+      "descriptorResponseFields": [
+        "outputs"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_outputs",
+          "inputFields": [],
+          "outputFields": [
+            "outputs"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetOutputStatus",
+      "officialInputFields": [
+        "outputName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "outputName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive",
+        "outputReconnecting",
+        "outputTimecode",
+        "outputDuration",
+        "outputCongestion",
+        "outputBytes",
+        "outputSkippedFrames",
+        "outputTotalFrames"
+      ],
+      "descriptorResponseFields": [
+        "outputActive",
+        "outputBytes",
+        "outputCongestion",
+        "outputDuration",
+        "outputReconnecting",
+        "outputSkippedFrames",
+        "outputTimecode",
+        "outputTotalFrames"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_output_status",
+          "inputFields": [
+            "outputName"
+          ],
+          "outputFields": [
+            "outputActive",
+            "outputBytes",
+            "outputCongestion",
+            "outputDuration",
+            "outputName",
+            "outputReconnecting",
+            "outputSkippedFrames",
+            "outputTimecode",
+            "outputTotalFrames"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ToggleOutput",
+      "officialInputFields": [
+        "outputName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "outputName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive"
+      ],
+      "descriptorResponseFields": [
+        "outputActive"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "toggle_output",
+          "inputFields": [
+            "outputName"
+          ],
+          "outputFields": [
+            "outputActive",
+            "outputName",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StartOutput",
+      "officialInputFields": [
+        "outputName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "outputName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "start_output",
+          "inputFields": [
+            "outputName"
+          ],
+          "outputFields": [
+            "outputActive",
+            "outputName",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StopOutput",
+      "officialInputFields": [
+        "outputName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "outputName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "stop_output",
+          "inputFields": [
+            "outputName"
+          ],
+          "outputFields": [
+            "outputActive",
+            "outputName",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetOutputSettings",
+      "officialInputFields": [
+        "outputName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "outputName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputSettings"
+      ],
+      "descriptorResponseFields": [
+        "outputSettings"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_output_settings",
+          "inputFields": [
+            "outputName"
+          ],
+          "outputFields": [
+            "outputName",
+            "outputSettings"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetOutputSettings",
+      "officialInputFields": [
+        "outputName",
+        "outputSettings"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "outputName",
+        "outputSettings"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_output_settings",
+          "inputFields": [
+            "outputName",
+            "outputSettings"
+          ],
+          "outputFields": [
+            "outputName",
+            "outputSettings",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetRecordStatus",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive",
+        "outputPaused",
+        "outputTimecode",
+        "outputDuration",
+        "outputBytes"
+      ],
+      "descriptorResponseFields": [
+        "outputActive",
+        "outputBytes",
+        "outputDuration",
+        "outputPaused",
+        "outputTimecode"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_record_status",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive",
+            "outputBytes",
+            "outputDuration",
+            "outputPaused",
+            "outputTimecode"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ToggleRecord",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive"
+      ],
+      "descriptorResponseFields": [
+        "outputActive"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "toggle_record",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StartRecord",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "start_record",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StopRecord",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputPath"
+      ],
+      "descriptorResponseFields": [
+        "outputPath"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "stop_record",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "outputPath",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ToggleRecordPause",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "toggle_record_pause",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "requestType",
+            "requestedAction"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "PauseRecord",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "pause_record",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "requestType",
+            "requestedAction"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ResumeRecord",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "resume_record",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "requestType",
+            "requestedAction"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SplitRecordFile",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "split_record_file",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CreateRecordChapter",
+      "officialInputFields": [
+        "chapterName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "chapterName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "create_record_chapter",
+          "inputFields": [
+            "chapterName"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemList",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItems"
+      ],
+      "descriptorResponseFields": [
+        "sceneItems"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_scene_items",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItems"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetGroupSceneItemList",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItems"
+      ],
+      "descriptorResponseFields": [
+        "sceneItems"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_group_scene_items",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItems"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemId",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sourceName",
+        "searchOffset"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "searchOffset",
+        "sourceName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemId"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemId"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_item_id",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid",
+            "searchOffset",
+            "sourceName"
+          ],
+          "outputFields": [
+            "sceneItemId"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemSource",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sourceName",
+        "sourceUuid"
+      ],
+      "descriptorResponseFields": [
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_item_source",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sourceName",
+            "sourceUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CreateSceneItem",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sourceName",
+        "sourceUuid",
+        "sceneItemEnabled"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemEnabled",
+        "sceneName",
+        "sceneUuid",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemId"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemId"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "create_scene_item",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemEnabled",
+            "sceneName",
+            "sceneUuid",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "canvasUuid",
+            "created",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid",
+            "sourceName",
+            "sourceUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "RemoveSceneItem",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "remove_scene_item",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "canvasUuid",
+            "removed",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "DuplicateSceneItem",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId",
+        "destinationSceneName",
+        "destinationSceneUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "destinationSceneName",
+        "destinationSceneUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemId"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemId"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "duplicate_scene_item",
+          "inputFields": [
+            "canvasUuid",
+            "destinationSceneName",
+            "destinationSceneUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "canvasUuid",
+            "destinationSceneName",
+            "destinationSceneUuid",
+            "duplicated",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemTransform",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemTransform"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemTransform"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_item_transform",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemTransform"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSceneItemTransform",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId",
+        "sceneItemTransform"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneItemTransform",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_scene_item_transform",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneItemTransform",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemTransform",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemEnabled",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemEnabled"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemEnabled"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_item_enabled",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemEnabled"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSceneItemEnabled",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId",
+        "sceneItemEnabled"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemEnabled",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_scene_item_enabled",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemEnabled",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemEnabled",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemLocked",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemLocked"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemLocked"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_item_locked",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemLocked"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSceneItemLocked",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId",
+        "sceneItemLocked"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneItemLocked",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_scene_item_locked",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneItemLocked",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemLocked",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemIndex",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemIndex"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemIndex"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_item_index",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemIndex"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSceneItemIndex",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId",
+        "sceneItemIndex"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneItemIndex",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_scene_item_index",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneItemIndex",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemIndex",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneItemBlendMode",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneItemBlendMode"
+      ],
+      "descriptorResponseFields": [
+        "sceneItemBlendMode"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_item_blend_mode",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemBlendMode"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSceneItemBlendMode",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "sceneItemId",
+        "sceneItemBlendMode"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneItemBlendMode",
+        "sceneItemId",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_scene_item_blend_mode",
+          "inputFields": [
+            "canvasUuid",
+            "sceneItemBlendMode",
+            "sceneItemId",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneItemBlendMode",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneList",
+      "officialInputFields": [
+        "canvasUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [
+        "canvasUuid"
+      ],
+      "officialResponseFields": [
+        "currentProgramSceneName",
+        "currentProgramSceneUuid",
+        "currentPreviewSceneName",
+        "currentPreviewSceneUuid",
+        "scenes"
+      ],
+      "descriptorResponseFields": [
+        "currentPreviewSceneName",
+        "currentPreviewSceneUuid",
+        "currentProgramSceneName",
+        "currentProgramSceneUuid",
+        "scenes"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_scenes",
+          "inputFields": [
+            "includeGroups"
+          ],
+          "outputFields": [
+            "currentPreviewSceneName",
+            "currentPreviewSceneUuid",
+            "currentProgramSceneName",
+            "currentProgramSceneUuid",
+            "scenes"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetGroupList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "groups"
+      ],
+      "descriptorResponseFields": [
+        "groups"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_groups",
+          "inputFields": [],
+          "outputFields": [
+            "groups"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetCurrentProgramScene",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneName",
+        "sceneUuid",
+        "currentProgramSceneName",
+        "currentProgramSceneUuid"
+      ],
+      "descriptorResponseFields": [
+        "currentProgramSceneName",
+        "currentProgramSceneUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "run_obs_request_batch",
+          "inputFields": [
+            "executionType",
+            "haltOnFailure",
+            "requests"
+          ],
+          "outputFields": [
+            "executionType",
+            "haltOnFailure",
+            "requestedRequests",
+            "results",
+            "returnedResults"
+          ]
+        },
+        {
+          "name": "get_current_scene",
+          "inputFields": [],
+          "outputFields": [
+            "sceneName",
+            "sceneUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetCurrentProgramScene",
+      "officialInputFields": [
+        "sceneName",
+        "sceneUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "sceneName"
+      ],
+      "missingDescriptorInputFields": [
+        "sceneUuid"
+      ],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "run_obs_request_batch",
+          "inputFields": [
+            "executionType",
+            "haltOnFailure",
+            "requests"
+          ],
+          "outputFields": [
+            "executionType",
+            "haltOnFailure",
+            "requestedRequests",
+            "results",
+            "returnedResults"
+          ]
+        },
+        {
+          "name": "set_current_scene",
+          "inputFields": [
+            "sceneName"
+          ],
+          "outputFields": [
+            "sceneName",
+            "switched"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetCurrentPreviewScene",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneName",
+        "sceneUuid",
+        "currentPreviewSceneName",
+        "currentPreviewSceneUuid"
+      ],
+      "descriptorResponseFields": [
+        "currentPreviewSceneName",
+        "currentPreviewSceneUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_current_preview_scene",
+          "inputFields": [],
+          "outputFields": [
+            "sceneName",
+            "sceneUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetCurrentPreviewScene",
+      "officialInputFields": [
+        "sceneName",
+        "sceneUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_current_preview_scene",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "sceneName",
+            "sceneUuid",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "CreateScene",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "sceneUuid"
+      ],
+      "descriptorResponseFields": [
+        "sceneUuid"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "create_scene",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName"
+          ],
+          "outputFields": [
+            "created",
+            "sceneName",
+            "sceneUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "RemoveScene",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "remove_scene",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "canvasUuid",
+            "removed",
+            "sceneName",
+            "sceneUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSceneName",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "newSceneName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "newSceneName",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_scene_name",
+          "inputFields": [
+            "canvasUuid",
+            "newSceneName",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "canvasUuid",
+            "newSceneName",
+            "renamed",
+            "sceneName",
+            "sceneUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneSceneTransitionOverride",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "transitionName",
+        "transitionDuration"
+      ],
+      "descriptorResponseFields": [
+        "transitionDuration",
+        "transitionName"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_scene_transition_override",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid"
+          ],
+          "outputFields": [
+            "transitionDuration",
+            "transitionName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetSceneSceneTransitionOverride",
+      "officialInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "transitionName",
+        "transitionDuration"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sceneName",
+        "sceneUuid",
+        "transitionDuration",
+        "transitionName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_scene_transition_override",
+          "inputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid",
+            "transitionDuration",
+            "transitionName"
+          ],
+          "outputFields": [
+            "canvasUuid",
+            "sceneName",
+            "sceneUuid",
+            "transitionDuration",
+            "transitionName",
+            "updated"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSourceActive",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "videoActive",
+        "videoShowing"
+      ],
+      "descriptorResponseFields": [
+        "sourceName",
+        "sourceUuid",
+        "videoActive",
+        "videoShowing"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_source_active",
+          "inputFields": [
+            "canvasUuid",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "sourceName",
+            "sourceUuid",
+            "videoActive",
+            "videoShowing"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSourceScreenshot",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "imageFormat",
+        "imageWidth",
+        "imageHeight",
+        "imageCompressionQuality"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "imageCompressionQuality",
+        "imageFormat",
+        "imageHeight",
+        "imageWidth",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "imageData"
+      ],
+      "descriptorResponseFields": [
+        "imageData"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_source_screenshot",
+          "inputFields": [
+            "canvasUuid",
+            "imageCompressionQuality",
+            "imageFormat",
+            "imageHeight",
+            "imageWidth",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "base64Data",
+            "imageBytes",
+            "imageFormat",
+            "maxImageBytes",
+            "mimeType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SaveSourceScreenshot",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "imageFormat",
+        "imageFilePath",
+        "imageWidth",
+        "imageHeight",
+        "imageCompressionQuality"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "imageCompressionQuality",
+        "imageFilePath",
+        "imageFormat",
+        "imageHeight",
+        "imageWidth",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "save_source_screenshot",
+          "inputFields": [
+            "canvasUuid",
+            "fileName",
+            "imageCompressionQuality",
+            "imageFormat",
+            "imageHeight",
+            "imageWidth",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "imageFilePath",
+            "imageFormat",
+            "saved"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetStreamStatus",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive",
+        "outputReconnecting",
+        "outputTimecode",
+        "outputDuration",
+        "outputCongestion",
+        "outputBytes",
+        "outputSkippedFrames",
+        "outputTotalFrames"
+      ],
+      "descriptorResponseFields": [
+        "outputActive",
+        "outputBytes",
+        "outputCongestion",
+        "outputDuration",
+        "outputReconnecting",
+        "outputSkippedFrames",
+        "outputTimecode",
+        "outputTotalFrames"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_stream_status",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive",
+            "outputBytes",
+            "outputCongestion",
+            "outputDuration",
+            "outputReconnecting",
+            "outputSkippedFrames",
+            "outputTimecode",
+            "outputTotalFrames"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "ToggleStream",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "outputActive"
+      ],
+      "descriptorResponseFields": [
+        "outputActive"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "toggle_stream",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StartStream",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "start_stream",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "StopStream",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "stop_stream",
+          "inputFields": [],
+          "outputFields": [
+            "outputActive"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SendStreamCaption",
+      "officialInputFields": [
+        "captionText"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "captionText"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "send_stream_caption",
+          "inputFields": [
+            "captionText"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetTransitionKindList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "transitionKinds"
+      ],
+      "descriptorResponseFields": [
+        "transitionKinds"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_transition_kinds",
+          "inputFields": [],
+          "outputFields": [
+            "transitionKinds"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetSceneTransitionList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "currentSceneTransitionName",
+        "currentSceneTransitionUuid",
+        "currentSceneTransitionKind",
+        "transitions"
+      ],
+      "descriptorResponseFields": [
+        "currentSceneTransitionKind",
+        "currentSceneTransitionName",
+        "currentSceneTransitionUuid",
+        "transitions"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_scene_transitions",
+          "inputFields": [],
+          "outputFields": [
+            "currentSceneTransitionKind",
+            "currentSceneTransitionName",
+            "currentSceneTransitionUuid",
+            "transitions"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetCurrentSceneTransition",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "transitionName",
+        "transitionUuid",
+        "transitionKind",
+        "transitionFixed",
+        "transitionDuration",
+        "transitionConfigurable",
+        "transitionSettings"
+      ],
+      "descriptorResponseFields": [
+        "transitionConfigurable",
+        "transitionDuration",
+        "transitionFixed",
+        "transitionKind",
+        "transitionName",
+        "transitionSettings",
+        "transitionUuid"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_current_scene_transition",
+          "inputFields": [],
+          "outputFields": [
+            "transitionConfigurable",
+            "transitionDuration",
+            "transitionFixed",
+            "transitionKind",
+            "transitionName",
+            "transitionUuid"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetCurrentSceneTransition",
+      "officialInputFields": [
+        "transitionName"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "transitionName"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_current_scene_transition",
+          "inputFields": [
+            "transitionName"
+          ],
+          "outputFields": [
+            "switched",
+            "transitionName"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetCurrentSceneTransitionDuration",
+      "officialInputFields": [
+        "transitionDuration"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "transitionDuration"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_current_scene_transition_duration",
+          "inputFields": [
+            "transitionDuration"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "transitionDuration"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetCurrentSceneTransitionSettings",
+      "officialInputFields": [
+        "transitionSettings",
+        "overlay"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "overlay",
+        "transitionSettings"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_current_scene_transition_settings",
+          "inputFields": [
+            "overlay",
+            "transitionSettings"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "overlay",
+            "settingsFieldCount"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetCurrentSceneTransitionCursor",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "transitionCursor"
+      ],
+      "descriptorResponseFields": [
+        "transitionCursor"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_current_scene_transition_cursor",
+          "inputFields": [],
+          "outputFields": [
+            "transitionCursor"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "TriggerStudioModeTransition",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "trigger_studio_mode_transition",
+          "inputFields": [],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetTBarPosition",
+      "officialInputFields": [
+        "position",
+        "release"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "position",
+        "release"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_tbar_position",
+          "inputFields": [
+            "position",
+            "release"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "position",
+            "release"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetStudioModeEnabled",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "studioModeEnabled"
+      ],
+      "descriptorResponseFields": [
+        "studioModeEnabled"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "get_studio_mode_enabled",
+          "inputFields": [],
+          "outputFields": [
+            "studioModeEnabled"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "SetStudioModeEnabled",
+      "officialInputFields": [
+        "studioModeEnabled"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "studioModeEnabled"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "set_studio_mode_enabled",
+          "inputFields": [
+            "studioModeEnabled"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "OpenInputPropertiesDialog",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "open_input_properties_dialog",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "OpenInputFiltersDialog",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "open_input_filters_dialog",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "OpenInputInteractDialog",
+      "officialInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "inputName",
+        "inputUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "open_input_interact_dialog",
+          "inputFields": [
+            "inputName",
+            "inputUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "GetMonitorList",
+      "officialInputFields": [],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [
+        "monitors"
+      ],
+      "descriptorResponseFields": [
+        "monitors"
+      ],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "list_monitors",
+          "inputFields": [],
+          "outputFields": [
+            "monitors"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "OpenVideoMixProjector",
+      "officialInputFields": [
+        "videoMixType",
+        "monitorIndex",
+        "projectorGeometry"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "monitorIndex",
+        "projectorGeometry",
+        "videoMixType"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "open_video_mix_projector",
+          "inputFields": [
+            "monitorIndex",
+            "projectorGeometry",
+            "videoMixType"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    },
+    {
+      "requestType": "OpenSourceProjector",
+      "officialInputFields": [
+        "canvasUuid",
+        "sourceName",
+        "sourceUuid",
+        "monitorIndex",
+        "projectorGeometry"
+      ],
+      "nestedOfficialInputFieldsNotAudited": [],
+      "descriptorInputFields": [
+        "canvasUuid",
+        "monitorIndex",
+        "projectorGeometry",
+        "sourceName",
+        "sourceUuid"
+      ],
+      "missingDescriptorInputFields": [],
+      "officialResponseFields": [],
+      "descriptorResponseFields": [],
+      "missingDescriptorResponseFields": [],
+      "publicTools": [
+        {
+          "name": "open_source_projector",
+          "inputFields": [
+            "canvasUuid",
+            "monitorIndex",
+            "projectorGeometry",
+            "sourceName",
+            "sourceUuid"
+          ],
+          "outputFields": [
+            "acknowledged",
+            "requestType"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "tom",
+  "launch": {
+    "command": "node",
+    "args": [
+      "build/index.js"
+    ],
+    "cwd": "/tmp/obs-study-ts/tom",
+    "env": {
+      "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+    }
+  },
+  "operations": {
+    "getVersion": {
+      "tool": "obs-get-version",
+      "arguments": {}
+    },
+    "listScenes": {
+      "tool": "obs-get-scene-list",
+      "arguments": {}
+    },
+    "getCurrentScene": {
+      "tool": "obs-get-current-scene",
+      "arguments": {}
+    },
+    "setCurrentScene": {
+      "tool": "obs-set-current-scene",
+      "arguments": {
+        "sceneName": "{{sceneName}}"
+      }
+    },
+    "getInputMute": {
+      "tool": "obs-get-input-mute",
+      "arguments": {
+        "inputName": "{{inputName}}"
+      }
+    },
+    "setInputMute": {
+      "tool": "obs-set-input-mute",
+      "arguments": {
+        "inputName": "{{inputName}}",
+        "inputMuted": "{{inputMuted}}"
+      }
+    },
+    "startRecord": {
+      "tool": "obs-start-record",
+      "arguments": {}
+    },
+    "getRecordStatus": {
+      "tool": "obs-get-record-status",
+      "arguments": {}
+    },
+    "stopRecord": {
+      "tool": "obs-stop-record",
+      "arguments": {}
+    },
+    "getSourceScreenshot": {
+      "tool": "obs-get-source-screenshot",
+      "arguments": {
+        "sourceName": "{{sourceName}}",
+        "imageFormat": "{{imageFormat}}"
+      }
+    },
+    "getStreamServiceSettings": {
+      "tool": "obs-get-stream-service-settings",
+      "arguments": {}
+    }
+  },
+  "requestTimeoutMs": 10000
+}

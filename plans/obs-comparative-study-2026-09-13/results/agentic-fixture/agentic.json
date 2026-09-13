@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "agentic",
+  "observedAt": "2026-09-13T21:11:07.300Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "/tmp/obs-polyglot-study.1UfDPr/agentic/agentic-obs",
+    "args": []
+  },
+  "fixture": {
+    "connections": 0,
+    "requests": [],
+    "stateChanges": [],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "watchdogMs": 10000
+      }
+    ],
+    "stdoutNoise": [
+      "=== Feature Configuration ===",
+      "Choose which features to enable (press Enter for defaults):",
+      "--- Tool Groups ---"
+    ],
+    "stderr": "2026/09/13 17:10:57 main.go:43: ========================================\n2026/09/13 17:10:57 main.go:44: Starting agentic-obs vdev (commit: none, built: unknown)\n2026/09/13 17:10:57 main.go:48: ========================================\n2026/09/13 17:10:57 main.go:54: [1/5] Initializing storage layer...\n2026/09/13 17:10:57 config.go:229: First run detected - using default configuration\n2026/09/13 17:10:57 config.go:419: Config override: OBS_HOST=127.0.0.1\n2026/09/13 17:10:57 config.go:425: Config override: OBS_PORT=36893\n2026/09/13 17:10:57 config.go:431: Config override: OBS_PASSWORD=<redacted>\n2026/09/13 17:10:57 config.go:438: Config override: AGENTIC_OBS_DB=/tmp/obs-polyglot-study.1UfDPr/agentic-home/db.sqlite\n2026/09/13 17:10:57 config.go:465: Config override: AGENTIC_OBS_HTTP_ENABLED=false\n2026/09/13 17:10:57 main.go:187: First run detected - running initial setup...\n",
+    "lifetimeMs": 10006
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "environment_blocker",
+      "error": "MCP response watchdog expired after 10000ms for initialize"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "takurot",
+  "launch": {
+    "command": "node",
+    "args": ["/tmp/obs-takurot-cszqao/repo/dist/index.js"],
+    "cwd": "/tmp/obs-takurot-cszqao/repo",
+    "env": {
+      "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+      "SAFETY_MODE": "normal",
+      "ALLOW_STOP_RECORDING": "true"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "get_obs_health" },
+    "listScenes": { "tool": "get_scene_list" },
+    "setCurrentScene": {
+      "tool": "set_scene",
+      "arguments": { "sceneName": "{{sceneName}}" }
+    },
+    "getSourceScreenshot": {
+      "tool": "take_stream_snapshot",
+      "arguments": { "sourceName": "{{sourceName}}" }
+    }
+  }
+}

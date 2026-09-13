@@ -1,0 +1,29 @@
+Observed 2026-09-13 in isolated snapshots under /tmp/obs-polyglot-study.1UfDPr.
+
+JLFN/obs-mcp f9dccf0f8903b225615ba3b80a8a63287b92716a
+command: cargo test --all-targets --locked
+result: exit 0 after 4m12s; 4 unit tests passed and tests/live.rs passed its one all-tools MCP integration test (157 tools, mock OBS, authentication, scene readback, stdout JSON discipline).
+
+ironystock/agentic-obs 89fcf6c68675229e01c7e702e3234cf0cf53ebe7
+runtime setup: downloaded Go 1.25.5 linux/arm64 to /tmp/obs-toolchains/go; no global installation.
+command: PATH=/tmp/obs-toolchains/go/bin:$PATH go test ./...
+result: exit 0; tested root, automation, docs, HTTP, MCP, storage, and TUI packages. config, internal/obs, internal/screenshot, and testutil reported no test files.
+command: go build -trimpath -o agentic-obs . && ./agentic-obs --version
+result: exit 0; `agentic-obs dev (commit: none, built: unknown)`.
+
+sbroenne/mcp-server-obs 96354251a40a6a7299585652358f63eba62b3714
+runtime setup: downloaded .NET SDK 10.0.401 linux-arm64 to /tmp/obs-toolchains/dotnet; no global installation.
+command: dotnet test ObsMcp.sln -p:EnableWindowsTargeting=true --configuration Release
+result: build succeeded; test process exit 1 with 26 passed and 20 failed. Every failure was a real-OBS integration case whose setup could not connect to localhost OBS (`Error: Connection failed: CloseCode: Unknown`); no real OBS was available, so those failures are environmental NT rather than demonstrated product failures.
+alternate artifact: downloaded mcp-v1.0.4 obs-mcp-server-1.0.4.zip; observed SHA-256 fa9ed3ad7015436ebd0173b10d99b8f121190d2505524f4389b89a9ec740d6dd, matching GitHub release metadata. The zip contains Windows x64 native/runtime files and cannot execute on this Linux arm64 host. The source-built managed DLL did execute under the local Linux arm64 .NET runtime for fixture testing.
+
+cdavis-code/obs_websocket_workspace 1d95b2933dc1de520cca09414d5d65b2a85466b8
+command: isolated npm install --ignore-scripts --no-audit --no-fund @unngh/obs-mcp@5.7.5
+result: exit 0; 2 packages installed under /tmp/obs-polyglot-study.1UfDPr/cdavis-npm.
+command: npm --prefix node_modules/@unngh/obs-mcp test
+result: exit 0 but only printed `No tests defined yet`; it executed no test.
+command: published npm binary with OBS_WEBSOCKET_URL=ws://127.0.0.1:54991 and a one-second timeout
+result: exit 1 before MCP initialization with `WebSocketChannelException: WebSocket connection failed.`
+alternate artifact: downloaded v5.7.2 obs-mcp-linux-arm64; observed SHA-256 f6336c7427e5f1ed1a3b93c34864880d3e543970989aca17839c12efa2d7aeca, matching GitHub release metadata. It executed natively and was used in the alternate shared-fixture run.
+
+No workspace .env or real OBS endpoint was inherited. All OBS endpoints were loopback synthetic fixtures.

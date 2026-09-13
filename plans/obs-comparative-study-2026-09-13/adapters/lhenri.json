@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "lhenri",
+  "launch": {
+    "command": "/tmp/obs-lhenri-MSg7lE/repo/.venv/bin/obs-mcp",
+    "env": {
+      "HOME": "{{home}}",
+      "XDG_CONFIG_HOME": "{{home}}/.config"
+    }
+  },
+  "operations": {
+    "listScenes": { "tool": "obs_scenes" },
+    "setCurrentScene": {
+      "tool": "obs_set_scene",
+      "arguments": { "name": "{{sceneName}}" }
+    },
+    "startRecord": { "tool": "obs_recording_start" },
+    "getRecordStatus": { "tool": "obs_recording_status" },
+    "stopRecord": { "tool": "obs_recording_stop" },
+    "getSourceScreenshot": {
+      "tool": "obs_screenshot",
+      "arguments": {
+        "out_path": "{{tempDir}}/lhenri-screenshot.png",
+        "source": "{{sourceName}}"
+      }
+    }
+  }
+}

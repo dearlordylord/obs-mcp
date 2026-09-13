@@ -1,0 +1,33 @@
+{
+  "observedDate": "2026-09-13",
+  "sourceUrl": "https://registry.npmjs.org/@firfi%2Fobs-mcp",
+  "distTags": {
+    "latest": "0.3.3"
+  },
+  "version": "0.3.3",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dearlordylord/obs-mcp.git"
+  },
+  "gitHead": "587e356b00d9269dcd124969ee36aad9635f2db8",
+  "publishedAt": "2026-06-15T15:32:23.402Z",
+  "license": "MIT",
+  "maintainers": [
+    "firfi"
+  ],
+  "dist": {
+    "integrity": "sha512-HBHZPb5cenoRewUDduq+XRu5Fu3bRoUY5GqE0ZQcfVVRHy14/zIq72KbYFrrKbBPcYQRnHXSy7qc5CH0GJVzpw==",
+    "shasum": "5fb7d20c6267deb820434719499a39c9812af784",
+    "tarball": "https://registry.npmjs.org/@firfi/obs-mcp/-/obs-mcp-0.3.3.tgz",
+    "fileCount": 6,
+    "unpackedSize": 2061064,
+    "signatures": [
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEUCIQC603Jfuf07m8W0RhxeFDRxbb0i+/7TyEReSul/lXXTMQIgI7o/iBeJZ7JEcxD5SSDH4dRV3UvtyCL4Id6/8+E4Y30="
+      }
+    ]
+  },
+  "reviewedPackedArtifactMatchesPublishedIntegrity": true,
+  "reviewedPackedArtifactMatchesPublishedSha1": true
+}

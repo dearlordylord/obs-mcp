@@ -1,0 +1,11 @@
+
+> obs-mcp@1.1.1 validate:manifest
+> mcpb validate manifest.json
+
+Manifest schema validation passes!
+
+Icon validation warnings:
+
+  - Icon validation passed. Recommended size is 512×512 pixels for best display in Claude Desktop.
+
+EXIT 0

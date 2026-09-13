@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-09-13",
+  "repository": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge",
+  "sourceHead": "d1909bd397c390fb7a644ca24ff53c088e401fa3",
+  "sourceCommitAuthor": "BEA <229179614+BEA-BOLD-EVOLUTION@users.noreply.github.com>",
+  "declaredPackage": {
+    "name": "obs-studio-mcp-bridge",
+    "version": "1.6.0",
+    "private": true,
+    "license": "MIT"
+  },
+  "npm": {
+    "url": "https://registry.npmjs.org/obs-studio-mcp-bridge",
+    "result": "404 Not Found",
+    "publishedArtifactVerified": false
+  },
+  "sourceTags": {
+    "v1.0.0": "1021ce5b0e0de2033569431876f1eecd126d7b76",
+    "v1.3.0": "61fc11a1b0598b97c94f4d2d73f34c62fe6bd252"
+  },
+  "approvedCurrentInstallerVerified": false,
+  "licenseCopyright": "TPC Global",
+  "observedIdentityVersions": {
+    "rootPackage": "1.6.0",
+    "mcpServer": "1.1.0",
+    "codexPluginManifest": "1.2.0",
+    "nativeObsManifest": "1.4.0"
+  }
+}

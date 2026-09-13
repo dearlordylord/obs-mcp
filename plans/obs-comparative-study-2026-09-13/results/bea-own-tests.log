@@ -1,0 +1,17 @@
+Observed 2026-09-13 at d1909bd397c390fb7a644ca24ff53c088e401fa3 in isolated checkout /tmp/obs-polyglot-study.1UfDPr/bea.
+
+Toolchain: Node v24.20.0; pnpm 11.19.0, matching packageManager; TypeScript 5.9.3 from the frozen lockfile.
+
+git clone --filter=blob:none https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge.git /tmp/obs-polyglot-study.1UfDPr/bea
+git -C /tmp/obs-polyglot-study.1UfDPr/bea checkout --detach d1909bd397c390fb7a644ca24ff53c088e401fa3
+pnpm install --frozen-lockfile --ignore-scripts
+Result: exit 0; 113 packages installed. No lifecycle scripts ran.
+
+pnpm test
+Result: exit 0. TypeScript built, then 36 Node tests passed with 0 failed or skipped. Tests cover scene/audio/virtual-camera postconditions, first-run configuration, remote allowlists, readiness helpers, and metadata/installer contracts with fakes or static files. They do not run real OBS or black-box MCP failure cases.
+
+Built artifact SHA-256:
+dist/server.js 20d46a1c992961fcbac98e972ccd21cdcd42a3e1df39f664afde3d5d2415e277
+dist/bootstrap.js 2d30fec73f8de8634d29f24b1229a60883f246a8a99d539ff7371be99be51a9f
+
+No hosted account, native plugin, Windows installer, system file, workspace .env, real credential, or real OBS endpoint was used.

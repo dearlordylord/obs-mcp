@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "jlfn",
+  "requestTimeoutMs": 10000,
+  "launch": {
+    "command": "/tmp/obs-polyglot-study.1UfDPr/jlfn/target/debug/obs-mcp",
+    "env": {
+      "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "obs-get-version" },
+    "listScenes": { "tool": "obs-get-scene-list" },
+    "getCurrentScene": { "tool": "obs-get-current-scene" },
+    "setCurrentScene": {
+      "tool": "obs-set-current-scene",
+      "arguments": { "sceneName": "{{sceneName}}" }
+    },
+    "getInputMute": {
+      "tool": "obs-get-input-mute",
+      "arguments": { "inputName": "{{inputName}}" }
+    },
+    "setInputMute": {
+      "tool": "obs-set-input-mute",
+      "arguments": { "inputName": "{{inputName}}", "inputMuted": "{{inputMuted}}" }
+    },
+    "startRecord": { "tool": "obs-start-record" },
+    "getRecordStatus": { "tool": "obs-get-record-status" },
+    "stopRecord": { "tool": "obs-stop-record" },
+    "getSourceScreenshot": {
+      "tool": "obs-get-source-screenshot",
+      "arguments": { "sourceName": "{{sourceName}}", "imageFormat": "{{imageFormat}}" }
+    }
+  }
+}

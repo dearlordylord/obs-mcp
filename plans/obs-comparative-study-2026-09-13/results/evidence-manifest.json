@@ -1,0 +1,1845 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-09-13",
+  "authority": "candidates/*.json runtimeEvidence arrays; local fallback enumeration applies only when candidates/local.json is absent",
+  "fixture": {
+    "version": "2026-09-13.5",
+    "sourceSha256": {
+      "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+      "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+      "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+      "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+    }
+  },
+  "candidates": [
+    {
+      "id": "aaron",
+      "source": {
+        "repository": "https://github.com/aaronckj/obs-studio-mcp",
+        "commit": "599b382d97ab554bc21951b725bef3faf3085779",
+        "declaredVersion": "0.5.1"
+      },
+      "candidateRecord": {
+        "path": "candidates/aaron.json",
+        "bytes": 522,
+        "sha256": "9d5a97ba7e1e71e62268296e2a4ba3e28988c1007adcbaca1f468d497a39a6f2"
+      },
+      "candidateReport": {
+        "path": "candidates/aaron.md",
+        "bytes": 8725,
+        "sha256": "70c024be49051bb78408351a733fcc4f6e09b27d313582b84e86097b200633bc"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/aaron/aaron.json",
+          "bytes": 122418,
+          "sha256": "5485981d478224fcb84d6fdcdb53c61f255d70cd629e8d5ba459d824942f80e7"
+        },
+        {
+          "path": "results/aaron-pypi/aaron-pypi.json",
+          "bytes": 122465,
+          "sha256": "2bb39e9c545c528c7474f3798af67d7b5c763dadaf0513eda2738bc71b0244f4"
+        },
+        {
+          "path": "results/aaron-own-tests.log",
+          "bytes": 80,
+          "sha256": "08faea39fd19189f6544839f505d91d76ecb1367e219f5db362cdf22916ef869"
+        },
+        {
+          "path": "results/aaron-xdark-workflow-extended-probes.json",
+          "bytes": 5062,
+          "sha256": "35b415356390681a6618f97aee2240016fa2a4a3c3ffcdbb427ea2460681937b"
+        }
+      ]
+    },
+    {
+      "id": "agentic",
+      "source": {
+        "repository": "https://github.com/ironystock/agentic-obs",
+        "commit": "89fcf6c68675229e01c7e702e3234cf0cf53ebe7",
+        "declaredVersion": "Go pseudo-version v0.0.0-20260418210912-89fcf6c68675; runtime dev"
+      },
+      "candidateRecord": {
+        "path": "candidates/agentic.json",
+        "bytes": 674,
+        "sha256": "752a3907a21c729a2ecba988687950608ecb5da679dd4cf1f558c57390f97b82"
+      },
+      "candidateReport": {
+        "path": "candidates/agentic.md",
+        "bytes": 8172,
+        "sha256": "c54e5cc63a75b925e259571c031610b9fbc568bc19607f5447e782e3bc628eb2"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/agentic-fixture/agentic.json",
+          "bytes": 2654,
+          "sha256": "c12eca265cda546f2d81e5f901921d1e771fdfc43b717af003aa6b8f84ff564e"
+        },
+        {
+          "path": "results/agentic-fixture-seeded/agentic.json",
+          "bytes": 127425,
+          "sha256": "f0d3d1a0f1d6a0e714e098aad406c9ba032fd89480c23d81edae998e5de2c9f7"
+        },
+        {
+          "path": "results/agentic-first-run.log",
+          "bytes": 938,
+          "sha256": "c2fa35ab3fcc62361d7f84afefdc629b9845c73513ddc59329c63023eb70c01a"
+        },
+        {
+          "path": "results/agentic-screenshot-probes.json",
+          "bytes": 20974,
+          "sha256": "ea3eefbb8b25c7b56a2053c226a74c1d4498162b28d26b4acce88fe77467251e"
+        },
+        {
+          "path": "results/polyglot-own-tests.log",
+          "bytes": 2813,
+          "sha256": "11842719c8c60ae42b1c736e93a54418184e27be193ec6d9fe77184f049023f9"
+        },
+        {
+          "path": "results/polyglot-publication.json",
+          "bytes": 2157,
+          "sha256": "d359c3d51b6c195fce2053f4b5e64135e667eed6e46eadafd3dd28b46063a572"
+        }
+      ]
+    },
+    {
+      "id": "bea",
+      "source": {
+        "repository": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge",
+        "commit": "d1909bd397c390fb7a644ca24ff53c088e401fa3",
+        "declaredVersion": "root 1.6.0; MCP 1.1.0; Codex manifest 1.2.0; native OBS manifest 1.4.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/bea.json",
+        "bytes": 1680,
+        "sha256": "5e5272ce7ae9f8beed62db440bebfab8974ce47d59ed42d9372fe36d7bd770c4"
+      },
+      "candidateReport": {
+        "path": "candidates/bea.md",
+        "bytes": 11085,
+        "sha256": "e841a512dc927b88819162b7d70d95d700bf3d7f92975158797caa146fc67d9b"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/bea-http.json",
+          "bytes": 1504,
+          "sha256": "e09bc4d7d3adada190b13172320d6ae6f05fd9e55e1c14d64c367ed086207a5d"
+        },
+        {
+          "path": "results/bea-own-tests.log",
+          "bytes": 1222,
+          "sha256": "d37be8ce7a597fa4b5adba2b179a45b69301d0a84f0390028a2c19d672d9de29"
+        },
+        {
+          "path": "results/bea-publication.json",
+          "bytes": 914,
+          "sha256": "5f3efab72db1d3e9f990373bf87ecca0abc49a862fc4fe5fa00dc1f205cdc2bd"
+        }
+      ]
+    },
+    {
+      "id": "cdavis",
+      "source": {
+        "repository": "https://github.com/cdavis-code/obs_websocket_workspace",
+        "commit": "1d95b2933dc1de520cca09414d5d65b2a85466b8",
+        "declaredVersion": "5.7.5 npm; 5.7.2 native release"
+      },
+      "candidateRecord": {
+        "path": "candidates/cdavis.json",
+        "bytes": 572,
+        "sha256": "01c52cbe99aecd681d051a74829758f4ab621b3c2c6fcdac1da07a4339fc41a9"
+      },
+      "candidateReport": {
+        "path": "candidates/cdavis.md",
+        "bytes": 9301,
+        "sha256": "51b17449a10b9a46286aa4af22a9a5f976f7404fba8a359cb97b3fd0be0b1862"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/cdavis-fixture/cdavis.json",
+          "bytes": 2239,
+          "sha256": "b2ce53175587f1e7a2a7567eee21fb2f7f685ea27f22dacb40769c27d1dc6fc1"
+        },
+        {
+          "path": "results/cdavis-native-fixture/cdavis-native.json",
+          "bytes": 29355,
+          "sha256": "0192c7e955510f3dd241dba1a1c584d79e8ff2d608eb9c52ead42d9f9253d654"
+        },
+        {
+          "path": "results/polyglot-own-tests.log",
+          "bytes": 2813,
+          "sha256": "11842719c8c60ae42b1c736e93a54418184e27be193ec6d9fe77184f049023f9"
+        },
+        {
+          "path": "results/polyglot-publication.json",
+          "bytes": 2157,
+          "sha256": "d359c3d51b6c195fce2053f4b5e64135e667eed6e46eadafd3dd28b46063a572"
+        }
+      ]
+    },
+    {
+      "id": "dcc",
+      "source": {
+        "repository": "https://github.com/dcc-mcp/dcc-mcp-obs",
+        "commit": "b30dd8f0498750582f33a3e2be46f8a9eb9f848e",
+        "declaredVersion": "source 1.4.0; PyPI/GitHub v1.4.0 at 4ae80d4a7f062c6a496ad2848cf3eaeaea08ffbe"
+      },
+      "candidateRecord": {
+        "path": "candidates/dcc.json",
+        "bytes": 567,
+        "sha256": "7879964fcd9745e646ccc9bbe73f72a2325091b07850fcbeb00af16494b78938"
+      },
+      "candidateReport": {
+        "path": "candidates/dcc.md",
+        "bytes": 11380,
+        "sha256": "642a0d4c4307aa03e94f3a86b4f8469e00c16910b2026ad5e854e30aadd40829"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/dcc-runner/dcc.json",
+          "bytes": 4006,
+          "sha256": "bf708b3c46c0ba62986c436ccdad35c4990d0ad1616cf93cfb98caf8e630d2eb"
+        },
+        {
+          "path": "results/dcc-fixture-nt.json",
+          "bytes": 848,
+          "sha256": "15ae68535949a5e611f76fe0063ba1f9cce409f5478a06c3ece7ba7caa6818af"
+        },
+        {
+          "path": "results/dcc-own-tests.log",
+          "bytes": 2884,
+          "sha256": "9520d76cd34258d971fb0aa802b71b545a0a66319ed930550b5cfc3d9626f74f"
+        },
+        {
+          "path": "results/dcc-publication.json",
+          "bytes": 1786,
+          "sha256": "4f2df5f3a7183d2ba049f391500e8a8944f027476040af1e1b8a86ec55be6132"
+        }
+      ]
+    },
+    {
+      "id": "giancarlo",
+      "source": {
+        "repository": "https://github.com/Giancarlo26/obs-action-history",
+        "commit": "882c3c1c0e490bb8aa6e2f3487f6aa817a1521bb",
+        "declaredVersion": "0.1.0 (source metadata; no public package verified)"
+      },
+      "candidateRecord": {
+        "path": "candidates/giancarlo.json",
+        "bytes": 575,
+        "sha256": "5922fa2e5e351397bc696c96dbbb003b663b76868db210c7c372da7612a279b6"
+      },
+      "candidateReport": {
+        "path": "candidates/giancarlo.md",
+        "bytes": 7633,
+        "sha256": "19a066318e6ba1b2559a7fb128ef116b3fa0340e445eba9b77ca88b7408afcc3"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/giancarlo/giancarlo.json",
+          "bytes": 185942,
+          "sha256": "b85eb0806c7e0fd40a38ff9f05bddecf80802ff80271ff8615e481adedfa4a71"
+        },
+        {
+          "path": "results/giancarlo-runner.log",
+          "bytes": 287,
+          "sha256": "e25ff898ad4ccf124be3538688077113132ab51e2e1b05cc65af7f73a3343d65"
+        },
+        {
+          "path": "results/giancarlo-timeout-probe.json",
+          "bytes": 496,
+          "sha256": "08eebdc6295992d693d369e5a898234eedfa0edb932111a03b8a74c237aaa697"
+        },
+        {
+          "path": "results/giancarlo-source-check.log",
+          "bytes": 527,
+          "sha256": "7a2e93f76b1a301ad60cec1bf3ac3d6278b0d1b6fd5f4e6ce4cd2292f95856cc"
+        }
+      ]
+    },
+    {
+      "id": "itchris",
+      "source": {
+        "repository": "https://github.com/ITchrisDEB/obs-studio-mcp",
+        "commit": "05f00bafa93725b16b17733d09a561dfd464741c",
+        "declaredVersion": "0.1.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/itchris.json",
+        "bytes": 510,
+        "sha256": "26bf08d338913572663d87dd876c0d570c508345cb4b48d0721bc03ac055682c"
+      },
+      "candidateReport": {
+        "path": "candidates/itchris.md",
+        "bytes": 9469,
+        "sha256": "32deefe81e44615102772c62f14388534d2732d9ea08c86281d775c765e234fa"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/itchris/itchris.json",
+          "bytes": 232444,
+          "sha256": "7bc9e64ddb4b9a5dbac148752961c218befba58fb7abbfaec5c33c48eb9a8371"
+        },
+        {
+          "path": "results/itchris-build.log",
+          "bytes": 72,
+          "sha256": "2b34696728dc82b03cbf6311d7e3a6a41658bbde097834c3010a78bc82842c1a"
+        },
+        {
+          "path": "results/itchris-own-tests.log",
+          "bytes": 6607,
+          "sha256": "14299293af4be14cacfdc772c361552cde93f59f75ad7910b23d64626e14b742"
+        },
+        {
+          "path": "results/itchris-core-obs-tests.log",
+          "bytes": 8537,
+          "sha256": "ae0faab28792d58b06a87dff98a3f6203be2fd1da037681aaa0268904637488e"
+        }
+      ]
+    },
+    {
+      "id": "jlfn",
+      "source": {
+        "repository": "https://github.com/JLFN/obs-mcp",
+        "commit": "f9dccf0f8903b225615ba3b80a8a63287b92716a",
+        "declaredVersion": "0.2.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/jlfn.json",
+        "bytes": 515,
+        "sha256": "f9951482d8df22c67d755e7240934ddf1b387230901c43bdf69a12b416aa59f5"
+      },
+      "candidateReport": {
+        "path": "candidates/jlfn.md",
+        "bytes": 8348,
+        "sha256": "46c912b78660d562d97022ce636579dc0549ab082c58f0dbb78129e374021114"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/jlfn-fixture/jlfn.json",
+          "bytes": 219243,
+          "sha256": "0c138f3b8b58cea4ae1b7ee756e1be5997cbe1adf7906531bc8b932e18a22c50"
+        },
+        {
+          "path": "results/jlfn-private-fixture/jlfn-private.json",
+          "bytes": 197787,
+          "sha256": "54ab4bea9b1cb7ad4ca30f038f288a0e3140e911b4c713f286418038e4222d1c"
+        },
+        {
+          "path": "results/polyglot-own-tests.log",
+          "bytes": 2813,
+          "sha256": "11842719c8c60ae42b1c736e93a54418184e27be193ec6d9fe77184f049023f9"
+        },
+        {
+          "path": "results/polyglot-publication.json",
+          "bytes": 2157,
+          "sha256": "d359c3d51b6c195fce2053f4b5e64135e667eed6e46eadafd3dd28b46063a572"
+        }
+      ]
+    },
+    {
+      "id": "lars",
+      "source": {
+        "repository": "LarsCanGit/OBS-MCP",
+        "commit": "8025f2c0336cb882d79e3227884fcaedd6d23603",
+        "declaredVersion": "1.0.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/lars.json",
+        "bytes": 480,
+        "sha256": "04eb3db25e658b0b0567ab6909e62ca0d32d0c0f812ab813462b0ab93c576370"
+      },
+      "candidateReport": {
+        "path": "candidates/lars.md",
+        "bytes": 8976,
+        "sha256": "1d6344f8e393e9af6029a2a36f15d118f3dfbe0dfa0a4b1fda3db6ca46a0e2dc"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/lars.json",
+          "bytes": 64151,
+          "sha256": "cc042d7c9a01cfe62fdd9fc9e339027be75d45f878d13ec998dd8fe79b3b2aa1"
+        },
+        {
+          "path": "results/lars-extended.json",
+          "bytes": 19901,
+          "sha256": "9d2f2514d11468515b8935f7911f721d1b1ebd0581d692bdcd2154227bcbe293"
+        },
+        {
+          "path": "results/lars-unavailable.json",
+          "bytes": 16646,
+          "sha256": "5c1de4073c804d11c3c6954bdca8567c7b13be53450e6b9337b0a4a3200cdecb"
+        }
+      ]
+    },
+    {
+      "id": "lhenri",
+      "source": {
+        "repository": "https://github.com/LHenri88/obs-mcp",
+        "commit": "ca711037c0bca4c4c6e9142a52821319780bd45e",
+        "declaredVersion": "0.1.0 (source metadata; no attributable public package)"
+      },
+      "candidateRecord": {
+        "path": "candidates/lhenri.json",
+        "bytes": 584,
+        "sha256": "0dfdeb7a5569238a11f5974c55d7703dbed2699f9dcca491efb05fa204a83cbf"
+      },
+      "candidateReport": {
+        "path": "candidates/lhenri.md",
+        "bytes": 7396,
+        "sha256": "3fee0e1cf93b5e2506bb5094517a3fc7b87132cff01bdccd067d0601e3a0c16c"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/lhenri/lhenri.json",
+          "bytes": 2660,
+          "sha256": "b8f1fc1a846b19979cea25cf76ce6146db5bb7f0d4e6d3714ed1bc5e47181c24"
+        },
+        {
+          "path": "results/lhenri-install.log",
+          "bytes": 977,
+          "sha256": "ad55c8cba258e19586f796798349e25c007b19f11cc7880ba252416e685e0b6e"
+        },
+        {
+          "path": "results/lhenri-build.log",
+          "bytes": 85,
+          "sha256": "fcebd2b4d4d302c930c37a364b2ff86ebed2c8dddff1a8a9a06f91986a036bc5"
+        },
+        {
+          "path": "results/lhenri-entry.stderr.log",
+          "bytes": 516,
+          "sha256": "946775c21021542b25d5aaefcde8d3c85dede3ffd1a80ef073deff1b3a3eba4f"
+        },
+        {
+          "path": "results/lhenri-source-check.log",
+          "bytes": 43,
+          "sha256": "5dc3837bdcbf98c837686a000cb6f16f35572aed962e98bea5bbea79f56def8a"
+        }
+      ]
+    },
+    {
+      "id": "local",
+      "source": {
+        "repository": "https://github.com/dearlordylord/obs-mcp",
+        "commit": "587e356b00d9269dcd124969ee36aad9635f2db8",
+        "declaredVersion": "0.3.3"
+      },
+      "candidateRecord": {
+        "path": "candidates/local.json",
+        "bytes": 1585,
+        "sha256": "ee0916baa218266e46259931e1a383fa8baaaca76303bc66637b60e30ba6a015"
+      },
+      "candidateReport": {
+        "path": "candidates/local.md",
+        "bytes": 18535,
+        "sha256": "729c0ba778e16873b951380e6841df2eed17d780fcfd203eb97cbe89facbc647"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/local-package/local-package-0.3.3.json",
+          "bytes": 758438,
+          "sha256": "43ff74c04914d1f5c7c180b285ae64a627ad32058bd8753df36f244026d1c979"
+        },
+        {
+          "path": "results/local-fields-runtime.json",
+          "bytes": 27260,
+          "sha256": "de6ef91bcdd877c398b87b17806329cb8b10294b6a8ef237474a3ea849608371"
+        },
+        {
+          "path": "results/local-check-all.json",
+          "bytes": 267,
+          "sha256": "10754eb5d65c2d68c4c49aa7ac4a738f0d23a107d46c565f014656efcebe3184"
+        },
+        {
+          "path": "results/local-check-all.log",
+          "bytes": 16548,
+          "sha256": "9bc110cc09fe3e2adab169fd251d377090ab1535fb3cf5684eed4fc590d0551b"
+        },
+        {
+          "path": "results/local-package-entry.json",
+          "bytes": 937,
+          "sha256": "f7c3533dd06b5db81dae91b0760b6d7efd904bc8ff6e0de6818a7cc178d31bfb"
+        },
+        {
+          "path": "results/local-package-entry.log",
+          "bytes": 673,
+          "sha256": "6e34bd1262631a50250348e047ce27fcbcd5eb9f7f18993f9101fed9ec6e1956"
+        },
+        {
+          "path": "results/local-field-audit.json",
+          "bytes": 116680,
+          "sha256": "f5c1cc8669267a1210ed9c6c1384fb7a017b484cc30be4b5fbd6313959c04ba1"
+        },
+        {
+          "path": "results/local-publication.json",
+          "bytes": 1084,
+          "sha256": "d57af44e4d528521dd03040eaf166a458f43a66db74919ce4c0df29583927ea9"
+        }
+      ]
+    },
+    {
+      "id": "royshil",
+      "source": {
+        "repository": "royshil/obs-mcp",
+        "commit": "314e7c065ef8c5e2656757b35b24ea7fa81489b0",
+        "declaredVersion": "1.0.1"
+      },
+      "candidateRecord": {
+        "path": "candidates/royshil.json",
+        "bytes": 528,
+        "sha256": "0608d23d4a9e51000a2ee04e31d579dc63b3d89955b9359f355874ec1b26177d"
+      },
+      "candidateReport": {
+        "path": "candidates/royshil.md",
+        "bytes": 10321,
+        "sha256": "4c6c632d41898e7c33ade0558494f6fbae556d90a89784d4cd959fe1cc564f35"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/royshil.json",
+          "bytes": 189217,
+          "sha256": "14f8cb3a482b5f3f60c62302553d58dcbe35df66da1a7ddf5bb7713484b68c81"
+        },
+        {
+          "path": "results/royshil-extended.json",
+          "bytes": 121725,
+          "sha256": "0c3dc430d5a8a59cbb023321ca11a212b77f7b8c6f64adc20640ca79e4c2494b"
+        },
+        {
+          "path": "results/royshil-unavailable.json",
+          "bytes": 96143,
+          "sha256": "fc1cb5d83b5e87ddb3b5b5cc24eaa6cf6e461e326ad8f23825b198372320485d"
+        },
+        {
+          "path": "results/royshil-published.json",
+          "bytes": 195130,
+          "sha256": "9578f79a4d279b99c4cd818754b077e09a7c2c366cb19ec10f62f595521d4cf8"
+        }
+      ]
+    },
+    {
+      "id": "sbroenne",
+      "source": {
+        "repository": "https://github.com/sbroenne/mcp-server-obs",
+        "commit": "96354251a40a6a7299585652358f63eba62b3714",
+        "declaredVersion": "head project 0.0.3; MCP 1.0.0; release 1.0.4"
+      },
+      "candidateRecord": {
+        "path": "candidates/sbroenne.json",
+        "bytes": 523,
+        "sha256": "28c1dd0b0d22bd0738acc9a6b2c8620a45629f3418b1bc08e76d3e638cf98648"
+      },
+      "candidateReport": {
+        "path": "candidates/sbroenne.md",
+        "bytes": 7669,
+        "sha256": "b751877e49fcddfd0426bbc3613f210f2fb481e598ec4d4943abdb0558e68bce"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/sbroenne-fixture/sbroenne.json",
+          "bytes": 91309,
+          "sha256": "cecced6b4ba24b3136483ddf6f1b8328224d7a71a90921c30caeaf2adbb66b14"
+        },
+        {
+          "path": "results/polyglot-own-tests.log",
+          "bytes": 2813,
+          "sha256": "11842719c8c60ae42b1c736e93a54418184e27be193ec6d9fe77184f049023f9"
+        },
+        {
+          "path": "results/polyglot-publication.json",
+          "bytes": 2157,
+          "sha256": "d359c3d51b6c195fce2053f4b5e64135e667eed6e46eadafd3dd28b46063a572"
+        }
+      ]
+    },
+    {
+      "id": "sidfou",
+      "source": {
+        "repository": "https://github.com/sid-fou/obs-stream-mcp",
+        "commit": "60f14e61b25e8173c67dc18e0fdf741cacc788ec",
+        "declaredVersion": "0.1.0 (source metadata; no public package verified)"
+      },
+      "candidateRecord": {
+        "path": "candidates/sidfou.json",
+        "bytes": 723,
+        "sha256": "1b7c0d5dbe0d9e9a0821300e287fb8a7cbde5bae4baf72997aa8003abfc49fd5"
+      },
+      "candidateReport": {
+        "path": "candidates/sidfou.md",
+        "bytes": 9715,
+        "sha256": "8373968cacc630d73a7f6e172b07fe284f263f4178520ba8a5c6a123f06a2bef"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/sidfou/sidfou.json",
+          "bytes": 70071,
+          "sha256": "dbc7503fce6d0fa0abe8776c149b4eb230a062959ecb7b65082571d33cc75e03"
+        },
+        {
+          "path": "results/sidfou-extended-probes.json",
+          "bytes": 3332,
+          "sha256": "1d71e05b2a066151be5b6d91a9fb3fe24508a09ece7b08bcec545091f06ba4ff"
+        },
+        {
+          "path": "results/sidfou-install.log",
+          "bytes": 935,
+          "sha256": "0abcda8244391288a75773bace502f4502897a90773bb72d57e19fb36a12d2e9"
+        },
+        {
+          "path": "results/sidfou-declared-entry.stderr.log",
+          "bytes": 1882,
+          "sha256": "7692f3ae0252201b59d3fdb719a718ea16b96e4da5a05ef34f91c31c45d79d8d"
+        },
+        {
+          "path": "results/sidfou-mcp1-install.log",
+          "bytes": 348,
+          "sha256": "51e48a9ebb3edae50416d29393c46888593bd9a324825e28070212db4c29ae44"
+        },
+        {
+          "path": "results/sidfou-build.log",
+          "bytes": 92,
+          "sha256": "50b1b188a6a88f46504eefa0ddc003c3efa90f04df5a2b8bd846a027d16aa2b9"
+        },
+        {
+          "path": "results/sidfou-source-check.log",
+          "bytes": 43,
+          "sha256": "5dc3837bdcbf98c837686a000cb6f16f35572aed962e98bea5bbea79f56def8a"
+        }
+      ]
+    },
+    {
+      "id": "takurot",
+      "source": {
+        "repository": "https://github.com/takurot/obs-showrunner-mcp",
+        "commit": "3682378f0bcc886ee1c8340b0f4fbba3e1088876",
+        "declaredVersion": "0.1.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/takurot.json",
+        "bytes": 511,
+        "sha256": "22d50b5753cf8bd62ed978862245ea80dbb5c49ac760c44024e53852ea54c27c"
+      },
+      "candidateReport": {
+        "path": "candidates/takurot.md",
+        "bytes": 7869,
+        "sha256": "6b0ca5ba89a9b25190e96bec4a47c6499b8b79882cbb63d819476e09798e6766"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/takurot/takurot.json",
+          "bytes": 45035,
+          "sha256": "7c00ed1f5d66ab3e4760364e96c02890726fece25e95fe34ad3917387532561f"
+        },
+        {
+          "path": "results/takurot-npm/takurot-npm.json",
+          "bytes": 45079,
+          "sha256": "ee1bb922f4ea65a24e85c9262e84cca983b9d187e83721ed881223787960fea5"
+        },
+        {
+          "path": "results/takurot-own-tests.log",
+          "bytes": 691,
+          "sha256": "848424c737ecb48fb96e496c330ad617f480ecacebace625f18d8dd38726ba67"
+        },
+        {
+          "path": "results/takurot-build.log",
+          "bytes": 41,
+          "sha256": "7bb0a2cd2bb79965227bdc2027e5baac4db9fa0c52e7b25f069c80c71954d044"
+        }
+      ]
+    },
+    {
+      "id": "tom",
+      "source": {
+        "repository": "Tom-R-Main/OBS-MCP",
+        "commit": "df584ddbcf117ed82ac5c232d82f128baec8292a",
+        "declaredVersion": "1.1.1"
+      },
+      "candidateRecord": {
+        "path": "candidates/tom.json",
+        "bytes": 509,
+        "sha256": "e18849dce0b22eeee4f680a3463fbe5bf107e0317ddca5a4d53acecd1d43e0e1"
+      },
+      "candidateReport": {
+        "path": "candidates/tom.md",
+        "bytes": 10706,
+        "sha256": "a68ddcbf5d6bde6c241e780e833dd11facc21f028d6f936a2768a964032837a3"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/tom.json",
+          "bytes": 278622,
+          "sha256": "9e818e3b23d88ff91cfb38e8f2dbd2e77e48f7722c99c215f4df6801f53cf1ca"
+        },
+        {
+          "path": "results/tom-extended.json",
+          "bytes": 196659,
+          "sha256": "4343f2af61855c9b9f4d03b658b42ea72e1242da46e5ce739e7ec29900095b18"
+        },
+        {
+          "path": "results/tom-unavailable.json",
+          "bytes": 164961,
+          "sha256": "bf534be0e872a2b1dbfa542c359d8b2036edeb5e18e58e3a44c11bc62bc4c902"
+        },
+        {
+          "path": "results/tom-generic.json",
+          "bytes": 278845,
+          "sha256": "b1c780c9ca1613629a8c10a29518f0fd89b69eb91879e0052a77742422244a90"
+        }
+      ]
+    },
+    {
+      "id": "umar",
+      "source": {
+        "repository": "https://github.com/muhammadumarakram1/mcp-obs-websocket",
+        "commit": "37f3e7ae8031f034cc8282429c75703a11bd6737",
+        "declaredVersion": "1.0.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/umar.json",
+        "bytes": 1191,
+        "sha256": "632abb745d4cd8414e6580773341ce339d3a8b3ec363e95378f9f09b2aebdfd6"
+      },
+      "candidateReport": {
+        "path": "candidates/umar.md",
+        "bytes": 12269,
+        "sha256": "a3441927f5cbb365cdb94a4672d00fa31560b083c02b1ccd789234021e421bb7"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/umar-fixture/umar.json",
+          "bytes": 25060,
+          "sha256": "8554b32574069de8fcb4d9a99e9087c1bf505b427e0955e17254d2e9fa585491"
+        }
+      ]
+    },
+    {
+      "id": "xdark",
+      "source": {
+        "repository": "https://github.com/xDarkzx/OBS_MCP",
+        "commit": "d632587facb94d80563628054ba58dc4af1d700f",
+        "declaredVersion": "0.2.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/xdark.json",
+        "bytes": 514,
+        "sha256": "8d8e9f8a961b9bc0ffa4089e0616355428916ed47d8451a0a56ac1420bd7817f"
+      },
+      "candidateReport": {
+        "path": "candidates/xdark.md",
+        "bytes": 8415,
+        "sha256": "29a0b17c53e16697068ed43c2fa6ccd4f0053873ed433b9d0c07bc549dc3eadb"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/xdark/xdark.json",
+          "bytes": 221004,
+          "sha256": "a2863af8db6a02727ce01c4c032765b79dfc2c12cb87b298dbf0e229aa0294de"
+        },
+        {
+          "path": "results/xdark-pypi/xdark-pypi.json",
+          "bytes": 2950,
+          "sha256": "29f58de1ed402fa636e6f38b19c698f07a9dd20b24d21c7cf6510ba63011a111"
+        },
+        {
+          "path": "results/xdark-own-tests.log",
+          "bytes": 99,
+          "sha256": "346d32a6c75881aa24269c44c3f915a007751745e8883f90d94bc6ff2be8a6fc"
+        },
+        {
+          "path": "results/aaron-xdark-workflow-extended-probes.json",
+          "bytes": 5062,
+          "sha256": "35b415356390681a6618f97aee2240016fa2a4a3c3ffcdbb427ea2460681937b"
+        }
+      ]
+    },
+    {
+      "id": "yshk",
+      "source": {
+        "repository": "yshk-mrt/obs-mcp",
+        "commit": "643e6646075083418f956e163b6f8c0998f34a68",
+        "declaredVersion": "1.0.0"
+      },
+      "candidateRecord": {
+        "path": "candidates/yshk.json",
+        "bytes": 478,
+        "sha256": "c14cddfbaec800746f1bf2c63fc08fd9ddd22ae19d890aff5e5d0f1138db4779"
+      },
+      "candidateReport": {
+        "path": "candidates/yshk.md",
+        "bytes": 10070,
+        "sha256": "427c744936964ce7a54172614b2e778388b791af78fa2ee9dbac15e3a21fcaae"
+      },
+      "activeEvidence": [
+        {
+          "path": "results/yshk.json",
+          "bytes": 114355,
+          "sha256": "75ccc72fc5d61110a24a8d9b8e9d0d18a1b94ca489144a9b3bd1e9dcfa040256"
+        },
+        {
+          "path": "results/yshk-extended.json",
+          "bytes": 42065,
+          "sha256": "adca2aa93c654d86401fc5b1889cbaab4d73ebc60b26a57b239776baedc00acc"
+        },
+        {
+          "path": "results/yshk-unavailable.json",
+          "bytes": 36133,
+          "sha256": "c87ea29d83b32ab5c324ff004394b6f0d5b8862579c3430dfe87aab32be6893f"
+        }
+      ]
+    }
+  ],
+  "adapters": [
+    {
+      "id": "aaron-pypi",
+      "evidence": {
+        "path": "adapters/aaron-pypi.json",
+        "bytes": 1016,
+        "sha256": "9930a67e5f503d419c0b1ea296e99ea9354740e1580807a9ef0da8b3be89c70c"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-aaron-release-kWF4lF/venv/bin/obs-studio-mcp",
+        "env": {
+          "OBS_MCP_HOST": "{{obsHost}}",
+          "OBS_MCP_PORT": "{{obsPort}}",
+          "OBS_MCP_PASSWORD": "{{obsPassword}}",
+          "OBS_MCP_SECRETS": "env"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-aaron-release-kWF4lF/venv/bin/obs-studio-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "aaron",
+      "evidence": {
+        "path": "adapters/aaron.json",
+        "bytes": 1046,
+        "sha256": "a9cfffa7574dbbc538736ee2fb84c942a4d9608e96dc1e8a3d998ace7fcaaa7b"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-aaron-TqsKC1/repo/.venv/bin/obs-studio-mcp",
+        "env": {
+          "OBS_MCP_HOST": "{{obsHost}}",
+          "OBS_MCP_PORT": "{{obsPort}}",
+          "OBS_MCP_PASSWORD": "{{obsPassword}}",
+          "OBS_MCP_SECRETS": "env"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-aaron-TqsKC1/repo/.venv/bin/obs-studio-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "agentic",
+      "evidence": {
+        "path": "adapters/agentic.json",
+        "bytes": 1090,
+        "sha256": "6f41104bce6a2c653f0910a02bbc75a167e4ee4494068123569f934118ffa359"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-polyglot-study.1UfDPr/agentic/agentic-obs",
+        "env": {
+          "OBS_HOST": "{{obsHost}}",
+          "OBS_PORT": "{{obsPort}}",
+          "OBS_PASSWORD": "{{obsPassword}}",
+          "HOME": "/tmp/obs-polyglot-study.1UfDPr/agentic-fixed-home",
+          "AGENTIC_OBS_DB": "/tmp/obs-polyglot-study.1UfDPr/agentic-fixed-home/.agentic-obs/db.sqlite",
+          "AGENTIC_OBS_HTTP_ENABLED": "false"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-polyglot-study.1UfDPr/agentic-fixed-home",
+        "/tmp/obs-polyglot-study.1UfDPr/agentic-fixed-home/.agentic-obs/db.sqlite",
+        "/tmp/obs-polyglot-study.1UfDPr/agentic/agentic-obs"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "cdavis-native",
+      "evidence": {
+        "path": "adapters/cdavis-native.json",
+        "bytes": 1691,
+        "sha256": "6c9bde3e1d3c057eae47b137176c57aed8342166e4b1aa09dd00f5400420d65f"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-mcp-linux-arm64",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+          "OBS_WEBSOCKET_TIMEOUT": "3"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-mcp-linux-arm64"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "cdavis",
+      "evidence": {
+        "path": "adapters/cdavis.json",
+        "bytes": 1959,
+        "sha256": "0d014d89b1eaed1385888084eb835a1f206be6dd73a78e1f50585f6ab69a0371"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "node_modules/@unngh/obs-mcp/bin/obs-mcp-server.js"
+        ],
+        "cwd": "/tmp/obs-polyglot-study.1UfDPr/cdavis-npm",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+          "OBS_WEBSOCKET_TIMEOUT": "3"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-polyglot-study.1UfDPr/cdavis-npm"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "dcc",
+      "evidence": {
+        "path": "adapters/dcc.json",
+        "bytes": 481,
+        "sha256": "9560324668e35d57e23a5048d95aa8f39c91426e285265ac301ec4569d9af93a"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/bin/dcc-mcp-obs",
+        "args": [
+          "--host-pid",
+          "539483",
+          "--mcp-port",
+          "0"
+        ],
+        "env": {
+          "DCC_MCP_OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "DCC_MCP_OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+          "DCC_MCP_DISABLE_DEFAULT_SKILL_PATHS": "1",
+          "DCC_MCP_GATEWAY_PORT": "0",
+          "DCC_MCP_REGISTRY_DIR": "{{tempDir}}/registry"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/bin/dcc-mcp-obs"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "giancarlo",
+      "evidence": {
+        "path": "adapters/giancarlo.json",
+        "bytes": 1381,
+        "sha256": "356860efa5066dc81d318ca097fab9085d2145bcce5f8ce6f8d4aa70f1873b1d"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "server.js"
+        ],
+        "cwd": "/tmp/obs-giancarlo-1vWyaM/repo",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-giancarlo-1vWyaM/repo"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "itchris",
+      "evidence": {
+        "path": "adapters/itchris.json",
+        "bytes": 1925,
+        "sha256": "cbecb5def9847c078188e9b74ad16c42fd583a729fc57610877a0ca4bb173656"
+      },
+      "recordedLaunch": {
+        "command": "/bin/sh",
+        "args": [
+          "-c",
+          "mkdir -p \"$HOME/.config/obs-studio-mcp\" && printf '[obs]\\nhost = \"%s\"\\nport = %s\\npassword_env = \"OBS_WEBSOCKET_PASSWORD\"\\nauto_connect = true\\nreconnect_interval_secs = 1\\n\\n[security]\\nallow_stop_record = true\\nrequire_confirmation = []\\n' \"$OBS_STUDY_HOST\" \"$OBS_STUDY_PORT\" > \"$HOME/.config/obs-studio-mcp/config.toml\" && exec /tmp/obs-itchris-dqgEUK/repo/target/debug/obs-studio-mcp"
+        ],
+        "cwd": "/tmp/obs-itchris-dqgEUK/repo",
+        "env": {
+          "OBS_STUDIO_MCP_INSTALL_DIR": "/tmp/obs-itchris-dqgEUK/repo",
+          "OBS_STUDIO_MCP_SYSTEM_CONFIG_DIR": "{{tempDir}}/no-system-config",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+          "OBS_STUDY_HOST": "{{obsHost}}",
+          "OBS_STUDY_PORT": "{{obsPort}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-itchris-dqgEUK/repo",
+        "/tmp/obs-itchris-dqgEUK/repo/target/debug/obs-studio-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "jlfn-private",
+      "evidence": {
+        "path": "adapters/jlfn-private.json",
+        "bytes": 424,
+        "sha256": "fbe476cae7fa3021008262702316c3c035465fcf2c47105b08187f0ba41e153a"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-polyglot-study.1UfDPr/jlfn/target/debug/obs-mcp",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-polyglot-study.1UfDPr/jlfn/target/debug/obs-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "jlfn",
+      "evidence": {
+        "path": "adapters/jlfn.json",
+        "bytes": 1173,
+        "sha256": "920677d8f6f1ced09e24c1da7ff0a8cbee09cfd745fd91840abf86aa2d750c2e"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-polyglot-study.1UfDPr/jlfn/target/debug/obs-mcp",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-polyglot-study.1UfDPr/jlfn/target/debug/obs-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "lars",
+      "evidence": {
+        "path": "adapters/lars.json",
+        "bytes": 1270,
+        "sha256": "2657a1dc399eecfc0eb9918e19c5df3726551824546870bdaa3324fa075a51ed"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "obs-mcp-server.js"
+        ],
+        "cwd": "/tmp/obs-study-ts/lars",
+        "env": {
+          "OBS_WS_URL": "{{obsUrl}}",
+          "OBS_WS_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-study-ts/lars",
+        "/tmp/obs-study-ts/lars/.study-home/fixture.png"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "lhenri",
+      "evidence": {
+        "path": "adapters/lhenri.json",
+        "bytes": 745,
+        "sha256": "1a43759c2ebae246b6ca40a81d50401969e070b8ab48d572db6cacd6ab2d2b0d"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-lhenri-MSg7lE/repo/.venv/bin/obs-mcp",
+        "env": {
+          "HOME": "{{home}}",
+          "XDG_CONFIG_HOME": "{{home}}/.config"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-lhenri-MSg7lE/repo/.venv/bin/obs-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "royshil-published",
+      "evidence": {
+        "path": "adapters/royshil-published.json",
+        "bytes": 1617,
+        "sha256": "f68eb58159c736bdc29fdf0eb2645d7eb1d32112699518fa0effe33a78f72264"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "build/index.js"
+        ],
+        "cwd": "/tmp/obs-study-ts/royshil-published/package",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-study-ts/royshil-published/package"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "royshil",
+      "evidence": {
+        "path": "adapters/royshil.json",
+        "bytes": 1589,
+        "sha256": "65d1aa7da47879ae63c301ff604253ffa2bf4c1680a563313d9e7c0b32df60be"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "build/index.js"
+        ],
+        "cwd": "/tmp/obs-study-ts/royshil",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-study-ts/royshil"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "sbroenne",
+      "evidence": {
+        "path": "adapters/sbroenne.json",
+        "bytes": 1697,
+        "sha256": "ec1eaf0bd4e113f98a10db3a0a171fd019dbdadcdebf62c1388a1fc486ecddbb"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-toolchains/dotnet/dotnet",
+        "args": [
+          "/tmp/obs-polyglot-study.1UfDPr/sbroenne/src/ObsMcp.McpServer/bin/Release/net10.0-windows/Sbroenne.ObsMcp.McpServer.dll"
+        ]
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-polyglot-study.1UfDPr/sbroenne/src/ObsMcp.McpServer/bin/Release/net10.0-windows/Sbroenne.ObsMcp.McpServer.dll",
+        "/tmp/obs-study-sbroenne-screenshot.png",
+        "/tmp/obs-toolchains/dotnet/dotnet"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "sidfou",
+      "evidence": {
+        "path": "adapters/sidfou.json",
+        "bytes": 720,
+        "sha256": "dcc5101253229232fffb1e8827f76e4fc01f50505800b06b440b6fba229cadb1"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-sidfou-pKc7OU/repo/.venv/bin/obs-stream-mcp",
+        "args": [
+          "--no-sse"
+        ],
+        "env": {
+          "OBS_HOST": "{{obsHost}}",
+          "OBS_PORT": "{{obsPort}}",
+          "OBS_PASSWORD": "{{obsPassword}}",
+          "HOME": "{{home}}",
+          "XDG_CONFIG_HOME": "{{home}}/.config"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-sidfou-pKc7OU/repo/.venv/bin/obs-stream-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "takurot-npm",
+      "evidence": {
+        "path": "adapters/takurot-npm.json",
+        "bytes": 682,
+        "sha256": "1561c13e29ebbfb309a11d2559967bb9ca81570abe7520b6e9b4eca7d7089ec5"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-tak-release-OShFMa/node_modules/.bin/obs-showrunner-mcp",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+          "SAFETY_MODE": "normal",
+          "ALLOW_STOP_RECORDING": "true"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-tak-release-OShFMa/node_modules/.bin/obs-showrunner-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "takurot",
+      "evidence": {
+        "path": "adapters/takurot.json",
+        "bytes": 725,
+        "sha256": "919d12cff301dbbf694969222bde719791a41a6c4f31025b22a0d87ae2da048a"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "/tmp/obs-takurot-cszqao/repo/dist/index.js"
+        ],
+        "cwd": "/tmp/obs-takurot-cszqao/repo",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+          "SAFETY_MODE": "normal",
+          "ALLOW_STOP_RECORDING": "true"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-takurot-cszqao/repo",
+        "/tmp/obs-takurot-cszqao/repo/dist/index.js"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "tom-generic",
+      "evidence": {
+        "path": "adapters/tom-generic.json",
+        "bytes": 1665,
+        "sha256": "ac941e4b5c82f1fda62930e7053feb161e3a421655f71b6f23ecc4207257be4b"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "build/index.js"
+        ],
+        "cwd": "/tmp/obs-study-ts/tom",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-study-ts/tom"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "tom",
+      "evidence": {
+        "path": "adapters/tom.json",
+        "bytes": 1581,
+        "sha256": "d60f158bb84084b6576f1b2292d4b5ce85d92cf5d738604cb21e5cc298bf855e"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "build/index.js"
+        ],
+        "cwd": "/tmp/obs-study-ts/tom",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-study-ts/tom"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "umar",
+      "evidence": {
+        "path": "adapters/umar.json",
+        "bytes": 741,
+        "sha256": "cd3634e52a3c793347ac3cdac48c9e498b3b07f382a7a3d83f363c46febf3afc"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "dist/index.js"
+        ],
+        "cwd": "/tmp/obs-umar.n6zWRG/repo",
+        "env": {
+          "OBS_WS_URL": "{{obsUrl}}",
+          "OBS_WS_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-umar.n6zWRG/repo"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "xdark-pypi",
+      "evidence": {
+        "path": "adapters/xdark-pypi.json",
+        "bytes": 1079,
+        "sha256": "6f0fe47bc075a88e95d0ba56e6ce776d9f2bdcbd6cc9e0d4c76e311d80aa6da1"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-xdark-release-KwUdVm/venv/bin/obs-mcp",
+        "env": {
+          "OBS_HOST": "{{obsHost}}",
+          "OBS_PORT": "{{obsPort}}",
+          "OBS_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-xdark-release-KwUdVm/venv/bin/obs-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "xdark",
+      "evidence": {
+        "path": "adapters/xdark.json",
+        "bytes": 1130,
+        "sha256": "cae016fe7fdb34155a5409271d070d7340b824dc9253c64dab6d7d69b883120b"
+      },
+      "recordedLaunch": {
+        "command": "/tmp/obs-xdark-CQiKZs/repo/.venv/bin/obs-mcp",
+        "env": {
+          "OBS_HOST": "{{obsHost}}",
+          "OBS_PORT": "{{obsPort}}",
+          "OBS_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-xdark-CQiKZs/repo/.venv/bin/obs-mcp"
+      ],
+      "containsSessionLocalPath": true
+    },
+    {
+      "id": "yshk",
+      "evidence": {
+        "path": "adapters/yshk.json",
+        "bytes": 1267,
+        "sha256": "f8357e699e435369a580342be67068c15d02e6c37151ed517820342e63bfc069"
+      },
+      "recordedLaunch": {
+        "command": "node",
+        "args": [
+          "build/index.js"
+        ],
+        "cwd": "/tmp/obs-study-ts/yshk",
+        "env": {
+          "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+          "OBS_PASSWORD": "{{obsPassword}}"
+        }
+      },
+      "sessionLocalPaths": [
+        "/tmp/obs-study-ts/yshk",
+        "/tmp/obs-study-ts/yshk/.study-home/fixture.png"
+      ],
+      "containsSessionLocalPath": true
+    }
+  ],
+  "publicationEvidence": [
+    {
+      "path": "results/bea-publication.json",
+      "bytes": 914,
+      "sha256": "5f3efab72db1d3e9f990373bf87ecca0abc49a862fc4fe5fa00dc1f205cdc2bd"
+    },
+    {
+      "path": "results/dcc-publication.json",
+      "bytes": 1786,
+      "sha256": "4f2df5f3a7183d2ba049f391500e8a8944f027476040af1e1b8a86ec55be6132"
+    },
+    {
+      "path": "results/local-publication.json",
+      "bytes": 1084,
+      "sha256": "d57af44e4d528521dd03040eaf166a458f43a66db74919ce4c0df29583927ea9"
+    },
+    {
+      "path": "results/polyglot-publication.json",
+      "bytes": 2157,
+      "sha256": "d359c3d51b6c195fce2053f4b5e64135e667eed6e46eadafd3dd28b46063a572"
+    },
+    {
+      "path": "results/royshil-publication.json",
+      "bytes": 1629,
+      "sha256": "9600d572295de3c7f9c3a3c083747c13da0c9e2f101dd3398072fc63c79ca8aa"
+    },
+    {
+      "path": "results/royshil-source-package-diff.json",
+      "bytes": 4767,
+      "sha256": "1a0f995990c4d04bbc1fe068366f88bc2dc023521d27029d19229e8fa6bb2668"
+    },
+    {
+      "path": "study/releases.json",
+      "bytes": 39012,
+      "sha256": "f7a16ac5d43d7d6484482579ed3f03f37344ef2b379100ca19b542d4bcdaba6a"
+    }
+  ],
+  "studySources": [
+    {
+      "path": "README.md",
+      "bytes": 19527,
+      "sha256": "33f707f96d0c92ed77e4a55df9eb87dc47b7b03b7089281cfc797bfb6ef7baae"
+    },
+    {
+      "path": "methodology.md",
+      "bytes": 12286,
+      "sha256": "df52d1df46e593b2e2fcb9636972bc8a1ac612148d2defad253093822566ab6c"
+    },
+    {
+      "path": "benchmark-infrastructure.md",
+      "bytes": 5514,
+      "sha256": "4f9e0eb97500bacb9c41c6db14676ae58e69dc446275c57931a4edd27f59d9f1"
+    },
+    {
+      "path": "comparison-table.md",
+      "bytes": 3853,
+      "sha256": "24a9a92f4128ba838b05a1b3744ca6960e0fbb49c6a390c769f3e5c3bf7f2d31"
+    },
+    {
+      "path": "independent-review.md",
+      "bytes": 19446,
+      "sha256": "b03f793217febd69e55b4ec3469d02f676d8df097f9e0cbc49390e5c0d8a7dd8"
+    },
+    {
+      "path": "validation-notes.md",
+      "bytes": 1875,
+      "sha256": "0d9a8b153e5dc639d975a6f9468fd326e35ad0135ade1092cf1b21ea9ece86f7"
+    },
+    {
+      "path": "reproduction.md",
+      "bytes": 19444,
+      "sha256": "ee042dfb62c7a6d5b61d205b8b02818097a819fa7c63ef6db2872bad4d0c9b9a"
+    },
+    {
+      "path": "aggregate.mjs",
+      "bytes": 4559,
+      "sha256": "725ef8a53823db8d508a3644fc3354edf2faff1011ab0d43ee7303223c9622a4"
+    },
+    {
+      "path": "prepare-adapter.mjs",
+      "bytes": 4087,
+      "sha256": "0a79e5c6e51a15f0073dd033654b5c5ce52192af1c6f24b1c43a05cbbcb41693"
+    },
+    {
+      "path": "generate-evidence-manifest.mjs",
+      "bytes": 8592,
+      "sha256": "d78a0e36b1d12a880615dd252494188109485eed118f2354300e3a4f869b944b"
+    },
+    {
+      "path": "study/census.md",
+      "bytes": 14793,
+      "sha256": "04ba87281e46f6a8ca70341622899296c60952dde9a6ebc038f4400a8c3c9e61"
+    },
+    {
+      "path": "study/releases.json",
+      "bytes": 39012,
+      "sha256": "f7a16ac5d43d7d6484482579ed3f03f37344ef2b379100ca19b542d4bcdaba6a"
+    },
+    {
+      "path": "study/adjacent.md",
+      "bytes": 23452,
+      "sha256": "e1c6140ffeb9fa98c41ad8fe4cbf1727256519670477a5a68c718335150402a4"
+    },
+    {
+      "path": "fixture/README.md",
+      "bytes": 4431,
+      "sha256": "d42dcd22cf30d45e968eb31830d4137db579fd8aabcbf2b7060a2dd6ab3a3bc3"
+    },
+    {
+      "path": "results/official-protocol.json",
+      "bytes": 4404,
+      "sha256": "420244454eec00d446bdadf76a6f72112d7015775a58d79efadb99402f81abf6"
+    },
+    {
+      "path": "fixture/selftest.mjs",
+      "bytes": 3228,
+      "sha256": "1d8697d8dd4a71be8b0629a153f649220ae87e3b682737c48a069668ba48b48c"
+    },
+    {
+      "path": "fixture/selftest/candidate.mjs",
+      "bytes": 4899,
+      "sha256": "cece7e3ad10f0f677b29c62f22c34c2e1c409529f3cf7761fc09c006f38b3533"
+    },
+    {
+      "path": "fixture/adapters/selftest.json",
+      "bytes": 1111,
+      "sha256": "85d85d97c38501ebf29953ddc891fea2b6ac50bf6df958e79950b58cec895f56"
+    },
+    {
+      "path": "fixture/adapters/local-package.json",
+      "bytes": 1427,
+      "sha256": "862cb7b666dc6eb29a054f082a39b17591832105a9e9b307a6fe59c86979152d"
+    },
+    {
+      "path": "fixture/runner.mjs",
+      "bytes": 24871,
+      "sha256": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf"
+    },
+    {
+      "path": "fixture/fake-obs.mjs",
+      "bytes": 18903,
+      "sha256": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75"
+    },
+    {
+      "path": "fixture/mcp-process.mjs",
+      "bytes": 5420,
+      "sha256": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88"
+    },
+    {
+      "path": "fixture/msgpack.mjs",
+      "bytes": 4863,
+      "sha256": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+    }
+  ],
+  "adjacentEvidence": [
+    {
+      "path": "results/molt-dependency-build.json",
+      "bytes": 354,
+      "sha256": "57a98e0a95629f082f5a1d40c0690142db8dede633e8d3c7ffa73228eb2b9339"
+    },
+    {
+      "path": "results/molt-dependency-build.log",
+      "bytes": 1695,
+      "sha256": "f20a91f43fd53b49b815b52e9e273b6307d609c5faac1de40a307a7ac16be30a"
+    }
+  ],
+  "activeFixtureRuns": [
+    {
+      "path": "results/aaron-pypi/aaron-pypi.json",
+      "candidateId": "aaron-pypi",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/aaron/aaron.json",
+      "candidateId": "aaron",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/agentic-fixture-seeded/agentic.json",
+      "candidateId": "agentic",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/agentic-fixture/agentic.json",
+      "candidateId": "agentic",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/cdavis-fixture/cdavis.json",
+      "candidateId": "cdavis",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/cdavis-native-fixture/cdavis-native.json",
+      "candidateId": "cdavis-native",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/dcc-fixture-nt.json",
+      "candidateId": "dcc",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/dcc-runner/dcc.json",
+      "candidateId": "dcc",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/giancarlo/giancarlo.json",
+      "candidateId": "giancarlo",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/itchris/itchris.json",
+      "candidateId": "itchris",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/jlfn-fixture/jlfn.json",
+      "candidateId": "jlfn",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/jlfn-private-fixture/jlfn-private.json",
+      "candidateId": "jlfn-private",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/lars-extended.json",
+      "candidateId": "lars",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/lars-unavailable.json",
+      "candidateId": "lars",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/lars.json",
+      "candidateId": "lars",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/lhenri/lhenri.json",
+      "candidateId": "lhenri",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/local-package/local-package-0.3.3.json",
+      "candidateId": "local-package-0.3.3",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/royshil-extended.json",
+      "candidateId": "royshil",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/royshil-published.json",
+      "candidateId": "royshil-published",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/royshil-unavailable.json",
+      "candidateId": "royshil",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/royshil.json",
+      "candidateId": "royshil",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/sbroenne-fixture/sbroenne.json",
+      "candidateId": "sbroenne",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/sidfou/sidfou.json",
+      "candidateId": "sidfou",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/takurot-npm/takurot-npm.json",
+      "candidateId": "takurot-npm",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/takurot/takurot.json",
+      "candidateId": "takurot",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/tom-extended.json",
+      "candidateId": "tom",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/tom-generic.json",
+      "candidateId": "tom-generic",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/tom-unavailable.json",
+      "candidateId": "tom",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/tom.json",
+      "candidateId": "tom",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/umar-fixture/umar.json",
+      "candidateId": "umar",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/xdark-pypi/xdark-pypi.json",
+      "candidateId": "xdark-pypi",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/xdark/xdark.json",
+      "candidateId": "xdark",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    },
+    {
+      "path": "results/yshk-extended.json",
+      "candidateId": "yshk",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/yshk-unavailable.json",
+      "candidateId": "yshk",
+      "fixtureVersion": null,
+      "fixtureSourceHashesMatchCurrent": null,
+      "classification": "specialized-or-pre-versioned-evidence"
+    },
+    {
+      "path": "results/yshk.json",
+      "candidateId": "yshk",
+      "fixtureVersion": "2026-09-13.5",
+      "fixtureSourceHashesMatchCurrent": true,
+      "classification": "final-common-fixture"
+    }
+  ],
+  "excludedObsoleteEvidence": [
+    {
+      "path": "results/lars-fixture-v4.json",
+      "bytes": 50587,
+      "sha256": "bda72690e2f8757babfa3894025839e9f420cef6a932c60ee5910fcff71d7ecb"
+    },
+    {
+      "path": "results/lars-initial-harness-obsolete.json",
+      "bytes": 36240,
+      "sha256": "a86c822858074003b8cdf612c45bfa499fc323bc108b433cc0f8a5dae4e6c4ec"
+    },
+    {
+      "path": "results/royshil-fixture-v4.json",
+      "bytes": 186751,
+      "sha256": "2094f16253dae5167a8b15fe80991e0f734163bd8e54df84ae7bf3aabb06dd71"
+    },
+    {
+      "path": "results/royshil-initial-harness-obsolete.json",
+      "bytes": 183471,
+      "sha256": "4771cd6b8063b9010b2a2c061dc12c2fd42bc29e7b4c3e228b00c312614b54de"
+    },
+    {
+      "path": "results/royshil-published-fixture-v4.json",
+      "bytes": 192640,
+      "sha256": "a65b0dff396f8ba9728b9e544c70338b34ab322d1a76888f1fcb40619c275c3c"
+    },
+    {
+      "path": "results/royshil-published-initial-harness-obsolete.json",
+      "bytes": 188896,
+      "sha256": "ceb4f07014e1d1366280295f20aa079dcd50c784f80e68ce956274d6e9637faa"
+    },
+    {
+      "path": "results/tom-fixture-v4.json",
+      "bytes": 276597,
+      "sha256": "ff39d72a184e98a913be107fb96e6a7d6d566574ef427532d652eb51db38e335"
+    },
+    {
+      "path": "results/tom-generic-fixture-v4.json",
+      "bytes": 276789,
+      "sha256": "a862e2701f4e14599cc382855e2be313fe57bef12378f9041814b976ca0f2da2"
+    },
+    {
+      "path": "results/tom-generic-initial-harness-obsolete.json",
+      "bytes": 274703,
+      "sha256": "16949502adc3cf3de09c0b90b3dfd413321f8590a5d168d4f5b918d9f4a9c8f2"
+    },
+    {
+      "path": "results/tom-initial-harness-obsolete.json",
+      "bytes": 274550,
+      "sha256": "6d417c84308f01cf34a11aabe50fc396c0f0370018748f8b73dd95ce35cddd84"
+    },
+    {
+      "path": "results/yshk-initial-harness-obsolete.json",
+      "bytes": 80558,
+      "sha256": "0fccde67f2081746fe29942a8cdbb50c3951f02ed57a97c343367cba3d06879f"
+    }
+  ],
+  "integrityChecks": {
+    "missingActiveEvidence": [],
+    "missingCandidateReports": [],
+    "versionedFixtureSourceHashIssues": [
+      {
+        "path": "results/dcc-fixture-nt.json",
+        "candidateId": "dcc",
+        "fixtureVersion": "2026-09-13.5",
+        "fixtureSourceHashesMatchCurrent": null,
+        "classification": "specialized-or-pre-versioned-evidence"
+      }
+    ],
+    "sessionLocalAdapters": [
+      "aaron-pypi",
+      "aaron",
+      "agentic",
+      "cdavis-native",
+      "cdavis",
+      "dcc",
+      "giancarlo",
+      "itchris",
+      "jlfn-private",
+      "jlfn",
+      "lars",
+      "lhenri",
+      "royshil-published",
+      "royshil",
+      "sbroenne",
+      "sidfou",
+      "takurot-npm",
+      "takurot",
+      "tom-generic",
+      "tom",
+      "umar",
+      "xdark-pypi",
+      "xdark",
+      "yshk"
+    ],
+    "brokenLocalLinks": []
+  }
+}

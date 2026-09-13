@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "local-package-0.3.3",
+  "requestTimeoutMs": 1000,
+  "normalTimeoutMs": 3000,
+  "launch": {
+    "command": "node",
+    "args": ["/tmp/obs-study-local-package-_gl56h5w/consumer/node_modules/@firfi/obs-mcp/dist/index.cjs"],
+    "cwd": "/tmp/obs-study-local-package-_gl56h5w/consumer",
+    "env": {
+      "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+      "OBS_WEBSOCKET_CONNECTION_TIMEOUT": "1000",
+      "TOOLSETS": "all",
+      "OBS_MCP_SCREENSHOT_OUTPUT_DIR": "{{tempDir}}"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "get_version" },
+    "listScenes": { "tool": "list_scenes" },
+    "getCurrentScene": { "tool": "get_current_scene" },
+    "setCurrentScene": { "tool": "set_current_scene", "arguments": { "sceneName": "{{sceneName}}" } },
+    "getInputMute": { "tool": "get_input_mute", "arguments": { "inputName": "{{inputName}}" } },
+    "setInputMute": { "tool": "set_input_mute", "arguments": { "inputName": "{{inputName}}", "inputMuted": "{{inputMuted}}" } },
+    "startRecord": { "tool": "start_record" },
+    "getRecordStatus": { "tool": "get_record_status" },
+    "stopRecord": { "tool": "stop_record" },
+    "getSourceScreenshot": { "tool": "get_source_screenshot", "arguments": { "sourceName": "{{sourceName}}", "imageFormat": "{{imageFormat}}" } },
+    "getStreamServiceSettings": { "tool": "get_stream_service_settings" }
+  }
+}

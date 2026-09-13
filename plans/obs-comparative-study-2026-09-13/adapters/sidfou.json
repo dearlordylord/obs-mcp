@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "sidfou",
+  "launch": {
+    "command": "/tmp/obs-sidfou-pKc7OU/repo/.venv/bin/obs-stream-mcp",
+    "args": ["--no-sse"],
+    "env": {
+      "OBS_HOST": "{{obsHost}}",
+      "OBS_PORT": "{{obsPort}}",
+      "OBS_PASSWORD": "{{obsPassword}}",
+      "HOME": "{{home}}",
+      "XDG_CONFIG_HOME": "{{home}}/.config"
+    }
+  },
+  "setup": [
+    { "tool": "obs_connect", "arguments": {} }
+  ],
+  "operations": {
+    "getVersion": { "tool": "obs_health_check" },
+    "listScenes": { "tool": "obs_get_scene_list" },
+    "getCurrentScene": { "tool": "obs_get_scene_list" },
+    "setCurrentScene": {
+      "tool": "obs_switch_scene",
+      "arguments": { "scene_name": "{{sceneName}}" }
+    }
+  }
+}

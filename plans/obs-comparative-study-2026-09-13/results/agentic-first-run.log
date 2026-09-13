@@ -1,0 +1,8 @@
+Observed with a clean HOME, explicit synthetic loopback OBS settings, and stdin closed.
+
+The process wrote the following interactive setup content to stdout before MCP started:
+`=== Feature Configuration ===`
+`Choose which features to enable (press Enter for defaults):`
+and nine tool-group prompts plus the HTTP-server prompt.
+
+With stdin closed the defaults were saved, then the process made three bounded OBS connection attempts and exited 1 because the synthetic endpoint was intentionally absent. When the shared MCP runner supplied initialize JSON on stdin during a true clean first run, the prompt scanner consumed MCP input and initialization hit the 10-second watchdog. A second run with the first-run database already initialized served MCP successfully. The source determines first-run state from the default HOME database before applying AGENTIC_OBS_DB, so setting only AGENTIC_OBS_DB does not bypass this clean-run behavior.

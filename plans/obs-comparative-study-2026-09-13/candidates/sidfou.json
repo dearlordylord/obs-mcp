@@ -1,0 +1,32 @@
+{
+  "id": "sidfou",
+  "repository": "https://github.com/sid-fou/obs-stream-mcp",
+  "commit": "60f14e61b25e8173c67dc18e0fdf741cacc788ec",
+  "version": "0.1.0 (source metadata; no public package verified)",
+  "gates": {
+    "G1": "p",
+    "G2": "P",
+    "G3": "p",
+    "G4": "F",
+    "G5": "F",
+    "G6": "F"
+  },
+  "scores": {
+    "A": 3,
+    "B": 2,
+    "C": 2,
+    "D": 1,
+    "E": 2,
+    "F": 1
+  },
+  "runtimeEvidence": [
+    "results/sidfou/sidfou.json",
+    "results/sidfou-extended-probes.json",
+    "results/sidfou-install.log",
+    "results/sidfou-declared-entry.stderr.log",
+    "results/sidfou-mcp1-install.log",
+    "results/sidfou-build.log",
+    "results/sidfou-source-check.log"
+  ],
+  "confidence": "high"
+}

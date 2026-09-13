@@ -1,0 +1,15 @@
+{
+  "id": "xdark",
+  "repository": "https://github.com/xDarkzx/OBS_MCP",
+  "commit": "d632587facb94d80563628054ba58dc4af1d700f",
+  "version": "0.2.0",
+  "gates": { "G1": "P", "G2": "p", "G3": "P", "G4": "P", "G5": "P", "G6": "F" },
+  "scores": { "A": 3, "B": 3, "C": 4, "D": 2, "E": 3, "F": 1 },
+  "runtimeEvidence": [
+    "results/xdark/xdark.json",
+    "results/xdark-pypi/xdark-pypi.json",
+    "results/xdark-own-tests.log",
+    "results/aaron-xdark-workflow-extended-probes.json"
+  ],
+  "confidence": "high"
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "giancarlo",
+  "requestTimeoutMs": 15000,
+  "launch": {
+    "command": "node",
+    "args": ["server.js"],
+    "cwd": "/tmp/obs-giancarlo-1vWyaM/repo",
+    "env": {
+      "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "obs_raw", "arguments": { "requestType": "GetVersion", "requestData": {} } },
+    "listScenes": { "tool": "obs_list_scenes" },
+    "getCurrentScene": { "tool": "obs_list_scenes" },
+    "setCurrentScene": { "tool": "obs_switch_scene", "arguments": { "sceneName": "{{sceneName}}" } },
+    "getInputMute": { "tool": "obs_audio_control", "arguments": { "inputName": "{{inputName}}" } },
+    "setInputMute": { "tool": "obs_audio_control", "arguments": { "inputName": "{{inputName}}", "muted": "{{inputMuted}}" } },
+    "startRecord": { "tool": "obs_record_control", "arguments": { "action": "start" } },
+    "getRecordStatus": { "tool": "obs_record_control", "arguments": { "action": "status" } },
+    "stopRecord": { "tool": "obs_record_control", "arguments": { "action": "stop" } },
+    "getSourceScreenshot": { "tool": "obs_screenshot", "arguments": { "sourceName": "{{sourceName}}", "width": 1 } },
+    "getStreamServiceSettings": { "tool": "obs_raw", "arguments": { "requestType": "GetStreamServiceSettings", "requestData": {} } }
+  }
+}

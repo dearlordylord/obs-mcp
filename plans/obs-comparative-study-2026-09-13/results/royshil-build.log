@@ -1,0 +1,7 @@
+COMMAND ['npm', 'run', 'build']
+
+> obs-mcp@1.0.1 build
+> tsc && chmod 755 build/index.js
+
+
+EXIT 0

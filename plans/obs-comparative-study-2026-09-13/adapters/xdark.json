@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "xdark",
+  "launch": {
+    "command": "/tmp/obs-xdark-CQiKZs/repo/.venv/bin/obs-mcp",
+    "env": {
+      "OBS_HOST": "{{obsHost}}",
+      "OBS_PORT": "{{obsPort}}",
+      "OBS_PASSWORD": "{{obsPassword}}"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "get_version" },
+    "listScenes": { "tool": "get_scene_list" },
+    "getCurrentScene": { "tool": "get_current_program_scene" },
+    "setCurrentScene": {
+      "tool": "set_current_program_scene",
+      "arguments": { "scene_name": "{{sceneName}}" }
+    },
+    "getInputMute": {
+      "tool": "get_input_mute",
+      "arguments": { "input_name": "{{inputName}}" }
+    },
+    "setInputMute": {
+      "tool": "set_input_mute",
+      "arguments": { "input_name": "{{inputName}}", "input_muted": "{{inputMuted}}" }
+    },
+    "startRecord": { "tool": "start_record" },
+    "getRecordStatus": { "tool": "get_record_status" },
+    "stopRecord": { "tool": "stop_record" },
+    "getSourceScreenshot": {
+      "tool": "get_source_screenshot",
+      "arguments": { "source_name": "{{sourceName}}", "image_format": "{{imageFormat}}" }
+    }
+  }
+}

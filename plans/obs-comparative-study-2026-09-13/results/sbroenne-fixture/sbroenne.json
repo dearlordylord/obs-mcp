@@ -1,0 +1,2092 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "sbroenne",
+  "observedAt": "2026-09-13T21:19:52.269Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "/tmp/obs-toolchains/dotnet/dotnet",
+    "args": [
+      "/tmp/obs-polyglot-study.1UfDPr/sbroenne/src/ObsMcp.McpServer/bin/Release/net10.0-windows/Sbroenne.ObsMcp.McpServer.dll"
+    ]
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:19:24.984Z",
+        "requestType": "GetRecordStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.024Z",
+        "requestType": "GetStreamStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.053Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.087Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.100Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.118Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.132Z",
+        "requestType": "SetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux",
+          "inputMuted": true
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.149Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.160Z",
+        "requestType": "StartRecord",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.175Z",
+        "requestType": "GetRecordStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.185Z",
+        "requestType": "StopRecord",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.196Z",
+        "requestType": "SaveSourceScreenshot",
+        "requestData": {
+          "sourceName": "Main",
+          "imageFormat": "png",
+          "imageFilePath": "/tmp/obs-study-sbroenne-screenshot.png"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.218Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Missing Fixture Scene"
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:19:25.235Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "injected_obs_error"
+      },
+      {
+        "at": "2026-09-13T21:19:25.305Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "missing_response"
+      },
+      {
+        "at": "2026-09-13T21:19:35.286Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "in_flight_disconnect"
+      }
+    ],
+    "stateChanges": [
+      {
+        "kind": "scene",
+        "before": "Intro",
+        "after": "Main"
+      },
+      {
+        "kind": "mute",
+        "inputName": "Mic/Aux",
+        "before": false,
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": false
+      }
+    ],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "logging": {},
+              "prompts": {
+                "listChanged": true
+              },
+              "resources": {
+                "listChanged": true
+              },
+              "tools": {
+                "listChanged": true
+              }
+            },
+            "serverInfo": {
+              "name": "obs-mcp-server",
+              "version": "1.0.0"
+            },
+            "instructions": "# OBS Studio MCP Server - Recording Setup Instructions\n\nThis server controls OBS Studio for screen recording and streaming.\n\n## Available Tools (7 resource-based tools with actions)\n\n- `obs_connection` - Connect, Disconnect, GetStatus, GetStats\n- `obs_recording` - Start, Stop, Pause, Resume, GetStatus, GetSettings, SetFormat, SetQuality, SetPath, GetPath\n- `obs_streaming` - Start, Stop, GetStatus\n- `obs_scene` - List, GetCurrent, Set, ListSources\n- `obs_source` - AddWindowCapture, ListWindows, SetWindowCapture, Remove, SetEnabled\n- `obs_audio` - GetInputs, Mute, Unmute, GetMuteState, SetVolume, GetVolume, MuteAll, UnmuteAll\n- `obs_media` - SaveScreenshot, StartVirtualCamera, StopVirtualCamera\n\n## IMPORTANT: Audio is MUTED by Default\n\nWhen starting a recording, audio is automatically muted (for screen capture scenarios).\nUse `obs_recording(action: Start, muteAudio: false)` to record WITH audio.\nUse `obs_audio` tool to manage audio inputs (desktop audio, mic) manually.\n\n## IMPORTANT: Black Screen Prevention\n\nBefore starting a recording, you MUST add a capture source to your scene.\nWithout a source, recordings will show a BLACK SCREEN!\n\n## Primary Use Case: Recording Application Windows\n\nThe main use case is recording specific application windows (e.g., VS Code, Chrome, Terminal).\n\n### Window Capture Workflow (Recommended)\n\nFollow these steps IN ORDER to set up window recording:\n\n1. **Connect to OBS** (if not already connected):\n   - Use `obs_connection(action: Connect)` with host, port, and password if authentication is enabled\n\n2. **Add a window capture source**:\n   - Use `obs_source(action: AddWindowCapture, sourceName: \"Window Capture\")`\n   - This creates the capture source but doesn't select a window yet\n\n3. **List available windows**:\n   - Use `obs_source(action: ListWindows, sourceName: \"Window Capture\")`\n   - This returns a list of windows with their names and capture values\n   - ALWAYS ask the user which window they want to record\n\n4. **Select the target window**:\n   - Use `obs_source(action: SetWindowCapture, sourceName: \"Window Capture\", windowValue: \"...\")`\n   - Use the exact \"value\" string from the window list\n\n5. **Start recording** (audio muted by default):\n   - Use `obs_recording(action: Start)` to begin capturing (audio muted)\n   - Use `obs_recording(action: Start, muteAudio: false)` to include audio\n\n### Example Workflow\n\n```\n1. obs_connection(action: Connect, host: \"localhost\", port: 4455)\n2. obs_source(action: AddWindowCapture, sourceName: \"My Capture\")\n3. obs_source(action: ListWindows, sourceName: \"My Capture\")\n   -> Returns: Visual Studio Code (value: \"Code.exe:Chrome_WidgetWin_1:Code.exe\")\n4. obs_source(action: SetWindowCapture, sourceName: \"My Capture\", windowValue: \"Code.exe:Chrome_WidgetWin_1:Code.exe\")\n5. obs_recording(action: Start)  # Audio muted by default\n```\n\n## Audio Control\n\n- `obs_audio(action: GetInputs)` - List audio inputs (Desktop Audio, Mic/Aux)\n- `obs_audio(action: MuteAll)` / `obs_audio(action: UnmuteAll)` - Mute/unmute all\n- `obs_audio(action: Mute, inputName: \"Desktop Audio\")` - Mute specific input\n- `obs_audio(action: SetVolume, inputName: \"Mic/Aux\", volume: 0.5)` - Set volume (0.0-1.0)\n\n## Display Capture (Alternative)\n\nTo capture an entire monitor/screen instead of a specific window, add display capture source in OBS manually,\nthen use `obs_recording(action: Start)`.\n\n## Managing Recording Sessions\n\n- `obs_recording(action: Pause)` / `obs_recording(action: Resume)` - Pause/resume\n- `obs_recording(action: Stop)` - Stop and save the recording\n- `obs_recording(action: GetStatus)` - Check if recording is active\n\n## Recording Settings\n\n- `obs_recording(action: GetSettings)` - View current format, quality, encoder, and path\n- `obs_recording(action: SetFormat, format: \"mp4\")` - Change format (mp4, mkv, mov, flv, ts)\n- `obs_recording(action: SetQuality, quality: \"HQ\")` - Change quality preset\n- `obs_recording(action: SetPath, path: \"C:/Videos\")` - Change output directory\n- `obs_recording(action: GetPath)` - View current output directory\n\n## Key Guidelines\n\n1. Always check connection status before operations\n2. Always add a capture source before recording\n3. For window capture, always list windows and let user choose\n4. Audio is muted by default - use muteAudio=false if needed\n5. Use window capture for specific apps"
+          },
+          "id": 1,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 1937
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "result": {
+            "tools": [
+              {
+                "name": "obs_connection",
+                "title": "OBS Connection",
+                "description": "Manage OBS WebSocket connection. Actions: - Connect: Connect to OBS (required before other operations) - Disconnect: Disconnect from OBS - GetStatus: Get connection status, current scene, recording/streaming state - GetStats: Get OBS performance statistics (FPS, CPU, memory) Connection settings can be passed as parameters or via environment variables (OBS_HOST, OBS_PORT, OBS_PASSWORD).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "description": "Action to perform: Connect, Disconnect, GetStatus, GetStats",
+                      "type": "string",
+                      "enum": [
+                        "Connect",
+                        "Disconnect",
+                        "GetStatus",
+                        "GetStats"
+                      ]
+                    },
+                    "host": {
+                      "description": "OBS WebSocket host (default: localhost, or OBS_HOST env var)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "port": {
+                      "description": "OBS WebSocket port (default: 4455, or OBS_PORT env var)",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "password": {
+                      "description": "OBS WebSocket password (or OBS_PASSWORD env var)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "annotations": {
+                  "title": "OBS Connection",
+                  "readOnlyHint": false
+                }
+              },
+              {
+                "name": "obs_streaming",
+                "title": "OBS Streaming Control",
+                "description": "Control OBS streaming. Actions: - Start: Start streaming (requires stream settings configured in OBS) - Stop: Stop streaming - GetStatus: Get streaming status (active, reconnecting, duration, bytes sent)",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "description": "Action to perform: Start, Stop, GetStatus",
+                      "type": "string",
+                      "enum": [
+                        "Start",
+                        "Stop",
+                        "GetStatus"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "annotations": {
+                  "title": "OBS Streaming Control",
+                  "destructiveHint": true
+                }
+              },
+              {
+                "name": "obs_media",
+                "title": "OBS Media Operations",
+                "description": "OBS media operations (screenshots, virtual camera). Actions: - SaveScreenshot: Save a screenshot of the current scene or a specific source to a file - StartVirtualCamera: Start the OBS virtual camera output - StopVirtualCamera: Stop the OBS virtual camera",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "description": "Action to perform: SaveScreenshot, StartVirtualCamera, StopVirtualCamera",
+                      "type": "string",
+                      "enum": [
+                        "SaveScreenshot",
+                        "StartVirtualCamera",
+                        "StopVirtualCamera"
+                      ]
+                    },
+                    "filePath": {
+                      "description": "Full file path to save the screenshot (required for SaveScreenshot, e.g., C:/Screenshots/capture.png)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "sourceName": {
+                      "description": "Source name to screenshot (optional, defaults to current scene)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "imageFormat": {
+                      "description": "Screenshot format: png or jpg (default: png)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "width": {
+                      "description": "Screenshot width in pixels (optional, defaults to source resolution)",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "height": {
+                      "description": "Screenshot height in pixels (optional, defaults to source resolution)",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "quality": {
+                      "description": "Image compression quality 1-100 (optional, for jpg format)",
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "default": null
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "annotations": {
+                  "title": "OBS Media Operations",
+                  "destructiveHint": true
+                }
+              },
+              {
+                "name": "obs_audio",
+                "title": "OBS Audio Control",
+                "description": "Control OBS audio inputs. Actions: - GetInputs: List all audio inputs (Desktop Audio, Mic/Aux, etc.) - Mute: Mute a specific audio input - Unmute: Unmute a specific audio input - GetMuteState: Check if an audio input is muted - SetVolume: Set volume level (0.0-1.0) for an audio input - GetVolume: Get current volume level of an audio input - MuteAll: Mute all audio inputs (desktop audio and microphone) - UnmuteAll: Unmute all audio inputs Common input names: 'Desktop Audio', 'Mic/Aux' TIP: Use MuteAll before recording to capture video without sound.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "description": "Action to perform: GetInputs, Mute, Unmute, GetMuteState, SetVolume, GetVolume, MuteAll, UnmuteAll",
+                      "type": "string",
+                      "enum": [
+                        "GetInputs",
+                        "Mute",
+                        "Unmute",
+                        "GetMuteState",
+                        "SetVolume",
+                        "GetVolume",
+                        "MuteAll",
+                        "UnmuteAll"
+                      ]
+                    },
+                    "inputName": {
+                      "description": "Audio input name for Mute/Unmute/GetMuteState/SetVolume/GetVolume actions (e.g., 'Desktop Audio', 'Mic/Aux')",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "volume": {
+                      "description": "Volume level for SetVolume action (0.0 = silent, 1.0 = full volume)",
+                      "type": [
+                        "number",
+                        "null"
+                      ],
+                      "default": null
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "annotations": {
+                  "title": "OBS Audio Control",
+                  "destructiveHint": true
+                }
+              },
+              {
+                "name": "obs_source",
+                "title": "OBS Source Management",
+                "description": "Manage OBS capture sources. Actions: - AddWindowCapture: Add a window capture source (requires sourceName) - ListWindows: List available windows for capture (requires sourceName of existing window capture) - SetWindowCapture: Set which window to capture (requires sourceName and windowValue) - Remove: Remove a source from a scene (requires sourceName) - SetEnabled: Show or hide a source (requires sourceName and enabled) WORKFLOW for recording a window: 1. AddWindowCapture: Create a window capture source 2. ListWindows: See available windows (ask user which one to record) 3. SetWindowCapture: Select the window using the value from ListWindows 4. Use obs_recording with action=Start to begin recording",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "description": "Action to perform: AddWindowCapture, ListWindows, SetWindowCapture, Remove, SetEnabled",
+                      "type": "string",
+                      "enum": [
+                        "AddWindowCapture",
+                        "ListWindows",
+                        "SetWindowCapture",
+                        "Remove",
+                        "SetEnabled"
+                      ]
+                    },
+                    "sourceName": {
+                      "description": "Name of the source (required for most actions)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "sceneName": {
+                      "description": "Scene name (optional, uses current scene if not provided)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "windowValue": {
+                      "description": "Window value from ListWindows (required for SetWindowCapture)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "enabled": {
+                      "description": "Whether the source should be visible (required for SetEnabled)",
+                      "type": [
+                        "boolean",
+                        "null"
+                      ],
+                      "default": null
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "annotations": {
+                  "title": "OBS Source Management",
+                  "destructiveHint": true
+                }
+              },
+              {
+                "name": "obs_recording",
+                "title": "OBS Recording Control",
+                "description": "Control OBS recording. Actions: - Start: Start recording. Use 'path' parameter to set output directory (e.g., path='C:/Videos') - Stop: Stop recording and save the file - Pause: Pause the current recording - Resume: Resume a paused recording - GetStatus: Get recording status (active, paused, timecode) - GetSettings: Get recording format, quality, encoder, and output path - SetFormat: Set recording format (mp4, mkv, flv, mov, ts) - SetQuality: Set recording quality (Stream, Small, HQ, Lossless) - SetPath: Set recording output directory (e.g., path='C:/Videos') - GetPath: Get current recording output directory OUTPUT PATH: Use 'path' parameter with Start or SetPath to control where recordings are saved. Example: obs_recording(action: Start, path: 'D:/MyRecordings') AUDIO: By default, audio is MUTED when starting. Set muteAudio=false to include audio. IMPORTANT: Add a capture source first using obs_source to avoid BLACK SCREEN recordings.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "description": "Action to perform: Start, Stop, Pause, Resume, GetStatus, GetSettings, SetFormat, SetQuality, SetPath, GetPath",
+                      "type": "string",
+                      "enum": [
+                        "Start",
+                        "Stop",
+                        "Pause",
+                        "Resume",
+                        "GetStatus",
+                        "GetSettings",
+                        "SetFormat",
+                        "SetQuality",
+                        "SetPath",
+                        "GetPath"
+                      ]
+                    },
+                    "format": {
+                      "description": "Recording format for SetFormat action: mp4 (recommended), mkv, flv, mov, ts",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "quality": {
+                      "description": "Quality preset for SetQuality action: Stream, Small, HQ (recommended), Lossless",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "path": {
+                      "description": "Output directory path for Start or SetPath actions. Example: 'C:/Videos' or 'D:/Recordings'",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    },
+                    "muteAudio": {
+                      "description": "Mute audio when starting recording. Default: true (audio muted). Set to false to record with audio.",
+                      "type": "boolean",
+                      "default": true
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "annotations": {
+                  "title": "OBS Recording Control",
+                  "destructiveHint": true
+                }
+              },
+              {
+                "name": "obs_scene",
+                "title": "OBS Scene Management",
+                "description": "Manage OBS scenes. Actions: - List: List all available scenes - GetCurrent: Get the current active scene - Set: Switch to a different scene (requires sceneName) - ListSources: List all sources in a scene",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "description": "Action to perform: List, GetCurrent, Set, ListSources",
+                      "type": "string",
+                      "enum": [
+                        "List",
+                        "GetCurrent",
+                        "Set",
+                        "ListSources"
+                      ]
+                    },
+                    "sceneName": {
+                      "description": "Scene name (required for Set, optional for ListSources - uses current scene if not provided)",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": null
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ]
+                },
+                "annotations": {
+                  "title": "OBS Scene Management"
+                }
+              }
+            ]
+          },
+          "id": 2,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 53
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_connection",
+          "arguments": {
+            "action": "Connect",
+            "host": "127.0.0.1",
+            "port": 36545,
+            "password": "[REDACTED_SYNTHETIC_SECRET]"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Connected to OBS at 127.0.0.1:36545"
+              }
+            ]
+          },
+          "id": 3,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 825
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_connection",
+          "arguments": {
+            "action": "GetStatus"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Connected to OBS\nCurrent Scene: Intro\nRecording: Inactive\nStreaming: Inactive"
+              }
+            ]
+          },
+          "id": 4,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 104
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "List"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Available Scenes (2):\n  - Intro (current)\n  - Main"
+              }
+            ]
+          },
+          "id": 5,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 13
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "Set",
+            "sceneName": "Main"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Switched to scene: Main"
+              }
+            ]
+          },
+          "id": 6,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 19
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "GetCurrent"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Current scene: Main"
+              }
+            ]
+          },
+          "id": 7,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 12
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_audio",
+          "arguments": {
+            "action": "Mute",
+            "inputName": "Mic/Aux"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Muted 'Mic/Aux'"
+              }
+            ]
+          },
+          "id": 8,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 19
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_audio",
+          "arguments": {
+            "action": "GetMuteState",
+            "inputName": "Mic/Aux"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "'Mic/Aux' is muted"
+              }
+            ]
+          },
+          "id": 9,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 6
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_recording",
+          "arguments": {
+            "action": "Start",
+            "muteAudio": false
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Recording started. Use obs_recording with action=Stop when finished."
+              }
+            ]
+          },
+          "id": 10,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 15
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_recording",
+          "arguments": {
+            "action": "GetStatus"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Recording Status:\nActive: True\nPaused: False\nTimecode: 00:00:01.250"
+              }
+            ]
+          },
+          "id": 11,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 16
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_recording",
+          "arguments": {
+            "action": "Stop"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Recording stopped and saved to: /synthetic/recordings/fixture.mkv"
+              }
+            ]
+          },
+          "id": 12,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 9
+      },
+      {
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_media",
+          "arguments": {
+            "action": "SaveScreenshot",
+            "filePath": "/tmp/obs-study-sbroenne-screenshot.png",
+            "sourceName": "Main",
+            "imageFormat": "png"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Screenshot saved to: /tmp/obs-study-sbroenne-screenshot.png"
+              }
+            ]
+          },
+          "id": 13,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 13
+      },
+      {
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "Set"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error: sceneName parameter is required for Set action"
+              }
+            ]
+          },
+          "id": 14,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 15,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "Set",
+            "sceneName": "Missing Fixture Scene"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error: ErrorCode: 600, Comment: Scene not found"
+              }
+            ]
+          },
+          "id": 15,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 10
+      },
+      {
+        "id": 16,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "Set",
+            "sceneName": "Intro"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error: ErrorCode: 600, Comment: Synthetic OBS rejection: scene locked"
+              }
+            ]
+          },
+          "id": 16,
+          "jsonrpc": "2.0"
+        },
+        "elapsedMs": 43
+      },
+      {
+        "id": 17,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "List"
+          }
+        },
+        "watchdogMs": 10000
+      },
+      {
+        "id": 18,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_scene",
+          "arguments": {
+            "action": "Set",
+            "sceneName": "Intro"
+          }
+        },
+        "watchdogMs": 10000
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "info: ModelContextProtocol.Server.StdioServerTransport[857250842]\n      Server (stream) (obs-mcp-server) transport reading messages.\ninfo: Microsoft.Hosting.Lifetime[0]\n      Application started. Press Ctrl+C to shut down.\ninfo: Microsoft.Hosting.Lifetime[0]\n      Hosting environment: Production\ninfo: Microsoft.Hosting.Lifetime[0]\n      Content root path: /workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0) method 'initialize' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/list' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'initialize' request handler completed in 58.5041ms.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/list' request handler completed in 30.9365ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_connection\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 825.1224ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_connection\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 102.5213ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_scene\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 12.4873ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_scene\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 7.1776ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_scene\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 8.8895ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_audio\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 17.6335ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_audio\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 4.7003ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_recording\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 13.9745ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_recording\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 11.3554ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_recording\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 3.6467ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_media\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 11.5711ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_scene\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 1.5261ms.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_scene\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 8.013ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_scene\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 39.5882ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.StdioServerTransport[1221292038]\n      Server (stream) (obs-mcp-server) transport completed reading messages.\ninfo: Microsoft.Hosting.Lifetime[0]\n      Application is shutting down...\n",
+    "lifetimeMs": 30389
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "obs-mcp-server",
+        "version": "1.0.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "logging": {},
+        "prompts": {
+          "listChanged": true
+        },
+        "resources": {
+          "listChanged": true
+        },
+        "tools": {
+          "listChanged": true
+        }
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 7,
+      "tools": [
+        {
+          "name": "obs_connection",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "description": "Action to perform: Connect, Disconnect, GetStatus, GetStats",
+                "type": "string",
+                "enum": [
+                  "Connect",
+                  "Disconnect",
+                  "GetStatus",
+                  "GetStats"
+                ]
+              },
+              "host": {
+                "description": "OBS WebSocket host (default: localhost, or OBS_HOST env var)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "port": {
+                "description": "OBS WebSocket port (default: 4455, or OBS_PORT env var)",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "default": null
+              },
+              "password": {
+                "description": "OBS WebSocket password (or OBS_PASSWORD env var)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        },
+        {
+          "name": "obs_streaming",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "description": "Action to perform: Start, Stop, GetStatus",
+                "type": "string",
+                "enum": [
+                  "Start",
+                  "Stop",
+                  "GetStatus"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        },
+        {
+          "name": "obs_media",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "description": "Action to perform: SaveScreenshot, StartVirtualCamera, StopVirtualCamera",
+                "type": "string",
+                "enum": [
+                  "SaveScreenshot",
+                  "StartVirtualCamera",
+                  "StopVirtualCamera"
+                ]
+              },
+              "filePath": {
+                "description": "Full file path to save the screenshot (required for SaveScreenshot, e.g., C:/Screenshots/capture.png)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "sourceName": {
+                "description": "Source name to screenshot (optional, defaults to current scene)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "imageFormat": {
+                "description": "Screenshot format: png or jpg (default: png)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "width": {
+                "description": "Screenshot width in pixels (optional, defaults to source resolution)",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "default": null
+              },
+              "height": {
+                "description": "Screenshot height in pixels (optional, defaults to source resolution)",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "default": null
+              },
+              "quality": {
+                "description": "Image compression quality 1-100 (optional, for jpg format)",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "default": null
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        },
+        {
+          "name": "obs_audio",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "description": "Action to perform: GetInputs, Mute, Unmute, GetMuteState, SetVolume, GetVolume, MuteAll, UnmuteAll",
+                "type": "string",
+                "enum": [
+                  "GetInputs",
+                  "Mute",
+                  "Unmute",
+                  "GetMuteState",
+                  "SetVolume",
+                  "GetVolume",
+                  "MuteAll",
+                  "UnmuteAll"
+                ]
+              },
+              "inputName": {
+                "description": "Audio input name for Mute/Unmute/GetMuteState/SetVolume/GetVolume actions (e.g., 'Desktop Audio', 'Mic/Aux')",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "volume": {
+                "description": "Volume level for SetVolume action (0.0 = silent, 1.0 = full volume)",
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "default": null
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        },
+        {
+          "name": "obs_source",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "description": "Action to perform: AddWindowCapture, ListWindows, SetWindowCapture, Remove, SetEnabled",
+                "type": "string",
+                "enum": [
+                  "AddWindowCapture",
+                  "ListWindows",
+                  "SetWindowCapture",
+                  "Remove",
+                  "SetEnabled"
+                ]
+              },
+              "sourceName": {
+                "description": "Name of the source (required for most actions)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "sceneName": {
+                "description": "Scene name (optional, uses current scene if not provided)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "windowValue": {
+                "description": "Window value from ListWindows (required for SetWindowCapture)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "enabled": {
+                "description": "Whether the source should be visible (required for SetEnabled)",
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "default": null
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        },
+        {
+          "name": "obs_recording",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "description": "Action to perform: Start, Stop, Pause, Resume, GetStatus, GetSettings, SetFormat, SetQuality, SetPath, GetPath",
+                "type": "string",
+                "enum": [
+                  "Start",
+                  "Stop",
+                  "Pause",
+                  "Resume",
+                  "GetStatus",
+                  "GetSettings",
+                  "SetFormat",
+                  "SetQuality",
+                  "SetPath",
+                  "GetPath"
+                ]
+              },
+              "format": {
+                "description": "Recording format for SetFormat action: mp4 (recommended), mkv, flv, mov, ts",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "quality": {
+                "description": "Quality preset for SetQuality action: Stream, Small, HQ (recommended), Lossless",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "path": {
+                "description": "Output directory path for Start or SetPath actions. Example: 'C:/Videos' or 'D:/Recordings'",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              },
+              "muteAudio": {
+                "description": "Mute audio when starting recording. Default: true (audio muted). Set to false to record with audio.",
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        },
+        {
+          "name": "obs_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "description": "Action to perform: List, GetCurrent, Set, ListSources",
+                "type": "string",
+                "enum": [
+                  "List",
+                  "GetCurrent",
+                  "Set",
+                  "ListSources"
+                ]
+              },
+              "sceneName": {
+                "description": "Scene name (required for Set, optional for ListSources - uses current scene if not provided)",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": null
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "setup:obs_connection",
+      "status": "pass",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Connected to OBS at 127.0.0.1:36545"
+          }
+        ]
+      }
+    },
+    {
+      "name": "version",
+      "status": "fail",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:24.984Z",
+          "requestType": "GetRecordStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:25.024Z",
+          "requestType": "GetStreamStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:25.053Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Connected to OBS\nCurrent Scene: Intro\nRecording: Inactive\nStreaming: Inactive"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scenes",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.087Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Available Scenes (2):\n  - Intro (current)\n  - Main"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "pass",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Current scene: Main"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.100Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Main"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:25.118Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "finalState": "Main",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Switched to scene: Main"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "pass",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "'Mic/Aux' is muted"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.132Z",
+          "requestType": "SetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux",
+            "inputMuted": true
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:25.149Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "finalState": true,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Muted 'Mic/Aux'"
+          }
+        ]
+      }
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "fail",
+      "statusResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Recording Status:\nActive: True\nPaused: False\nTimecode: 00:00:01.250"
+          }
+        ]
+      },
+      "stopResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Recording stopped and saved to: /synthetic/recordings/fixture.mkv"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.160Z",
+          "requestType": "StartRecord",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:25.175Z",
+          "requestType": "GetRecordStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:25.185Z",
+          "requestType": "StopRecord",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "finalState": false,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Recording started. Use obs_recording with action=Stop when finished."
+          }
+        ]
+      }
+    },
+    {
+      "name": "screenshot",
+      "status": "pass",
+      "image": {
+        "valid": true,
+        "kind": "file",
+        "bytes": 70,
+        "path": "/tmp/obs-study-sbroenne-screenshot.png"
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.196Z",
+          "requestType": "SaveSourceScreenshot",
+          "requestData": {
+            "sourceName": "Main",
+            "imageFormat": "png",
+            "imageFilePath": "/tmp/obs-study-sbroenne-screenshot.png"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Screenshot saved to: /tmp/obs-study-sbroenne-screenshot.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "unsupported"
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error: sceneName parameter is required for Set action\"}]}",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: sceneName parameter is required for Set action"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown_entity",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error: ErrorCode: 600, Comment: Scene not found\"}]}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.218Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Missing Fixture Scene"
+          },
+          "classification": "validation_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: ErrorCode: 600, Comment: Scene not found"
+          }
+        ]
+      }
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error: ErrorCode: 600, Comment: Synthetic OBS rejection: scene locked\"}]}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.235Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "injected_obs_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: ErrorCode: 600, Comment: Synthetic OBS rejection: scene locked"
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "fail",
+      "interpretation": "no bounded response observed; this finite probe does not prove an indefinite hang",
+      "retried": false,
+      "watchdogMs": 10000,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.305Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "missing_response"
+        }
+      ],
+      "error": "MCP response watchdog expired after 10000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "fail",
+      "attempts": 1,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Main",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:35.286Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "in_flight_disconnect"
+        }
+      ],
+      "error": "MCP response watchdog expired after 10000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "not_testable",
+      "error": "candidate did not complete OBS capability discovery before reduced-capability observation",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ],
+      "mcpTrace": {
+        "exchanges": [
+          {
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2024-11-05",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "obs-comparative-study-fixture",
+                "version": "1.0.0"
+              }
+            },
+            "response": {
+              "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                  "logging": {},
+                  "prompts": {
+                    "listChanged": true
+                  },
+                  "resources": {
+                    "listChanged": true
+                  },
+                  "tools": {
+                    "listChanged": true
+                  }
+                },
+                "serverInfo": {
+                  "name": "obs-mcp-server",
+                  "version": "1.0.0"
+                },
+                "instructions": "# OBS Studio MCP Server - Recording Setup Instructions\n\nThis server controls OBS Studio for screen recording and streaming.\n\n## Available Tools (7 resource-based tools with actions)\n\n- `obs_connection` - Connect, Disconnect, GetStatus, GetStats\n- `obs_recording` - Start, Stop, Pause, Resume, GetStatus, GetSettings, SetFormat, SetQuality, SetPath, GetPath\n- `obs_streaming` - Start, Stop, GetStatus\n- `obs_scene` - List, GetCurrent, Set, ListSources\n- `obs_source` - AddWindowCapture, ListWindows, SetWindowCapture, Remove, SetEnabled\n- `obs_audio` - GetInputs, Mute, Unmute, GetMuteState, SetVolume, GetVolume, MuteAll, UnmuteAll\n- `obs_media` - SaveScreenshot, StartVirtualCamera, StopVirtualCamera\n\n## IMPORTANT: Audio is MUTED by Default\n\nWhen starting a recording, audio is automatically muted (for screen capture scenarios).\nUse `obs_recording(action: Start, muteAudio: false)` to record WITH audio.\nUse `obs_audio` tool to manage audio inputs (desktop audio, mic) manually.\n\n## IMPORTANT: Black Screen Prevention\n\nBefore starting a recording, you MUST add a capture source to your scene.\nWithout a source, recordings will show a BLACK SCREEN!\n\n## Primary Use Case: Recording Application Windows\n\nThe main use case is recording specific application windows (e.g., VS Code, Chrome, Terminal).\n\n### Window Capture Workflow (Recommended)\n\nFollow these steps IN ORDER to set up window recording:\n\n1. **Connect to OBS** (if not already connected):\n   - Use `obs_connection(action: Connect)` with host, port, and password if authentication is enabled\n\n2. **Add a window capture source**:\n   - Use `obs_source(action: AddWindowCapture, sourceName: \"Window Capture\")`\n   - This creates the capture source but doesn't select a window yet\n\n3. **List available windows**:\n   - Use `obs_source(action: ListWindows, sourceName: \"Window Capture\")`\n   - This returns a list of windows with their names and capture values\n   - ALWAYS ask the user which window they want to record\n\n4. **Select the target window**:\n   - Use `obs_source(action: SetWindowCapture, sourceName: \"Window Capture\", windowValue: \"...\")`\n   - Use the exact \"value\" string from the window list\n\n5. **Start recording** (audio muted by default):\n   - Use `obs_recording(action: Start)` to begin capturing (audio muted)\n   - Use `obs_recording(action: Start, muteAudio: false)` to include audio\n\n### Example Workflow\n\n```\n1. obs_connection(action: Connect, host: \"localhost\", port: 4455)\n2. obs_source(action: AddWindowCapture, sourceName: \"My Capture\")\n3. obs_source(action: ListWindows, sourceName: \"My Capture\")\n   -> Returns: Visual Studio Code (value: \"Code.exe:Chrome_WidgetWin_1:Code.exe\")\n4. obs_source(action: SetWindowCapture, sourceName: \"My Capture\", windowValue: \"Code.exe:Chrome_WidgetWin_1:Code.exe\")\n5. obs_recording(action: Start)  # Audio muted by default\n```\n\n## Audio Control\n\n- `obs_audio(action: GetInputs)` - List audio inputs (Desktop Audio, Mic/Aux)\n- `obs_audio(action: MuteAll)` / `obs_audio(action: UnmuteAll)` - Mute/unmute all\n- `obs_audio(action: Mute, inputName: \"Desktop Audio\")` - Mute specific input\n- `obs_audio(action: SetVolume, inputName: \"Mic/Aux\", volume: 0.5)` - Set volume (0.0-1.0)\n\n## Display Capture (Alternative)\n\nTo capture an entire monitor/screen instead of a specific window, add display capture source in OBS manually,\nthen use `obs_recording(action: Start)`.\n\n## Managing Recording Sessions\n\n- `obs_recording(action: Pause)` / `obs_recording(action: Resume)` - Pause/resume\n- `obs_recording(action: Stop)` - Stop and save the recording\n- `obs_recording(action: GetStatus)` - Check if recording is active\n\n## Recording Settings\n\n- `obs_recording(action: GetSettings)` - View current format, quality, encoder, and path\n- `obs_recording(action: SetFormat, format: \"mp4\")` - Change format (mp4, mkv, mov, flv, ts)\n- `obs_recording(action: SetQuality, quality: \"HQ\")` - Change quality preset\n- `obs_recording(action: SetPath, path: \"C:/Videos\")` - Change output directory\n- `obs_recording(action: GetPath)` - View current output directory\n\n## Key Guidelines\n\n1. Always check connection status before operations\n2. Always add a capture source before recording\n3. For window capture, always list windows and let user choose\n4. Audio is muted by default - use muteAudio=false if needed\n5. Use window capture for specific apps"
+              },
+              "id": 1,
+              "jsonrpc": "2.0"
+            },
+            "elapsedMs": 3294
+          },
+          {
+            "id": 2,
+            "method": "tools/list",
+            "params": {},
+            "response": {
+              "result": {
+                "tools": [
+                  {
+                    "name": "obs_connection",
+                    "title": "OBS Connection",
+                    "description": "Manage OBS WebSocket connection. Actions: - Connect: Connect to OBS (required before other operations) - Disconnect: Disconnect from OBS - GetStatus: Get connection status, current scene, recording/streaming state - GetStats: Get OBS performance statistics (FPS, CPU, memory) Connection settings can be passed as parameters or via environment variables (OBS_HOST, OBS_PORT, OBS_PASSWORD).",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "description": "Action to perform: Connect, Disconnect, GetStatus, GetStats",
+                          "type": "string",
+                          "enum": [
+                            "Connect",
+                            "Disconnect",
+                            "GetStatus",
+                            "GetStats"
+                          ]
+                        },
+                        "host": {
+                          "description": "OBS WebSocket host (default: localhost, or OBS_HOST env var)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "port": {
+                          "description": "OBS WebSocket port (default: 4455, or OBS_PORT env var)",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "password": {
+                          "description": "OBS WebSocket password (or OBS_PASSWORD env var)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "annotations": {
+                      "title": "OBS Connection",
+                      "readOnlyHint": false
+                    }
+                  },
+                  {
+                    "name": "obs_streaming",
+                    "title": "OBS Streaming Control",
+                    "description": "Control OBS streaming. Actions: - Start: Start streaming (requires stream settings configured in OBS) - Stop: Stop streaming - GetStatus: Get streaming status (active, reconnecting, duration, bytes sent)",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "description": "Action to perform: Start, Stop, GetStatus",
+                          "type": "string",
+                          "enum": [
+                            "Start",
+                            "Stop",
+                            "GetStatus"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "annotations": {
+                      "title": "OBS Streaming Control",
+                      "destructiveHint": true
+                    }
+                  },
+                  {
+                    "name": "obs_media",
+                    "title": "OBS Media Operations",
+                    "description": "OBS media operations (screenshots, virtual camera). Actions: - SaveScreenshot: Save a screenshot of the current scene or a specific source to a file - StartVirtualCamera: Start the OBS virtual camera output - StopVirtualCamera: Stop the OBS virtual camera",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "description": "Action to perform: SaveScreenshot, StartVirtualCamera, StopVirtualCamera",
+                          "type": "string",
+                          "enum": [
+                            "SaveScreenshot",
+                            "StartVirtualCamera",
+                            "StopVirtualCamera"
+                          ]
+                        },
+                        "filePath": {
+                          "description": "Full file path to save the screenshot (required for SaveScreenshot, e.g., C:/Screenshots/capture.png)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "sourceName": {
+                          "description": "Source name to screenshot (optional, defaults to current scene)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "imageFormat": {
+                          "description": "Screenshot format: png or jpg (default: png)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "width": {
+                          "description": "Screenshot width in pixels (optional, defaults to source resolution)",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "height": {
+                          "description": "Screenshot height in pixels (optional, defaults to source resolution)",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "quality": {
+                          "description": "Image compression quality 1-100 (optional, for jpg format)",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "annotations": {
+                      "title": "OBS Media Operations",
+                      "destructiveHint": true
+                    }
+                  },
+                  {
+                    "name": "obs_audio",
+                    "title": "OBS Audio Control",
+                    "description": "Control OBS audio inputs. Actions: - GetInputs: List all audio inputs (Desktop Audio, Mic/Aux, etc.) - Mute: Mute a specific audio input - Unmute: Unmute a specific audio input - GetMuteState: Check if an audio input is muted - SetVolume: Set volume level (0.0-1.0) for an audio input - GetVolume: Get current volume level of an audio input - MuteAll: Mute all audio inputs (desktop audio and microphone) - UnmuteAll: Unmute all audio inputs Common input names: 'Desktop Audio', 'Mic/Aux' TIP: Use MuteAll before recording to capture video without sound.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "description": "Action to perform: GetInputs, Mute, Unmute, GetMuteState, SetVolume, GetVolume, MuteAll, UnmuteAll",
+                          "type": "string",
+                          "enum": [
+                            "GetInputs",
+                            "Mute",
+                            "Unmute",
+                            "GetMuteState",
+                            "SetVolume",
+                            "GetVolume",
+                            "MuteAll",
+                            "UnmuteAll"
+                          ]
+                        },
+                        "inputName": {
+                          "description": "Audio input name for Mute/Unmute/GetMuteState/SetVolume/GetVolume actions (e.g., 'Desktop Audio', 'Mic/Aux')",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "volume": {
+                          "description": "Volume level for SetVolume action (0.0 = silent, 1.0 = full volume)",
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "annotations": {
+                      "title": "OBS Audio Control",
+                      "destructiveHint": true
+                    }
+                  },
+                  {
+                    "name": "obs_source",
+                    "title": "OBS Source Management",
+                    "description": "Manage OBS capture sources. Actions: - AddWindowCapture: Add a window capture source (requires sourceName) - ListWindows: List available windows for capture (requires sourceName of existing window capture) - SetWindowCapture: Set which window to capture (requires sourceName and windowValue) - Remove: Remove a source from a scene (requires sourceName) - SetEnabled: Show or hide a source (requires sourceName and enabled) WORKFLOW for recording a window: 1. AddWindowCapture: Create a window capture source 2. ListWindows: See available windows (ask user which one to record) 3. SetWindowCapture: Select the window using the value from ListWindows 4. Use obs_recording with action=Start to begin recording",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "description": "Action to perform: AddWindowCapture, ListWindows, SetWindowCapture, Remove, SetEnabled",
+                          "type": "string",
+                          "enum": [
+                            "AddWindowCapture",
+                            "ListWindows",
+                            "SetWindowCapture",
+                            "Remove",
+                            "SetEnabled"
+                          ]
+                        },
+                        "sourceName": {
+                          "description": "Name of the source (required for most actions)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "sceneName": {
+                          "description": "Scene name (optional, uses current scene if not provided)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "windowValue": {
+                          "description": "Window value from ListWindows (required for SetWindowCapture)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "enabled": {
+                          "description": "Whether the source should be visible (required for SetEnabled)",
+                          "type": [
+                            "boolean",
+                            "null"
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "annotations": {
+                      "title": "OBS Source Management",
+                      "destructiveHint": true
+                    }
+                  },
+                  {
+                    "name": "obs_recording",
+                    "title": "OBS Recording Control",
+                    "description": "Control OBS recording. Actions: - Start: Start recording. Use 'path' parameter to set output directory (e.g., path='C:/Videos') - Stop: Stop recording and save the file - Pause: Pause the current recording - Resume: Resume a paused recording - GetStatus: Get recording status (active, paused, timecode) - GetSettings: Get recording format, quality, encoder, and output path - SetFormat: Set recording format (mp4, mkv, flv, mov, ts) - SetQuality: Set recording quality (Stream, Small, HQ, Lossless) - SetPath: Set recording output directory (e.g., path='C:/Videos') - GetPath: Get current recording output directory OUTPUT PATH: Use 'path' parameter with Start or SetPath to control where recordings are saved. Example: obs_recording(action: Start, path: 'D:/MyRecordings') AUDIO: By default, audio is MUTED when starting. Set muteAudio=false to include audio. IMPORTANT: Add a capture source first using obs_source to avoid BLACK SCREEN recordings.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "description": "Action to perform: Start, Stop, Pause, Resume, GetStatus, GetSettings, SetFormat, SetQuality, SetPath, GetPath",
+                          "type": "string",
+                          "enum": [
+                            "Start",
+                            "Stop",
+                            "Pause",
+                            "Resume",
+                            "GetStatus",
+                            "GetSettings",
+                            "SetFormat",
+                            "SetQuality",
+                            "SetPath",
+                            "GetPath"
+                          ]
+                        },
+                        "format": {
+                          "description": "Recording format for SetFormat action: mp4 (recommended), mkv, flv, mov, ts",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "quality": {
+                          "description": "Quality preset for SetQuality action: Stream, Small, HQ (recommended), Lossless",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "path": {
+                          "description": "Output directory path for Start or SetPath actions. Example: 'C:/Videos' or 'D:/Recordings'",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        },
+                        "muteAudio": {
+                          "description": "Mute audio when starting recording. Default: true (audio muted). Set to false to record with audio.",
+                          "type": "boolean",
+                          "default": true
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "annotations": {
+                      "title": "OBS Recording Control",
+                      "destructiveHint": true
+                    }
+                  },
+                  {
+                    "name": "obs_scene",
+                    "title": "OBS Scene Management",
+                    "description": "Manage OBS scenes. Actions: - List: List all available scenes - GetCurrent: Get the current active scene - Set: Switch to a different scene (requires sceneName) - ListSources: List all sources in a scene",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "description": "Action to perform: List, GetCurrent, Set, ListSources",
+                          "type": "string",
+                          "enum": [
+                            "List",
+                            "GetCurrent",
+                            "Set",
+                            "ListSources"
+                          ]
+                        },
+                        "sceneName": {
+                          "description": "Scene name (required for Set, optional for ListSources - uses current scene if not provided)",
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": null
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "annotations": {
+                      "title": "OBS Scene Management"
+                    }
+                  }
+                ]
+              },
+              "id": 2,
+              "jsonrpc": "2.0"
+            },
+            "elapsedMs": 243
+          },
+          {
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "obs_connection",
+              "arguments": {
+                "action": "Connect",
+                "host": "127.0.0.1",
+                "port": 39443,
+                "password": "[REDACTED_SYNTHETIC_SECRET]"
+              }
+            },
+            "response": {
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Connected to OBS at 127.0.0.1:39443"
+                  }
+                ]
+              },
+              "id": 3,
+              "jsonrpc": "2.0"
+            },
+            "elapsedMs": 1281
+          },
+          {
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "obs_connection",
+              "arguments": {
+                "action": "GetStatus"
+              }
+            },
+            "response": {
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Connected to OBS\nCurrent Scene: Intro\nRecording: Inactive\nStreaming: Inactive"
+                  }
+                ]
+              },
+              "id": 4,
+              "jsonrpc": "2.0"
+            },
+            "elapsedMs": 518
+          }
+        ],
+        "stdoutNoise": [],
+        "stderr": "info: ModelContextProtocol.Server.StdioServerTransport[857250842]\n      Server (stream) (obs-mcp-server) transport reading messages.\ninfo: Microsoft.Hosting.Lifetime[0]\n      Application started. Press Ctrl+C to shut down.\ninfo: Microsoft.Hosting.Lifetime[0]\n      Hosting environment: Production\ninfo: Microsoft.Hosting.Lifetime[0]\n      Content root path: /workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0) method 'initialize' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'initialize' request handler completed in 148.4407ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/list' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/list' request handler completed in 26.6446ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\ninfo: ModelContextProtocol.Server.McpServer[2065726448]\n      \"obs_connection\" completed. IsError = False.\ninfo: ModelContextProtocol.Server.McpServer[1867955179]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler completed in 1280.5694ms.\ninfo: ModelContextProtocol.Server.McpServer[570385771]\n      Server (obs-mcp-server 1.0.0), Client (obs-comparative-study-fixture 1.0.0) method 'tools/call' request handler called.\n",
+        "lifetimeMs": 5591
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:51.587Z",
+          "requestType": "GetRecordStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:51.815Z",
+          "requestType": "GetStreamStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:51.869Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ]
+    }
+  ]
+}

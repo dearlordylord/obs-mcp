@@ -1,0 +1,15 @@
+{
+  "id": "itchris",
+  "repository": "https://github.com/ITchrisDEB/obs-studio-mcp",
+  "commit": "05f00bafa93725b16b17733d09a561dfd464741c",
+  "version": "0.1.0",
+  "gates": { "G1": "P", "G2": "p", "G3": "P", "G4": "F", "G5": "P", "G6": "p" },
+  "scores": { "A": 3, "B": 3, "C": 4, "D": 3, "E": 2, "F": 1 },
+  "runtimeEvidence": [
+    "results/itchris/itchris.json",
+    "results/itchris-build.log",
+    "results/itchris-own-tests.log",
+    "results/itchris-core-obs-tests.log"
+  ],
+  "confidence": "medium"
+}

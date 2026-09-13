@@ -1,0 +1,17 @@
+{
+  "id": "agentic",
+  "repository": "https://github.com/ironystock/agentic-obs",
+  "commit": "89fcf6c68675229e01c7e702e3234cf0cf53ebe7",
+  "version": "Go pseudo-version v0.0.0-20260418210912-89fcf6c68675; runtime dev",
+  "gates": { "G1": "p", "G2": "P", "G3": "P", "G4": "F", "G5": "P", "G6": "F" },
+  "scores": { "A": 3, "B": 2, "C": 3, "D": 3, "E": 2, "F": 1 },
+  "runtimeEvidence": [
+    "results/agentic-fixture/agentic.json",
+    "results/agentic-fixture-seeded/agentic.json",
+    "results/agentic-first-run.log",
+    "results/agentic-screenshot-probes.json",
+    "results/polyglot-own-tests.log",
+    "results/polyglot-publication.json"
+  ],
+  "confidence": "high"
+}

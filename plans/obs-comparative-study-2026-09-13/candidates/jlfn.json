@@ -1,0 +1,15 @@
+{
+  "id": "jlfn",
+  "repository": "https://github.com/JLFN/obs-mcp",
+  "commit": "f9dccf0f8903b225615ba3b80a8a63287b92716a",
+  "version": "0.2.0",
+  "gates": { "G1": "P", "G2": "F", "G3": "P", "G4": "P", "G5": "P", "G6": "F" },
+  "scores": { "A": 3, "B": 2, "C": 3, "D": 3, "E": 3, "F": 3 },
+  "runtimeEvidence": [
+    "results/jlfn-fixture/jlfn.json",
+    "results/jlfn-private-fixture/jlfn-private.json",
+    "results/polyglot-own-tests.log",
+    "results/polyglot-publication.json"
+  ],
+  "confidence": "high"
+}

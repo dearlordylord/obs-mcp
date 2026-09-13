@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "dcc",
+  "observedAt": "2026-09-13T21:36:29.656Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/bin/dcc-mcp-obs",
+    "args": [
+      "--host-pid",
+      "539483",
+      "--mcp-port",
+      "0"
+    ]
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:36:29.634Z",
+        "requestType": "CallVendorRequest",
+        "requestData": {
+          "vendorName": "dcc-mcp-obs",
+          "requestType": "GetPluginStatus",
+          "requestData": {
+            "__dccDeadlineAtMs": 1789335419630
+          }
+        },
+        "classification": "fixture_unimplemented"
+      }
+    ],
+    "stateChanges": [],
+    "fixtureUnimplemented": [
+      "CallVendorRequest"
+    ]
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        }
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "Traceback (most recent call last):\n  File \"/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/bin/dcc-mcp-obs\", line 10, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/lib/python3.11/site-packages/dcc_mcp_obs/server.py\", line 130, in main\n    start_server(port=args.mcp_port, host_pid=host_pid)\n  File \"/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/lib/python3.11/site-packages/dcc_mcp_obs/server.py\", line 80, in start_server\n    candidate = ObsMcpServer(port=port, host_pid=host_pid)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/lib/python3.11/site-packages/dcc_mcp_obs/server.py\", line 36, in __init__\n    self._bridge = ObsControlBridge(self._transport, expected_pid=resolved_pid)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/lib/python3.11/site-packages/dcc_mcp_obs/bridge.py\", line 237, in __init__\n    status = self._request(\"GetPluginStatus\", deadline=operation_deadline)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/lib/python3.11/site-packages/dcc_mcp_obs/bridge.py\", line 2671, in _request\n    raise BridgeError(\ndcc_mcp_obs.bridge.BridgeError: OBS_REQUEST_FAILED\n",
+    "lifetimeMs": 142
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "fail",
+      "error": "MCP process closed before response: exit=1 signal=null"
+    }
+  ]
+}

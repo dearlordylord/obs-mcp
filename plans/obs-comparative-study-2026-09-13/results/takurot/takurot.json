@@ -1,0 +1,1452 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "takurot",
+  "observedAt": "2026-09-13T21:19:39.889Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "node",
+    "args": [
+      "/tmp/obs-takurot-cszqao/repo/dist/index.js"
+    ],
+    "cwd": "/tmp/obs-takurot-cszqao/repo"
+  },
+  "fixture": {
+    "connections": 0,
+    "requests": [],
+    "stateChanges": [],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "tools": {},
+              "resources": {}
+            },
+            "serverInfo": {
+              "name": "obs-showrunner-mcp",
+              "version": "0.1.0"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 1
+        },
+        "elapsedMs": 1210
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "result": {
+            "tools": [
+              {
+                "name": "start_show",
+                "description": "Start a show and execute opening sequence. Loads show template and initializes state.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "show_template_id": {
+                      "type": "string",
+                      "description": "ID of the show template to use (default if not specified)"
+                    },
+                    "options": {
+                      "type": "object",
+                      "properties": {
+                        "skip_opening": {
+                          "type": "boolean",
+                          "description": "Skip the opening segment"
+                        },
+                        "start_segment_id": {
+                          "type": "string",
+                          "description": "Start at a specific segment"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "name": "end_show",
+                "description": "End the current show. Optionally play ending sequence and stop streaming/recording.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "options": {
+                      "type": "object",
+                      "properties": {
+                        "play_ending": {
+                          "type": "boolean",
+                          "description": "Play the ending segment before ending"
+                        },
+                        "stop_streaming": {
+                          "type": "boolean",
+                          "description": "Stop streaming (requires safety permission)"
+                        },
+                        "stop_recording": {
+                          "type": "boolean",
+                          "description": "Stop recording (requires safety permission)"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "name": "switch_segment",
+                "description": "Switch to a different segment of the show.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "segment_id": {
+                      "type": "string",
+                      "description": "ID of the segment to switch to"
+                    },
+                    "options": {
+                      "type": "object",
+                      "properties": {
+                        "smooth_transition": {
+                          "type": "boolean",
+                          "description": "Use smooth transition effect"
+                        },
+                        "transition_duration_ms": {
+                          "type": "number",
+                          "description": "Transition duration in milliseconds"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "segment_id"
+                  ]
+                }
+              },
+              {
+                "name": "extend_segment",
+                "description": "Extend the current segment's timer.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "minutes": {
+                      "type": "number",
+                      "description": "Minutes to extend (1-120)"
+                    }
+                  },
+                  "required": [
+                    "minutes"
+                  ]
+                }
+              },
+              {
+                "name": "get_current_show_state",
+                "description": "Get the current show state including segments, overlays, and timers.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "get_obs_health",
+                "description": "Get OBS connection status and health metrics.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_safety_mode",
+                "description": "Set the safety mode (strict, normal, debug).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "strict",
+                        "normal",
+                        "debug"
+                      ],
+                      "description": "Safety mode to set"
+                    }
+                  },
+                  "required": [
+                    "mode"
+                  ]
+                }
+              },
+              {
+                "name": "get_debug_config",
+                "description": "Get masked configuration for debugging connection issues.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "reconnect_obs",
+                "description": "Try to reconnect to OBS WebSocket using current configuration.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_audio_mood",
+                "description": "Set the audio mood profile.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "mood": {
+                      "type": "string",
+                      "enum": [
+                        "talk",
+                        "game_focus",
+                        "hype",
+                        "cinema",
+                        "celebration",
+                        "mute_all"
+                      ],
+                      "description": "Audio mood to apply"
+                    }
+                  },
+                  "required": [
+                    "mood"
+                  ]
+                }
+              },
+              {
+                "name": "trigger_effect",
+                "description": "Trigger a visual effect.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "effectType": {
+                      "type": "string"
+                    },
+                    "intensity": {
+                      "type": "number"
+                    },
+                    "durationSec": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "effectType"
+                  ]
+                }
+              },
+              {
+                "name": "show_overlay",
+                "description": "Show an overlay.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "overlayId": {
+                      "type": "string"
+                    },
+                    "params": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "overlayId"
+                  ]
+                }
+              },
+              {
+                "name": "hide_overlay",
+                "description": "Hide an overlay.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "overlayId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "overlayId"
+                  ]
+                }
+              },
+              {
+                "name": "take_stream_snapshot",
+                "description": "Take a snapshot of the current stream.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "update_source_content",
+                "description": "Update the content of an OBS source.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "sourceType": {
+                      "type": "string",
+                      "enum": [
+                        "text",
+                        "browser",
+                        "image"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceName",
+                    "content"
+                  ]
+                }
+              },
+              {
+                "name": "mark_highlight",
+                "description": "Mark a highlight point in the stream.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "get_scene_list",
+                "description": "Get list of available scenes.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_scene",
+                "description": "Switch the current program scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "sceneName"
+                  ]
+                }
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 2
+        },
+        "elapsedMs": 40
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "get_obs_health",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"connected\": false,\n  \"obsVersion\": null,\n  \"cpuUsage\": null,\n  \"fps\": null,\n  \"droppedFrames\": null\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 3
+        },
+        "elapsedMs": 16
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "get_scene_list",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 4
+        },
+        "elapsedMs": 3
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "sceneName": "Main"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 5
+        },
+        "elapsedMs": 9
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "get_scene_list",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 6
+        },
+        "elapsedMs": 3
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "take_stream_snapshot",
+          "arguments": {
+            "sourceName": "Main"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 7
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\":false,\"error\":\"[\\n  {\\n    \\\"code\\\": \\\"invalid_type\\\",\\n    \\\"expected\\\": \\\"string\\\",\\n    \\\"received\\\": \\\"undefined\\\",\\n    \\\"path\\\": [\\n      \\\"sceneName\\\"\\n    ],\\n    \\\"message\\\": \\\"Required\\\"\\n  }\\n]\"}"
+              }
+            ],
+            "isError": true
+          },
+          "jsonrpc": "2.0",
+          "id": 8
+        },
+        "elapsedMs": 10
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "sceneName": "Missing Fixture Scene"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 9
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "sceneName": "Intro"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 10
+        },
+        "elapsedMs": 7
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "get_scene_list",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 11
+        },
+        "elapsedMs": 3
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "sceneName": "Intro"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 12
+        },
+        "elapsedMs": 14
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }\n",
+    "lifetimeMs": 3500
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "obs-showrunner-mcp",
+        "version": "0.1.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {},
+        "resources": {}
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 18,
+      "tools": [
+        {
+          "name": "start_show",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "show_template_id": {
+                "type": "string",
+                "description": "ID of the show template to use (default if not specified)"
+              },
+              "options": {
+                "type": "object",
+                "properties": {
+                  "skip_opening": {
+                    "type": "boolean",
+                    "description": "Skip the opening segment"
+                  },
+                  "start_segment_id": {
+                    "type": "string",
+                    "description": "Start at a specific segment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "end_show",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "options": {
+                "type": "object",
+                "properties": {
+                  "play_ending": {
+                    "type": "boolean",
+                    "description": "Play the ending segment before ending"
+                  },
+                  "stop_streaming": {
+                    "type": "boolean",
+                    "description": "Stop streaming (requires safety permission)"
+                  },
+                  "stop_recording": {
+                    "type": "boolean",
+                    "description": "Stop recording (requires safety permission)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "switch_segment",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "segment_id": {
+                "type": "string",
+                "description": "ID of the segment to switch to"
+              },
+              "options": {
+                "type": "object",
+                "properties": {
+                  "smooth_transition": {
+                    "type": "boolean",
+                    "description": "Use smooth transition effect"
+                  },
+                  "transition_duration_ms": {
+                    "type": "number",
+                    "description": "Transition duration in milliseconds"
+                  }
+                }
+              }
+            },
+            "required": [
+              "segment_id"
+            ]
+          }
+        },
+        {
+          "name": "extend_segment",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "minutes": {
+                "type": "number",
+                "description": "Minutes to extend (1-120)"
+              }
+            },
+            "required": [
+              "minutes"
+            ]
+          }
+        },
+        {
+          "name": "get_current_show_state",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "get_obs_health",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_safety_mode",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "strict",
+                  "normal",
+                  "debug"
+                ],
+                "description": "Safety mode to set"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          }
+        },
+        {
+          "name": "get_debug_config",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "reconnect_obs",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_audio_mood",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "mood": {
+                "type": "string",
+                "enum": [
+                  "talk",
+                  "game_focus",
+                  "hype",
+                  "cinema",
+                  "celebration",
+                  "mute_all"
+                ],
+                "description": "Audio mood to apply"
+              }
+            },
+            "required": [
+              "mood"
+            ]
+          }
+        },
+        {
+          "name": "trigger_effect",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "effectType": {
+                "type": "string"
+              },
+              "intensity": {
+                "type": "number"
+              },
+              "durationSec": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "effectType"
+            ]
+          }
+        },
+        {
+          "name": "show_overlay",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "overlayId": {
+                "type": "string"
+              },
+              "params": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "overlayId"
+            ]
+          }
+        },
+        {
+          "name": "hide_overlay",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "overlayId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "overlayId"
+            ]
+          }
+        },
+        {
+          "name": "take_stream_snapshot",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "update_source_content",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "sourceType": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "browser",
+                  "image"
+                ]
+              }
+            },
+            "required": [
+              "sourceName",
+              "content"
+            ]
+          }
+        },
+        {
+          "name": "mark_highlight",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "get_scene_list",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "sceneName"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "status": "fail",
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"connected\": false,\n  \"obsVersion\": null,\n  \"cpuUsage\": null,\n  \"fps\": null,\n  \"droppedFrames\": null\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scenes",
+      "status": "fail",
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "fail",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      },
+      "obsRequests": [],
+      "finalState": "Intro",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "unsupported",
+      "obsRequests": [],
+      "finalState": false
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "unsupported",
+      "obsRequests": [],
+      "finalState": false
+    },
+    {
+      "name": "screenshot",
+      "status": "fail",
+      "image": {
+        "valid": false
+      },
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "unsupported"
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"success\\\":false,\\\"error\\\":\\\"[\\\\n  {\\\\n    \\\\\\\"code\\\\\\\": \\\\\\\"invalid_type\\\\\\\",\\\\n    \\\\\\\"expected\\\\\\\": \\\\\\\"string\\\\\\\",\\\\n    \\\\\\\"received\\\\\\\": \\\\\\\"undefined\\\\\\\",\\\\n    \\\\\\\"path\\\\\\\": [\\\\n      \\\\\\\"sceneName\\\\\\\"\\\\n    ],\\\\n    \\\\\\\"message\\\\\\\": \\\\\\\"Required\\\\\\\"\\\\n  }\\\\n]\\\"}\"}],\"isError\":true}",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\":false,\"error\":\"[\\n  {\\n    \\\"code\\\": \\\"invalid_type\\\",\\n    \\\"expected\\\": \\\"string\\\",\\n    \\\"received\\\": \\\"undefined\\\",\\n    \\\"path\\\": [\\n      \\\"sceneName\\\"\\n    ],\\n    \\\"message\\\": \\\"Required\\\"\\n  }\\n]\"}"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "unknown_entity",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\n  \\\"success\\\": false,\\n  \\\"error\\\": \\\"Not connected to OBS\\\"\\n}\"}]}",
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\n  \\\"success\\\": false,\\n  \\\"error\\\": \\\"Not connected to OBS\\\"\\n}\"}]}",
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "pass",
+      "interpretation": "candidate recovered a read-only request",
+      "retried": false,
+      "watchdogMs": 10000,
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "pass",
+      "attempts": 0,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Intro",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"success\": false,\n  \"error\": \"Not connected to OBS\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "not_testable",
+      "error": "candidate did not complete OBS capability discovery before reduced-capability observation",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ],
+      "mcpTrace": {
+        "exchanges": [
+          {
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2024-11-05",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "obs-comparative-study-fixture",
+                "version": "1.0.0"
+              }
+            },
+            "response": {
+              "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                  "tools": {},
+                  "resources": {}
+                },
+                "serverInfo": {
+                  "name": "obs-showrunner-mcp",
+                  "version": "0.1.0"
+                }
+              },
+              "jsonrpc": "2.0",
+              "id": 1
+            },
+            "elapsedMs": 1230
+          },
+          {
+            "id": 2,
+            "method": "tools/list",
+            "params": {},
+            "response": {
+              "result": {
+                "tools": [
+                  {
+                    "name": "start_show",
+                    "description": "Start a show and execute opening sequence. Loads show template and initializes state.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "show_template_id": {
+                          "type": "string",
+                          "description": "ID of the show template to use (default if not specified)"
+                        },
+                        "options": {
+                          "type": "object",
+                          "properties": {
+                            "skip_opening": {
+                              "type": "boolean",
+                              "description": "Skip the opening segment"
+                            },
+                            "start_segment_id": {
+                              "type": "string",
+                              "description": "Start at a specific segment"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "end_show",
+                    "description": "End the current show. Optionally play ending sequence and stop streaming/recording.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "options": {
+                          "type": "object",
+                          "properties": {
+                            "play_ending": {
+                              "type": "boolean",
+                              "description": "Play the ending segment before ending"
+                            },
+                            "stop_streaming": {
+                              "type": "boolean",
+                              "description": "Stop streaming (requires safety permission)"
+                            },
+                            "stop_recording": {
+                              "type": "boolean",
+                              "description": "Stop recording (requires safety permission)"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "switch_segment",
+                    "description": "Switch to a different segment of the show.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "segment_id": {
+                          "type": "string",
+                          "description": "ID of the segment to switch to"
+                        },
+                        "options": {
+                          "type": "object",
+                          "properties": {
+                            "smooth_transition": {
+                              "type": "boolean",
+                              "description": "Use smooth transition effect"
+                            },
+                            "transition_duration_ms": {
+                              "type": "number",
+                              "description": "Transition duration in milliseconds"
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "segment_id"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "extend_segment",
+                    "description": "Extend the current segment's timer.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "minutes": {
+                          "type": "number",
+                          "description": "Minutes to extend (1-120)"
+                        }
+                      },
+                      "required": [
+                        "minutes"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "get_current_show_state",
+                    "description": "Get the current show state including segments, overlays, and timers.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "get_obs_health",
+                    "description": "Get OBS connection status and health metrics.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "set_safety_mode",
+                    "description": "Set the safety mode (strict, normal, debug).",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "strict",
+                            "normal",
+                            "debug"
+                          ],
+                          "description": "Safety mode to set"
+                        }
+                      },
+                      "required": [
+                        "mode"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "get_debug_config",
+                    "description": "Get masked configuration for debugging connection issues.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "reconnect_obs",
+                    "description": "Try to reconnect to OBS WebSocket using current configuration.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "set_audio_mood",
+                    "description": "Set the audio mood profile.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "mood": {
+                          "type": "string",
+                          "enum": [
+                            "talk",
+                            "game_focus",
+                            "hype",
+                            "cinema",
+                            "celebration",
+                            "mute_all"
+                          ],
+                          "description": "Audio mood to apply"
+                        }
+                      },
+                      "required": [
+                        "mood"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "trigger_effect",
+                    "description": "Trigger a visual effect.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "effectType": {
+                          "type": "string"
+                        },
+                        "intensity": {
+                          "type": "number"
+                        },
+                        "durationSec": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "effectType"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "show_overlay",
+                    "description": "Show an overlay.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "overlayId": {
+                          "type": "string"
+                        },
+                        "params": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "overlayId"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "hide_overlay",
+                    "description": "Hide an overlay.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "overlayId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "overlayId"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "take_stream_snapshot",
+                    "description": "Take a snapshot of the current stream.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "sourceName": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "update_source_content",
+                    "description": "Update the content of an OBS source.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "sourceName": {
+                          "type": "string"
+                        },
+                        "content": {
+                          "type": "string"
+                        },
+                        "sourceType": {
+                          "type": "string",
+                          "enum": [
+                            "text",
+                            "browser",
+                            "image"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "sourceName",
+                        "content"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "mark_highlight",
+                    "description": "Mark a highlight point in the stream.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "get_scene_list",
+                    "description": "Get list of available scenes.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "set_scene",
+                    "description": "Switch the current program scene.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "sceneName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sceneName"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "jsonrpc": "2.0",
+              "id": 2
+            },
+            "elapsedMs": 37
+          },
+          {
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "get_obs_health",
+              "arguments": {}
+            },
+            "response": {
+              "result": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{\n  \"connected\": false,\n  \"obsVersion\": null,\n  \"cpuUsage\": null,\n  \"fps\": null,\n  \"droppedFrames\": null\n}"
+                  }
+                ]
+              },
+              "jsonrpc": "2.0",
+              "id": 3
+            },
+            "elapsedMs": 3
+          }
+        ],
+        "stdoutNoise": [],
+        "stderr": "[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }\n",
+        "lifetimeMs": 1557
+      },
+      "obsRequests": []
+    }
+  ]
+}

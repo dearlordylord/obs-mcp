@@ -1,0 +1,10 @@
+COMMAND ['npm', 'install', '--ignore-scripts']
+
+added 99 packages, and audited 100 packages in 1m
+
+33 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+EXIT 0

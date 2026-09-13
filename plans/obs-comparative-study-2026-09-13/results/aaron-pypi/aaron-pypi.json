@@ -1,0 +1,3842 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "aaron-pypi",
+  "observedAt": "2026-09-13T21:19:49.030Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "/tmp/obs-aaron-release-kWF4lF/venv/bin/obs-studio-mcp",
+    "args": []
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:19:39.554Z",
+        "requestType": "GetVersion",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.595Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.609Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.645Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.667Z",
+        "requestType": "SetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux",
+          "inputMuted": true
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.681Z",
+        "requestType": "GetInputList",
+        "requestData": {
+          "inputKind": null
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.686Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.694Z",
+        "requestType": "GetInputVolume",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.701Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Desktop Audio"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.712Z",
+        "requestType": "GetInputVolume",
+        "requestData": {
+          "inputName": "Desktop Audio"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.835Z",
+        "requestType": "StartRecord",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.849Z",
+        "requestType": "GetRecordStatus",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.859Z",
+        "requestType": "StopRecord",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:39.877Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Missing Fixture Scene"
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:19:39.891Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "injected_obs_error"
+      },
+      {
+        "at": "2026-09-13T21:19:39.897Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "missing_response"
+      },
+      {
+        "at": "2026-09-13T21:19:45.045Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "in_flight_disconnect"
+      }
+    ],
+    "stateChanges": [
+      {
+        "kind": "scene",
+        "before": "Intro",
+        "after": "Main"
+      },
+      {
+        "kind": "mute",
+        "inputName": "Mic/Aux",
+        "before": false,
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": false
+      }
+    ],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "experimental": {},
+              "prompts": {
+                "listChanged": false
+              },
+              "resources": {
+                "subscribe": false,
+                "listChanged": false
+              },
+              "tools": {
+                "listChanged": false
+              }
+            },
+            "serverInfo": {
+              "name": "obs-studio",
+              "version": "1.30.0"
+            },
+            "instructions": "Control a local OBS Studio over obs-websocket v5: scenes, sources, audio, text overlays, streaming, recording, replay buffer, virtual camera, and performance stats. Every mutating tool accepts dry_run=True to preview without acting."
+          }
+        },
+        "elapsedMs": 2535
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "tools": [
+              {
+                "name": "list_scenes",
+                "description": "List scenes and the current program/preview scene.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "list_scenesArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "switch_scene",
+                "description": "Switch the program output to a scene (immediate cut on program).",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scene"
+                  ],
+                  "title": "switch_sceneArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_preview_scene",
+                "description": "Set the preview scene (studio mode).",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scene"
+                  ],
+                  "title": "set_preview_sceneArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "trigger_transition",
+                "description": "Trigger the studio-mode transition (preview → program).",
+                "inputSchema": {
+                  "properties": {
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "trigger_transitionArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_studio_mode",
+                "description": "Enable or disable studio mode.",
+                "inputSchema": {
+                  "properties": {
+                    "enabled": {
+                      "title": "Enabled",
+                      "type": "boolean"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ],
+                  "title": "set_studio_modeArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "list_scene_items",
+                "description": "List the items (sources) inside a scene with visibility state.",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "scene"
+                  ],
+                  "title": "list_scene_itemsArguments",
+                  "type": "object"
+                },
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Result",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "list_scene_itemsOutput",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_scene_item_visibility",
+                "description": "Show or hide a scene item (item_id from list_scene_items).",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "item_id": {
+                      "title": "Item Id",
+                      "type": "integer"
+                    },
+                    "visible": {
+                      "title": "Visible",
+                      "type": "boolean"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "item_id",
+                    "visible"
+                  ],
+                  "title": "set_scene_item_visibilityArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "list_inputs",
+                "description": "List all inputs (sources) with their kinds.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "list_inputsArguments",
+                  "type": "object"
+                },
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Result",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "list_inputsOutput",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_audio_levels",
+                "description": "List audio inputs with mute state and volume (dB).",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "get_audio_levelsArguments",
+                  "type": "object"
+                },
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Result",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "get_audio_levelsOutput",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_mute",
+                "description": "Mute or unmute an audio input.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "muted": {
+                      "title": "Muted",
+                      "type": "boolean"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "muted"
+                  ],
+                  "title": "set_muteArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_volume",
+                "description": "Set an audio input's volume in dB (0 = unity, negative = quieter).",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "volume_db": {
+                      "title": "Volume Db",
+                      "type": "number"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "volume_db"
+                  ],
+                  "title": "set_volumeArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "update_text_source",
+                "description": "Set the text of a Text (GDI+/FreeType) source — e.g. an on-stream overlay\n        line like a giveaway question or now-playing label.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "text": {
+                      "title": "Text",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "text"
+                  ],
+                  "title": "update_text_sourceArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "screenshot_source",
+                "description": "Save a PNG screenshot of a source (or scene) to a local file.",
+                "inputSchema": {
+                  "properties": {
+                    "source": {
+                      "title": "Source",
+                      "type": "string"
+                    },
+                    "file_path": {
+                      "title": "File Path",
+                      "type": "string"
+                    },
+                    "width": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Width"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "source",
+                    "file_path"
+                  ],
+                  "title": "screenshot_sourceArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "media_control",
+                "description": "Control a media source. action: play|pause|restart|stop|next|previous.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "action": {
+                      "title": "Action",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "action"
+                  ],
+                  "title": "media_controlArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "list_source_filters",
+                "description": "List filters on a source with enabled state.",
+                "inputSchema": {
+                  "properties": {
+                    "source": {
+                      "title": "Source",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "source"
+                  ],
+                  "title": "list_source_filtersArguments",
+                  "type": "object"
+                },
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Result",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "list_source_filtersOutput",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_filter_settings",
+                "description": "A filter's kind and full settings object (e.g. noise gate thresholds,\n        compressor ratio) — inspect before tuning with set_filter_settings.",
+                "inputSchema": {
+                  "properties": {
+                    "source": {
+                      "title": "Source",
+                      "type": "string"
+                    },
+                    "filter_name": {
+                      "title": "Filter Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "source",
+                    "filter_name"
+                  ],
+                  "title": "get_filter_settingsArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_filter_settings",
+                "description": "Merge settings into a filter (keys from get_filter_settings). Examples:\n        noise gate {\"open_threshold\": -26, \"close_threshold\": -32};\n        compressor {\"ratio\": 4.0, \"threshold\": -18}; gain {\"db\": 3.0}.",
+                "inputSchema": {
+                  "properties": {
+                    "source": {
+                      "title": "Source",
+                      "type": "string"
+                    },
+                    "filter_name": {
+                      "title": "Filter Name",
+                      "type": "string"
+                    },
+                    "settings": {
+                      "additionalProperties": true,
+                      "title": "Settings",
+                      "type": "object"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "source",
+                    "filter_name",
+                    "settings"
+                  ],
+                  "title": "set_filter_settingsArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_filter_enabled",
+                "description": "Enable or disable a named filter on a source.",
+                "inputSchema": {
+                  "properties": {
+                    "source": {
+                      "title": "Source",
+                      "type": "string"
+                    },
+                    "filter_name": {
+                      "title": "Filter Name",
+                      "type": "string"
+                    },
+                    "enabled": {
+                      "title": "Enabled",
+                      "type": "boolean"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "source",
+                    "filter_name",
+                    "enabled"
+                  ],
+                  "title": "set_filter_enabledArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_scene_item_transform",
+                "description": "Get a scene item's position, scale, and crop.",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "item_id": {
+                      "title": "Item Id",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "item_id"
+                  ],
+                  "title": "get_scene_item_transformArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_scene_item_transform",
+                "description": "Move/scale a scene item (item_id from list_scene_items). Only supplied\n        fields change — e.g. scale_x/scale_y 0.5 halves a facecam.",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "item_id": {
+                      "title": "Item Id",
+                      "type": "integer"
+                    },
+                    "x": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "X"
+                    },
+                    "y": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Y"
+                    },
+                    "scale_x": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Scale X"
+                    },
+                    "scale_y": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Scale Y"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "item_id"
+                  ],
+                  "title": "set_scene_item_transformArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "watch_health",
+                "description": "Sample OBS stats for up to 60 seconds and report a stream-health\n        verdict: dropped-frame %, GPU misses, CPU pressure.",
+                "inputSchema": {
+                  "properties": {
+                    "seconds": {
+                      "default": 10,
+                      "title": "Seconds",
+                      "type": "integer"
+                    }
+                  },
+                  "title": "watch_healthArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "add_sfx",
+                "description": "Register a sound effect: creates the SFX scene if needed and adds a\n        media source `name` pointing at file_path (a local audio/video file on\n        the OBS machine). Added stopped; fire it later with play_sfx.",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "file_path": {
+                      "title": "File Path",
+                      "type": "string"
+                    },
+                    "scene": {
+                      "default": "SFX",
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "file_path"
+                  ],
+                  "title": "add_sfxArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "list_sfx",
+                "description": "List registered sound effects in the SFX scene.",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "default": "SFX",
+                      "title": "Scene",
+                      "type": "string"
+                    }
+                  },
+                  "title": "list_sfxArguments",
+                  "type": "object"
+                },
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object"
+                      },
+                      "title": "Result",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "list_sfxOutput",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "play_sfx",
+                "description": "Play a registered sound effect once, from the top (restarts if already\n        playing so rapid re-triggers work). Audio plays into the mix regardless\n        of the current scene.",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "play_sfxArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "stop_sfx",
+                "description": "Stop a currently playing sound effect.",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "stop_sfxArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "remove_sfx",
+                "description": "Delete a registered sound effect (removes the media input).",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "remove_sfxArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "create_scene",
+                "description": "Create a new empty scene.",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "create_sceneArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "remove_scene",
+                "description": "Delete a scene (its unique sources are removed; shared ones survive).",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "remove_sceneArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "add_source",
+                "description": "Create a new input and add it to a scene. kind is an OBS input kind\n        (see module doc). settings is kind-specific (e.g. image_source\n        {\"file\": \"C:/logo.png\"}). Returns the new scene-item id for transforms.",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "title": "Kind",
+                      "type": "string"
+                    },
+                    "settings": {
+                      "anyOf": [
+                        {
+                          "additionalProperties": true,
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Settings"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "name",
+                    "kind"
+                  ],
+                  "title": "add_sourceArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "list_input_kinds",
+                "description": "List the input kinds this OBS build supports (for add_source).",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "list_input_kindsArguments",
+                  "type": "object"
+                },
+                "outputSchema": {
+                  "properties": {
+                    "result": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "title": "Result",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "result"
+                  ],
+                  "title": "list_input_kindsOutput",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "add_existing_source",
+                "description": "Add an EXISTING source to another scene (shared reference — a camera\n        or overlay reused across scenes). Returns the new scene-item id.",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "source_name": {
+                      "title": "Source Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "source_name"
+                  ],
+                  "title": "add_existing_sourceArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "duplicate_scene",
+                "description": "Duplicate a scene (great starting point: copy 'Normal Stream' then tweak).",
+                "inputSchema": {
+                  "properties": {
+                    "source_scene": {
+                      "title": "Source Scene",
+                      "type": "string"
+                    },
+                    "new_name": {
+                      "title": "New Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "source_scene",
+                    "new_name"
+                  ],
+                  "title": "duplicate_sceneArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_source_order",
+                "description": "Set a scene item's stacking index (0 = bottom). Controls layering.",
+                "inputSchema": {
+                  "properties": {
+                    "scene": {
+                      "title": "Scene",
+                      "type": "string"
+                    },
+                    "item_id": {
+                      "title": "Item Id",
+                      "type": "integer"
+                    },
+                    "index": {
+                      "title": "Index",
+                      "type": "integer"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "item_id",
+                    "index"
+                  ],
+                  "title": "set_source_orderArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "stream_status",
+                "description": "Streaming state: live, duration, bytes, dropped frames.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "stream_statusArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "start_stream",
+                "description": "Go live: start streaming to the configured service.",
+                "inputSchema": {
+                  "properties": {
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "start_streamArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "stop_stream",
+                "description": "End the live stream.",
+                "inputSchema": {
+                  "properties": {
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "stop_streamArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "record_status",
+                "description": "Recording state: active, paused, duration, output path.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "record_statusArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "start_record",
+                "description": "Start recording.",
+                "inputSchema": {
+                  "properties": {
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "start_recordArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "stop_record",
+                "description": "Stop recording; returns the saved file path.",
+                "inputSchema": {
+                  "properties": {
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "stop_recordArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "pause_record",
+                "description": "Pause (true) or resume (false) the recording.",
+                "inputSchema": {
+                  "properties": {
+                    "paused": {
+                      "title": "Paused",
+                      "type": "boolean"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "paused"
+                  ],
+                  "title": "pause_recordArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "save_replay",
+                "description": "Save the replay buffer (must be running). Returns the clip path.",
+                "inputSchema": {
+                  "properties": {
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "save_replayArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_replay_buffer",
+                "description": "Start (true) or stop (false) the replay buffer.",
+                "inputSchema": {
+                  "properties": {
+                    "active": {
+                      "title": "Active",
+                      "type": "boolean"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "active"
+                  ],
+                  "title": "set_replay_bufferArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_virtual_cam",
+                "description": "Start (true) or stop (false) the virtual camera.",
+                "inputSchema": {
+                  "properties": {
+                    "active": {
+                      "title": "Active",
+                      "type": "boolean"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "active"
+                  ],
+                  "title": "set_virtual_camArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_stats",
+                "description": "OBS performance stats: CPU, memory, FPS, frame drops, disk space.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "get_statsArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "list_profiles",
+                "description": "List OBS profiles and the current one.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "list_profilesArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "switch_profile",
+                "description": "Switch OBS profile (stream settings bundle).",
+                "inputSchema": {
+                  "properties": {
+                    "profile": {
+                      "title": "Profile",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "profile"
+                  ],
+                  "title": "switch_profileArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "list_scene_collections",
+                "description": "List scene collections and the current one.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "list_scene_collectionsArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "switch_scene_collection",
+                "description": "Switch scene collection (full scene layout bundle).",
+                "inputSchema": {
+                  "properties": {
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "title": "switch_scene_collectionArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "trigger_hotkey",
+                "description": "Trigger an OBS hotkey by name (see get_hotkey_list in OBS docs).",
+                "inputSchema": {
+                  "properties": {
+                    "hotkey_name": {
+                      "title": "Hotkey Name",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "hotkey_name"
+                  ],
+                  "title": "trigger_hotkeyArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "health_check",
+                "description": "Verify the OBS websocket connection and report versions.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "health_checkArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_video_settings",
+                "description": "Canvas resolution, output (scaled) resolution, and FPS.",
+                "inputSchema": {
+                  "properties": {},
+                  "title": "get_video_settingsArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_video_settings",
+                "description": "Change canvas/output resolution and/or FPS (integer fps, e.g. 30/60).\n        Only supplied fields change. Cannot change while streaming/recording.",
+                "inputSchema": {
+                  "properties": {
+                    "canvas_width": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Canvas Width"
+                    },
+                    "canvas_height": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Canvas Height"
+                    },
+                    "output_width": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Output Width"
+                    },
+                    "output_height": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Output Height"
+                    },
+                    "fps": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "title": "Fps"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "title": "set_video_settingsArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_input_settings",
+                "description": "An input's full settings object (e.g. capture card resolution/format)\n        plus its kind — inspect before tweaking with set_input_settings_json.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "input_name"
+                  ],
+                  "title": "get_input_settingsArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_input_settings_json",
+                "description": "Merge a settings dict into an input (keys from get_input_settings).\n        Example: capture card {\"resolution\": \"1920x1080\"} — device-dependent.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "settings": {
+                      "additionalProperties": true,
+                      "title": "Settings",
+                      "type": "object"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "settings"
+                  ],
+                  "title": "set_input_settings_jsonArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_profile_parameter",
+                "description": "Read a profile config value. Common: (SimpleOutput, VBitrate),\n        (SimpleOutput, StreamEncoder), (Output, Mode), (AdvOut, Encoder),\n        (Audio, SampleRate).",
+                "inputSchema": {
+                  "properties": {
+                    "category": {
+                      "title": "Category",
+                      "type": "string"
+                    },
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "category",
+                    "name"
+                  ],
+                  "title": "get_profile_parameterArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_profile_parameter",
+                "description": "Write a profile config value (e.g. SimpleOutput/VBitrate 6000).\n        Takes effect when the output next starts.",
+                "inputSchema": {
+                  "properties": {
+                    "category": {
+                      "title": "Category",
+                      "type": "string"
+                    },
+                    "name": {
+                      "title": "Name",
+                      "type": "string"
+                    },
+                    "value": {
+                      "title": "Value",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "category",
+                    "name",
+                    "value"
+                  ],
+                  "title": "set_profile_parameterArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_audio_sync_offset",
+                "description": "An audio input's sync offset in ms (fix lip-sync drift).",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "input_name"
+                  ],
+                  "title": "get_audio_sync_offsetArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_audio_sync_offset",
+                "description": "Set an audio input's sync offset in ms (-950..20000).",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "offset_ms": {
+                      "title": "Offset Ms",
+                      "type": "integer"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "offset_ms"
+                  ],
+                  "title": "set_audio_sync_offsetArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_audio_monitoring",
+                "description": "How an input is monitored: none | monitor_only | monitor_and_output.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "input_name"
+                  ],
+                  "title": "get_audio_monitoringArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_audio_monitoring",
+                "description": "Set input monitoring: none | monitor_only | monitor_and_output.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "monitoring": {
+                      "title": "Monitoring",
+                      "type": "string"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "monitoring"
+                  ],
+                  "title": "set_audio_monitoringArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "get_audio_tracks",
+                "description": "Which of the 6 output tracks an input feeds (recording/stream mixes).",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "input_name"
+                  ],
+                  "title": "get_audio_tracksArguments",
+                  "type": "object"
+                }
+              },
+              {
+                "name": "set_audio_tracks",
+                "description": "Set track membership, e.g. {\"1\": true, \"2\": false, ...}.",
+                "inputSchema": {
+                  "properties": {
+                    "input_name": {
+                      "title": "Input Name",
+                      "type": "string"
+                    },
+                    "tracks": {
+                      "additionalProperties": true,
+                      "title": "Tracks",
+                      "type": "object"
+                    },
+                    "dry_run": {
+                      "default": false,
+                      "title": "Dry Run",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "tracks"
+                  ],
+                  "title": "set_audio_tracksArguments",
+                  "type": "object"
+                }
+              }
+            ]
+          }
+        },
+        "elapsedMs": 20
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "health_check",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 3,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"status\": \"ok\",\n  \"obs_version\": \"31.1.0\",\n  \"websocket_version\": \"5.6.2\",\n  \"platform\": \"fixture\"\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 210
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "list_scenes",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 4,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"current_program\": \"Intro\",\n  \"current_preview\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 26
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "switch_scene",
+          "arguments": {
+            "scene": "Main"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 5,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"program_scene\": \"Main\"\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 3
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "list_scenes",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 6,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"current_program\": \"Main\",\n  \"current_preview\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 40
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "set_mute",
+          "arguments": {
+            "input_name": "Mic/Aux",
+            "muted": true
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 7,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"input\": \"Mic/Aux\",\n  \"muted\": true\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 25
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "get_audio_levels",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 8,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"name\": \"Mic/Aux\",\n  \"muted\": true,\n  \"volume_db\": -2.5\n}"
+              },
+              {
+                "type": "text",
+                "text": "{\n  \"name\": \"Desktop Audio\",\n  \"muted\": false,\n  \"volume_db\": -2.5\n}"
+              }
+            ],
+            "structuredContent": {
+              "result": [
+                {
+                  "name": "Mic/Aux",
+                  "muted": true,
+                  "volume_db": -2.5
+                },
+                {
+                  "name": "Desktop Audio",
+                  "muted": false,
+                  "volume_db": -2.5
+                }
+              ]
+            },
+            "isError": false
+          }
+        },
+        "elapsedMs": 155
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "start_record",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 9,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"recording\": true\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 13
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "record_status",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 10,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"recording\": true,\n  \"paused\": false,\n  \"duration_ms\": 1250\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 10
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "stop_record",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 11,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"recording\": false,\n  \"output_path\": \"/synthetic/recordings/fixture.mkv\"\n}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 17
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "screenshot_source",
+          "arguments": {
+            "source": "Main",
+            "file_path": "/tmp/obs-study-aaron-pypi-JfyC1s/tmp/aaron-pypi-screenshot.png"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 12,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool screenshot_source: get_source_screenshot failed: ReqClient.get_source_screenshot() missing 2 required positional arguments: 'width' and 'height'"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "switch_scene",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 13,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool switch_scene: 1 validation error for switch_sceneArguments\nscene\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 0
+      },
+      {
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "switch_scene",
+          "arguments": {
+            "scene": "Missing Fixture Scene"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 14,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool switch_scene: set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Scene not found"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 8
+      },
+      {
+        "id": 15,
+        "method": "tools/call",
+        "params": {
+          "name": "switch_scene",
+          "arguments": {
+            "scene": "Intro"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 15,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool switch_scene: set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 3
+      },
+      {
+        "id": 16,
+        "method": "tools/call",
+        "params": {
+          "name": "list_scenes",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 16,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool list_scenes: get_scene_list failed: Timeout while trying to send the request"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 5034
+      },
+      {
+        "id": 17,
+        "method": "tools/call",
+        "params": {
+          "name": "switch_scene",
+          "arguments": {
+            "scene": "Intro"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 17,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool switch_scene: set_current_program_scene failed: Expecting value: line 1 column 1 (char 0)"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 128
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "Processing request of type ListToolsRequest\nProcessing request of type CallToolRequest\nConnecting with parameters: host='127.0.0.1' port=34717 password='[REDACTED_SYNTHETIC_SECRET]' subs=0 timeout=5\nSuccessfully identified ReqClient with the server using RPC version:1\n2026-09-13 17:19:39,571 INFO obs get_version ok\nobs get_version ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,597 INFO obs get_scene_list ok\nobs get_scene_list ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,610 INFO obs set_current_program_scene ok\nobs set_current_program_scene ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,648 INFO obs get_scene_list ok\nobs get_scene_list ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,668 INFO obs set_input_mute ok\nobs set_input_mute ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,685 INFO obs get_input_list ok\nobs get_input_list ok\n2026-09-13 17:19:39,687 INFO obs get_input_mute ok\nobs get_input_mute ok\n2026-09-13 17:19:39,696 INFO obs get_input_volume ok\nobs get_input_volume ok\n2026-09-13 17:19:39,705 INFO obs get_input_mute ok\nobs get_input_mute ok\n2026-09-13 17:19:39,714 INFO obs get_input_volume ok\nobs get_input_volume ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,837 INFO obs start_record ok\nobs start_record ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,849 INFO obs get_record_status ok\nobs get_record_status ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,864 INFO obs stop_record ok\nobs stop_record ok\nProcessing request of type CallToolRequest\n2026-09-13 17:19:39,874 ERROR obs get_source_screenshot failed: ReqClient.get_source_screenshot() missing 2 required positional arguments: 'width' and 'height'\nobs get_source_screenshot failed: ReqClient.get_source_screenshot() missing 2 required positional arguments: 'width' and 'height'\nProcessing request of type CallToolRequest\nProcessing request of type CallToolRequest\nOBSSDKRequestError: Request SetCurrentProgramScene returned code 600. With message: Scene not found\nTraceback (most recent call last):\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/obsws_python/reqs.py\", line 53, in send\n    raise OBSSDKRequestError(\nobsws_python.error.OBSSDKRequestError: Request SetCurrentProgramScene returned code 600. With message: Scene not found\n2026-09-13 17:19:39,881 ERROR obs set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Scene not found\nobs set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Scene not found\nProcessing request of type CallToolRequest\nOBSSDKRequestError: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\nTraceback (most recent call last):\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/obsws_python/reqs.py\", line 53, in send\n    raise OBSSDKRequestError(\nobsws_python.error.OBSSDKRequestError: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\n2026-09-13 17:19:39,892 ERROR obs set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\nobs set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\nProcessing request of type CallToolRequest\nWebSocketTimeoutException: Connection timed out\nTraceback (most recent call last):\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_socket.py\", line 127, in recv\n    bytes_ = _recv()\n             ^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_socket.py\", line 99, in _recv\n    return sock.recv(bufsize)\n           ^^^^^^^^^^^^^^^^^^\nTimeoutError: timed out\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/obsws_python/baseclient.py\", line 129, in req\n    response = json.loads(self.ws.recv())\n                          ^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_core.py\", line 429, in recv\n    opcode, data = self.recv_data()\n                   ^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_core.py\", line 457, in recv_data\n    opcode, frame = self.recv_data_frame(control_frame)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_core.py\", line 478, in recv_data_frame\n    frame = self.recv_frame()\n            ^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_core.py\", line 515, in recv_frame\n    return self.frame_buffer.recv_frame()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_abnf.py\", line 377, in recv_frame\n    self.recv_header()\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_abnf.py\", line 331, in recv_header\n    header = self.recv_strict(2)\n             ^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_abnf.py\", line 420, in recv_strict\n    bytes_ = self.recv(min(16384, shortage))\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_core.py\", line 645, in _recv\n    return recv(self.sock, bufsize)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/obs-aaron-release-kWF4lF/venv/lib/python3.11/site-packages/websocket/_socket.py\", line 129, in recv\n    raise WebSocketTimeoutException(\"Connection timed out\")\nwebsocket._exceptions.WebSocketTimeoutException: Connection timed out\n2026-09-13 17:19:44,919 ERROR obs get_scene_list failed: Timeout while trying to send the request\nobs get_scene_list failed: Timeout while trying to send the request\nProcessing request of type CallToolRequest\n2026-09-13 17:19:45,052 ERROR obs set_current_program_scene failed: Expecting value: line 1 column 1 (char 0)\nobs set_current_program_scene failed: Expecting value: line 1 column 1 (char 0)\n",
+    "lifetimeMs": 12514
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "obs-studio",
+        "version": "1.30.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "experimental": {},
+        "prompts": {
+          "listChanged": false
+        },
+        "resources": {
+          "subscribe": false,
+          "listChanged": false
+        },
+        "tools": {
+          "listChanged": false
+        }
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 62,
+      "tools": [
+        {
+          "name": "list_scenes",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_scenesArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "switch_scene",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scene"
+            ],
+            "title": "switch_sceneArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_preview_scene",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scene"
+            ],
+            "title": "set_preview_sceneArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "trigger_transition",
+          "inputSchema": {
+            "properties": {
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "title": "trigger_transitionArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_studio_mode",
+          "inputSchema": {
+            "properties": {
+              "enabled": {
+                "title": "Enabled",
+                "type": "boolean"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "title": "set_studio_modeArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "list_scene_items",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              }
+            },
+            "required": [
+              "scene"
+            ],
+            "title": "list_scene_itemsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_scene_item_visibility",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "item_id": {
+                "title": "Item Id",
+                "type": "integer"
+              },
+              "visible": {
+                "title": "Visible",
+                "type": "boolean"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scene",
+              "item_id",
+              "visible"
+            ],
+            "title": "set_scene_item_visibilityArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "list_inputs",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_inputsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_audio_levels",
+          "inputSchema": {
+            "properties": {},
+            "title": "get_audio_levelsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_mute",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "muted": {
+                "title": "Muted",
+                "type": "boolean"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "muted"
+            ],
+            "title": "set_muteArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_volume",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "volume_db": {
+                "title": "Volume Db",
+                "type": "number"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "volume_db"
+            ],
+            "title": "set_volumeArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "update_text_source",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "text": {
+                "title": "Text",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "text"
+            ],
+            "title": "update_text_sourceArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "screenshot_source",
+          "inputSchema": {
+            "properties": {
+              "source": {
+                "title": "Source",
+                "type": "string"
+              },
+              "file_path": {
+                "title": "File Path",
+                "type": "string"
+              },
+              "width": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Width"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "source",
+              "file_path"
+            ],
+            "title": "screenshot_sourceArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "media_control",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "action": {
+                "title": "Action",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "action"
+            ],
+            "title": "media_controlArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "list_source_filters",
+          "inputSchema": {
+            "properties": {
+              "source": {
+                "title": "Source",
+                "type": "string"
+              }
+            },
+            "required": [
+              "source"
+            ],
+            "title": "list_source_filtersArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_filter_settings",
+          "inputSchema": {
+            "properties": {
+              "source": {
+                "title": "Source",
+                "type": "string"
+              },
+              "filter_name": {
+                "title": "Filter Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "source",
+              "filter_name"
+            ],
+            "title": "get_filter_settingsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_filter_settings",
+          "inputSchema": {
+            "properties": {
+              "source": {
+                "title": "Source",
+                "type": "string"
+              },
+              "filter_name": {
+                "title": "Filter Name",
+                "type": "string"
+              },
+              "settings": {
+                "additionalProperties": true,
+                "title": "Settings",
+                "type": "object"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "source",
+              "filter_name",
+              "settings"
+            ],
+            "title": "set_filter_settingsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_filter_enabled",
+          "inputSchema": {
+            "properties": {
+              "source": {
+                "title": "Source",
+                "type": "string"
+              },
+              "filter_name": {
+                "title": "Filter Name",
+                "type": "string"
+              },
+              "enabled": {
+                "title": "Enabled",
+                "type": "boolean"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "source",
+              "filter_name",
+              "enabled"
+            ],
+            "title": "set_filter_enabledArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_scene_item_transform",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "item_id": {
+                "title": "Item Id",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "scene",
+              "item_id"
+            ],
+            "title": "get_scene_item_transformArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_scene_item_transform",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "item_id": {
+                "title": "Item Id",
+                "type": "integer"
+              },
+              "x": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "X"
+              },
+              "y": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Y"
+              },
+              "scale_x": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Scale X"
+              },
+              "scale_y": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Scale Y"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scene",
+              "item_id"
+            ],
+            "title": "set_scene_item_transformArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "watch_health",
+          "inputSchema": {
+            "properties": {
+              "seconds": {
+                "default": 10,
+                "title": "Seconds",
+                "type": "integer"
+              }
+            },
+            "title": "watch_healthArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "add_sfx",
+          "inputSchema": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "file_path": {
+                "title": "File Path",
+                "type": "string"
+              },
+              "scene": {
+                "default": "SFX",
+                "title": "Scene",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "file_path"
+            ],
+            "title": "add_sfxArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "list_sfx",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "default": "SFX",
+                "title": "Scene",
+                "type": "string"
+              }
+            },
+            "title": "list_sfxArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "play_sfx",
+          "inputSchema": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "play_sfxArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "stop_sfx",
+          "inputSchema": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "stop_sfxArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "remove_sfx",
+          "inputSchema": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "remove_sfxArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "create_scene",
+          "inputSchema": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "create_sceneArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "remove_scene",
+          "inputSchema": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "remove_sceneArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "add_source",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "kind": {
+                "title": "Kind",
+                "type": "string"
+              },
+              "settings": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Settings"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scene",
+              "name",
+              "kind"
+            ],
+            "title": "add_sourceArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "list_input_kinds",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_input_kindsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "add_existing_source",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "source_name": {
+                "title": "Source Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scene",
+              "source_name"
+            ],
+            "title": "add_existing_sourceArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "duplicate_scene",
+          "inputSchema": {
+            "properties": {
+              "source_scene": {
+                "title": "Source Scene",
+                "type": "string"
+              },
+              "new_name": {
+                "title": "New Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "source_scene",
+              "new_name"
+            ],
+            "title": "duplicate_sceneArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_source_order",
+          "inputSchema": {
+            "properties": {
+              "scene": {
+                "title": "Scene",
+                "type": "string"
+              },
+              "item_id": {
+                "title": "Item Id",
+                "type": "integer"
+              },
+              "index": {
+                "title": "Index",
+                "type": "integer"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "scene",
+              "item_id",
+              "index"
+            ],
+            "title": "set_source_orderArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "stream_status",
+          "inputSchema": {
+            "properties": {},
+            "title": "stream_statusArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "start_stream",
+          "inputSchema": {
+            "properties": {
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "title": "start_streamArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "stop_stream",
+          "inputSchema": {
+            "properties": {
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "title": "stop_streamArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "record_status",
+          "inputSchema": {
+            "properties": {},
+            "title": "record_statusArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "start_record",
+          "inputSchema": {
+            "properties": {
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "title": "start_recordArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "stop_record",
+          "inputSchema": {
+            "properties": {
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "title": "stop_recordArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "pause_record",
+          "inputSchema": {
+            "properties": {
+              "paused": {
+                "title": "Paused",
+                "type": "boolean"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "paused"
+            ],
+            "title": "pause_recordArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "save_replay",
+          "inputSchema": {
+            "properties": {
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "title": "save_replayArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_replay_buffer",
+          "inputSchema": {
+            "properties": {
+              "active": {
+                "title": "Active",
+                "type": "boolean"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "active"
+            ],
+            "title": "set_replay_bufferArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_virtual_cam",
+          "inputSchema": {
+            "properties": {
+              "active": {
+                "title": "Active",
+                "type": "boolean"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "active"
+            ],
+            "title": "set_virtual_camArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_stats",
+          "inputSchema": {
+            "properties": {},
+            "title": "get_statsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "list_profiles",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_profilesArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "switch_profile",
+          "inputSchema": {
+            "properties": {
+              "profile": {
+                "title": "Profile",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "profile"
+            ],
+            "title": "switch_profileArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "list_scene_collections",
+          "inputSchema": {
+            "properties": {},
+            "title": "list_scene_collectionsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "switch_scene_collection",
+          "inputSchema": {
+            "properties": {
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "title": "switch_scene_collectionArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "trigger_hotkey",
+          "inputSchema": {
+            "properties": {
+              "hotkey_name": {
+                "title": "Hotkey Name",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "hotkey_name"
+            ],
+            "title": "trigger_hotkeyArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "health_check",
+          "inputSchema": {
+            "properties": {},
+            "title": "health_checkArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_video_settings",
+          "inputSchema": {
+            "properties": {},
+            "title": "get_video_settingsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_video_settings",
+          "inputSchema": {
+            "properties": {
+              "canvas_width": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Canvas Width"
+              },
+              "canvas_height": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Canvas Height"
+              },
+              "output_width": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Output Width"
+              },
+              "output_height": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Output Height"
+              },
+              "fps": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Fps"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "title": "set_video_settingsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_input_settings",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "input_name"
+            ],
+            "title": "get_input_settingsArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_input_settings_json",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "settings": {
+                "additionalProperties": true,
+                "title": "Settings",
+                "type": "object"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "settings"
+            ],
+            "title": "set_input_settings_jsonArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_profile_parameter",
+          "inputSchema": {
+            "properties": {
+              "category": {
+                "title": "Category",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "category",
+              "name"
+            ],
+            "title": "get_profile_parameterArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_profile_parameter",
+          "inputSchema": {
+            "properties": {
+              "category": {
+                "title": "Category",
+                "type": "string"
+              },
+              "name": {
+                "title": "Name",
+                "type": "string"
+              },
+              "value": {
+                "title": "Value",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "category",
+              "name",
+              "value"
+            ],
+            "title": "set_profile_parameterArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_audio_sync_offset",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "input_name"
+            ],
+            "title": "get_audio_sync_offsetArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_audio_sync_offset",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "offset_ms": {
+                "title": "Offset Ms",
+                "type": "integer"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "offset_ms"
+            ],
+            "title": "set_audio_sync_offsetArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_audio_monitoring",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "input_name"
+            ],
+            "title": "get_audio_monitoringArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_audio_monitoring",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "monitoring": {
+                "title": "Monitoring",
+                "type": "string"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "monitoring"
+            ],
+            "title": "set_audio_monitoringArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "get_audio_tracks",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "input_name"
+            ],
+            "title": "get_audio_tracksArguments",
+            "type": "object"
+          }
+        },
+        {
+          "name": "set_audio_tracks",
+          "inputSchema": {
+            "properties": {
+              "input_name": {
+                "title": "Input Name",
+                "type": "string"
+              },
+              "tracks": {
+                "additionalProperties": true,
+                "title": "Tracks",
+                "type": "object"
+              },
+              "dry_run": {
+                "default": false,
+                "title": "Dry Run",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_name",
+              "tracks"
+            ],
+            "title": "set_audio_tracksArguments",
+            "type": "object"
+          }
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.554Z",
+          "requestType": "GetVersion",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"status\": \"ok\",\n  \"obs_version\": \"31.1.0\",\n  \"websocket_version\": \"5.6.2\",\n  \"platform\": \"fixture\"\n}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "scenes",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.595Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"current_program\": \"Intro\",\n  \"current_preview\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "fail",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"current_program\": \"Main\",\n  \"current_preview\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+          }
+        ],
+        "isError": false
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.609Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Main"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.645Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "finalState": "Main",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"program_scene\": \"Main\"\n}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "pass",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"name\": \"Mic/Aux\",\n  \"muted\": true,\n  \"volume_db\": -2.5\n}"
+          },
+          {
+            "type": "text",
+            "text": "{\n  \"name\": \"Desktop Audio\",\n  \"muted\": false,\n  \"volume_db\": -2.5\n}"
+          }
+        ],
+        "structuredContent": {
+          "result": [
+            {
+              "name": "Mic/Aux",
+              "muted": true,
+              "volume_db": -2.5
+            },
+            {
+              "name": "Desktop Audio",
+              "muted": false,
+              "volume_db": -2.5
+            }
+          ]
+        },
+        "isError": false
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.667Z",
+          "requestType": "SetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux",
+            "inputMuted": true
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.681Z",
+          "requestType": "GetInputList",
+          "requestData": {
+            "inputKind": null
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.686Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.694Z",
+          "requestType": "GetInputVolume",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.701Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Desktop Audio"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.712Z",
+          "requestType": "GetInputVolume",
+          "requestData": {
+            "inputName": "Desktop Audio"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "finalState": true,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"input\": \"Mic/Aux\",\n  \"muted\": true\n}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "pass",
+      "statusResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"recording\": true,\n  \"paused\": false,\n  \"duration_ms\": 1250\n}"
+          }
+        ],
+        "isError": false
+      },
+      "stopResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"recording\": false,\n  \"output_path\": \"/synthetic/recordings/fixture.mkv\"\n}"
+          }
+        ],
+        "isError": false
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.835Z",
+          "requestType": "StartRecord",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.849Z",
+          "requestType": "GetRecordStatus",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:39.859Z",
+          "requestType": "StopRecord",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "finalState": false,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"recording\": true\n}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "screenshot",
+      "status": "fail",
+      "image": {
+        "valid": false
+      },
+      "obsRequests": [],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error executing tool screenshot_source: get_source_screenshot failed: ReqClient.get_source_screenshot() missing 2 required positional arguments: 'width' and 'height'"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "unsupported"
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error executing tool switch_scene: 1 validation error for switch_sceneArguments\\nscene\\n  Field required [type=missing, input_value={}, input_type=dict]\\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\"}],\"isError\":true}",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error executing tool switch_scene: 1 validation error for switch_sceneArguments\nscene\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "unknown_entity",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error executing tool switch_scene: set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Scene not found\"}],\"isError\":true}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.877Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Missing Fixture Scene"
+          },
+          "classification": "validation_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error executing tool switch_scene: set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Scene not found"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error executing tool switch_scene: set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\"}],\"isError\":true}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.891Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "injected_obs_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error executing tool switch_scene: set_current_program_scene failed: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "pass",
+      "interpretation": "candidate returned a bounded error",
+      "retried": false,
+      "watchdogMs": 10000,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:39.897Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "missing_response"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error executing tool list_scenes: get_scene_list failed: Timeout while trying to send the request"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "pass",
+      "attempts": 1,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Main",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:45.045Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "in_flight_disconnect"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error executing tool switch_scene: set_current_program_scene failed: Expecting value: line 1 column 1 (char 0)"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "pass",
+      "behavior": "tool error",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error executing tool screenshot_source: get_source_screenshot failed: ReqClient.get_source_screenshot() missing 2 required positional arguments: 'width' and 'height'"
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:48.791Z",
+          "requestType": "GetVersion",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ]
+    }
+  ]
+}

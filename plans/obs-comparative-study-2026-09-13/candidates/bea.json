@@ -1,0 +1,45 @@
+{
+  "id": "bea",
+  "repository": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge",
+  "commit": "d1909bd397c390fb7a644ca24ff53c088e401fa3",
+  "version": "root 1.6.0; MCP 1.1.0; Codex manifest 1.2.0; native OBS manifest 1.4.0",
+  "license": "MIT",
+  "runtime": "Node.js >=20; local Streamable HTTP MCP bridge plus native OBS plugin/desktop companion",
+  "publication": {
+    "registry": null,
+    "verified": false,
+    "note": "No npm publication, GitHub release artifact, or approved Windows installer verified at the 2026-09-13 observation."
+  },
+  "artifact": {
+    "kind": "isolated source build",
+    "provenance": "Pinned source SHA after pnpm install --frozen-lockfile --ignore-scripts and pnpm test",
+    "entryPath": "/tmp/obs-bea.J2utm3/repo/dist/server.js",
+    "entrySha256": "20d46a1c992961fcbac98e972ccd21cdcd42a3e1df39f664afde3d5d2415e277",
+    "bootstrapPath": "/tmp/obs-bea.J2utm3/repo/dist/bootstrap.js",
+    "bootstrapSha256": "2d30fec73f8de8634d29f24b1229a60883f246a8a99d539ff7371be99be51a9f"
+  },
+  "gates": {
+    "G1": "P",
+    "G2": "NT",
+    "G3": "NT",
+    "G4": "NT",
+    "G5": "F",
+    "G6": "p"
+  },
+  "scores": {
+    "A": 3,
+    "B": 3,
+    "C": 3,
+    "D": 2,
+    "E": 3,
+    "F": 2
+  },
+  "weightedTotal": 68.75,
+  "runtimeEvidence": [
+    "results/bea-http.json",
+    "results/bea-own-tests.log",
+    "results/bea-publication.json"
+  ],
+  "confidence": "medium",
+  "notes": "Direct MCP source entry verified through source build plus authenticated initialize/tools-list. G2-G4 remain NT at the HTTP-only fixture boundary; G5 fails because the observed contract has no screenshot capability, and G6 is partial due observed version drift."
+}

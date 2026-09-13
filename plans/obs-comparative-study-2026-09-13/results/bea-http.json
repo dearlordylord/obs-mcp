@@ -1,0 +1,45 @@
+{
+  "repository": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge",
+  "commit": "d1909bd397c390fb7a644ca24ff53c088e401fa3",
+  "artifact": {
+    "entry": "dist/server.js",
+    "sha256": "20d46a1c992961fcbac98e972ccd21cdcd42a3e1df39f664afde3d5d2415e277",
+    "bootstrap": "dist/bootstrap.js",
+    "bootstrapSha256": "2d30fec73f8de8634d29f24b1229a60883f246a8a99d539ff7371be99be51a9f"
+  },
+  "environment": {
+    "node": "v24.20.0",
+    "pnpm": "11.19.0",
+    "obsWebsocketUrl": "ws://127.0.0.1:45998",
+    "realObs": false,
+    "externalCredentials": false,
+    "bridgeToken": "synthetic only",
+    "host": "127.0.0.1",
+    "port": 18787
+  },
+  "commands": [
+    "pnpm install --frozen-lockfile --ignore-scripts",
+    "pnpm test",
+    "env -i PATH=\"$PATH\" HOME=<study-temp-home> BRIDGE_AUTH_TOKEN=<synthetic-32-byte-token> OBS_WEBSOCKET_URL=ws://127.0.0.1:45998 BRIDGE_PORT=18787 node dist/server.js",
+    "curl authenticated POST /mcp initialize",
+    "curl authenticated POST /mcp tools/list"
+  ],
+  "build": {
+    "install": "pass",
+    "tests": "pass; 36 Node tests after TypeScript build"
+  },
+  "http": {
+    "initialize": {
+      "status": 200,
+      "serverName": "obs-studio-bridge",
+      "serverVersion": "1.1.0",
+      "transport": "StreamableHTTPServerTransport"
+    },
+    "toolsList": {
+      "status": 200,
+      "toolCount": 25,
+      "obsCall": false
+    }
+  },
+  "scope": "Initialize/tools-list only; no mutation, screenshot, failure, disconnect, or real OBS probe was run."
+}

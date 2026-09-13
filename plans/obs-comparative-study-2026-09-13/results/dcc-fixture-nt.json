@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "dcc",
+  "observedAt": "2026-09-13",
+  "classification": "not_testable",
+  "fixtureVersion": "2026-09-13.5",
+  "rawTrace": "results/dcc-runner/dcc.json",
+  "reason": "The candidate requires its native in-process OBS vendor plugin and serves MCP on a separate network endpoint rather than stdio. The shared fixture accepted the OBS WebSocket session but cannot implement the candidate-specific CallVendorRequest contract.",
+  "observedRequest": {
+    "requestType": "CallVendorRequest",
+    "vendorName": "dcc-mcp-obs",
+    "vendorRequestType": "GetPluginStatus",
+    "fixtureClassification": "fixture_unimplemented"
+  },
+  "candidateBehavior": "Failed closed with OBS_REQUEST_FAILED before MCP endpoint startup.",
+  "safetyBoundary": "No native plugin was installed and no real OBS process was launched."
+}

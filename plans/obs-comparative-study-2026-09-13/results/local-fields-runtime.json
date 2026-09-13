@@ -1,0 +1,333 @@
+{
+  "implementationCommit": "587e356b00d9269dcd124969ee36aad9635f2db8",
+  "packageSha256": "7847ea6f0a7be26df56b47b5c3021963fde5933bdca9a2c7bcf8e07b18e87b2d",
+  "initialized": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {
+      "resources": {
+        "subscribe": true
+      },
+      "tools": {}
+    },
+    "serverInfo": {
+      "name": "io.github.dearlordylord/obs-mcp",
+      "version": "0.3.3"
+    }
+  },
+  "listedTools": 159,
+  "observations": [
+    {
+      "name": "input_nested_read",
+      "tool": "get_input_settings",
+      "arguments": {
+        "inputName": "Mic/Aux"
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"inputKind\":\"wasapi_input_capture\",\"inputSettings\":{\"device_id\":\"fixture-mic\",\"reconnect_delay_sec\":7,\"nested\":{\"mode\":\"synthetic\",\"values\":[1,null,true]}}}"
+          }
+        ],
+        "structuredContent": {
+          "inputKind": "wasapi_input_capture",
+          "inputSettings": {
+            "device_id": "fixture-mic",
+            "reconnect_delay_sec": 7,
+            "nested": {
+              "mode": "synthetic",
+              "values": [
+                1,
+                null,
+                true
+              ]
+            }
+          }
+        }
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:15:42.591Z",
+          "requestType": "GetInputSettings",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "filter_values_read",
+      "tool": "get_source_filter",
+      "arguments": {
+        "sourceName": "Main",
+        "filterName": "Synthetic Color"
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"filterName\":\"Synthetic Color\",\"filterEnabled\":true,\"filterIndex\":0,\"filterKind\":\"color_filter_v2\",\"filterSettings\":[{\"settingName\":\"nested\",\"valueType\":\"object\"},{\"settingName\":\"opacity\",\"valueType\":\"number\"}],\"rawSettingsDeferred\":true}"
+          }
+        ],
+        "structuredContent": {
+          "filterName": "Synthetic Color",
+          "filterEnabled": true,
+          "filterIndex": 0,
+          "filterKind": "color_filter_v2",
+          "filterSettings": [
+            {
+              "settingName": "nested",
+              "valueType": "object"
+            },
+            {
+              "settingName": "opacity",
+              "valueType": "number"
+            }
+          ],
+          "rawSettingsDeferred": true
+        }
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:15:42.596Z",
+          "requestType": "GetSourceFilter",
+          "requestData": {
+            "sourceName": "Main",
+            "filterName": "Synthetic Color"
+          },
+          "classification": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "filter_nested_write",
+      "tool": "set_source_filter_settings",
+      "arguments": {
+        "sourceName": "Main",
+        "filterName": "Synthetic Color",
+        "filterSettings": {
+          "nested": {
+            "gain": 2
+          }
+        }
+      },
+      "result": {
+        "_meta": {
+          "error": {
+            "code": -32602,
+            "message": "MCP error -32602: { readonly sourceName: NonEmptyString; readonly sourceUuid?: undefined; readonly canvasUuid?: NonEmptyString | undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined } | { readonly sourceName?: undefined; readonly sourceUuid: NonEmptyString; readonly canvasUuid?: undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined }\n├─ { readonly sourceName: NonEmptyString; readonly sourceUuid?: undefined; readonly canvasUuid?: NonEmptyString | undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined }\n│  └─ [\"filterSettings\"]\n│     └─ { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }\n│        └─ From side refinement failure\n│           └─ { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined }\n│              └─ [\"nested\"]\n│                 └─ is unexpected, expected: \"brightness\" | \"contrast\" | \"gamma\" | \"saturation\" | \"hueShift\" | \"opacity\" | \"colorMultiply\" | \"colorAdd\" | \"db\"\n└─ { readonly sourceName?: undefined; readonly sourceUuid: NonEmptyString; readonly canvasUuid?: undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined }\n   └─ [\"sourceName\"]\n      └─ Expected undefined, actual \"Main\""
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32602: { readonly sourceName: NonEmptyString; readonly sourceUuid?: undefined; readonly canvasUuid?: NonEmptyString | undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined } | { readonly sourceName?: undefined; readonly sourceUuid: NonEmptyString; readonly canvasUuid?: undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined }\n├─ { readonly sourceName: NonEmptyString; readonly sourceUuid?: undefined; readonly canvasUuid?: NonEmptyString | undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined }\n│  └─ [\"filterSettings\"]\n│     └─ { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }\n│        └─ From side refinement failure\n│           └─ { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined }\n│              └─ [\"nested\"]\n│                 └─ is unexpected, expected: \"brightness\" | \"contrast\" | \"gamma\" | \"saturation\" | \"hueShift\" | \"opacity\" | \"colorMultiply\" | \"colorAdd\" | \"db\"\n└─ { readonly sourceName?: undefined; readonly sourceUuid: NonEmptyString; readonly canvasUuid?: undefined; readonly filterName: NonEmptyString; readonly filterSettings: { { readonly brightness?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly contrast?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly gamma?: greaterThanOrEqualTo(-3) & lessThanOrEqualTo(3) | undefined; readonly saturation?: greaterThanOrEqualTo(-1) & lessThanOrEqualTo(1) | undefined; readonly hueShift?: greaterThanOrEqualTo(-180) & lessThanOrEqualTo(180) | undefined; readonly opacity?: greaterThanOrEqualTo(0) & lessThanOrEqualTo(1) | undefined; readonly colorMultiply?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly colorAdd?: int & greaterThanOrEqualTo(0) & lessThanOrEqualTo(4294967295) | undefined; readonly db?: greaterThanOrEqualTo(-100) & lessThanOrEqualTo(100) | undefined } | filter }; readonly overlay?: boolean | undefined }\n   └─ [\"sourceName\"]\n      └─ Expected undefined, actual \"Main\""
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": []
+    },
+    {
+      "name": "output_nested_read",
+      "tool": "get_output_settings",
+      "arguments": {
+        "outputName": "adv_file_output"
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"outputName\":\"adv_file_output\",\"outputSettings\":{\"path\":\"/synthetic/recordings\"}}"
+          }
+        ],
+        "structuredContent": {
+          "outputName": "adv_file_output",
+          "outputSettings": {
+            "path": "/synthetic/recordings"
+          }
+        }
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:15:42.649Z",
+          "requestType": "GetOutputSettings",
+          "requestData": {
+            "outputName": "adv_file_output"
+          },
+          "classification": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "output_nested_write",
+      "tool": "set_output_settings",
+      "arguments": {
+        "outputName": "adv_file_output",
+        "outputSettings": {
+          "encoder": {
+            "id": "fixture-x264"
+          }
+        }
+      },
+      "result": {
+        "_meta": {
+          "error": {
+            "code": -32602,
+            "message": "MCP error -32602: { readonly outputName: NonEmptyString; readonly outputSettings: { { readonly path?: NonEmptyString | undefined; readonly format_name?: NonEmptyString | undefined; readonly muxer_settings?: string | undefined; readonly video_encoder?: NonEmptyString | undefined; readonly audio_encoder?: NonEmptyString | undefined; readonly replay_buffer?: boolean | undefined; readonly max_time_sec?: int & greaterThanOrEqualTo(0) | undefined; readonly max_size_mb?: int & greaterThanOrEqualTo(0) | undefined; readonly max_shutdown_time_sec?: int & greaterThanOrEqualTo(0) | undefined } | filter } }\n└─ [\"outputSettings\"]\n   └─ { { readonly path?: NonEmptyString | undefined; readonly format_name?: NonEmptyString | undefined; readonly muxer_settings?: string | undefined; readonly video_encoder?: NonEmptyString | undefined; readonly audio_encoder?: NonEmptyString | undefined; readonly replay_buffer?: boolean | undefined; readonly max_time_sec?: int & greaterThanOrEqualTo(0) | undefined; readonly max_size_mb?: int & greaterThanOrEqualTo(0) | undefined; readonly max_shutdown_time_sec?: int & greaterThanOrEqualTo(0) | undefined } | filter }\n      └─ From side refinement failure\n         └─ { readonly path?: NonEmptyString | undefined; readonly format_name?: NonEmptyString | undefined; readonly muxer_settings?: string | undefined; readonly video_encoder?: NonEmptyString | undefined; readonly audio_encoder?: NonEmptyString | undefined; readonly replay_buffer?: boolean | undefined; readonly max_time_sec?: int & greaterThanOrEqualTo(0) | undefined; readonly max_size_mb?: int & greaterThanOrEqualTo(0) | undefined; readonly max_shutdown_time_sec?: int & greaterThanOrEqualTo(0) | undefined }\n            └─ [\"encoder\"]\n               └─ is unexpected, expected: \"path\" | \"format_name\" | \"muxer_settings\" | \"video_encoder\" | \"audio_encoder\" | \"replay_buffer\" | \"max_time_sec\" | \"max_size_mb\" | \"max_shutdown_time_sec\""
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32602: { readonly outputName: NonEmptyString; readonly outputSettings: { { readonly path?: NonEmptyString | undefined; readonly format_name?: NonEmptyString | undefined; readonly muxer_settings?: string | undefined; readonly video_encoder?: NonEmptyString | undefined; readonly audio_encoder?: NonEmptyString | undefined; readonly replay_buffer?: boolean | undefined; readonly max_time_sec?: int & greaterThanOrEqualTo(0) | undefined; readonly max_size_mb?: int & greaterThanOrEqualTo(0) | undefined; readonly max_shutdown_time_sec?: int & greaterThanOrEqualTo(0) | undefined } | filter } }\n└─ [\"outputSettings\"]\n   └─ { { readonly path?: NonEmptyString | undefined; readonly format_name?: NonEmptyString | undefined; readonly muxer_settings?: string | undefined; readonly video_encoder?: NonEmptyString | undefined; readonly audio_encoder?: NonEmptyString | undefined; readonly replay_buffer?: boolean | undefined; readonly max_time_sec?: int & greaterThanOrEqualTo(0) | undefined; readonly max_size_mb?: int & greaterThanOrEqualTo(0) | undefined; readonly max_shutdown_time_sec?: int & greaterThanOrEqualTo(0) | undefined } | filter }\n      └─ From side refinement failure\n         └─ { readonly path?: NonEmptyString | undefined; readonly format_name?: NonEmptyString | undefined; readonly muxer_settings?: string | undefined; readonly video_encoder?: NonEmptyString | undefined; readonly audio_encoder?: NonEmptyString | undefined; readonly replay_buffer?: boolean | undefined; readonly max_time_sec?: int & greaterThanOrEqualTo(0) | undefined; readonly max_size_mb?: int & greaterThanOrEqualTo(0) | undefined; readonly max_shutdown_time_sec?: int & greaterThanOrEqualTo(0) | undefined }\n            └─ [\"encoder\"]\n               └─ is unexpected, expected: \"path\" | \"format_name\" | \"muxer_settings\" | \"video_encoder\" | \"audio_encoder\" | \"replay_buffer\" | \"max_time_sec\" | \"max_size_mb\" | \"max_shutdown_time_sec\""
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": []
+    },
+    {
+      "name": "transition_settings_read",
+      "tool": "get_current_scene_transition",
+      "arguments": {},
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"transitionName\":\"Fade\",\"transitionUuid\":\"transition-fade\",\"transitionKind\":\"fade_transition\",\"transitionFixed\":false,\"transitionDuration\":300,\"transitionConfigurable\":true}"
+          },
+          {
+            "name": "obs_transitions",
+            "title": "OBS Transitions",
+            "uri": "obs://transitions",
+            "description": "Read OBS transition state.",
+            "mimeType": "application/json",
+            "type": "resource_link"
+          }
+        ],
+        "structuredContent": {
+          "transitionName": "Fade",
+          "transitionUuid": "transition-fade",
+          "transitionKind": "fade_transition",
+          "transitionFixed": false,
+          "transitionDuration": 300,
+          "transitionConfigurable": true
+        }
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:15:42.658Z",
+          "requestType": "GetCurrentSceneTransition",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "transition_nested_write",
+      "tool": "set_current_scene_transition_settings",
+      "arguments": {
+        "transitionSettings": {
+          "nested": {
+            "curve": [
+              0,
+              1
+            ]
+          }
+        }
+      },
+      "result": {
+        "_meta": {
+          "error": {
+            "code": -32602,
+            "message": "MCP error -32602: (Struct (Encoded side) <-> Struct (Type side))\n└─ Encoded side transformation failure\n   └─ Struct (Encoded side)\n      └─ [\"transitionSettings\"]\n         └─ { readonly [x: string]: string | number | boolean | null }\n            └─ [\"nested\"]\n               └─ string | number | boolean | null\n                  ├─ Expected string, actual {\"curve\":[0,1]}\n                  ├─ Expected number, actual {\"curve\":[0,1]}\n                  ├─ Expected boolean, actual {\"curve\":[0,1]}\n                  └─ Expected null, actual {\"curve\":[0,1]}"
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32602: (Struct (Encoded side) <-> Struct (Type side))\n└─ Encoded side transformation failure\n   └─ Struct (Encoded side)\n      └─ [\"transitionSettings\"]\n         └─ { readonly [x: string]: string | number | boolean | null }\n            └─ [\"nested\"]\n               └─ string | number | boolean | null\n                  ├─ Expected string, actual {\"curve\":[0,1]}\n                  ├─ Expected number, actual {\"curve\":[0,1]}\n                  ├─ Expected boolean, actual {\"curve\":[0,1]}\n                  └─ Expected null, actual {\"curve\":[0,1]}"
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": []
+    },
+    {
+      "name": "canvas_scene_listing",
+      "tool": "list_scenes",
+      "arguments": {
+        "canvasUuid": "fixture-canvas"
+      },
+      "result": {
+        "_meta": {
+          "error": {
+            "code": -32602,
+            "message": "MCP error -32602: (Struct (Encoded side) <-> Struct (Type side))\n└─ Encoded side transformation failure\n   └─ Struct (Encoded side)\n      └─ [\"canvasUuid\"]\n         └─ is unexpected, expected: \"includeGroups\""
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32602: (Struct (Encoded side) <-> Struct (Type side))\n└─ Encoded side transformation failure\n   └─ Struct (Encoded side)\n      └─ [\"canvasUuid\"]\n         └─ is unexpected, expected: \"includeGroups\""
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": []
+    },
+    {
+      "name": "canvas_input_creation",
+      "tool": "create_input",
+      "arguments": {
+        "sceneName": "Main",
+        "canvasUuid": "fixture-canvas",
+        "inputName": "New",
+        "inputKind": "color_source_v3"
+      },
+      "result": {
+        "_meta": {
+          "error": {
+            "code": -32602,
+            "message": "MCP error -32602: { readonly sceneName?: NonEmptyString | undefined; readonly sceneUuid?: NonEmptyString | undefined; readonly inputName: NonEmptyString; readonly inputKind: NonEmptyString; readonly inputSettings?: { readonly [x: string]: unknown } | undefined; readonly sceneItemEnabled?: boolean | undefined }\n└─ [\"canvasUuid\"]\n   └─ is unexpected, expected: \"sceneName\" | \"sceneUuid\" | \"inputName\" | \"inputKind\" | \"inputSettings\" | \"sceneItemEnabled\""
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32602: { readonly sceneName?: NonEmptyString | undefined; readonly sceneUuid?: NonEmptyString | undefined; readonly inputName: NonEmptyString; readonly inputKind: NonEmptyString; readonly inputSettings?: { readonly [x: string]: unknown } | undefined; readonly sceneItemEnabled?: boolean | undefined }\n└─ [\"canvasUuid\"]\n   └─ is unexpected, expected: \"sceneName\" | \"sceneUuid\" | \"inputName\" | \"inputKind\" | \"inputSettings\" | \"sceneItemEnabled\""
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": []
+    },
+    {
+      "name": "uuid_program_scene",
+      "tool": "set_current_scene",
+      "arguments": {
+        "sceneUuid": "scene-main"
+      },
+      "result": {
+        "_meta": {
+          "error": {
+            "code": -32602,
+            "message": "MCP error -32602: { readonly sceneName: NonEmptyString }\n└─ [\"sceneUuid\"]\n   └─ is unexpected, expected: \"sceneName\""
+          }
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "MCP error -32602: { readonly sceneName: NonEmptyString }\n└─ [\"sceneUuid\"]\n   └─ is unexpected, expected: \"sceneName\""
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": []
+    }
+  ],
+  "fixtureUnimplemented": [],
+  "limitations": "Targeted field-fidelity observations, not the common viability benchmark. All request names advertised to expose tools; only the fixture-supported calls or pre-dispatch schema rejections are interpreted."
+}

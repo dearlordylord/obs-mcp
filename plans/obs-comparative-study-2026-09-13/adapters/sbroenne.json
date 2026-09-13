@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "sbroenne",
+  "launch": {
+    "command": "/tmp/obs-toolchains/dotnet/dotnet",
+    "args": [
+      "/tmp/obs-polyglot-study.1UfDPr/sbroenne/src/ObsMcp.McpServer/bin/Release/net10.0-windows/Sbroenne.ObsMcp.McpServer.dll"
+    ]
+  },
+  "setup": [
+    {
+      "tool": "obs_connection",
+      "arguments": {
+        "action": "Connect",
+        "host": "{{obsHost}}",
+        "port": "{{obsPort}}",
+        "password": "{{obsPassword}}"
+      }
+    }
+  ],
+  "operations": {
+    "getVersion": { "tool": "obs_connection", "arguments": { "action": "GetStatus" } },
+    "listScenes": { "tool": "obs_scene", "arguments": { "action": "List" } },
+    "getCurrentScene": { "tool": "obs_scene", "arguments": { "action": "GetCurrent" } },
+    "setCurrentScene": {
+      "tool": "obs_scene",
+      "arguments": { "action": "Set", "sceneName": "{{sceneName}}" }
+    },
+    "getInputMute": {
+      "tool": "obs_audio",
+      "arguments": { "action": "GetMuteState", "inputName": "{{inputName}}" }
+    },
+    "setInputMute": {
+      "tool": "obs_audio",
+      "arguments": { "action": "Mute", "inputName": "{{inputName}}" }
+    },
+    "startRecord": { "tool": "obs_recording", "arguments": { "action": "Start", "muteAudio": false } },
+    "getRecordStatus": { "tool": "obs_recording", "arguments": { "action": "GetStatus" } },
+    "stopRecord": { "tool": "obs_recording", "arguments": { "action": "Stop" } },
+    "getSourceScreenshot": {
+      "tool": "obs_media",
+      "arguments": {
+        "action": "SaveScreenshot",
+        "filePath": "/tmp/obs-study-sbroenne-screenshot.png",
+        "sourceName": "{{sourceName}}",
+        "imageFormat": "{{imageFormat}}"
+      }
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "cdavis",
+  "launch": {
+    "command": "node",
+    "args": [
+      "node_modules/@unngh/obs-mcp/bin/obs-mcp-server.js"
+    ],
+    "cwd": "/tmp/obs-polyglot-study.1UfDPr/cdavis-npm",
+    "env": {
+      "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+      "OBS_WEBSOCKET_TIMEOUT": "3"
+    }
+  },
+  "operations": {
+    "getVersion": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_general_version', {});" }
+    },
+    "listScenes": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_scenes_list', {});" }
+    },
+    "getCurrentScene": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_scenes_get_current_program', {});" }
+    },
+    "setCurrentScene": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_scenes_set_current_program', {sceneName: '{{sceneName}}'});" }
+    },
+    "getInputMute": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_inputs_get_mute', {inputName: '{{inputName}}'});" }
+    },
+    "setInputMute": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_inputs_set_mute', {inputName: '{{inputName}}', inputMuted: {{inputMuted}}});" }
+    },
+    "startRecord": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_record_start', {});" }
+    },
+    "getRecordStatus": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_record_status', {});" }
+    },
+    "stopRecord": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_record_stop', {});" }
+    },
+    "getSourceScreenshot": {
+      "tool": "execute",
+      "arguments": { "code": "return await call_tool('obs_sources_get_screenshot', {sourceName: '{{sourceName}}', imageFormat: '{{imageFormat}}'});" }
+    }
+  }
+}

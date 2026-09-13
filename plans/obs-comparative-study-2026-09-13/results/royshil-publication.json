@@ -1,0 +1,52 @@
+{
+  "obs-mcp": {
+    "latest": "1.1.0",
+    "repository": null,
+    "dist": {
+      "integrity": "sha512-IrB9DjUdPvvpix2eo1b0kbYG8jOEb64LhUKitKVzR8aXdtF2U88PWS62a8vQymIKCDjLyYqyHVpIUcPxMJWrsA==",
+      "shasum": "04bc7b4fb43cfacc6ecc84f9969b23e322c8a6dd",
+      "tarball": "https://registry.npmjs.org/obs-mcp/-/obs-mcp-1.1.0.tgz",
+      "fileCount": 21,
+      "unpackedSize": 166929,
+      "signatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEQCIGoLcF6BS0yjMHtT6870fGMuDkpkdeODWGGXeWYoCU8NAiBmSFLzGEHozFnnYSUXm+ytadbXhmtseddmWj5H7ynYRA=="
+        }
+      ]
+    },
+    "time": "2025-08-26T17:23:07.021Z",
+    "versions": [
+      "1.0.0",
+      "1.0.1",
+      "1.1.0"
+    ]
+  },
+  "obs-mcp-server": {
+    "latest": "1.0.0",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/LarsCanGit/OBS-MCP.git"
+    },
+    "dist": {
+      "integrity": "sha512-U7uvsaGWpkJRr9/m375GoEabQpWRyJDtal1VzuC0Y5ibhzApIMN8oYaetnnxdBWJyYBVmKW4xJOJ5GZ63dHCFg==",
+      "shasum": "7b234be17e0b427ef480ad60e47f9447707f2357",
+      "tarball": "https://registry.npmjs.org/obs-mcp-server/-/obs-mcp-server-1.0.0.tgz",
+      "fileCount": 5,
+      "unpackedSize": 26333,
+      "signatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "sig": "MEUCIQDlQPxfsc/XFWZZuE3pQtqE67B2hb5UZu3M6JdJr1EaAAIgO7EudwYxFFXaYzZQEjdZ/DanVXuwk6TeBWYNR+Bxq1Q="
+        }
+      ]
+    },
+    "time": "2026-03-25T20:18:35.468Z",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "obs-mcp-server-ts": {
+    "error": "HTTP Error 404: Not Found"
+  }
+}

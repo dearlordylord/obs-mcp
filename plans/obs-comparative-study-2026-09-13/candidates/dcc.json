@@ -1,0 +1,15 @@
+{
+  "id": "dcc",
+  "repository": "https://github.com/dcc-mcp/dcc-mcp-obs",
+  "commit": "b30dd8f0498750582f33a3e2be46f8a9eb9f848e",
+  "version": "source 1.4.0; PyPI/GitHub v1.4.0 at 4ae80d4a7f062c6a496ad2848cf3eaeaea08ffbe",
+  "gates": { "G1": "NT", "G2": "NT", "G3": "NT", "G4": "NT", "G5": "NT", "G6": "p" },
+  "scores": { "A": 4, "B": 3, "C": 3, "D": 4, "E": 3, "F": 3 },
+  "runtimeEvidence": [
+    "results/dcc-runner/dcc.json",
+    "results/dcc-fixture-nt.json",
+    "results/dcc-own-tests.log",
+    "results/dcc-publication.json"
+  ],
+  "confidence": "medium"
+}

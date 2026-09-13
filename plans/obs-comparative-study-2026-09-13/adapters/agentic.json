@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "agentic",
+  "launch": {
+    "command": "/tmp/obs-polyglot-study.1UfDPr/agentic/agentic-obs",
+    "env": {
+      "OBS_HOST": "{{obsHost}}",
+      "OBS_PORT": "{{obsPort}}",
+      "OBS_PASSWORD": "{{obsPassword}}",
+      "HOME": "/tmp/obs-polyglot-study.1UfDPr/agentic-fixed-home",
+      "AGENTIC_OBS_DB": "/tmp/obs-polyglot-study.1UfDPr/agentic-fixed-home/.agentic-obs/db.sqlite",
+      "AGENTIC_OBS_HTTP_ENABLED": "false"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "get_obs_status" },
+    "listScenes": { "tool": "list_scenes" },
+    "setCurrentScene": {
+      "tool": "set_current_scene",
+      "arguments": { "scene_name": "{{sceneName}}" }
+    },
+    "getInputMute": {
+      "tool": "get_input_mute",
+      "arguments": { "input_name": "{{inputName}}" }
+    },
+    "setInputMute": {
+      "tool": "toggle_input_mute",
+      "arguments": { "input_name": "{{inputName}}" }
+    },
+    "startRecord": { "tool": "start_recording" },
+    "getRecordStatus": { "tool": "get_recording_status" },
+    "stopRecord": { "tool": "stop_recording" }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "lhenri",
+  "repository": "https://github.com/LHenri88/obs-mcp",
+  "commit": "ca711037c0bca4c4c6e9142a52821319780bd45e",
+  "version": "0.1.0 (source metadata; no attributable public package)",
+  "gates": { "G1": "NT", "G2": "NT", "G3": "NT", "G4": "NT", "G5": "F", "G6": "p" },
+  "scores": { "A": 3, "B": 2, "C": 2, "D": 1, "E": 2, "F": 2 },
+  "runtimeEvidence": [
+    "results/lhenri/lhenri.json",
+    "results/lhenri-install.log",
+    "results/lhenri-build.log",
+    "results/lhenri-entry.stderr.log",
+    "results/lhenri-source-check.log"
+  ],
+  "confidence": "medium"
+}

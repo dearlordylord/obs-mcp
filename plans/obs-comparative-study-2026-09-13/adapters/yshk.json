@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "yshk",
+  "launch": {
+    "command": "node",
+    "args": [
+      "build/index.js"
+    ],
+    "cwd": "/tmp/obs-study-ts/yshk",
+    "env": {
+      "OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "OBS_PASSWORD": "{{obsPassword}}"
+    }
+  },
+  "operations": {
+    "listScenes": {
+      "tool": "GetSceneList",
+      "arguments": {}
+    },
+    "setCurrentScene": {
+      "tool": "SwitchScene",
+      "arguments": {
+        "params": {
+          "scene": "{{sceneName}}"
+        }
+      }
+    },
+    "setInputMute": {
+      "tool": "SetAudioMute",
+      "arguments": {
+        "params": {
+          "source": "{{inputName}}",
+          "mute": "{{inputMuted}}"
+        }
+      }
+    },
+    "startRecord": {
+      "tool": "StartRecording",
+      "arguments": {}
+    },
+    "stopRecord": {
+      "tool": "StopRecording",
+      "arguments": {}
+    },
+    "getSourceScreenshot": {
+      "tool": "TakeSourceScreenshot",
+      "arguments": {
+        "params": {
+          "source": "{{sourceName}}",
+          "filePath": "/tmp/obs-study-ts/yshk/.study-home/fixture.png",
+          "width": 1,
+          "height": 1,
+          "compressionQuality": -1,
+          "imageFormat": "{{imageFormat}}"
+        }
+      }
+    }
+  },
+  "requestTimeoutMs": 10000
+}

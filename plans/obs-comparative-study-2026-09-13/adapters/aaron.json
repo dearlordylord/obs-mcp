@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "aaron",
+  "launch": {
+    "command": "/tmp/obs-aaron-TqsKC1/repo/.venv/bin/obs-studio-mcp",
+    "env": {
+      "OBS_MCP_HOST": "{{obsHost}}",
+      "OBS_MCP_PORT": "{{obsPort}}",
+      "OBS_MCP_PASSWORD": "{{obsPassword}}",
+      "OBS_MCP_SECRETS": "env"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "health_check" },
+    "listScenes": { "tool": "list_scenes" },
+    "setCurrentScene": {
+      "tool": "switch_scene",
+      "arguments": { "scene": "{{sceneName}}" }
+    },
+    "getInputMute": { "tool": "get_audio_levels" },
+    "setInputMute": {
+      "tool": "set_mute",
+      "arguments": { "input_name": "{{inputName}}", "muted": "{{inputMuted}}" }
+    },
+    "startRecord": { "tool": "start_record" },
+    "getRecordStatus": { "tool": "record_status" },
+    "stopRecord": { "tool": "stop_record" },
+    "getSourceScreenshot": {
+      "tool": "screenshot_source",
+      "arguments": {
+        "source": "{{sourceName}}",
+        "file_path": "{{tempDir}}/aaron-screenshot.png"
+      }
+    }
+  }
+}

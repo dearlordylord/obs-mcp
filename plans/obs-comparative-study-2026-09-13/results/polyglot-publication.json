@@ -1,0 +1,59 @@
+{
+  "observedAt": "2026-09-13",
+  "cdavis": {
+    "sourceHead": "1d95b2933dc1de520cca09414d5d65b2a85466b8",
+    "npm": {
+      "name": "@unngh/obs-mcp",
+      "version": "5.7.5",
+      "publishedAt": "2026-06-16T13:59:42.562Z",
+      "publisher": "unngh",
+      "author": "Chris Davis",
+      "gitHead": "831a4a2b98ca232b70ce6e5f286417f557be33e9",
+      "integrity": "sha512-MSlq2w4gdC0e3cS6F3gmG1FusNu1U0QdbesBRAjx1GUnccw4bhLWRVr1ERbUb3kJjm9H5n4JUO9dT8EVHaglcQ=="
+    },
+    "nativeRelease": {
+      "tag": "v5.7.2",
+      "publishedAt": "2026-06-19T12:16:24Z",
+      "publisher": "github-actions[bot]",
+      "asset": "obs-mcp-linux-arm64",
+      "url": "https://github.com/cdavis-code/obs_websocket_workspace/releases/download/v5.7.2/obs-mcp-linux-arm64",
+      "sha256": "f6336c7427e5f1ed1a3b93c34864880d3e543970989aca17839c12efa2d7aeca"
+    }
+  },
+  "sbroenne": {
+    "sourceHead": "96354251a40a6a7299585652358f63eba62b3714",
+    "release": {
+      "tag": "mcp-v1.0.4",
+      "commit": "7b4c64c9ee54b5bf1f345990f5d085893cae151a",
+      "publishedAt": "2026-03-25T10:26:21Z",
+      "publisher": "sbroenne",
+      "asset": "obs-mcp-server-1.0.4.zip",
+      "url": "https://github.com/sbroenne/mcp-server-obs/releases/download/mcp-v1.0.4/obs-mcp-server-1.0.4.zip",
+      "sha256": "fa9ed3ad7015436ebd0173b10d99b8f121190d2505524f4389b89a9ec740d6dd"
+    }
+  },
+  "jlfn": {
+    "sourceHead": "f9dccf0f8903b225615ba3b80a8a63287b92716a",
+    "crate": {
+      "name": "obs-mcp",
+      "version": "0.2.0",
+      "publishedAt": "2026-08-08T10:18:19.737588Z",
+      "publisher": "JLFN",
+      "githubUsernameMatches": true,
+      "tag": "v0.2.0",
+      "tagCommit": "de5bdb05b70446dde21657d96a952be9c582077f"
+    }
+  },
+  "agentic": {
+    "sourceHead": "89fcf6c68675229e01c7e702e3234cf0cf53ebe7",
+    "githubReleases": [],
+    "githubTags": [],
+    "goLatest": {
+      "version": "v0.0.0-20260418210912-89fcf6c68675",
+      "time": "2026-04-18T21:09:12Z",
+      "originHash": "89fcf6c68675229e01c7e702e3234cf0cf53ebe7",
+      "sum": "h1:NKvJ1k+NLKWPiXBrxZWrR4nFXlXh0LfcwPUQJkaNb+s=",
+      "goModSum": "h1:8Wi/A1F5g8soXlKk49p9iOxR78Wu/T/24MKFWbcMoyM="
+    }
+  }
+}

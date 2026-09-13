@@ -1,0 +1,32 @@
+{
+  "implementationCommit": "587e356b00d9269dcd124969ee36aad9635f2db8",
+  "environment": "allowlisted isolated HOME/cache; lifecycle scripts disabled after explicit local build",
+  "taskDirectory": "/tmp/obs-study-local-package-_gl56h5w",
+  "commands": [
+    {
+      "command": [
+        "npm",
+        "pack",
+        "--ignore-scripts",
+        "--pack-destination",
+        "/tmp/obs-study-local-package-_gl56h5w"
+      ],
+      "exitCode": 0,
+      "seconds": 33.64
+    },
+    {
+      "command": [
+        "npm",
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "/tmp/obs-study-local-package-_gl56h5w/firfi-obs-mcp-0.3.3.tgz"
+      ],
+      "exitCode": 0,
+      "seconds": 129.84
+    }
+  ],
+  "tarballSha256": "7847ea6f0a7be26df56b47b5c3021963fde5933bdca9a2c7bcf8e07b18e87b2d",
+  "binary": "/tmp/obs-study-local-package-_gl56h5w/consumer/node_modules/@firfi/obs-mcp/dist/index.cjs"
+}

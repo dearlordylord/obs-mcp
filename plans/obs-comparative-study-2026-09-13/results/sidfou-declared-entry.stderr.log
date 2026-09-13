@@ -1,0 +1,42 @@
+Traceback (most recent call last):
+  File "/tmp/obs-sidfou-pKc7OU/repo/.venv/bin/obs-stream-mcp", line 10, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/tmp/obs-sidfou-pKc7OU/repo/src/obs_stream_mcp/server.py", line 239, in main
+    asyncio.run(run_stdio(
+    ~~~~~~~~~~~^^^^^^^^^^^
+        sse_host=args.host,
+        ^^^^^^^^^^^^^^^^^^^
+        sse_port=args.port,
+        ^^^^^^^^^^^^^^^^^^^
+        enable_sse=not args.no_sse,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^^
+  File "/home/node/.local/share/uv/python/cpython-3.13.12-linux-aarch64-gnu/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/node/.local/share/uv/python/cpython-3.13.12-linux-aarch64-gnu/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/node/.local/share/uv/python/cpython-3.13.12-linux-aarch64-gnu/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/tmp/obs-sidfou-pKc7OU/repo/src/obs_stream_mcp/server.py", line 165, in run_stdio
+    server, _controller = create_server(include_cluster=True)
+                          ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/obs-sidfou-pKc7OU/repo/src/obs_stream_mcp/server.py", line 65, in create_server
+    register_tools(
+    ~~~~~~~~~~~~~~^
+        server, controller,
+        ^^^^^^^^^^^^^^^^^^^
+        ui_controller=ui_controller,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cluster_manager=cluster_manager,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/tmp/obs-sidfou-pKc7OU/repo/src/obs_stream_mcp/tools.py", line 330, in register_tools
+    @server.list_tools()
+     ^^^^^^^^^^^^^^^^^
+AttributeError: 'Server' object has no attribute 'list_tools'

@@ -1,0 +1,836 @@
+{
+  "candidateId": "yshk",
+  "observations": [
+    {
+      "operation": "listScenes",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"currentProgramSceneName\": \"Intro\",\n  \"currentProgramSceneUuid\": \"scene-intro\",\n  \"currentPreviewSceneName\": \"Main\",\n  \"currentPreviewSceneUuid\": \"scene-main\",\n  \"scenes\": [\n    {\n      \"sceneName\": \"Intro\",\n      \"sceneUuid\": \"scene-intro\",\n      \"sceneIndex\": 1\n    },\n    {\n      \"sceneName\": \"Main\",\n      \"sceneUuid\": \"scene-main\",\n      \"sceneIndex\": 0\n    }\n  ]\n}"
+          }
+        ]
+      }
+    },
+    {
+      "operation": "getSourceScreenshot",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Failed to take screenshot for Main: Request unavailable in this fixture profile"
+          }
+        ],
+        "isError": true
+      }
+    }
+  ],
+  "requests": [
+    {
+      "at": "2026-09-13T21:19:06.284Z",
+      "requestType": "GetSceneList",
+      "requestData": {},
+      "classification": "implemented"
+    },
+    {
+      "at": "2026-09-13T21:19:06.295Z",
+      "requestType": "SaveSourceScreenshot",
+      "requestData": {
+        "sourceName": "Main",
+        "imageFormat": "png",
+        "imageFilePath": "/tmp/obs-study-ts/obs-mcp-server-ts/screenshots/screenshot-Main-1789334346293.png",
+        "imageWidth": 1,
+        "imageHeight": 1,
+        "imageCompressionQuality": -1
+      },
+      "classification": "capability_unavailable"
+    }
+  ],
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "tools": {
+                "listChanged": true
+              }
+            },
+            "serverInfo": {
+              "name": "obs-mcp-ts",
+              "version": "0.1.0",
+              "description": "MCP Server for controlling OBS Studio (TypeScript)"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 1
+        },
+        "elapsedMs": 289
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "result": {
+            "tools": [
+              {
+                "name": "SwitchScene",
+                "description": "Switches the current OBS program scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "scene": {
+                          "type": "string",
+                          "description": "Name of the scene to switch to."
+                        }
+                      },
+                      "required": [
+                        "scene"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "StartStream",
+                "description": "Starts the OBS stream.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "StopStream",
+                "description": "Stops the OBS stream.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "StartRecording",
+                "description": "Starts the OBS recording.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "StopRecording",
+                "description": "Stops the OBS recording.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetSourceVisibility",
+                "description": "Sets the visibility of a source in a specific scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "scene": {
+                          "type": "string",
+                          "description": "Name of the scene containing the source."
+                        },
+                        "source": {
+                          "type": "string",
+                          "description": "Name of the source."
+                        },
+                        "visible": {
+                          "type": "boolean",
+                          "description": "True to make visible, false to hide."
+                        }
+                      },
+                      "required": [
+                        "scene",
+                        "source",
+                        "visible"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "GetSceneList",
+                "description": "Gets the list of available OBS scenes.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetTextContent",
+                "description": "Sets the text content of a text source.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "description": "Name of the text source."
+                        },
+                        "text": {
+                          "type": "string",
+                          "description": "The new text content to set."
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "text"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetAudioMute",
+                "description": "Mutes or unmutes an audio source.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "description": "Name of the audio source."
+                        },
+                        "mute": {
+                          "type": "boolean",
+                          "description": "True to mute, false to unmute."
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "mute"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetAudioVolume",
+                "description": "Sets the volume of an audio source.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "description": "Name of the audio source."
+                        },
+                        "volume": {
+                          "type": "number",
+                          "description": "Volume multiplier (0.0 to 1.0)."
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "volume"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetSourcePosition",
+                "description": "Sets the position of a source in a scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "scene": {
+                          "type": "string",
+                          "description": "Name of the scene containing the source."
+                        },
+                        "source": {
+                          "type": "string",
+                          "description": "Name of the source."
+                        },
+                        "x": {
+                          "type": "number",
+                          "description": "X position in pixels."
+                        },
+                        "y": {
+                          "type": "number",
+                          "description": "Y position in pixels."
+                        }
+                      },
+                      "required": [
+                        "scene",
+                        "source",
+                        "x",
+                        "y"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetSourceScale",
+                "description": "Sets the scale of a source in a scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "scene": {
+                          "type": "string",
+                          "description": "Name of the scene containing the source."
+                        },
+                        "source": {
+                          "type": "string",
+                          "description": "Name of the source."
+                        },
+                        "scaleX": {
+                          "type": "number",
+                          "description": "Scale factor on X axis."
+                        },
+                        "scaleY": {
+                          "type": "number",
+                          "description": "Scale factor on Y axis."
+                        }
+                      },
+                      "required": [
+                        "scene",
+                        "source",
+                        "scaleX",
+                        "scaleY"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "TakeSourceScreenshot",
+                "description": "Takes a screenshot of the specified source.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string",
+                          "description": "Name of the source to capture."
+                        },
+                        "filePath": {
+                          "type": "string",
+                          "description": "File path where the screenshot should be saved (optional)."
+                        },
+                        "width": {
+                          "type": "integer",
+                          "description": "Optional width to resize the screenshot to."
+                        },
+                        "height": {
+                          "type": "integer",
+                          "description": "Optional height to resize the screenshot to."
+                        },
+                        "compressionQuality": {
+                          "type": "integer",
+                          "description": "Optional compression quality. For PNG (default format): 0-9 (OBS default is 4). For JPEG: 0-100 (OBS default is typically around 85-90). For WebP: 0-100. Use -1 for OBS default for the chosen format."
+                        },
+                        "imageFormat": {
+                          "type": "string",
+                          "description": "Optional image format (e.g., \"png\", \"jpeg\", \"webp\"). Defaults to \"png\"."
+                        }
+                      },
+                      "required": [
+                        "source",
+                        "filePath",
+                        "width",
+                        "height",
+                        "compressionQuality",
+                        "imageFormat"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetTransitionSettings",
+                "description": "Sets the current scene transition type and duration. 用途: シーン切り替え時のエフェクトをカスタマイズ",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "transitionName": {
+                          "type": "string",
+                          "description": "Name of the transition to set (e.g., 'Fade', 'Cut', 'Slide')."
+                        },
+                        "transitionDuration": {
+                          "type": "number",
+                          "description": "Duration of the transition in milliseconds."
+                        }
+                      },
+                      "required": [
+                        "transitionName",
+                        "transitionDuration"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "TriggerStudioModeTransition",
+                "description": "Triggers the transition from Preview to Program in Studio Mode. 用途: シーンの準備と切り替えをスムーズに行う",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "PlayPauseMedia",
+                "description": "Controls playback of a media source (play, pause, stop, restart). 用途: 動画クリップやオーディオの再生制御",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "sourceName": {
+                          "type": "string",
+                          "description": "Name of the media source."
+                        },
+                        "mediaAction": {
+                          "type": "string",
+                          "enum": [
+                            "PLAY",
+                            "PAUSE",
+                            "RESTART",
+                            "STOP",
+                            "NEXT",
+                            "PREVIOUS"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "sourceName",
+                        "mediaAction"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetMediaTime",
+                "description": "Sets the current playback time of a media source. 用途: 特定シーンへのジャンプ、リプレイの開始位置設定",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "sourceName": {
+                          "type": "string",
+                          "description": "Name of the media source."
+                        },
+                        "mediaTime": {
+                          "type": "number",
+                          "description": "Playback time in milliseconds."
+                        }
+                      },
+                      "required": [
+                        "sourceName",
+                        "mediaTime"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SaveReplayBuffer",
+                "description": "Saves the content of the replay buffer. 用途: ゲームのハイライト瞬間を即座に保存",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SaveReplayBufferAndAdd",
+                "description": "Saves the replay buffer and adds it as a media source to a scene. 用途: リプレイをすぐにシーンに表示",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "sceneName": {
+                          "type": "string",
+                          "description": "Name of the scene to add the replay to."
+                        },
+                        "sourceName": {
+                          "type": "string",
+                          "description": "Name for the new media source."
+                        },
+                        "replayFolder": {
+                          "type": "string",
+                          "description": "Path to the folder where replay files are saved (optional)."
+                        }
+                      },
+                      "required": [
+                        "sceneName",
+                        "sourceName",
+                        "replayFolder"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "CreateSource",
+                "description": "Creates a new source in a specified scene. 用途: リプレイ映像用の新しいメディアソースを生成",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "sceneName": {
+                          "type": "string",
+                          "description": "Name of the scene to add the source to."
+                        },
+                        "sourceName": {
+                          "type": "string",
+                          "description": "Name for the new source."
+                        },
+                        "sourceKind": {
+                          "type": "string",
+                          "description": "Kind of the source (e.g., 'ffmpeg_source', 'image_source', 'text_gdiplus_v2')."
+                        },
+                        "sourceSettings": {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": false
+                        },
+                        "setVisible": {
+                          "type": "boolean",
+                          "description": "Whether the source should be visible after creation (default: true)."
+                        }
+                      },
+                      "required": [
+                        "sceneName",
+                        "sourceName",
+                        "sourceKind",
+                        "sourceSettings",
+                        "setVisible"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetShaderFilter",
+                "description": "Sets parameters for a shader filter on a source. 用途: シェーダーエフェクトをリアルタイムで変更する",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "sourceName": {
+                          "type": "string",
+                          "description": "Name of the source with the shader filter."
+                        },
+                        "filterName": {
+                          "type": "string",
+                          "description": "Name of the shader filter."
+                        },
+                        "shaderCode": {
+                          "type": "string",
+                          "description": "GLSL shader code to set (optional)."
+                        },
+                        "shaderParameters": {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "sourceName",
+                        "filterName",
+                        "shaderCode",
+                        "shaderParameters"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "SetLutFilter",
+                "description": "Sets parameters for a LUT filter on a source. 用途: LUTフィルターの適用量やファイルパスをリアルタイムで変更する",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "sourceName": {
+                          "type": "string",
+                          "description": "Name of the source with the LUT filter."
+                        },
+                        "filterName": {
+                          "type": "string",
+                          "description": "Name of the LUT filter."
+                        },
+                        "amount": {
+                          "type": "number",
+                          "description": "Blending amount (0.0-1.0)."
+                        },
+                        "path": {
+                          "type": "string",
+                          "description": "Path to the LUT file (.png/.cube)."
+                        }
+                      },
+                      "required": [
+                        "sourceName",
+                        "filterName",
+                        "amount",
+                        "path"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              },
+              {
+                "name": "GetSceneItemList",
+                "description": "Gets the list of scene items (sources) in a specified scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "params": {
+                      "type": "object",
+                      "properties": {
+                        "sceneName": {
+                          "type": "string",
+                          "description": "Name of the scene to get items from."
+                        }
+                      },
+                      "required": [
+                        "sceneName"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "params"
+                  ],
+                  "additionalProperties": false,
+                  "$schema": "http://json-schema.org/draft-07/schema#"
+                }
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 2
+        },
+        "elapsedMs": 84
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "GetSceneList",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"currentProgramSceneName\": \"Intro\",\n  \"currentProgramSceneUuid\": \"scene-intro\",\n  \"currentPreviewSceneName\": \"Main\",\n  \"currentPreviewSceneUuid\": \"scene-main\",\n  \"scenes\": [\n    {\n      \"sceneName\": \"Intro\",\n      \"sceneUuid\": \"scene-intro\",\n      \"sceneIndex\": 1\n    },\n    {\n      \"sceneName\": \"Main\",\n      \"sceneUuid\": \"scene-main\",\n      \"sceneIndex\": 0\n    }\n  ]\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 3
+        },
+        "elapsedMs": 14
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "TakeSourceScreenshot",
+          "arguments": {
+            "params": {
+              "source": "Main",
+              "filePath": "/tmp/obs-study-ts/yshk/.study-home/fixture.png",
+              "width": 1,
+              "height": 1,
+              "compressionQuality": -1,
+              "imageFormat": "png"
+            }
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Failed to take screenshot for Main: Request unavailable in this fixture profile"
+              }
+            ],
+            "isError": true
+          },
+          "jsonrpc": "2.0",
+          "id": 4
+        },
+        "elapsedMs": 8
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "[LOG] 2026-09-13T21:19:05.482Z OBS MCP Server starting... (logging to stderr)\n[LOG] 2026-09-13T21:19:05.649Z Registered tool: SwitchScene\n[LOG] 2026-09-13T21:19:05.651Z Registered tool: StartStream\n[LOG] 2026-09-13T21:19:05.652Z Registered tool: StopStream\n[LOG] 2026-09-13T21:19:05.652Z Registered tool: StartRecording\n[LOG] 2026-09-13T21:19:05.653Z Registered tool: StopRecording\n[LOG] 2026-09-13T21:19:05.653Z Registered tool: SetSourceVisibility\n[LOG] 2026-09-13T21:19:05.653Z Registered tool: GetSceneList\n[LOG] 2026-09-13T21:19:05.654Z Registered tool: SetTextContent\n[LOG] 2026-09-13T21:19:05.655Z Registered tool: SetAudioMute\n[LOG] 2026-09-13T21:19:05.656Z Registered tool: SetAudioVolume\n[LOG] 2026-09-13T21:19:05.656Z Registered tool: SetSourcePosition\n[LOG] 2026-09-13T21:19:05.656Z Registered tool: SetSourceScale\n[LOG] 2026-09-13T21:19:05.656Z Registered tool: TakeSourceScreenshot\n[LOG] 2026-09-13T21:19:05.656Z Registered tool: SetTransitionSettings\n[LOG] 2026-09-13T21:19:05.656Z Registered tool: TriggerStudioModeTransition\n[LOG] 2026-09-13T21:19:05.656Z Registered tool: PlayPauseMedia\n[LOG] 2026-09-13T21:19:05.657Z Registered tool: SetMediaTime\n[LOG] 2026-09-13T21:19:05.657Z Registered tool: SaveReplayBuffer\n[LOG] 2026-09-13T21:19:05.657Z Registered tool: SaveReplayBufferAndAdd\n[LOG] 2026-09-13T21:19:05.657Z Registered tool: CreateSource\n[LOG] 2026-09-13T21:19:05.657Z Registered tool: SetShaderFilter\n[LOG] 2026-09-13T21:19:05.657Z Registered tool: SetLutFilter\n[LOG] 2026-09-13T21:19:05.657Z Registered tool: GetSceneItemList\n[WARN] 2026-09-13T21:19:05.657Z Resource handling (resources/read) is currently disabled due to 'setRequestHandler' not being available. Screenshots will be saved, but may not be loadable by the client.\n[LOG] 2026-09-13T21:19:05.657Z Attempting to connect to OBS at ws://127.0.0.1:36787...\n[LOG] 2026-09-13T21:19:05.670Z OBS MCP Server (obs-mcp-ts v0.1.0) running on stdio\n[LOG] 2026-09-13T21:19:05.689Z OBS WebSocket connection established. Waiting for Hello.\n[LOG] 2026-09-13T21:19:05.691Z OBS Hello received.\n[LOG] 2026-09-13T21:19:05.701Z OBS Identify sent.\n[LOG] 2026-09-13T21:19:05.773Z Successfully connected and identified with OBS.\n[LOG] 2026-09-13T21:19:06.281Z Tool 'GetSceneList' called with params: {}\n[LOG] 2026-09-13T21:19:06.281Z Full OBS request payload: {\n  \"op\": 6,\n  \"d\": {\n    \"requestType\": \"GetSceneList\",\n    \"requestId\": \"ecd83be9-c8e8-40e0-b960-957a38ff45ec\",\n    \"requestData\": {}\n  }\n}\n[LOG] 2026-09-13T21:19:06.287Z DEBUG: Formatting response for action: 'GetSceneList'\n[LOG] 2026-09-13T21:19:06.288Z DEBUG: obsResponseData content for MCP: {\n  \"currentProgramSceneName\": \"Intro\",\n  \"currentProgramSceneUuid\": \"scene-intro\",\n  \"currentPreviewSceneName\": \"Main\",\n  \"currentPreviewSceneUuid\": \"scene-main\",\n  \"scenes\": [\n    {\n      \"sceneName\": \"Intro\",\n      \"sceneUuid\": \"scene-intro\",\n      \"sceneIndex\": 1\n    },\n    {\n      \"sceneName\": \"Main\",\n      \"sceneUuid\": \"scene-main\",\n      \"sceneIndex\": 0\n    }\n  ]\n}\n[LOG] 2026-09-13T21:19:06.292Z Tool 'TakeSourceScreenshot' called with params: {\n  \"params\": {\n    \"source\": \"Main\",\n    \"filePath\": \"/tmp/obs-study-ts/yshk/.study-home/fixture.png\",\n    \"width\": 1,\n    \"height\": 1,\n    \"compressionQuality\": -1,\n    \"imageFormat\": \"png\"\n  }\n}\n[LOG] 2026-09-13T21:19:06.293Z Executing TakeSourceScreenshot for source: Main\n[LOG] 2026-09-13T21:19:06.293Z Attempting to save screenshot to: /tmp/obs-study-ts/obs-mcp-server-ts/screenshots/screenshot-Main-1789334346293.png\n[LOG] 2026-09-13T21:19:06.294Z Full OBS request payload: {\n  \"op\": 6,\n  \"d\": {\n    \"requestType\": \"SaveSourceScreenshot\",\n    \"requestId\": \"f5fce2c8-fe21-4b12-981e-2e94e1a0b80b\",\n    \"requestData\": {\n      \"sourceName\": \"Main\",\n      \"imageFormat\": \"png\",\n      \"imageFilePath\": \"/tmp/obs-study-ts/obs-mcp-server-ts/screenshots/screenshot-Main-1789334346293.png\",\n      \"imageWidth\": 1,\n      \"imageHeight\": 1,\n      \"imageCompressionQuality\": -1\n    }\n  }\n}\n[ERR] 2026-09-13T21:19:06.296Z OBS request 'SaveSourceScreenshot' failed for MCP action 'TakeSourceScreenshot': Request unavailable in this fixture profile\n[ERR] 2026-09-13T21:19:06.297Z Error in TakeSourceScreenshot for source Main: Request unavailable in this fixture profile\n[ERR] 2026-09-13T21:19:06.298Z Error executing tool 'TakeSourceScreenshot': {}\n",
+    "lifetimeMs": 911
+  }
+}

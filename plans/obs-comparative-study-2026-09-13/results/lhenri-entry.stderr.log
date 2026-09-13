@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/tmp/obs-lhenri-MSg7lE/repo/.venv/bin/obs-mcp", line 4, in <module>
+    from obs_mcp.server import main
+  File "/tmp/obs-lhenri-MSg7lE/repo/src/obs_mcp/server.py", line 18, in <module>
+    from . import client as client_mod
+  File "/tmp/obs-lhenri-MSg7lE/repo/src/obs_mcp/client.py", line 15, in <module>
+    from . import paths
+  File "/tmp/obs-lhenri-MSg7lE/repo/src/obs_mcp/paths.py", line 14, in <module>
+    import winreg
+ModuleNotFoundError: No module named 'winreg'

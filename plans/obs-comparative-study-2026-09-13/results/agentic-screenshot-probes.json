@@ -1,0 +1,675 @@
+{
+  "observedAt": "2026-09-13",
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88"
+  },
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "httpDisabled": {
+    "result": "process panic",
+    "error": "MCP process closed before response: exit=2 signal=null",
+    "panicEvidence": [
+      "panic: runtime error: invalid memory address or nil pointer dereference",
+      "github.com/ironystock/agentic-obs/internal/http.(*Server).GetAddr(0x40006ea058?)",
+      "github.com/ironystock/agentic-obs/internal/mcp.(*Server).handleCreateScreenshotSource(0x4000374b80, {0xe32678, 0x40003f8240}, 0x40003f8960?, {{0x40002b7788, 0x11}, {0x400040840c, 0x4}, 0x64, {0x4000408408, ...}, ...})"
+    ],
+    "stderrTail": [
+      "github.com/modelcontextprotocol/go-sdk/mcp.defaultReceivingMethodHandler[...]({0xe32678?, 0x40003f8240}, {0x40004081e0, 0xa}, {0xe32cd0, 0x4000189cc8})",
+      "\tgithub.com/modelcontextprotocol/go-sdk@v1.5.0/mcp/shared.go:152 +0xc8",
+      "github.com/modelcontextprotocol/go-sdk/mcp.handleReceive[...]({0xe32678, 0x40003f8240}, 0x40001e40c0, 0x4000502f00)",
+      "\tgithub.com/modelcontextprotocol/go-sdk@v1.5.0/mcp/shared.go:169 +0x198",
+      "github.com/modelcontextprotocol/go-sdk/mcp.(*ServerSession).handle(0x40001e40c0, {0xe32678, 0x40003f81b0}, 0x4000502f00)",
+      "\tgithub.com/modelcontextprotocol/go-sdk@v1.5.0/mcp/server.go:1448 +0x25c",
+      "github.com/modelcontextprotocol/go-sdk/internal/jsonrpc2.HandlerFunc.Handle(0x0?, {0xe32678?, 0x40003f81b0?}, 0x1?)",
+      "\tgithub.com/modelcontextprotocol/go-sdk@v1.5.0/internal/jsonrpc2/jsonrpc2.go:84 +0x38",
+      "github.com/modelcontextprotocol/go-sdk/internal/jsonrpc2.(*Connection).handleAsync.func3()",
+      "\tgithub.com/modelcontextprotocol/go-sdk@v1.5.0/internal/jsonrpc2/conn.go:717 +0x64",
+      "created by github.com/modelcontextprotocol/go-sdk/internal/jsonrpc2.(*Connection).handleAsync in goroutine 96",
+      "\tgithub.com/modelcontextprotocol/go-sdk@v1.5.0/internal/jsonrpc2/conn.go:715 +0x19c"
+    ],
+    "obsRequests": [
+      {
+        "at": "2026-09-13T21:29:17.680Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.684Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.684Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.686Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.687Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      }
+    ]
+  },
+  "httpEnabled": {
+    "result": "pass",
+    "mimeType": "image/png",
+    "bytes": 70,
+    "pngMagic": "89504e470d0a1a0a",
+    "created": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"cadence_ms\":100,\"id\":7,\"image_format\":\"png\",\"message\":\"Successfully created screenshot source 'enabled-mu0bu1fs'. Access at: http://127.0.0.1:18766/screenshot/enabled-mu0bu1fs\",\"name\":\"enabled-mu0bu1fs\",\"quality\":80,\"source_name\":\"Main\",\"url\":\"http://127.0.0.1:18766/screenshot/enabled-mu0bu1fs\"}"
+        }
+      ],
+      "structuredContent": {
+        "cadence_ms": 100,
+        "id": 7,
+        "image_format": "png",
+        "message": "Successfully created screenshot source 'enabled-mu0bu1fs'. Access at: http://127.0.0.1:18766/screenshot/enabled-mu0bu1fs",
+        "name": "enabled-mu0bu1fs",
+        "quality": 80,
+        "source_name": "Main",
+        "url": "http://127.0.0.1:18766/screenshot/enabled-mu0bu1fs"
+      }
+    },
+    "obsRequests": [
+      {
+        "at": "2026-09-13T21:29:17.893Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.895Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.897Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.898Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.899Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.901Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.914Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.995Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.998Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:17.998Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.004Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.004Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.006Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.016Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.097Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.099Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.099Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.101Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.104Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.114Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.117Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.198Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.199Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.200Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.201Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.205Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.207Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.216Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.295Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.297Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.299Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.301Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.304Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.306Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.316Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.397Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.399Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.400Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.403Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.404Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.407Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.419Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.495Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.497Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.498Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.505Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.507Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.509Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.516Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.595Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.597Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.601Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.605Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.606Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.606Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:29:18.617Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "imageCompressionQuality": 80,
+          "imageFormat": "png",
+          "sourceName": "Main"
+        },
+        "classification": "implemented"
+      }
+    ]
+  }
+}

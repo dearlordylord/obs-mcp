@@ -1,0 +1,880 @@
+{
+  "methodology": "methodology.md",
+  "weights": {
+    "fixed": [
+      25,
+      20,
+      15,
+      15,
+      15,
+      10
+    ],
+    "equal": [
+      16.666666666666668,
+      16.666666666666668,
+      16.666666666666668,
+      16.666666666666668,
+      16.666666666666668,
+      16.666666666666668
+    ],
+    "correctness": [
+      20,
+      30,
+      20,
+      15,
+      10,
+      5
+    ]
+  },
+  "expectedCandidates": [
+    "local",
+    "royshil",
+    "tom",
+    "lars",
+    "yshk",
+    "cdavis",
+    "sbroenne",
+    "jlfn",
+    "agentic",
+    "aaron",
+    "xdark",
+    "takurot",
+    "itchris",
+    "dcc",
+    "lhenri",
+    "sidfou",
+    "umar",
+    "giancarlo",
+    "bea"
+  ],
+  "note": "Architecture ratings are judgments; gates represent finite evidence, not full protocol or real OBS certification.",
+  "candidates": [
+    {
+      "id": "dcc",
+      "repository": "https://github.com/dcc-mcp/dcc-mcp-obs",
+      "commit": "b30dd8f0498750582f33a3e2be46f8a9eb9f848e",
+      "version": "source 1.4.0; PyPI/GitHub v1.4.0 at 4ae80d4a7f062c6a496ad2848cf3eaeaea08ffbe",
+      "gates": {
+        "G1": "NT",
+        "G2": "NT",
+        "G3": "NT",
+        "G4": "NT",
+        "G5": "NT",
+        "G6": "p"
+      },
+      "scores": {
+        "A": 4,
+        "B": 3,
+        "C": 3,
+        "D": 4,
+        "E": 3,
+        "F": 3
+      },
+      "runtimeEvidence": [
+        "results/dcc-runner/dcc.json",
+        "results/dcc-fixture-nt.json",
+        "results/dcc-own-tests.log",
+        "results/dcc-publication.json"
+      ],
+      "confidence": "medium",
+      "totals": {
+        "fixed": 85,
+        "equal": 83.3333,
+        "correctness": 83.75
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": true,
+      "ranks": {
+        "fixed": 1,
+        "equal": 1,
+        "correctness": 1
+      }
+    },
+    {
+      "id": "local",
+      "repository": "https://github.com/dearlordylord/obs-mcp",
+      "commit": "587e356b00d9269dcd124969ee36aad9635f2db8",
+      "version": "0.3.3",
+      "gates": {
+        "G1": "P",
+        "G2": "P",
+        "G3": "P",
+        "G4": "P",
+        "G5": "P",
+        "G6": "p"
+      },
+      "scores": {
+        "A": 4,
+        "B": 2,
+        "C": 3,
+        "D": 4,
+        "E": 3,
+        "F": 3
+      },
+      "runtimeEvidence": [
+        "results/local-package/local-package-0.3.3.json",
+        "results/local-fields-runtime.json",
+        "results/local-check-all.json",
+        "results/local-check-all.log",
+        "results/local-package-entry.json",
+        "results/local-package-entry.log",
+        "results/local-field-audit.json",
+        "results/local-publication.json"
+      ],
+      "confidence": "medium",
+      "publicationIdentity": {
+        "registryUrl": "https://registry.npmjs.org/%40firfi%2Fobs-mcp",
+        "observedDate": "2026-09-13",
+        "latest": "0.3.3",
+        "repository": "git+https://github.com/dearlordylord/obs-mcp.git",
+        "gitHead": "587e356b00d9269dcd124969ee36aad9635f2db8",
+        "publishedAt": "2026-06-15T15:32:23.402Z",
+        "tarballSha1": "5fb7d20c6267deb820434719499a39c9812af784",
+        "tarballIntegrity": "sha512-HBHZPb5cenoRewUDduq+XRu5Fu3bRoUY5GqE0ZQcfVVRHy14/zIq72KbYFrrKbBPcYQRnHXSy7qc5CH0GJVzpw==",
+        "executionScope": "Fresh locally packed artifact whose SHA-1 and SHA-512 match the published registry tarball metadata, from matching gitHead. Installed from local tarball, not a separate registry download/install.",
+        "reviewedPackedArtifactMatchesPublishedIntegrity": true,
+        "reviewedPackedArtifactMatchesPublishedSha1": true
+      },
+      "totals": {
+        "fixed": 80,
+        "equal": 79.1667,
+        "correctness": 76.25
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 2,
+        "equal": 2,
+        "correctness": 2
+      }
+    },
+    {
+      "id": "itchris",
+      "repository": "https://github.com/ITchrisDEB/obs-studio-mcp",
+      "commit": "05f00bafa93725b16b17733d09a561dfd464741c",
+      "version": "0.1.0",
+      "gates": {
+        "G1": "P",
+        "G2": "p",
+        "G3": "P",
+        "G4": "F",
+        "G5": "P",
+        "G6": "p"
+      },
+      "scores": {
+        "A": 3,
+        "B": 3,
+        "C": 4,
+        "D": 3,
+        "E": 2,
+        "F": 1
+      },
+      "runtimeEvidence": [
+        "results/itchris/itchris.json",
+        "results/itchris-build.log",
+        "results/itchris-own-tests.log",
+        "results/itchris-core-obs-tests.log"
+      ],
+      "confidence": "medium",
+      "totals": {
+        "fixed": 70,
+        "equal": 66.6667,
+        "correctness": 75
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": true,
+      "ranks": {
+        "fixed": 3,
+        "equal": 5,
+        "correctness": 3
+      }
+    },
+    {
+      "id": "jlfn",
+      "repository": "https://github.com/JLFN/obs-mcp",
+      "commit": "f9dccf0f8903b225615ba3b80a8a63287b92716a",
+      "version": "0.2.0",
+      "gates": {
+        "G1": "P",
+        "G2": "F",
+        "G3": "P",
+        "G4": "P",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 3,
+        "B": 2,
+        "C": 3,
+        "D": 3,
+        "E": 3,
+        "F": 3
+      },
+      "runtimeEvidence": [
+        "results/jlfn-fixture/jlfn.json",
+        "results/jlfn-private-fixture/jlfn-private.json",
+        "results/polyglot-own-tests.log",
+        "results/polyglot-publication.json"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 70,
+        "equal": 70.8333,
+        "correctness": 67.5
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 3,
+        "equal": 3,
+        "correctness": 7
+      }
+    },
+    {
+      "repository": "Tom-R-Main/OBS-MCP",
+      "commit": "df584ddbcf117ed82ac5c232d82f128baec8292a",
+      "version": "1.1.1",
+      "gates": {
+        "G1": "P",
+        "G2": "P",
+        "G3": "F",
+        "G4": "P",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 3,
+        "B": 2,
+        "C": 3,
+        "D": 3,
+        "E": 3,
+        "F": 3
+      },
+      "id": "tom",
+      "runtimeEvidence": [
+        "results/tom.json",
+        "results/tom-extended.json",
+        "results/tom-unavailable.json",
+        "results/tom-generic.json"
+      ],
+      "confidence": "medium",
+      "totals": {
+        "fixed": 70,
+        "equal": 70.8333,
+        "correctness": 67.5
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 3,
+        "equal": 3,
+        "correctness": 7
+      }
+    },
+    {
+      "id": "xdark",
+      "repository": "https://github.com/xDarkzx/OBS_MCP",
+      "commit": "d632587facb94d80563628054ba58dc4af1d700f",
+      "version": "0.2.0",
+      "gates": {
+        "G1": "P",
+        "G2": "p",
+        "G3": "P",
+        "G4": "P",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 3,
+        "B": 3,
+        "C": 4,
+        "D": 2,
+        "E": 3,
+        "F": 1
+      },
+      "runtimeEvidence": [
+        "results/xdark/xdark.json",
+        "results/xdark-pypi/xdark-pypi.json",
+        "results/xdark-own-tests.log",
+        "results/aaron-xdark-workflow-extended-probes.json"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 70,
+        "equal": 66.6667,
+        "correctness": 73.75
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": true,
+      "ranks": {
+        "fixed": 3,
+        "equal": 5,
+        "correctness": 4
+      }
+    },
+    {
+      "id": "bea",
+      "repository": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge",
+      "commit": "d1909bd397c390fb7a644ca24ff53c088e401fa3",
+      "version": "root 1.6.0; MCP 1.1.0; Codex manifest 1.2.0; native OBS manifest 1.4.0",
+      "license": "MIT",
+      "runtime": "Node.js >=20; local Streamable HTTP MCP bridge plus native OBS plugin/desktop companion",
+      "publication": {
+        "registry": null,
+        "verified": false,
+        "note": "No npm publication, GitHub release artifact, or approved Windows installer verified at the 2026-09-13 observation."
+      },
+      "artifact": {
+        "kind": "isolated source build",
+        "provenance": "Pinned source SHA after pnpm install --frozen-lockfile --ignore-scripts and pnpm test",
+        "entryPath": "/tmp/obs-bea.J2utm3/repo/dist/server.js",
+        "entrySha256": "20d46a1c992961fcbac98e972ccd21cdcd42a3e1df39f664afde3d5d2415e277",
+        "bootstrapPath": "/tmp/obs-bea.J2utm3/repo/dist/bootstrap.js",
+        "bootstrapSha256": "2d30fec73f8de8634d29f24b1229a60883f246a8a99d539ff7371be99be51a9f"
+      },
+      "gates": {
+        "G1": "P",
+        "G2": "NT",
+        "G3": "NT",
+        "G4": "NT",
+        "G5": "F",
+        "G6": "p"
+      },
+      "scores": {
+        "A": 3,
+        "B": 3,
+        "C": 3,
+        "D": 2,
+        "E": 3,
+        "F": 2
+      },
+      "weightedTotal": 68.75,
+      "runtimeEvidence": [
+        "results/bea-http.json",
+        "results/bea-own-tests.log",
+        "results/bea-publication.json"
+      ],
+      "confidence": "medium",
+      "notes": "Direct MCP source entry verified through source build plus authenticated initialize/tools-list. G2-G4 remain NT at the HTTP-only fixture boundary; G5 fails because the observed contract has no screenshot capability, and G6 is partial due observed version drift.",
+      "totals": {
+        "fixed": 68.75,
+        "equal": 66.6667,
+        "correctness": 70
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 7,
+        "equal": 5,
+        "correctness": 5
+      }
+    },
+    {
+      "id": "giancarlo",
+      "repository": "https://github.com/Giancarlo26/obs-action-history",
+      "commit": "882c3c1c0e490bb8aa6e2f3487f6aa817a1521bb",
+      "version": "0.1.0 (source metadata; no public package verified)",
+      "gates": {
+        "G1": "P",
+        "G2": "P",
+        "G3": "P",
+        "G4": "P",
+        "G5": "P",
+        "G6": "p"
+      },
+      "scores": {
+        "A": 2,
+        "B": 3,
+        "C": 4,
+        "D": 2,
+        "E": 3,
+        "F": 2
+      },
+      "runtimeEvidence": [
+        "results/giancarlo/giancarlo.json",
+        "results/giancarlo-runner.log",
+        "results/giancarlo-timeout-probe.json",
+        "results/giancarlo-source-check.log"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 66.25,
+        "equal": 66.6667,
+        "correctness": 70
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": true,
+      "ranks": {
+        "fixed": 8,
+        "equal": 5,
+        "correctness": 5
+      }
+    },
+    {
+      "id": "agentic",
+      "repository": "https://github.com/ironystock/agentic-obs",
+      "commit": "89fcf6c68675229e01c7e702e3234cf0cf53ebe7",
+      "version": "Go pseudo-version v0.0.0-20260418210912-89fcf6c68675; runtime dev",
+      "gates": {
+        "G1": "p",
+        "G2": "P",
+        "G3": "P",
+        "G4": "F",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 3,
+        "B": 2,
+        "C": 3,
+        "D": 3,
+        "E": 2,
+        "F": 1
+      },
+      "runtimeEvidence": [
+        "results/agentic-fixture/agentic.json",
+        "results/agentic-fixture-seeded/agentic.json",
+        "results/agentic-first-run.log",
+        "results/agentic-screenshot-probes.json",
+        "results/polyglot-own-tests.log",
+        "results/polyglot-publication.json"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 61.25,
+        "equal": 58.3333,
+        "correctness": 62.5
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 9,
+        "equal": 9,
+        "correctness": 9
+      }
+    },
+    {
+      "id": "aaron",
+      "repository": "https://github.com/aaronckj/obs-studio-mcp",
+      "commit": "599b382d97ab554bc21951b725bef3faf3085779",
+      "version": "0.5.1",
+      "gates": {
+        "G1": "P",
+        "G2": "p",
+        "G3": "P",
+        "G4": "P",
+        "G5": "F",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 3,
+        "B": 2,
+        "C": 2,
+        "D": 2,
+        "E": 2,
+        "F": 3
+      },
+      "runtimeEvidence": [
+        "results/aaron/aaron.json",
+        "results/aaron-pypi/aaron-pypi.json",
+        "results/aaron-own-tests.log",
+        "results/aaron-xdark-workflow-extended-probes.json"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 58.75,
+        "equal": 58.3333,
+        "correctness": 56.25
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 10,
+        "equal": 9,
+        "correctness": 10
+      }
+    },
+    {
+      "id": "lhenri",
+      "repository": "https://github.com/LHenri88/obs-mcp",
+      "commit": "ca711037c0bca4c4c6e9142a52821319780bd45e",
+      "version": "0.1.0 (source metadata; no attributable public package)",
+      "gates": {
+        "G1": "NT",
+        "G2": "NT",
+        "G3": "NT",
+        "G4": "NT",
+        "G5": "F",
+        "G6": "p"
+      },
+      "scores": {
+        "A": 3,
+        "B": 2,
+        "C": 2,
+        "D": 1,
+        "E": 2,
+        "F": 2
+      },
+      "runtimeEvidence": [
+        "results/lhenri/lhenri.json",
+        "results/lhenri-install.log",
+        "results/lhenri-build.log",
+        "results/lhenri-entry.stderr.log",
+        "results/lhenri-source-check.log"
+      ],
+      "confidence": "medium",
+      "totals": {
+        "fixed": 52.5,
+        "equal": 50,
+        "correctness": 51.25
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 11,
+        "equal": 11,
+        "correctness": 11
+      }
+    },
+    {
+      "id": "sidfou",
+      "repository": "https://github.com/sid-fou/obs-stream-mcp",
+      "commit": "60f14e61b25e8173c67dc18e0fdf741cacc788ec",
+      "version": "0.1.0 (source metadata; no public package verified)",
+      "gates": {
+        "G1": "p",
+        "G2": "P",
+        "G3": "p",
+        "G4": "F",
+        "G5": "F",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 3,
+        "B": 2,
+        "C": 2,
+        "D": 1,
+        "E": 2,
+        "F": 1
+      },
+      "runtimeEvidence": [
+        "results/sidfou/sidfou.json",
+        "results/sidfou-extended-probes.json",
+        "results/sidfou-install.log",
+        "results/sidfou-declared-entry.stderr.log",
+        "results/sidfou-mcp1-install.log",
+        "results/sidfou-build.log",
+        "results/sidfou-source-check.log"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 50,
+        "equal": 45.8333,
+        "correctness": 50
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 12,
+        "equal": 12,
+        "correctness": 12
+      }
+    },
+    {
+      "id": "takurot",
+      "repository": "https://github.com/takurot/obs-showrunner-mcp",
+      "commit": "3682378f0bcc886ee1c8340b0f4fbba3e1088876",
+      "version": "0.1.0",
+      "gates": {
+        "G1": "P",
+        "G2": "F",
+        "G3": "F",
+        "G4": "p",
+        "G5": "F",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 3,
+        "B": 1,
+        "C": 1,
+        "D": 2,
+        "E": 2,
+        "F": 2
+      },
+      "runtimeEvidence": [
+        "results/takurot/takurot.json",
+        "results/takurot-npm/takurot-npm.json",
+        "results/takurot-own-tests.log",
+        "results/takurot-build.log"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 47.5,
+        "equal": 45.8333,
+        "correctness": 42.5
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 13,
+        "equal": 12,
+        "correctness": 14
+      }
+    },
+    {
+      "repository": "royshil/obs-mcp",
+      "commit": "314e7c065ef8c5e2656757b35b24ea7fa81489b0",
+      "version": "1.0.1",
+      "gates": {
+        "G1": "P",
+        "G2": "F",
+        "G3": "F",
+        "G4": "P",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 2,
+        "B": 2,
+        "C": 2,
+        "D": 1,
+        "E": 2,
+        "F": 2
+      },
+      "id": "royshil",
+      "runtimeEvidence": [
+        "results/royshil.json",
+        "results/royshil-extended.json",
+        "results/royshil-unavailable.json",
+        "results/royshil-published.json"
+      ],
+      "confidence": "medium",
+      "totals": {
+        "fixed": 46.25,
+        "equal": 45.8333,
+        "correctness": 46.25
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 14,
+        "equal": 12,
+        "correctness": 13
+      }
+    },
+    {
+      "id": "cdavis",
+      "repository": "https://github.com/cdavis-code/obs_websocket_workspace",
+      "commit": "1d95b2933dc1de520cca09414d5d65b2a85466b8",
+      "version": "5.7.5 npm; 5.7.2 native release",
+      "gates": {
+        "G1": "p",
+        "G2": "P",
+        "G3": "F",
+        "G4": "F",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 1,
+        "B": 2,
+        "C": 2,
+        "D": 1,
+        "E": 2,
+        "F": 2
+      },
+      "runtimeEvidence": [
+        "results/cdavis-fixture/cdavis.json",
+        "results/cdavis-native-fixture/cdavis-native.json",
+        "results/polyglot-own-tests.log",
+        "results/polyglot-publication.json"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 40,
+        "equal": 41.6667,
+        "correctness": 41.25
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 15,
+        "equal": 15,
+        "correctness": 15
+      }
+    },
+    {
+      "id": "umar",
+      "repository": "https://github.com/muhammadumarakram1/mcp-obs-websocket",
+      "commit": "37f3e7ae8031f034cc8282429c75703a11bd6737",
+      "version": "1.0.0",
+      "license": "MIT",
+      "runtime": "Node.js >=18",
+      "publication": {
+        "registry": null,
+        "verified": false,
+        "note": "No npm, GitHub release, or other publication verified at the 2026-09-13 observation."
+      },
+      "artifact": {
+        "kind": "isolated source build",
+        "provenance": "Pinned source SHA built after npm install --ignore-scripts --no-audit --no-fund",
+        "path": "/tmp/obs-umar.n6zWRG/repo/dist/index.js",
+        "sha256": "8d2f92b662fc7b7922bcc6bf7529855453f65bf67b283c64a1164c86448d26a8"
+      },
+      "gates": {
+        "G1": "P",
+        "G2": "p",
+        "G3": "P",
+        "G4": "F",
+        "G5": "F",
+        "G6": "P"
+      },
+      "scores": {
+        "A": 1,
+        "B": 2,
+        "C": 2,
+        "D": 1,
+        "E": 1,
+        "F": 2
+      },
+      "weightedTotal": 36.25,
+      "runtimeEvidence": [
+        "results/umar-fixture/umar.json"
+      ],
+      "confidence": "high",
+      "notes": "Source build and shared fixture entry were observed. Fixture-unimplemented requests were not charged as candidate failures; the watchdog failures were candidate lifecycle failures.",
+      "totals": {
+        "fixed": 36.25,
+        "equal": 37.5,
+        "correctness": 38.75
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 16,
+        "equal": 16,
+        "correctness": 16
+      }
+    },
+    {
+      "id": "sbroenne",
+      "repository": "https://github.com/sbroenne/mcp-server-obs",
+      "commit": "96354251a40a6a7299585652358f63eba62b3714",
+      "version": "head project 0.0.3; MCP 1.0.0; release 1.0.4",
+      "gates": {
+        "G1": "P",
+        "G2": "p",
+        "G3": "F",
+        "G4": "F",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 1,
+        "B": 1,
+        "C": 2,
+        "D": 2,
+        "E": 1,
+        "F": 2
+      },
+      "runtimeEvidence": [
+        "results/sbroenne-fixture/sbroenne.json",
+        "results/polyglot-own-tests.log",
+        "results/polyglot-publication.json"
+      ],
+      "confidence": "high",
+      "totals": {
+        "fixed": 35,
+        "equal": 37.5,
+        "correctness": 35
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 17,
+        "equal": 16,
+        "correctness": 17
+      }
+    },
+    {
+      "repository": "LarsCanGit/OBS-MCP",
+      "commit": "8025f2c0336cb882d79e3227884fcaedd6d23603",
+      "version": "1.0.0",
+      "gates": {
+        "G1": "P",
+        "G2": "F",
+        "G3": "F",
+        "G4": "F",
+        "G5": "P",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 1,
+        "B": 1,
+        "C": 2,
+        "D": 1,
+        "E": 1,
+        "F": 2
+      },
+      "id": "lars",
+      "runtimeEvidence": [
+        "results/lars.json",
+        "results/lars-extended.json",
+        "results/lars-unavailable.json"
+      ],
+      "confidence": "medium",
+      "totals": {
+        "fixed": 31.25,
+        "equal": 33.3333,
+        "correctness": 31.25
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 18,
+        "equal": 18,
+        "correctness": 18
+      }
+    },
+    {
+      "repository": "yshk-mrt/obs-mcp",
+      "commit": "643e6646075083418f956e163b6f8c0998f34a68",
+      "version": "1.0.0",
+      "gates": {
+        "G1": "P",
+        "G2": "F",
+        "G3": "F",
+        "G4": "P",
+        "G5": "F",
+        "G6": "F"
+      },
+      "scores": {
+        "A": 1,
+        "B": 1,
+        "C": 1,
+        "D": 1,
+        "E": 1,
+        "F": 1
+      },
+      "id": "yshk",
+      "runtimeEvidence": [
+        "results/yshk.json",
+        "results/yshk-extended.json",
+        "results/yshk-unavailable.json"
+      ],
+      "confidence": "medium",
+      "totals": {
+        "fixed": 25,
+        "equal": 25,
+        "correctness": 25
+      },
+      "completeReferenceJobVerified": false,
+      "paretoFrontier": false,
+      "ranks": {
+        "fixed": 19,
+        "equal": 19,
+        "correctness": 19
+      }
+    }
+  ]
+}

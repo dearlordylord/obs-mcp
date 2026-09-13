@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "itchris",
+  "launch": {
+    "command": "/bin/sh",
+    "args": [
+      "-c",
+      "mkdir -p \"$HOME/.config/obs-studio-mcp\" && printf '[obs]\\nhost = \"%s\"\\nport = %s\\npassword_env = \"OBS_WEBSOCKET_PASSWORD\"\\nauto_connect = true\\nreconnect_interval_secs = 1\\n\\n[security]\\nallow_stop_record = true\\nrequire_confirmation = []\\n' \"$OBS_STUDY_HOST\" \"$OBS_STUDY_PORT\" > \"$HOME/.config/obs-studio-mcp/config.toml\" && exec /tmp/obs-itchris-dqgEUK/repo/target/debug/obs-studio-mcp"
+    ],
+    "cwd": "/tmp/obs-itchris-dqgEUK/repo",
+    "env": {
+      "OBS_STUDIO_MCP_INSTALL_DIR": "/tmp/obs-itchris-dqgEUK/repo",
+      "OBS_STUDIO_MCP_SYSTEM_CONFIG_DIR": "{{tempDir}}/no-system-config",
+      "OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+      "OBS_STUDY_HOST": "{{obsHost}}",
+      "OBS_STUDY_PORT": "{{obsPort}}"
+    }
+  },
+  "operations": {
+    "getVersion": { "tool": "obs_ws_get_version" },
+    "listScenes": { "tool": "obs_ws_get_scene_list" },
+    "getCurrentScene": { "tool": "obs_ws_get_current_program_scene" },
+    "setCurrentScene": {
+      "tool": "obs_ws_set_current_program_scene",
+      "arguments": { "request_data": { "sceneName": "{{sceneName}}" } }
+    },
+    "getInputMute": {
+      "tool": "obs_ws_get_input_mute",
+      "arguments": { "request_data": { "inputName": "{{inputName}}" } }
+    },
+    "setInputMute": {
+      "tool": "obs_ws_set_input_mute",
+      "arguments": {
+        "request_data": { "inputName": "{{inputName}}", "inputMuted": "{{inputMuted}}" }
+      }
+    },
+    "startRecord": { "tool": "obs_ws_start_record" },
+    "getRecordStatus": { "tool": "obs_ws_get_record_status" },
+    "stopRecord": { "tool": "obs_ws_stop_record" },
+    "getSourceScreenshot": {
+      "tool": "obs_ws_get_source_screenshot",
+      "arguments": {
+        "request_data": { "sourceName": "{{sourceName}}", "imageFormat": "{{imageFormat}}" }
+      }
+    }
+  }
+}

@@ -1,0 +1,4091 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "giancarlo",
+  "observedAt": "2026-09-13T21:46:54.063Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "node",
+    "args": [
+      "server.js"
+    ],
+    "cwd": "/tmp/obs-giancarlo-1vWyaM/repo"
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:46:38.599Z",
+        "requestType": "GetVersion",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.602Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.603Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.604Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.605Z",
+        "requestType": "SetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux",
+          "inputMuted": true
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.605Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.606Z",
+        "requestType": "GetInputVolume",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.606Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.607Z",
+        "requestType": "GetInputVolume",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.608Z",
+        "requestType": "StartRecord",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.608Z",
+        "requestType": "GetRecordStatus",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.609Z",
+        "requestType": "GetRecordStatus",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.614Z",
+        "requestType": "StopRecord",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.615Z",
+        "requestType": "GetRecordStatus",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.619Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "sourceName": "Main",
+          "imageFormat": "png",
+          "imageWidth": 1
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.621Z",
+        "requestType": "GetStreamServiceSettings",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:46:38.621Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {},
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:46:38.622Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Missing Fixture Scene"
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:46:38.622Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "injected_obs_error"
+      },
+      {
+        "at": "2026-09-13T21:46:38.623Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "missing_response"
+      },
+      {
+        "at": "2026-09-13T21:46:53.633Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "in_flight_disconnect"
+      }
+    ],
+    "stateChanges": [
+      {
+        "kind": "scene",
+        "before": "Intro",
+        "after": "Main"
+      },
+      {
+        "kind": "mute",
+        "inputName": "Mic/Aux",
+        "before": false,
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": false
+      }
+    ],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "tools": {}
+            },
+            "serverInfo": {
+              "name": "obs-action-history",
+              "version": "0.1.0"
+            }
+          }
+        },
+        "elapsedMs": 31
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "tools": [
+              {
+                "name": "obs_who_is_talking",
+                "description": "Listen to the microphones for a moment and report who is actually speaking, loudest first. This is the reactive primitive: it answers 'which person should I cut to right now'. Returns a peak level in dB per audio source over the sampling window, so compare the sources against EACH OTHER rather than against a fixed threshold - the two mics have different gains and each usually picks up everyone in the room, so the loudest is the speaker, not whoever crosses a fixed number. A source that reports no level at all is muted, on no audio track, or its scene is not live.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "forMs": {
+                      "type": "number",
+                      "description": "How long to listen. Default 1200. Keep it under ~3000."
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Optional: only report these sources."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_watch",
+                "description": "What OBS has been doing: recent events from the live event stream (scene changes, mute and visibility changes, media starting and ending, stream and record state, filter changes). Use it to see what happened rather than polling for what is true now. Optionally waits first, so you can watch for something you are about to trigger. Audio meters are NOT here - they are summarised by obs_who_is_talking instead, because they arrive ~50 times a second.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "forMs": {
+                      "type": "number",
+                      "description": "Wait this long before reporting, to catch what happens next. Default 0."
+                    },
+                    "types": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Only these eventType names, e.g. CurrentProgramSceneChanged."
+                    },
+                    "limit": {
+                      "type": "number",
+                      "description": "Most recent N events. Default 40."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_health",
+                "description": "Full health snapshot: OBS version, active scene, stream/record state, and live stats (CPU %, memory, FPS, render lag, encoding lag, skipped and dropped frames). Use this first to diagnose anything, and to check whether the machine is keeping up.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_list_scenes",
+                "description": "List every scene, and which one is currently live (program) and previewed.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_switch_scene",
+                "description": "Switch the LIVE scene. This is the POV cut. It never interrupts the stream; the encoder keeps running and viewers just see the camera change.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Exact scene name, as returned by obs_list_scenes."
+                    }
+                  },
+                  "required": [
+                    "sceneName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_create_scene",
+                "description": "Create a new empty scene. It is created but NOT switched to, so this is safe while live. A new scene is empty in the literal sense: no background, no audio, nothing inherited from any other scene, so cutting to it before adding sources shows black. Build it first with obs_scene_item_add, then switch. Scene names are unique across the collection and are what every other tool addresses, so pick one you can live with; renaming later is safe inside OBS and breaks anything outside it that refers to the old name.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Name for the new scene."
+                    }
+                  },
+                  "required": [
+                    "sceneName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_list_sources_in_scene",
+                "description": "List the sources (scene items) inside a scene, with their item IDs, visibility and transform. Needed before moving, resizing or hiding anything.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene to inspect."
+                    }
+                  },
+                  "required": [
+                    "sceneName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_set_source_visible",
+                "description": "Show or hide one source inside a scene (e.g. drop the overlay, hide a camera).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene containing the source."
+                    },
+                    "sceneItemId": {
+                      "type": "number",
+                      "description": "Item ID from obs_list_sources_in_scene."
+                    },
+                    "visible": {
+                      "type": "boolean",
+                      "description": "true = show, false = hide."
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sceneItemId",
+                    "visible"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_set_source_transform",
+                "description": "Position and size a source inside a scene, to build picture-in-picture and side-by-side layouts. Coordinates are in canvas pixels.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string"
+                    },
+                    "sceneItemId": {
+                      "type": "number"
+                    },
+                    "positionX": {
+                      "type": "number"
+                    },
+                    "positionY": {
+                      "type": "number"
+                    },
+                    "scaleX": {
+                      "type": "number"
+                    },
+                    "scaleY": {
+                      "type": "number"
+                    },
+                    "cropLeft": {
+                      "type": "number"
+                    },
+                    "cropRight": {
+                      "type": "number"
+                    },
+                    "cropTop": {
+                      "type": "number"
+                    },
+                    "cropBottom": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sceneItemId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_list_inputs",
+                "description": "List every input/source in OBS with its kind (video capture device, media source, browser, audio input, etc). Use this to see which cameras and mics OBS can actually see.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_get_input_settings",
+                "description": "Read the full settings object of one input (resolution, device id, URL, file path...).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Exact input name."
+                    }
+                  },
+                  "required": [
+                    "inputName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_set_input_settings",
+                "description": "Change settings on an input: swap a webcam's device, change an SRT/RTMP media source URL, change resolution or FPS. Pass only the keys you want to change.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string"
+                    },
+                    "settings": {
+                      "type": "object",
+                      "description": "Partial settings object to merge in."
+                    }
+                  },
+                  "required": [
+                    "inputName",
+                    "settings"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_create_input",
+                "description": "Create a new source in a scene. Common kinds: 'dshow_input' (USB webcam/capture card), 'ffmpeg_source' (SRT/RTMP/RTSP network feed or video file), 'browser_source', 'wasapi_input_capture' (microphone), 'wasapi_output_capture' (desktop audio), 'text_gdiplus_v3', 'color_source_v3', 'image_source', 'ndi_source' (needs the NDI plugin).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string"
+                    },
+                    "inputName": {
+                      "type": "string"
+                    },
+                    "inputKind": {
+                      "type": "string"
+                    },
+                    "inputSettings": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "inputName",
+                    "inputKind"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_list_input_kinds",
+                "description": "List every source type this OBS install supports (tells you which plugins loaded).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_audio_control",
+                "description": "Get or set mute state and volume for an audio input. Volume is in dB (0 = unity, -100 = silence).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string"
+                    },
+                    "muted": {
+                      "type": "boolean",
+                      "description": "Omit to leave unchanged."
+                    },
+                    "volumeDb": {
+                      "type": "number",
+                      "description": "Omit to leave unchanged. Range -100..26."
+                    }
+                  },
+                  "required": [
+                    "inputName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_stream_control",
+                "description": "Start, stop or query the live stream. Use 'status' freely. Be deliberate with start and stop, because stopping ends the broadcast for every viewer on every platform.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "start",
+                        "stop",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_record_control",
+                "description": "Start, stop, pause, resume or query local recording (your local backup / VOD master).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "start",
+                        "stop",
+                        "pause",
+                        "resume",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_screenshot",
+                "description": "Capture what a scene or source looks like RIGHT NOW and return it as an image. This is how Claude visually verifies framing, layout and that a camera is actually alive instead of showing a black frame.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Scene or source name. Use the current program scene to see what viewers see."
+                    },
+                    "width": {
+                      "type": "number",
+                      "description": "Optional downscale width, default 1280."
+                    }
+                  },
+                  "required": [
+                    "sourceName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_video_settings",
+                "description": "Get or set canvas resolution, output resolution and FPS. Changing these requires the stream to be stopped.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "baseWidth": {
+                      "type": "number"
+                    },
+                    "baseHeight": {
+                      "type": "number"
+                    },
+                    "outputWidth": {
+                      "type": "number"
+                    },
+                    "outputHeight": {
+                      "type": "number"
+                    },
+                    "fpsNumerator": {
+                      "type": "number"
+                    },
+                    "fpsDenominator": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_profile_and_collection",
+                "description": "List / switch OBS profiles (encoder + streaming settings) and scene collections (scene layouts).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "setProfile": {
+                      "type": "string"
+                    },
+                    "setSceneCollection": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_transition",
+                "description": "List transitions, or set the active one and its duration (how POV cuts look).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "transitionName": {
+                      "type": "string",
+                      "description": "e.g. 'Fade', 'Cut', 'Luma Wipe'."
+                    },
+                    "durationMs": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filters",
+                "description": "List filters on a source, or add one. Useful filters: 'noise_suppress_filter_v2' (RNNoise mic cleanup), 'noise_gate_filter', 'compressor_filter', 'chroma_key_filter_v2', 'color_filter_v2', 'async_delay_filter' (sync a lagging network camera to the others).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string"
+                    },
+                    "addFilterName": {
+                      "type": "string"
+                    },
+                    "addFilterKind": {
+                      "type": "string"
+                    },
+                    "addFilterSettings": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "sourceName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_raw",
+                "description": "ESCAPE HATCH. Call any obs-websocket v5 request directly by name with a raw payload. Covers everything the wrapped tools do not, including plugin-provided vendor requests. See the obs-websocket protocol reference for request names.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "requestType": {
+                      "type": "string",
+                      "description": "e.g. 'GetHotkeyList', 'TriggerHotkeyByName'."
+                    },
+                    "requestData": {
+                      "type": "object",
+                      "description": "Payload for that request."
+                    }
+                  },
+                  "required": [
+                    "requestType"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_scene_item_add",
+                "description": "Add an EXISTING source to a scene, as a new scene item. This is the missing half of obs_create_input: that one makes a brand new source, this one places a source you already have into another scene. Reusing a source is almost always what you want - one camera placed in six scenes is one device opened once, while six separate inputs on the same webcam will fight over the device and most will fail to start.\n\nA scene can be added to another scene this way, which is how layer scenes work: on the reference machine the HUD scene holds every overlay and is added as a SINGLE item into each scene, so editing HUD once changes all of them. Do not rebuild overlays per scene.\n\nThe new item lands at the TOP of the z-order and covers whatever it overlaps. If you are adding a background it has to be moved down to index 0 afterwards with obs_scene_item_order. The response reports the index it actually received, so check it rather than assuming.\n\nsceneItemEnabled defaults to true. Note that a source can be enabled but sitting off-canvas: see obs_scene_item_transform for why that is not the same as hidden.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene to add the source to."
+                    },
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Name of an existing input or scene (obs_list_inputs / obs_list_scenes)."
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Start visible. Default true."
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sourceName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_scene_item_remove",
+                "description": "Remove one scene item from its scene.\n\nThis removes the PLACEMENT, not the source. The same input placed in other scenes keeps working there, keeps its settings and keeps its filters - so deleting a camera from the BRB scene does not disturb it anywhere else. Only when you remove the last placement does the input itself lose its last reference, and its settings go with it, so the final copy is the one to think twice about.\n\nThere is no undo over the websocket. If the goal is just to get something off screen, obs_set_source_visible is reversible and this is not.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene holding the item."
+                    },
+                    "sceneItemId": {
+                      "type": "number",
+                      "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sceneItemId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_scene_item_duplicate",
+                "description": "Copy a scene item, with its transform, crop and blend mode intact, either within the same scene or into another one. Omit toScene to duplicate in place.\n\nThe copy points at the SAME underlying source - this clones the placement, not the camera. That is what makes it the fast way to build a matching layout: place one screen capture exactly, duplicate it into the next scene, then move only what differs. It is also why duplicating an audio-carrying source needs care, because you now have two items playing the same audio in one scene and the result is doubled, not louder.\n\nDuplicating into a scene that already has that source is allowed; OBS does not deduplicate.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene holding the item."
+                    },
+                    "sceneItemId": {
+                      "type": "number",
+                      "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+                    },
+                    "toScene": {
+                      "type": "string",
+                      "description": "Destination scene. Omit to duplicate into the same scene."
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sceneItemId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_scene_item_order",
+                "description": "Read or change z-order - which source is drawn on top of which.\n\nINDEX 0 IS THE BOTTOM. Higher index draws later, so it covers everything below it. This is upside down from the OBS window, which lists the topmost source first, and getting it backwards is the single easiest way to make a layer vanish.\n\nOn the reference machine the BG layer is deliberately parked at index 0 of every scene so no scene is ever pure black. Anything full-canvas and opaque placed above it hides it completely and the symptom is simply a black background with no error anywhere - two opaque black rectangles had to be hidden before BG showed at all. If a background stopped showing, check what is above it before you touch the background itself.\n\nCall with sceneName only to read the whole stack bottom-first. Add sceneItemId and index to move one item; the full resulting order comes back either way. Indexes are renumbered contiguously after a move, so read the stack again before a second move rather than reusing the numbers you just saw.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene to read or reorder."
+                    },
+                    "sceneItemId": {
+                      "type": "number",
+                      "description": "Item to move. Omit to only read the order."
+                    },
+                    "index": {
+                      "type": "number",
+                      "description": "New index. 0 = bottom. Requires sceneItemId."
+                    }
+                  },
+                  "required": [
+                    "sceneName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_scene_item_lock",
+                "description": "Lock or unlock a scene item. A locked item cannot be dragged or resized in the OBS window by a human, and cannot be transformed over the websocket either - SetSceneItemTransform on a locked item fails rather than silently doing nothing.\n\nWorth using on the pieces that must not drift: a HUD layer or a background that someone might grab by accident while adjusting a camera on top of it. Locking changes nothing about what viewers see - it affects editing only, not visibility and not audio. If a transform keeps being rejected, read the lock state before assuming the coordinates were wrong.\n\nOmit `locked` to read the current state without changing it.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene holding the item."
+                    },
+                    "sceneItemId": {
+                      "type": "number",
+                      "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+                    },
+                    "locked": {
+                      "type": "boolean",
+                      "description": "true = lock, false = unlock. Omit to just read."
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sceneItemId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_scene_item_blend_mode",
+                "description": "Read or set how a scene item composites with the layers under it.\n\nOBS_BLEND_NORMAL is plain alpha and is the default. OBS_BLEND_ADDITIVE and OBS_BLEND_SCREEN both drop black toward transparent, which is the usual trick for glows, light leaks and particle or scanline overlays shot on a black field - they let an overlay sit on top without boxing off what is underneath. OBS_BLEND_MULTIPLY and OBS_BLEND_DARKEN do the opposite and drop white, useful for shadowing or tinting a region. SUBTRACT and LIGHTEN are situational.\n\nBlend mode only matters against what is BELOW the item, so it interacts directly with z-order: the same overlay set to additive looks completely different depending on its index. An item at index 0 has nothing under it to blend with and will look unchanged no matter what mode you pick - if a blend mode appears to do nothing, check the index first.\n\nOmit `blendMode` to read the current one.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene holding the item."
+                    },
+                    "sceneItemId": {
+                      "type": "number",
+                      "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+                    },
+                    "blendMode": {
+                      "type": "string",
+                      "enum": [
+                        "OBS_BLEND_NORMAL",
+                        "OBS_BLEND_ADDITIVE",
+                        "OBS_BLEND_SUBTRACT",
+                        "OBS_BLEND_SCREEN",
+                        "OBS_BLEND_MULTIPLY",
+                        "OBS_BLEND_LIGHTEN",
+                        "OBS_BLEND_DARKEN"
+                      ],
+                      "description": "Blend mode to apply. Omit to just read."
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sceneItemId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_scene_item_transform",
+                "description": "The complete transform: position, scale, rotation, alignment, crop and bounds. obs_set_source_transform covers position, scale and crop only; this one reaches the rest. Call with just sceneName and sceneItemId to READ the current transform, including the read-only width/height/sourceWidth/sourceHeight that tell you how big the thing actually is on canvas right now.\n\nOnly the fields you pass change; everything else keeps its current value.\n\nBOUNDS ARE INERT WITHOUT boundsType. boundsWidth, boundsHeight and boundsAlignment are ignored while boundsType is OBS_BOUNDS_NONE, which is the default, so setting a bounding box and nothing else accomplishes nothing at all and reports success. Set boundsType in the same call. Bounds are the right tool for a slot of fixed size - OBS_BOUNDS_SCALE_INNER fits the source inside the box keeping its aspect ratio, which is how you drop a camera of unknown resolution into a layout without doing the arithmetic. Once bounds are active they drive the size and scaleX/scaleY stop being the thing to adjust.\n\nALIGNMENT IS A BITMASK, NOT AN ENUM: 0 centre, 1 left, 2 right, 4 top, 8 bottom, added together. 5 is top-left and is what every item on the reference machine uses. It sets which point of the source positionX/positionY actually refers to, so changing alignment alone appears to teleport the source even though position never changed.\n\nCrop is measured in SOURCE pixels, before scaling, and cuts in from each edge. width/height/sourceWidth/sourceHeight cannot be written - to resize, set scale, or use bounds.\n\nA source moved off the canvas is still ENABLED and still renders and, more to the point, its audio still plays. Parking something at x=2600 on a 1920 canvas does not silence it. That is what doubled both voices on day one, from a phone parked out of frame but unmuted; it is also used deliberately here, because the mic and music sources are off-canvas precisely so they stay audible without taking up pixels. Hiding a source with obs_set_source_visible DOES cut its audio, which is why those are parked rather than hidden. Choose the one you mean.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Scene holding the item."
+                    },
+                    "sceneItemId": {
+                      "type": "number",
+                      "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+                    },
+                    "positionX": {
+                      "type": "number",
+                      "description": "Canvas x of the alignment point."
+                    },
+                    "positionY": {
+                      "type": "number",
+                      "description": "Canvas y of the alignment point."
+                    },
+                    "scaleX": {
+                      "type": "number",
+                      "description": "Horizontal scale. 1 = native size. Negative flips."
+                    },
+                    "scaleY": {
+                      "type": "number",
+                      "description": "Vertical scale. 1 = native size. Negative flips."
+                    },
+                    "rotation": {
+                      "type": "number",
+                      "description": "Degrees clockwise, -360 to 360."
+                    },
+                    "alignment": {
+                      "type": "number",
+                      "description": "Bitmask: 0 centre, 1 left, 2 right, 4 top, 8 bottom. 5 = top-left."
+                    },
+                    "boundsType": {
+                      "type": "string",
+                      "enum": [
+                        "OBS_BOUNDS_NONE",
+                        "OBS_BOUNDS_STRETCH",
+                        "OBS_BOUNDS_SCALE_INNER",
+                        "OBS_BOUNDS_SCALE_OUTER",
+                        "OBS_BOUNDS_SCALE_TO_WIDTH",
+                        "OBS_BOUNDS_SCALE_TO_HEIGHT",
+                        "OBS_BOUNDS_MAX_ONLY"
+                      ],
+                      "description": "Required for any bounds field to take effect."
+                    },
+                    "boundsWidth": {
+                      "type": "number",
+                      "description": "Bounding box width, 1 to 90001. Needs boundsType."
+                    },
+                    "boundsHeight": {
+                      "type": "number",
+                      "description": "Bounding box height, 1 to 90001. Needs boundsType."
+                    },
+                    "boundsAlignment": {
+                      "type": "number",
+                      "description": "Same bitmask as alignment; where the source sits inside the box. 0 = centred."
+                    },
+                    "cropToBounds": {
+                      "type": "boolean",
+                      "description": "Clip anything overflowing the bounding box. Needs boundsType."
+                    },
+                    "cropLeft": {
+                      "type": "number",
+                      "description": "Source pixels cut from the left, 0 to 100000."
+                    },
+                    "cropRight": {
+                      "type": "number",
+                      "description": "Source pixels cut from the right."
+                    },
+                    "cropTop": {
+                      "type": "number",
+                      "description": "Source pixels cut from the top."
+                    },
+                    "cropBottom": {
+                      "type": "number",
+                      "description": "Source pixels cut from the bottom."
+                    }
+                  },
+                  "required": [
+                    "sceneName",
+                    "sceneItemId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filter_kinds",
+                "description": "List every filter kind this OBS install can create - 43 on the reference machine - and optionally the default settings for one of them.\n\nThis is the honest way to find out whether a PLUGIN actually loaded, because plugin filters only appear here once their DLL is in place: move_source_filter and its siblings come from the Move plugin, ndi_filter from the NDI runtime. If a filter kind you expect is missing, the plugin did not load and no amount of retrying CreateSourceFilter will help - it fails with an invalid-kind error that reads like a typo.\n\nKind strings are exact and several ship as v2 alongside a legacy original (chroma_key_filter_v2, color_filter_v2, noise_suppress_filter_v2). Prefer the v2. Pass filterKind to also fetch that kind's defaults - though be aware OBS returns an empty object for kinds that register no explicit defaults, which means 'nothing declared', not 'no settings'.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "filterKind": {
+                      "type": "string",
+                      "description": "Optional: also return this kind's default settings."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filter_get",
+                "description": "Read the filter chain on a source, or one filter in full detail. Do this before changing anything: every other filter tool addresses filters by exact name, and the settings you get back are the keys that actually exist for that kind.\n\nTHE SETTINGS OBJECT IS PARTIAL. OBS only reports values that DIFFER from the kind's defaults, so a filter showing {} is running entirely on defaults, not broken and not empty. This is the reason a compressor here reports five keys while a delay reports one. It also means you cannot learn a kind's full parameter list from an existing filter - use obs_filter_kinds with filterKind for the declared defaults.\n\nOrder is returned lowest index first, which is the order audio and video actually flow through. Omit filterName for the whole chain.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Input or scene to inspect."
+                    },
+                    "filterName": {
+                      "type": "string",
+                      "description": "Optional: one filter, in detail."
+                    }
+                  },
+                  "required": [
+                    "sourceName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filter_settings",
+                "description": "Tune a filter that already exists - the threshold on a gate, delay_ms on a sync delay, opacity on a colour correction, similarity on a chroma key.\n\nBy default your keys are MERGED into the existing settings, so you can send one value and leave the rest alone. Setting replace:true instead resets the filter to its kind defaults and then applies only what you sent, silently discarding every other tuned value on that filter. On a mic chain that has been dialled in over days, replace:true on a compressor is how you lose the ratio, the attack and the release while only meaning to change the threshold. Use the default merge unless you specifically want a clean slate.\n\nSetting keys are per kind and are not validated: an unknown or misspelled key is accepted, stored and ignored, and nothing reports an error. The response returns the filter's real settings afterwards - compare them against what you sent, because a key that silently vanished was the wrong name. Read obs_filter_get first to see the keys a kind really uses.\n\nChanges apply live to a running broadcast the instant they land; there is no staging.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Input or scene the filter is on."
+                    },
+                    "filterName": {
+                      "type": "string",
+                      "description": "Exact filter name, from obs_filter_get."
+                    },
+                    "settings": {
+                      "type": "object",
+                      "description": "Setting keys to apply, e.g. {\"delay_ms\": 630}."
+                    },
+                    "replace": {
+                      "type": "boolean",
+                      "description": "Reset to kind defaults first, discarding all other tuned values. Default false (merge)."
+                    }
+                  },
+                  "required": [
+                    "sourceName",
+                    "filterName",
+                    "settings"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filter_toggle",
+                "description": "Switch a filter on or off without removing it. Settings are kept, so this is the reversible way to find out what a filter is actually doing - toggle the noise suppression off, listen, toggle it back. Reach for this instead of obs_filter_remove whenever the question is 'is this helping', because removing loses the tuning and there is no undo.\n\nA disabled filter stays in the chain and keeps its index, so the numbering does not shift under you while you experiment.\n\nThe effect is immediate on the live output. Disabling a sync delay on a camera will jump that camera out of lip-sync on stream at once, not at the next scene change.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Input or scene the filter is on."
+                    },
+                    "filterName": {
+                      "type": "string",
+                      "description": "Exact filter name, from obs_filter_get."
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "true = on, false = bypassed. Omit to just read."
+                    }
+                  },
+                  "required": [
+                    "sourceName",
+                    "filterName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filter_remove",
+                "description": "Delete a filter from a source, permanently. Its settings go with it and the websocket has no undo - if you might want it back, obs_filter_toggle bypasses it instead and keeps the tuning.\n\nRemoving renumbers everything below it in the chain, so any filterIndex you noted before this call is stale afterwards. Re-read with obs_filter_get before reordering.\n\nFilters are per source, so this affects every scene that uses the source, not just the scene you happen to be looking at. The response returns the chain that is left.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Input or scene the filter is on."
+                    },
+                    "filterName": {
+                      "type": "string",
+                      "description": "Exact filter name, from obs_filter_get."
+                    }
+                  },
+                  "required": [
+                    "sourceName",
+                    "filterName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filter_order",
+                "description": "Move a filter within the chain. Index 0 runs FIRST, and each filter processes what the one before it produced, so the order is a signal path and not a preference.\n\nThis is why the mic chain here reads noise suppression, then compressor, then limiter: the compressor is levelling speech rather than chasing room hiss up and down, and the limiter has the last word on the peaks. Put the limiter first and it clamps a signal the compressor has not levelled yet, then the compressor raises everything back up past the ceiling the limiter was there to hold. Video is the same idea - crop before scale, and a colour key before a colour correction that would move the colour you are keying on.\n\nIndexes are contiguous and renumber after every move, so read the chain again rather than reusing numbers from before. Valid range is 0 to 8192; the resulting chain comes back.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Input or scene the filter is on."
+                    },
+                    "filterName": {
+                      "type": "string",
+                      "description": "Exact filter name, from obs_filter_get."
+                    },
+                    "index": {
+                      "type": "number",
+                      "description": "New position. 0 = runs first."
+                    }
+                  },
+                  "required": [
+                    "sourceName",
+                    "filterName",
+                    "index"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_filter_rename",
+                "description": "Rename a filter. The name is the only handle every other filter request has - there is no filter id - so renaming is the one edit here that can break something outside OBS: scripts, panel code and Move-plugin filters all address filters by exact name and will simply fail to find the old one afterwards. On the reference machine the sync delays are named consistently and the music ducking compressors DUCK, DUCK-IRL and so on, and tooling looks for exactly those strings.\n\nNames must be unique per source. Renaming does not change the filter's index, its settings or whether it is enabled.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Input or scene the filter is on."
+                    },
+                    "filterName": {
+                      "type": "string",
+                      "description": "Exact filter name, from obs_filter_get."
+                    },
+                    "newName": {
+                      "type": "string",
+                      "description": "New filter name, unique within this source."
+                    }
+                  },
+                  "required": [
+                    "sourceName",
+                    "filterName",
+                    "newName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_audio_routing",
+                "description": "Read - and optionally change - WHERE one audio input goes: which recording/stream tracks carry it, whether OBS monitors it out of the speakers, its A/V sync offset, and its stereo balance. Call it with only inputName to read; every other field is a change. This is separate from mute and volume on purpose: those are 'how loud', these are 'does it reach anyone at all', and a source can be at 0 dB, unmuted, and still inaudible to viewers. TRAPS, all of which return success while doing nothing you wanted: (1) syncOffsetMs is capped near 960 ms - OBS accepts far larger values, stores them, and applies nothing, so 2000 ms is silently 0. The protocol declares a floor of -950 on the negative side but a ceiling of 20000 on the positive one, so only the positive side gets to fail quietly. If a feed is more than a second late, cut the real latency; you cannot compensate past the cap. (2) A source on no track at all does not even meter, so it looks like dead hardware. (3) Only the tracks named by RecTracks reach the recording, and only one reaches the stream; a source on any other track meters perfectly and reaches nobody. That is how a detection microphone exists without being heard, so do not 'fix' such a source onto track 1. (4) monitorType anything but NONE sends this to the room speakers, where the microphone picks it up and it goes out a second time, out of phase. MONITOR_AND_OUTPUT is the one that does both. The reply always contains what OBS holds AFTER the write, plus a `notes` list naming any of the above that is now true - trust that over the value you sent.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Audio input name, exactly as OBS lists it."
+                    },
+                    "monitorType": {
+                      "type": "string",
+                      "enum": [
+                        "OBS_MONITORING_TYPE_NONE",
+                        "OBS_MONITORING_TYPE_MONITOR_ONLY",
+                        "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+                      ],
+                      "description": "Omit to leave unchanged. NONE = viewers only (the safe default while live)."
+                    },
+                    "syncOffsetMs": {
+                      "type": "number",
+                      "description": "Omit to leave unchanged. Positive delays this audio to catch up with late video. Useful range is about -950..960; larger is accepted and ignored."
+                    },
+                    "tracks": {
+                      "type": "object",
+                      "properties": {
+                        "1": {
+                          "type": "boolean"
+                        },
+                        "2": {
+                          "type": "boolean"
+                        },
+                        "3": {
+                          "type": "boolean"
+                        },
+                        "4": {
+                          "type": "boolean"
+                        },
+                        "5": {
+                          "type": "boolean"
+                        },
+                        "6": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Omit to leave unchanged. Partial is fine - only the tracks you name change, e.g. {\"6\": true}."
+                    },
+                    "balance": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "Omit to leave unchanged. 0.0 hard left, 0.5 centre, 1.0 hard right."
+                    }
+                  },
+                  "required": [
+                    "inputName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_audio_routing_map",
+                "description": "The whole audio routing picture in one call: every input that carries audio, with its tracks, monitoring, sync offset and balance, and an explicit list of what is misrouted. Read-only. Start here when audio is wrong and you do not yet know which source is at fault - the alternative is four requests per input, and the answer is usually a comparison between sources rather than a fact about one of them. It names the failures that a level meter cannot show you: sources on no track (inaudible AND unmeterable), sources off track 1 (they meter but never reach the stream or the recording on the reference machine), monitoring left enabled (doubled, out-of-phase audio via the room microphone), sync offsets stored past the ~960 ms cap where OBS applies nothing, and balances pushed off centre. Inputs with no audio at all are skipped rather than listed as errors.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "onlyProblems": {
+                      "type": "boolean",
+                      "description": "true = return only inputs with at least one note. Default false."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_special_inputs",
+                "description": "Names of OBS's six built-in audio slots: Desktop Audio, Desktop Audio 2, and Mic/Aux 1-4. Read-only. The trap is what an empty answer means. Any slot a user never configured comes back null, and on a rig that creates its audio sources explicitly - which is every rig built by a script - all six are null. On this machine they are: every audio source here, microphones included, is a named input, not a special slot. Six nulls therefore means 'this OBS has no special inputs assigned, go read the input list', NOT 'this OBS has no audio' and NOT 'the request failed'. Use this to resolve the two names OBS itself uses in its settings UI; use obs_audio_routing_map to actually find the microphones.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_replay_buffer",
+                "description": "The replay buffer: OBS holding the last N seconds of the show in memory so you can decide AFTER something happens that you wanted to keep it. This is the only capture primitive that works backwards in time, which makes it the one an automated producer actually needs - by the time a moment is recognisable as good, recording it is already too late. action 'save' is the interesting one: it writes the buffer to a file and returns the path. TRAPS: (1) The save is asynchronous. SaveReplayBuffer returns before the file is written, so asking for the filename immediately gives you the PREVIOUS clip. This tool polls until the path changes and reports `pathChanged: false` if it never did - do not hand a path onward without checking that flag. (2) The buffer only holds its configured window, 20 seconds on the reference machine, so 'save that thing from a minute ago' is not a thing that can succeed. (3) Every action except status fails with code 501 unless the buffer is already running, and it does not start itself - check status first. (4) The buffer is a separate encode from the stream; starting it costs CPU that a live broadcast is already using. (5) These requests drive OBS's MAIN replay buffer only. The reference machine also had a second replay_buffer output called 'Vertical Backtrack' which they do not touch at all - status lists it so you can see it is there.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "status",
+                        "start",
+                        "stop",
+                        "save"
+                      ],
+                      "description": "'status' is read-only and always safe."
+                    },
+                    "waitMs": {
+                      "type": "number",
+                      "description": "save only: how long to wait for the file path to change. Default 4000, max 15000."
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_virtual_cam",
+                "description": "OBS's virtual webcam output - the program feed presented to the operating system as a camera, so Zoom, Discord, a browser or a second OBS can consume it. Safe to touch during a live broadcast: it is a separate output and starting or stopping it changes nothing that viewers see, unlike the stream and record controls. TRAP: prefer 'start' and 'stop' over 'toggle'. Toggle is the single most common way an automated caller turns the virtual camera OFF while meaning to turn it on - it acts on a state it did not check, and it returns the state it produced rather than the one you wanted. 'status' is read-only; it reports only whether the output is active, not who is consuming it, so a running virtual camera with nobody watching looks identical to a working one.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "status",
+                        "start",
+                        "stop",
+                        "toggle"
+                      ],
+                      "description": "'status' is read-only. Use start/stop rather than toggle in automation."
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_save_screenshot",
+                "description": "Write a frame of a scene or source straight to a file on disk, and return the path. Use this instead of the image-returning screenshot tool whenever the picture is for a FILE - a thumbnail, a clip poster, a before/after pair, anything sampled on a loop. That tool base64s the whole image back through the conversation, which for a 1080p frame is megabytes of context spent on something nobody is going to look at. This one costs a path. Keep using the other one when you personally need to SEE the frame to judge framing or spot a black camera. TRAPS: (1) OBS writes the file itself, so imageFilePath is resolved on the machine running OBS, not wherever this MCP server lives, and it must be absolute. Point it at a directory that already exists. (2) imageWidth and imageHeight are 'scale to inner' - the aspect ratio is kept and the smaller ratio wins, so passing both does not crop, it fits. Pass one, or neither for native resolution. (3) imageFormat must be one this OBS build compiled in; png, jpg and webp are the safe ones, and GetVersion's supportedImageFormats is the real list. (4) A source that is not currently rendering gives you a black or stale frame, not an error.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Scene or source name. The current program scene captures what viewers see."
+                    },
+                    "imageFilePath": {
+                      "type": "string",
+                      "description": "Absolute path ON THE OBS MACHINE, with extension, e.g. /path/to/frame.png (or C:/path/to/frame.png on Windows)"
+                    },
+                    "imageFormat": {
+                      "type": "string",
+                      "enum": [
+                        "png",
+                        "jpg",
+                        "jpeg",
+                        "webp",
+                        "bmp",
+                        "tiff"
+                      ],
+                      "description": "Default png. Use jpg or webp for anything sampled repeatedly."
+                    },
+                    "imageWidth": {
+                      "type": "number",
+                      "minimum": 8,
+                      "maximum": 4096,
+                      "description": "Optional. 8-4096."
+                    },
+                    "imageHeight": {
+                      "type": "number",
+                      "minimum": 8,
+                      "maximum": 4096,
+                      "description": "Optional. 8-4096."
+                    },
+                    "imageCompressionQuality": {
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 100,
+                      "description": "0 = smallest file, 100 = uncompressed, -1 = OBS default. Default -1."
+                    }
+                  },
+                  "required": [
+                    "sourceName",
+                    "imageFilePath"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_record_chapter",
+                "description": "Drop a named chapter marker into the local recording at this instant, so the VOD can be navigated later without anyone scrubbing through six hours of it. This is the cheap version of clipping: it costs nothing, it cannot fail loudly mid-show, and it turns one long recording into something with an index. TRAPS: (1) Recording must be ACTIVE. Streaming is not recording, and a rig can be live for hours with no recording file open at all; in that state this fails with code 501. Check obs_record_control status first. (2) Chapters only exist in Hybrid MP4. Any other container and the marker goes nowhere; OBS 30.2 onward supports no other format for this. The reference machine records hybrid_mp4, so it works here. (3) The marker lands where the recording is NOW, which is the live edge - you cannot chapter something that already happened. Name it for what is starting, not for what just ended.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "chapterName": {
+                      "type": "string",
+                      "description": "Optional name. Omit and OBS numbers it. Name it for the segment that starts here."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_record_split",
+                "description": "Close the recording file being written right now and immediately start the next one, without stopping the recording. Use it to cut a long show into pieces you can upload or hand off while the show is still going, rather than waiting six hours for one enormous file. The stream is untouched - this is the local recording only, and viewers see nothing. TRAPS: (1) Recording must be active; otherwise code 501. Streaming being live is not enough - the local recording is a separate output. (2) There is no 'undo' and no way to rejoin the halves afterwards without re-encoding. (3) The new file is named by OBS's filename formatting, so you do not choose the name here - read it back from obs_record_control status if you need it. (4) A split is a real container boundary: anything that was mid-chapter or mid-scene at that instant is split across two files.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_studio_mode",
+                "description": "Read or set whether OBS is in studio mode - the two-stage layout where a scene can be staged in PREVIEW and inspected before it is cut to PROGRAM. This is the safety rail for anything automated. Switching scenes on a live broadcast is otherwise unreviewable: the request lands and every viewer sees the result before you do. With studio mode on, the sequence becomes stage -> screenshot the preview -> cut, and a camera that has not reconnected or a screen share showing the wrong window gets caught by you rather than by chat. If you are going to move scenes automatically, turn this on first. Turning it on or off changes NOTHING that viewers see - program keeps playing throughout, so this is safe to enable mid-broadcast. What it does change is the operator's OBS window, which matters if a human is also driving. TRAPS: (1) It is not a lock. With studio mode on, obs_switch_scene / SetCurrentProgramScene still cuts straight to air with no review. Studio mode ADDS the reviewed path; it does not close the unreviewed one. (2) Disabling it throws away whatever was staged in preview, silently. (3) Every preview request fails with code 506 while this is off, which is the single most common reason those tools appear broken.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Omit to just read. true = enable studio mode, false = disable."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_preview_scene",
+                "description": "Read or set the scene sitting in PREVIEW - staged, rendering, and not on air. Setting this is the safe half of a scene change: nothing viewers see moves, so it is the one scene operation that is genuinely harmless during a live broadcast. Stage here, screenshot the scene by name to confirm the cameras are alive and the layout is right, then cut with obs_studio_transition. TRAPS: (1) Requires studio mode. With it off, both reading and setting fail with a bare code 506 that says nothing useful - this tool translates it, but the fix is always obs_studio_mode first. (2) Staging does not guarantee a feed is connected. Network sources - SRT, RTMP, NDI - accept a new connection only while they are being rendered, and how long that handshake takes is not something the preview tells you. Stage early, then confirm with a screenshot of the preview scene rather than assuming a staged source is a live one. (3) A staged scene is not frozen. It keeps updating, so a preview screenshot taken thirty seconds ago is not evidence about now. (4) Preview and program swap places after a transition, so whatever you just cut away from is now sitting in preview.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sceneName": {
+                      "type": "string",
+                      "description": "Omit to just read. Exact scene name from obs_list_scenes."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_studio_transition",
+                "description": "CUT TO AIR. Runs the current transition, taking whatever is in preview to program. This is the irreversible half of a studio-mode scene change and the moment every viewer on every platform sees the new scene - treat it exactly as seriously as switching the program scene directly, because that is what it does. Read obs_preview_scene and look at a screenshot of it before calling this. TRAPS: (1) Requires studio mode; code 506 otherwise. (2) It returns immediately, BEFORE the transition finishes. With a fade or a stinger configured, program is mid-transition when this resolves, so a screenshot taken right after shows a blend of two scenes rather than the new one. Wait out the transition duration before verifying. (3) It uses whatever transition and duration OBS currently has selected - this request takes no parameters and cannot override them. Check the current transition first if the timing matters. (4) Preview and program swap, so calling it twice in a row returns you to the scene you started from, which looks like it did nothing.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_input_property_items",
+                "description": "Enumerate the real choices behind a dropdown in a source's Properties dialog - every webcam, capture card, microphone, speaker and monitor this machine has, with the exact device ID string OBS wants written back. This is the difference between configuring OBS on a machine somebody already set up by hand and configuring one from nothing: without it, pointing a capture source at a camera means GUESSING a Windows device path, and pointing an audio source at a mic means guessing a GUID like '{0.0.1.00000000}.{xxxxxxxx-...}' that appears in no documentation and is different on every PC. Read the list here, then write the chosen itemValue with obs_set_input_settings under the SAME property name.\n\nWrite back itemValue, never itemName. itemName is the label a human reads ('Logitech StreamCam'); itemValue is the device path, and it is what OBS matches on. itemEnabled false means the device is known to OBS but not selectable right now - typically another application holds it open.\n\npropertyName is the plugin's INTERNAL id, not the label in the dialog. Verified on the reference machine:\n  dshow_input (webcam / capture card): video_device_id, audio_device_id, res_type, resolution, video_format, color_space\n  wasapi_input_capture and wasapi_output_capture (mic / desktop audio): device_id\n  monitor_capture (screen): monitor_id, method\nOther kinds and other plugins have their own ids; the two failure messages tell them apart. 'Unable to find a property by that name' means the id is wrong. 'The property found is not a list' means the id is RIGHT but that property is a button, a checkbox, a path or a text box - which is itself useful, because it is how you confirm a button exists before pressing it with obs_press_input_button.\n\nThese values are not portable and not permanent: a USB camera moved to a different port gets a different video_device_id, which is the usual reason a scene that worked yesterday shows a black rectangle today. Re-read this list rather than reusing a stored string.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Exact existing input name, as returned by obs_list_inputs. The source must already exist - this reads the properties of an instance, not of a kind."
+                    },
+                    "propertyName": {
+                      "type": "string",
+                      "description": "Internal property id, e.g. 'video_device_id' for a webcam or 'device_id' for a mic."
+                    }
+                  },
+                  "required": [
+                    "inputName",
+                    "propertyName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_press_input_button",
+                "description": "Press a button inside a source's Properties dialog. OBS exposes a handful of actions only as buttons - there is no setting to write instead - so without this an agent simply cannot perform them, and two of them are the standard recoveries for the reference machine:\n\n- 'refreshnocache' on a browser_source is the ONLY way to make OBS pick up an edited local file. The overlays here are local HTML in overlay\\, and OBS caches them: after editing one, writing the same url back with obs_set_input_settings is a no-op and the stream keeps showing the old page. Verified present on the reference machine's browser sources; note the id is 'refreshnocache', not 'refresh', which does not exist.\n- 'activate' on a dshow_input (webcam / capture card) is how you recover a camera that dropped - the device stopped delivering frames and the source is showing black while OBS still believes it is fine. The id is 'activate' in BOTH directions: it toggles, and the dialog only changes the button's label to 'Deactivate'. There is no 'deactivate' property - asking for one returns 'Unable to find a property by that name'.\n\nTwo cautions. A press on a live source is visible on stream: toggling 'activate' on a camera that is currently on air drops it to black for as long as the device takes to re-open, and if the device is genuinely gone it stays black and you have just deactivated a working scene - check which scene is live first. And OBS returns nothing at all on success, so a clean result means 'the button was pressed', not 'the thing you wanted happened'; confirm with obs_screenshot.\n\nButtons are not discoverable through obs_input_property_items, which only enumerates dropdowns. What that tool does give you is existence: 'The property found is not a list' confirms the id is real before you press it, while 'Unable to find a property by that name' means it is not.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Exact input name, as returned by obs_list_inputs."
+                    },
+                    "propertyName": {
+                      "type": "string",
+                      "description": "Internal button id, e.g. 'refreshnocache' on a browser_source or 'activate' on a dshow_input."
+                    }
+                  },
+                  "required": [
+                    "inputName",
+                    "propertyName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_remove_input",
+                "description": "Delete a source outright, removing it from every scene it appears in at once.\n\nThe trap: a clean result does NOT prove the source is gone. OBS drops its own reference and answers success, but the source itself survives as long as anything else still holds a reference to it - and those references are not all visible from the scene list. A plugin that maintains a second canvas (the vertical-canvas plugin on the reference machine does exactly that) keeps its own reference, so the input can vanish from obs_list_inputs while the decoder is still running and still costing GPU. If you removed something to reclaim resources and the machine did not get faster, this is why. This tool re-reads the input list afterwards and tells you which of the two happened.\n\nSo if the goal is to stop something DECODING rather than to delete it, do not use this at all: take it out of every scene, or hide it. A source that is in no active scene does not decode and does not burn GPU, and it is reversible - which matters here, because removal is not undoable over the websocket. Re-creating the input afterwards will not bring back its filters, its audio routing, its sync offset, or its position and crop in any scene. Read obs_get_input_settings first if there is any chance you will need to rebuild it.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Exact input name. Removal is permanent and affects every scene containing it."
+                    }
+                  },
+                  "required": [
+                    "inputName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_rename_input",
+                "description": "Rename a source. Inside OBS this is safe and complete: scene items reference the source itself, not its name, so every scene follows the rename and nothing breaks visually.\n\nOutside OBS it is the opposite, and that is the real risk. Everything that automates OBS addresses sources BY NAME over the websocket - health checks asking whether a mic is producing sound, audio tooling, scene builders, and every tool call in this server. None of them are updated by a rename, none of them fail loudly, and the symptom arrives later as 'that check stopped reporting' rather than as an error. A source name that has drifted from what it now shows is often still worth keeping for exactly this reason. Prefer renaming the SCENE, which nothing addresses by name, or leaving it alone.\n\nNames are unique across the whole collection, so a rename onto a name already in use fails.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Current exact input name."
+                    },
+                    "newInputName": {
+                      "type": "string",
+                      "description": "New name. Must not already be in use by another input."
+                    }
+                  },
+                  "required": [
+                    "inputName",
+                    "newInputName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_input_kind_reference",
+                "description": "What source types this OBS build supports, and which settings keys each type legally accepts.\n\nCall it with no arguments to list the kinds - that list is also the honest answer to 'which plugins are loaded', since a kind like 'ndi_source' only appears if its plugin initialised. Call it with inputKind to get that kind's default settings object, which is the closest thing to a schema OBS offers: an input's kind decides which settings keys mean anything, and a key that belongs to a different kind is accepted and silently ignored rather than rejected. That silent acceptance is why guessing keys wastes so much time - obs_set_input_settings returns success either way.\n\nTwo limits worth knowing. The defaults object lists only keys the plugin registered a default for, so it is a floor and not the full set: dshow_input returns nine keys and video_device_id is not among them, because it has no sensible default. To see the rest, read a WORKING input of the same kind with obs_get_input_settings, and get legal values for the dropdown keys from obs_input_property_items. Second, kind ids carry version suffixes - this build reports color_source_v3, text_gdiplus_v3, slideshow_v2 - and the versioned id is what existing inputs report and what obs_create_input expects. unversioned:true strips the suffixes, which is useful for recognising a kind named in an older config or article, but do not create sources with the stripped names.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputKind": {
+                      "type": "string",
+                      "description": "Omit to list all kinds. Give a versioned kind id (e.g. 'dshow_input', 'color_source_v3') to get that kind's default settings."
+                    },
+                    "unversioned": {
+                      "type": "boolean",
+                      "description": "Only affects the list. true strips version suffixes (color_source_v3 -> color_source). Default false, which is the form obs_create_input wants."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_list_outputs",
+                "description": "List every output OBS currently has - the stream, the recording, the replay buffer, the virtual camera, and any output contributed by a plugin - with which ones are running right now.\n\nStart here before touching anything in this module, because the names are not predictable. OBS's own are internal ids (adv_stream, adv_file_output); plugin outputs use whatever label the plugin chose, and on the reference machine the vertical-canvas plugin contributes one called 'Vertical Backtrack' that also reports its width and height as 0 in this list, which is the plugin not filling those in rather than a broken output. Do not infer what an output does from its name.\n\nThe field that actually matters is outputFlags.OBS_OUTPUT_SERVICE. True means the output feeds a streaming service - that is the live broadcast, and on the reference machine exactly one output has it: adv_stream, which is the single RTMP connection to the local relay that fans out to Twitch, YouTube and Kick. Everything downstream of it dies together, so 'which platform does this stop' has no useful answer: it stops all three. This tool annotates each output with that reading so the distinction is not left to name-guessing.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_output_status",
+                "description": "Live health of an output: whether it is running, how long it has been running, how many bytes it has pushed, how many frames it dropped, and how congested it is. Omit outputName to get all of them at once, which is the fastest read of 'what is this machine actually doing right now'.\n\nRead outputActive first and let it gate everything else, because the counters are NOT cleared when an output stops. On the live rig, adv_file_output reported outputActive false alongside 1.68 GB of outputBytes and 131,933 outputTotalFrames - leftovers from the previous recording session. Reading bytes alone would say the recording is running when it has not been for hours. outputTimecode and outputDuration are the ones that do reset to zero, so they agree with outputActive.\n\nFor a stream that is up, the two numbers to watch over time are outputSkippedFrames and outputCongestion. Congestion is a percentage of how close the encoder is to not keeping up; rising congestion with climbing skipped frames means the upload or the encoder is the bottleneck and viewers are seeing it. outputReconnecting true means the connection dropped and OBS is trying to re-establish it - the broadcast is interrupted even though outputActive has not gone false.\n\nOne caution specific to this setup: healthy numbers here only prove OBS is successfully pushing bytes into the local relay. They say nothing about whether the relay is still forwarding to each platform. A YouTube broadcast can be receiving nothing while this reports a perfect stream.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "outputName": {
+                      "type": "string",
+                      "description": "Exact output name from obs_list_outputs. Omit for every output."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_get_output_settings",
+                "description": "Read one output's settings object. Use it before obs_set_output_settings, because the keys an output accepts depend entirely on its kind and there is no schema request for them - the object you get back IS the list of keys that mean anything.\n\nExpect less than you think. adv_stream on the reference machine returns only bind_ip, ip_family, dyn_bitrate, low_latency_mode_enabled and new_socket_loop_enabled: network tuning, and nothing else. There is no server URL and no stream key in there. The destination lives on the stream SERVICE, which is part of the profile, not the output - so reading this to find out where the rig is streaming will not tell you, and neither will writing to it change where the rig streams. Bitrate and encoder settings are likewise profile-level, not here.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "outputName": {
+                      "type": "string",
+                      "description": "Exact output name from obs_list_outputs."
+                    }
+                  },
+                  "required": [
+                    "outputName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_set_output_settings",
+                "description": "Write an output's settings. This REPLACES the settings object rather than merging into it, so read obs_get_output_settings first and send the full object with your change applied - sending one key on its own is how you lose the others.\n\nDo not reach for this to change where the stream goes or how good it looks. The destination and stream key belong to the profile's stream service, and bitrate and encoder belong to the profile; none of them appear in an output's settings. What is here is network-level behaviour - which interface to bind, IPv4 vs IPv6, dynamic bitrate, low-latency mode. For anything about quality or destination, use obs_profile_and_collection.\n\nChange settings while the output is stopped. A running output has already read its configuration, and a write that appears to succeed may do nothing until the next start - which reads as a broken tool when it is really a timing mistake. On a live broadcast, changing adv_stream's networking settings is not a safe experiment: verify with obs_output_status afterwards and be ready for the possibility that it takes the connection down.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "outputName": {
+                      "type": "string",
+                      "description": "Exact output name from obs_list_outputs."
+                    },
+                    "outputSettings": {
+                      "type": "object",
+                      "description": "The COMPLETE settings object. Start from obs_get_output_settings and modify it; omitted keys are not preserved."
+                    }
+                  },
+                  "required": [
+                    "outputName",
+                    "outputSettings"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_output_control",
+                "description": "Start, stop or toggle any output by name - covers StartOutput, StopOutput and ToggleOutput. This is the general lever for outputs that have no dedicated tool: the replay buffer, the virtual camera, and above all the outputs a plugin brought with it, such as the vertical canvas's own recording on the reference machine. Without it, a whole second canvas is unreachable.\n\nKnow which output you are aiming at before you fire. Stopping the SERVICE output ends the broadcast for every viewer on every platform simultaneously - here that is adv_stream, the one RTMP connection into the local relay that feeds Twitch, YouTube and Kick, so there is no such thing as stopping just one platform from OBS. Stopping the local recording (adv_file_output) is merely annoying by comparison. Stopping a replay buffer discards what is in memory. Because these are so far apart in consequence and the names give no hint, this tool refuses to stop a service output unless you pass confirm:true, and names the output in the refusal.\n\nFor the main stream and the main recording, prefer obs_stream_control and obs_record_control. Those are the paths the rest of the reference machine's tooling and OBS's own state follow; this tool operates on the raw output and is the right choice only for what they do not cover.\n\n'toggle' is convenient and dangerous in the same way: it decides based on state you have not looked at, so a toggle aimed at something you believed was stopped will stop it instead. Check obs_output_status first, or use explicit start/stop. Starting an already-running output, or stopping an already-stopped one, is an error rather than a no-op - this tool reports the state it found instead of failing obscurely.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "outputName": {
+                      "type": "string",
+                      "description": "Exact output name from obs_list_outputs."
+                    },
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "start",
+                        "stop",
+                        "toggle"
+                      ],
+                      "description": "'toggle' flips whatever the current state is - prefer explicit start/stop."
+                    },
+                    "confirm": {
+                      "type": "boolean",
+                      "description": "Required (true) only to stop or toggle-off an output that feeds a streaming service, i.e. to end the live broadcast on every platform at once."
+                    }
+                  },
+                  "required": [
+                    "outputName",
+                    "action"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_media_status",
+                "description": "Survey what media sources are actually playing. With no inputName it checks EVERY media input (ffmpeg_source and vlc_source) in one go, which is the form you almost always want: the failure worth catching is 'one of them quietly ended', and you cannot spot that by asking about a source you already suspect.\n\nTHE TRAP: mediaState PLAYING does not mean video or audio is arriving. A disconnected SRT feed sits at PLAYING with its cursor frozen at 0 forever - measured on the reference machine, every media input claimed PLAYING and only the cursor separated the working ones from a dead feed. Pass probeMs (e.g. 2000) to take a second sample and get advancing:true/false per source, computed from whether cursorMs actually moved. That is the only honest liveness test.\n\nWhy it matters here: background music is an ffmpeg_source named a looping media source whose next track is queued by a Node process listening for MediaInputPlaybackEnded. When that listener dies the source parks in state 'ended' and every other indicator - process table, supervisor, dashboard - stays green. That gap once hid seventeen hours of silence. state:'ended' on a looping media source is the whole diagnosis.\n\nNote durationMs is null for live feeds: OBS returns INT64_MIN, not null, for a stream with no end, so unboundedDuration:true flags a live source rather than a broken one.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "One media input to check. Omit to survey all of them."
+                    },
+                    "inputUuid": {
+                      "type": "string",
+                      "description": "UUID instead of a name. Ignored when surveying all."
+                    },
+                    "probeMs": {
+                      "type": "number",
+                      "description": "Wait this many ms and sample again, reporting advancing:true only if the cursor moved. 2000 is plenty. 0 (default) does a single sample and cannot tell playing from stalled.",
+                      "minimum": 0,
+                      "maximum": 10000
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_media_seek",
+                "description": "Move the playhead of a media source, either to an absolute position (positionMs) or by a relative amount (offsetMs, negative to rewind). Exactly one of the two.\n\nThere is NO bounds checking, by design of the protocol - seeking past the end does not clamp, and seeking a live feed that has no meaningful duration is not a defined operation. Read obs_media_status first: if durationMs is null and unboundedDuration is true, this source is a live stream and seeking it is meaningless.\n\nOn the reference machine, do not seek a looping media source to reach the next track. The queue lives in music/player.js, not in OBS; running `node music/player.js --next` is the supported skip and keeps the player's state file in agreement with what is audible.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Name of the media input."
+                    },
+                    "inputUuid": {
+                      "type": "string",
+                      "description": "UUID instead of a name."
+                    },
+                    "positionMs": {
+                      "type": "number",
+                      "description": "Absolute cursor position in milliseconds. Must be >= 0.",
+                      "minimum": 0
+                    },
+                    "offsetMs": {
+                      "type": "number",
+                      "description": "Relative move in milliseconds; negative rewinds."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_media_control",
+                "description": "Transport control for a media source: play, pause, stop, restart, next, previous.\n\nnext and previous are PLAYLIST actions. They only do something on a vlc_source, which holds a list of files. On an ffmpeg_source - which is every media input on the reference machine, a looping media source included - there is no playlist, so they succeed and change nothing. A tool call that returns success while nothing happened is worse than an error, so check the returned state.\n\nCareful with a looping media source specifically: its watchdog in music/player.js advances the queue on states ended, none and error, but NOT on paused or stopped. So pausing or stopping a looping media source here is not self-healing - the music stays silent until a person notices, which is the exact failure mode the reference machine already paid seventeen hours for. Use `node music/player.js --next` to skip a track instead.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "inputName": {
+                      "type": "string",
+                      "description": "Name of the media input."
+                    },
+                    "inputUuid": {
+                      "type": "string",
+                      "description": "UUID instead of a name."
+                    },
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "play",
+                        "pause",
+                        "stop",
+                        "restart",
+                        "next",
+                        "previous"
+                      ],
+                      "description": "next/previous are playlist-only and are no-ops on an ffmpeg_source."
+                    }
+                  },
+                  "required": [
+                    "action"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_hotkey_list",
+                "description": "List the hotkey action names OBS knows about, which is how you discover what PLUGINS can do - a plugin's actions usually have no obs-websocket request at all, so this list is their only index. Results are grouped into core OBS actions and plugin-provided ones, and deduplicated with a count, because the raw response on the reference machine is 411 strings of which 37 are repeats.\n\nPass filter to narrow by substring (case-insensitive), or pluginsOnly:true to skip the ~390 core entries and see just what the installed plugins registered.\n\nTHE TRAP THIS LIST REVEALS: a repeated name means the action exists once per source or per scene - libobs.mute is registered separately for every audio input - and the trigger request takes only a name, so you cannot address a specific one. When you see count > 1 here, do not trigger it; find the real request instead (SetInputMute, SetSceneItemEnabled, and so on). Names with count 1 that are plugin-provided are the ones worth triggering.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "filter": {
+                      "type": "string",
+                      "description": "Case-insensitive substring, e.g. 'switcher' or 'vertical'."
+                    },
+                    "pluginsOnly": {
+                      "type": "boolean",
+                      "description": "Only names outside libobs./OBSBasic./MediaSource./ObsBrowser./ReplayBuffer. - i.e. plugin actions."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_hotkey_trigger",
+                "description": "Fire an OBS hotkey action by name - the way to invoke plugin features that have no obs-websocket request of their own. On the reference machine that means the vertical-canvas plugin's separate recording and streaming pipeline (VerticalCanvasDock*) and Advanced Scene Switcher's start/stop and macro segments (*SwitcherHotkey). Get names from obs_hotkey_list.\n\nDANGEROUS NAMES ARE IN THE SAME NAMESPACE. OBSBasic.StopStreaming, OBSBasic.ForceStopStreaming and VerticalCanvasDockStopStreaming all sit in that list and all end a live broadcast instantly; OBSBasic.StartStreaming starts one. There is no undo and no confirmation. This tool refuses nothing, so read the name you are about to send.\n\nDO NOT USE IT AS A SHORTCUT FOR A REAL REQUEST. Duplicated names - libobs.mute, MediaSource.Play, libobs.show_scene_item.N - are registered once per source or scene, and this request takes a bare name, so which one fires is not something you control. Mute with SetInputMute, hide with SetSceneItemEnabled, switch scenes with SetCurrentProgramScene. Hotkeys are for what those cannot reach.\n\nOBS returns success for a name it accepted, not for an effect it produced; verify the thing you wanted actually changed.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "hotkeyName": {
+                      "type": "string",
+                      "description": "Exact name from obs_hotkey_list, e.g. 'VerticalCanvasDockStartRecording'. Case-sensitive."
+                    },
+                    "contextName": {
+                      "type": "string",
+                      "description": "Optional context for the hotkey, per the protocol. Note GetHotkeyList returns names only and never contexts, so there is no way to discover a valid value here from the API - omit it unless a plugin's own documentation gave you one."
+                    }
+                  },
+                  "required": [
+                    "hotkeyName"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_hotkey_key",
+                "description": "Press a key combination at OBS, as if typed while OBS had focus. Use this only when an action has no name in obs_hotkey_list and no request - for instance a plugin binding a user configured by hand in Settings > Hotkeys.\n\nIt is a blunt instrument and fails silently in both directions. If nothing is bound to the combination, OBS accepts the request and does nothing at all. If something you did not expect is bound to it, that fires instead - and OBS's default bindings include stopping the stream and the recording. There is no request that reports what is bound to what, so you cannot check first.\n\nkeyId values are the OBS_KEY_* identifiers from libobs/obs-hotkeys.h - OBS_KEY_F1, OBS_KEY_A, OBS_KEY_SPACE, OBS_KEY_NUM1 and so on - not browser key names and not raw characters. Modifiers go in keyModifiers, not in keyId.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "keyId": {
+                      "type": "string",
+                      "description": "OBS key identifier, e.g. 'OBS_KEY_F5'. Omitted means no key is pressed, only modifiers."
+                    },
+                    "keyModifiers": {
+                      "type": "object",
+                      "description": "Modifier keys held during the press. Omitted entirely means none.",
+                      "properties": {
+                        "shift": {
+                          "type": "boolean"
+                        },
+                        "control": {
+                          "type": "boolean",
+                          "description": "CTRL."
+                        },
+                        "alt": {
+                          "type": "boolean"
+                        },
+                        "command": {
+                          "type": "boolean",
+                          "description": "CMD, macOS only. Irrelevant on this Windows rig."
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_monitor_list",
+                "description": "List the physical displays OBS can put a fullscreen projector on, with the index each one answers to. Always call this before opening a fullscreen projector: the index is positional, it is not stable across replugging a display, and there is no request that tells you which one OBS's own window is on.\n\nIf this returns a single monitor - which is what the reference machine reports, one 1920x1080 at index 0 - then there is no spare screen, and every fullscreen projector will land on top of the operator's OBS window. Since obs-websocket has no way to close a projector, that has to be undone by hand at the machine. Use windowed mode instead when the count is 1.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_projector_open_mix",
+                "description": "Open a projector showing a whole video mix - program (what is going out), preview (what studio mode has queued up), or multiview (the grid of all scenes).\n\nprogram on a second monitor is the standard clean-feed trick: a capture card or a second PC pointed at that display gets the finished broadcast picture without a second encode and without OBS chrome. preview is the confidence monitor for whoever is operating. multiview is for a director watching everything at once.\n\nDefaults to a WINDOW. Pass monitorIndex only when obs_monitor_list shows a display you can afford to lose, because fullscreen covers that entire screen and obs-websocket cannot close or enumerate projectors - this window stays until someone closes it in the OBS UI.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "videoMixType": {
+                      "type": "string",
+                      "enum": [
+                        "program",
+                        "preview",
+                        "multiview"
+                      ],
+                      "description": "program = live output, preview = studio-mode staging, multiview = all-scenes grid."
+                    },
+                    "monitorIndex": {
+                      "type": "number",
+                      "description": "Index from obs_monitor_list for fullscreen. Omit, or use -1, for a normal window. Mutually exclusive with projectorGeometry."
+                    },
+                    "projectorGeometry": {
+                      "type": "string",
+                      "description": "Size and position for a windowed projector, in Qt's base64 geometry format. The protocol does not document how to construct one, so in practice this is a value copied from somewhere that already had it - otherwise omit it and let the window open at its default size."
+                    }
+                  },
+                  "required": [
+                    "videoMixType"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_projector_open_source",
+                "description": "Open a projector showing ONE source on its own, rather than the whole mix. sourceName takes a scene name as readily as an input name - in OBS a scene is a source - so this projects either a single camera, screen capture or media input, or an entire scene composed as it would look on air.\n\nWhat it is for: feeding one specific picture to hardware or to a person. A guest's camera on a monitor they can see, one screen share to a capture card, a scene routed to a second machine - all without re-encoding anything, because the projector is just the same frames drawn to a window.\n\nA source projector shows that source ALONE. Overlays that live in a different scene are not in it: on the reference machine the HUD is its own scene added into the others, so projecting a camera source gives you the bare camera, and projecting a scene gives you that scene's own composite. If you want what the audience sees, that is the program mix, not a source - use obs_projector_open_mix.\n\nDefaults to a WINDOW. obs-websocket cannot close or enumerate projectors - this window stays until someone closes it in the OBS UI.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "sourceName": {
+                      "type": "string",
+                      "description": "Name of the input OR scene to project."
+                    },
+                    "sourceUuid": {
+                      "type": "string",
+                      "description": "UUID instead of a name."
+                    },
+                    "canvasUuid": {
+                      "type": "string",
+                      "description": "UUID of the canvas the source belongs to, when disambiguating by name."
+                    },
+                    "monitorIndex": {
+                      "type": "number",
+                      "description": "Index from obs_monitor_list for fullscreen. Omit, or use -1, for a normal window. Mutually exclusive with projectorGeometry."
+                    },
+                    "projectorGeometry": {
+                      "type": "string",
+                      "description": "Size and position for a windowed projector, in Qt's base64 geometry format. The protocol does not document how to construct one; omit it unless you are reusing a known value."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        },
+        "elapsedMs": 0
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_raw",
+          "arguments": {
+            "requestType": "GetVersion",
+            "requestData": {}
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 3,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"obsVersion\": \"31.1.0\",\n  \"obsWebSocketVersion\": \"5.6.2\",\n  \"rpcVersion\": 1,\n  \"availableRequests\": [\n    \"GetVersion\",\n    \"GetSceneList\",\n    \"GetCurrentProgramScene\",\n    \"SetCurrentProgramScene\",\n    \"GetInputList\",\n    \"GetInputMute\",\n    \"SetInputMute\",\n    \"ToggleInputMute\",\n    \"GetRecordStatus\",\n    \"StartRecord\",\n    \"StopRecord\",\n    \"GetStreamStatus\",\n    \"GetSourceScreenshot\",\n    \"SaveSourceScreenshot\",\n    \"GetCanvasList\",\n    \"GetInputSettings\",\n    \"SetInputSettings\",\n    \"GetSourceFilterList\",\n    \"GetInputVolume\",\n    \"GetSourceFilter\",\n    \"SetSourceFilterSettings\",\n    \"GetOutputSettings\",\n    \"SetOutputSettings\",\n    \"GetSceneTransitionList\",\n    \"GetCurrentSceneTransition\",\n    \"SetCurrentSceneTransitionSettings\",\n    \"GetStreamServiceSettings\",\n    \"SetStreamServiceSettings\"\n  ],\n  \"supportedImageFormats\": [\n    \"bmp\",\n    \"jpeg\",\n    \"png\",\n    \"webp\"\n  ],\n  \"platform\": \"fixture\",\n  \"platformDescription\": \"Deterministic loopback study fixture\"\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 61
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_list_scenes",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 4,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"currentProgramScene\": \"Intro\",\n  \"currentPreviewScene\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "sceneName": "Main"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 5,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"ok\": true,\n  \"nowLive\": \"Main\"\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_list_scenes",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 6,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"currentProgramScene\": \"Main\",\n  \"currentPreviewScene\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 0
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_audio_control",
+          "arguments": {
+            "inputName": "Mic/Aux",
+            "muted": true
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 7,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"inputName\": \"Mic/Aux\",\n  \"muted\": true,\n  \"volumeDb\": -2.498\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_audio_control",
+          "arguments": {
+            "inputName": "Mic/Aux"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 8,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"inputName\": \"Mic/Aux\",\n  \"muted\": true,\n  \"volumeDb\": -2.498\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_record_control",
+          "arguments": {
+            "action": "start"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 9,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"outputActive\": true,\n  \"outputPaused\": false,\n  \"outputTimecode\": \"00:00:01.250\",\n  \"outputDuration\": 1250,\n  \"outputBytes\": 4096\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_record_control",
+          "arguments": {
+            "action": "status"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 10,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"outputActive\": true,\n  \"outputPaused\": false,\n  \"outputTimecode\": \"00:00:01.250\",\n  \"outputDuration\": 1250,\n  \"outputBytes\": 4096\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 3
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_record_control",
+          "arguments": {
+            "action": "stop"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 11,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"outputActive\": false,\n  \"outputPaused\": false,\n  \"outputTimecode\": \"00:00:00.000\",\n  \"outputDuration\": 0,\n  \"outputBytes\": 0\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 5
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_screenshot",
+          "arguments": {
+            "sourceName": "Main",
+            "width": 1
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 12,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Live frame from \"Main\":"
+              },
+              {
+                "type": "image",
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z/D/PwAG/gL+DHWJ3gAAAABJRU5ErkJggg==",
+                "mimeType": "image/png"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_raw",
+          "arguments": {
+            "requestType": "GetStreamServiceSettings",
+            "requestData": {}
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 13,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"streamServiceType\": \"rtmp_common\",\n  \"streamServiceSettings\": {\n    \"server\": \"rtmp://127.0.0.1/synthetic\",\n    \"key\": \"[REDACTED_SYNTHETIC_SECRET]\",\n    \"use_auth\": false\n  }\n}"
+              }
+            ]
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 14,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "ERROR: OBS rejected \"SetCurrentProgramScene\": Missing request field: sceneName"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 0
+      },
+      {
+        "id": 15,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "sceneName": "Missing Fixture Scene"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 15,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "ERROR: OBS rejected \"SetCurrentProgramScene\": Scene not found"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 16,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "sceneName": "Intro"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 16,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "ERROR: OBS rejected \"SetCurrentProgramScene\": Synthetic OBS rejection: scene locked"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 0
+      },
+      {
+        "id": 17,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_list_scenes",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 17,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "ERROR: OBS request \"GetSceneList\" timed out after 15s"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 15010
+      },
+      {
+        "id": 18,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "sceneName": "Intro"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 18,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "ERROR: OBS connection closed"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 7
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "[obs-mcp] ready. target ws://127.0.0.1:41925, auth enabled\n[obs-mcp] connected to OBS (obs-websocket 5.6.2)\n",
+    "lifetimeMs": 15807
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "obs-action-history",
+        "version": "0.1.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {}
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 67,
+      "tools": [
+        {
+          "name": "obs_who_is_talking",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "forMs": {
+                "type": "number",
+                "description": "How long to listen. Default 1200. Keep it under ~3000."
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional: only report these sources."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_watch",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "forMs": {
+                "type": "number",
+                "description": "Wait this long before reporting, to catch what happens next. Default 0."
+              },
+              "types": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Only these eventType names, e.g. CurrentProgramSceneChanged."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Most recent N events. Default 40."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_health",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_list_scenes",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_switch_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Exact scene name, as returned by obs_list_scenes."
+              }
+            },
+            "required": [
+              "sceneName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_create_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Name for the new scene."
+              }
+            },
+            "required": [
+              "sceneName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_list_sources_in_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene to inspect."
+              }
+            },
+            "required": [
+              "sceneName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_set_source_visible",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene containing the source."
+              },
+              "sceneItemId": {
+                "type": "number",
+                "description": "Item ID from obs_list_sources_in_scene."
+              },
+              "visible": {
+                "type": "boolean",
+                "description": "true = show, false = hide."
+              }
+            },
+            "required": [
+              "sceneName",
+              "sceneItemId",
+              "visible"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_set_source_transform",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string"
+              },
+              "sceneItemId": {
+                "type": "number"
+              },
+              "positionX": {
+                "type": "number"
+              },
+              "positionY": {
+                "type": "number"
+              },
+              "scaleX": {
+                "type": "number"
+              },
+              "scaleY": {
+                "type": "number"
+              },
+              "cropLeft": {
+                "type": "number"
+              },
+              "cropRight": {
+                "type": "number"
+              },
+              "cropTop": {
+                "type": "number"
+              },
+              "cropBottom": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "sceneName",
+              "sceneItemId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_list_inputs",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_get_input_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Exact input name."
+              }
+            },
+            "required": [
+              "inputName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_set_input_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string"
+              },
+              "settings": {
+                "type": "object",
+                "description": "Partial settings object to merge in."
+              }
+            },
+            "required": [
+              "inputName",
+              "settings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_create_input",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string"
+              },
+              "inputName": {
+                "type": "string"
+              },
+              "inputKind": {
+                "type": "string"
+              },
+              "inputSettings": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "sceneName",
+              "inputName",
+              "inputKind"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_list_input_kinds",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_audio_control",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string"
+              },
+              "muted": {
+                "type": "boolean",
+                "description": "Omit to leave unchanged."
+              },
+              "volumeDb": {
+                "type": "number",
+                "description": "Omit to leave unchanged. Range -100..26."
+              }
+            },
+            "required": [
+              "inputName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_stream_control",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": [
+                  "start",
+                  "stop",
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_record_control",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": [
+                  "start",
+                  "stop",
+                  "pause",
+                  "resume",
+                  "status"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_screenshot",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Scene or source name. Use the current program scene to see what viewers see."
+              },
+              "width": {
+                "type": "number",
+                "description": "Optional downscale width, default 1280."
+              }
+            },
+            "required": [
+              "sourceName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_video_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "baseWidth": {
+                "type": "number"
+              },
+              "baseHeight": {
+                "type": "number"
+              },
+              "outputWidth": {
+                "type": "number"
+              },
+              "outputHeight": {
+                "type": "number"
+              },
+              "fpsNumerator": {
+                "type": "number"
+              },
+              "fpsDenominator": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_profile_and_collection",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "setProfile": {
+                "type": "string"
+              },
+              "setSceneCollection": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_transition",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "transitionName": {
+                "type": "string",
+                "description": "e.g. 'Fade', 'Cut', 'Luma Wipe'."
+              },
+              "durationMs": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filters",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string"
+              },
+              "addFilterName": {
+                "type": "string"
+              },
+              "addFilterKind": {
+                "type": "string"
+              },
+              "addFilterSettings": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "sourceName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_raw",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "requestType": {
+                "type": "string",
+                "description": "e.g. 'GetHotkeyList', 'TriggerHotkeyByName'."
+              },
+              "requestData": {
+                "type": "object",
+                "description": "Payload for that request."
+              }
+            },
+            "required": [
+              "requestType"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_scene_item_add",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene to add the source to."
+              },
+              "sourceName": {
+                "type": "string",
+                "description": "Name of an existing input or scene (obs_list_inputs / obs_list_scenes)."
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "Start visible. Default true."
+              }
+            },
+            "required": [
+              "sceneName",
+              "sourceName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_scene_item_remove",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene holding the item."
+              },
+              "sceneItemId": {
+                "type": "number",
+                "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+              }
+            },
+            "required": [
+              "sceneName",
+              "sceneItemId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_scene_item_duplicate",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene holding the item."
+              },
+              "sceneItemId": {
+                "type": "number",
+                "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+              },
+              "toScene": {
+                "type": "string",
+                "description": "Destination scene. Omit to duplicate into the same scene."
+              }
+            },
+            "required": [
+              "sceneName",
+              "sceneItemId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_scene_item_order",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene to read or reorder."
+              },
+              "sceneItemId": {
+                "type": "number",
+                "description": "Item to move. Omit to only read the order."
+              },
+              "index": {
+                "type": "number",
+                "description": "New index. 0 = bottom. Requires sceneItemId."
+              }
+            },
+            "required": [
+              "sceneName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_scene_item_lock",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene holding the item."
+              },
+              "sceneItemId": {
+                "type": "number",
+                "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+              },
+              "locked": {
+                "type": "boolean",
+                "description": "true = lock, false = unlock. Omit to just read."
+              }
+            },
+            "required": [
+              "sceneName",
+              "sceneItemId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_scene_item_blend_mode",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene holding the item."
+              },
+              "sceneItemId": {
+                "type": "number",
+                "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+              },
+              "blendMode": {
+                "type": "string",
+                "enum": [
+                  "OBS_BLEND_NORMAL",
+                  "OBS_BLEND_ADDITIVE",
+                  "OBS_BLEND_SUBTRACT",
+                  "OBS_BLEND_SCREEN",
+                  "OBS_BLEND_MULTIPLY",
+                  "OBS_BLEND_LIGHTEN",
+                  "OBS_BLEND_DARKEN"
+                ],
+                "description": "Blend mode to apply. Omit to just read."
+              }
+            },
+            "required": [
+              "sceneName",
+              "sceneItemId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_scene_item_transform",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Scene holding the item."
+              },
+              "sceneItemId": {
+                "type": "number",
+                "description": "Item id from obs_list_sources_in_scene. Unique within this scene only."
+              },
+              "positionX": {
+                "type": "number",
+                "description": "Canvas x of the alignment point."
+              },
+              "positionY": {
+                "type": "number",
+                "description": "Canvas y of the alignment point."
+              },
+              "scaleX": {
+                "type": "number",
+                "description": "Horizontal scale. 1 = native size. Negative flips."
+              },
+              "scaleY": {
+                "type": "number",
+                "description": "Vertical scale. 1 = native size. Negative flips."
+              },
+              "rotation": {
+                "type": "number",
+                "description": "Degrees clockwise, -360 to 360."
+              },
+              "alignment": {
+                "type": "number",
+                "description": "Bitmask: 0 centre, 1 left, 2 right, 4 top, 8 bottom. 5 = top-left."
+              },
+              "boundsType": {
+                "type": "string",
+                "enum": [
+                  "OBS_BOUNDS_NONE",
+                  "OBS_BOUNDS_STRETCH",
+                  "OBS_BOUNDS_SCALE_INNER",
+                  "OBS_BOUNDS_SCALE_OUTER",
+                  "OBS_BOUNDS_SCALE_TO_WIDTH",
+                  "OBS_BOUNDS_SCALE_TO_HEIGHT",
+                  "OBS_BOUNDS_MAX_ONLY"
+                ],
+                "description": "Required for any bounds field to take effect."
+              },
+              "boundsWidth": {
+                "type": "number",
+                "description": "Bounding box width, 1 to 90001. Needs boundsType."
+              },
+              "boundsHeight": {
+                "type": "number",
+                "description": "Bounding box height, 1 to 90001. Needs boundsType."
+              },
+              "boundsAlignment": {
+                "type": "number",
+                "description": "Same bitmask as alignment; where the source sits inside the box. 0 = centred."
+              },
+              "cropToBounds": {
+                "type": "boolean",
+                "description": "Clip anything overflowing the bounding box. Needs boundsType."
+              },
+              "cropLeft": {
+                "type": "number",
+                "description": "Source pixels cut from the left, 0 to 100000."
+              },
+              "cropRight": {
+                "type": "number",
+                "description": "Source pixels cut from the right."
+              },
+              "cropTop": {
+                "type": "number",
+                "description": "Source pixels cut from the top."
+              },
+              "cropBottom": {
+                "type": "number",
+                "description": "Source pixels cut from the bottom."
+              }
+            },
+            "required": [
+              "sceneName",
+              "sceneItemId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filter_kinds",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filterKind": {
+                "type": "string",
+                "description": "Optional: also return this kind's default settings."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filter_get",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Input or scene to inspect."
+              },
+              "filterName": {
+                "type": "string",
+                "description": "Optional: one filter, in detail."
+              }
+            },
+            "required": [
+              "sourceName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filter_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Input or scene the filter is on."
+              },
+              "filterName": {
+                "type": "string",
+                "description": "Exact filter name, from obs_filter_get."
+              },
+              "settings": {
+                "type": "object",
+                "description": "Setting keys to apply, e.g. {\"delay_ms\": 630}."
+              },
+              "replace": {
+                "type": "boolean",
+                "description": "Reset to kind defaults first, discarding all other tuned values. Default false (merge)."
+              }
+            },
+            "required": [
+              "sourceName",
+              "filterName",
+              "settings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filter_toggle",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Input or scene the filter is on."
+              },
+              "filterName": {
+                "type": "string",
+                "description": "Exact filter name, from obs_filter_get."
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "true = on, false = bypassed. Omit to just read."
+              }
+            },
+            "required": [
+              "sourceName",
+              "filterName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filter_remove",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Input or scene the filter is on."
+              },
+              "filterName": {
+                "type": "string",
+                "description": "Exact filter name, from obs_filter_get."
+              }
+            },
+            "required": [
+              "sourceName",
+              "filterName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filter_order",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Input or scene the filter is on."
+              },
+              "filterName": {
+                "type": "string",
+                "description": "Exact filter name, from obs_filter_get."
+              },
+              "index": {
+                "type": "number",
+                "description": "New position. 0 = runs first."
+              }
+            },
+            "required": [
+              "sourceName",
+              "filterName",
+              "index"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_filter_rename",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Input or scene the filter is on."
+              },
+              "filterName": {
+                "type": "string",
+                "description": "Exact filter name, from obs_filter_get."
+              },
+              "newName": {
+                "type": "string",
+                "description": "New filter name, unique within this source."
+              }
+            },
+            "required": [
+              "sourceName",
+              "filterName",
+              "newName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_audio_routing",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Audio input name, exactly as OBS lists it."
+              },
+              "monitorType": {
+                "type": "string",
+                "enum": [
+                  "OBS_MONITORING_TYPE_NONE",
+                  "OBS_MONITORING_TYPE_MONITOR_ONLY",
+                  "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT"
+                ],
+                "description": "Omit to leave unchanged. NONE = viewers only (the safe default while live)."
+              },
+              "syncOffsetMs": {
+                "type": "number",
+                "description": "Omit to leave unchanged. Positive delays this audio to catch up with late video. Useful range is about -950..960; larger is accepted and ignored."
+              },
+              "tracks": {
+                "type": "object",
+                "properties": {
+                  "1": {
+                    "type": "boolean"
+                  },
+                  "2": {
+                    "type": "boolean"
+                  },
+                  "3": {
+                    "type": "boolean"
+                  },
+                  "4": {
+                    "type": "boolean"
+                  },
+                  "5": {
+                    "type": "boolean"
+                  },
+                  "6": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Omit to leave unchanged. Partial is fine - only the tracks you name change, e.g. {\"6\": true}."
+              },
+              "balance": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Omit to leave unchanged. 0.0 hard left, 0.5 centre, 1.0 hard right."
+              }
+            },
+            "required": [
+              "inputName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_audio_routing_map",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "onlyProblems": {
+                "type": "boolean",
+                "description": "true = return only inputs with at least one note. Default false."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_special_inputs",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_replay_buffer",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": [
+                  "status",
+                  "start",
+                  "stop",
+                  "save"
+                ],
+                "description": "'status' is read-only and always safe."
+              },
+              "waitMs": {
+                "type": "number",
+                "description": "save only: how long to wait for the file path to change. Default 4000, max 15000."
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_virtual_cam",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": [
+                  "status",
+                  "start",
+                  "stop",
+                  "toggle"
+                ],
+                "description": "'status' is read-only. Use start/stop rather than toggle in automation."
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_save_screenshot",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Scene or source name. The current program scene captures what viewers see."
+              },
+              "imageFilePath": {
+                "type": "string",
+                "description": "Absolute path ON THE OBS MACHINE, with extension, e.g. /path/to/frame.png (or C:/path/to/frame.png on Windows)"
+              },
+              "imageFormat": {
+                "type": "string",
+                "enum": [
+                  "png",
+                  "jpg",
+                  "jpeg",
+                  "webp",
+                  "bmp",
+                  "tiff"
+                ],
+                "description": "Default png. Use jpg or webp for anything sampled repeatedly."
+              },
+              "imageWidth": {
+                "type": "number",
+                "minimum": 8,
+                "maximum": 4096,
+                "description": "Optional. 8-4096."
+              },
+              "imageHeight": {
+                "type": "number",
+                "minimum": 8,
+                "maximum": 4096,
+                "description": "Optional. 8-4096."
+              },
+              "imageCompressionQuality": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 100,
+                "description": "0 = smallest file, 100 = uncompressed, -1 = OBS default. Default -1."
+              }
+            },
+            "required": [
+              "sourceName",
+              "imageFilePath"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_record_chapter",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "chapterName": {
+                "type": "string",
+                "description": "Optional name. Omit and OBS numbers it. Name it for the segment that starts here."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_record_split",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_studio_mode",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Omit to just read. true = enable studio mode, false = disable."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_preview_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sceneName": {
+                "type": "string",
+                "description": "Omit to just read. Exact scene name from obs_list_scenes."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_studio_transition",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_input_property_items",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Exact existing input name, as returned by obs_list_inputs. The source must already exist - this reads the properties of an instance, not of a kind."
+              },
+              "propertyName": {
+                "type": "string",
+                "description": "Internal property id, e.g. 'video_device_id' for a webcam or 'device_id' for a mic."
+              }
+            },
+            "required": [
+              "inputName",
+              "propertyName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_press_input_button",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Exact input name, as returned by obs_list_inputs."
+              },
+              "propertyName": {
+                "type": "string",
+                "description": "Internal button id, e.g. 'refreshnocache' on a browser_source or 'activate' on a dshow_input."
+              }
+            },
+            "required": [
+              "inputName",
+              "propertyName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_remove_input",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Exact input name. Removal is permanent and affects every scene containing it."
+              }
+            },
+            "required": [
+              "inputName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_rename_input",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Current exact input name."
+              },
+              "newInputName": {
+                "type": "string",
+                "description": "New name. Must not already be in use by another input."
+              }
+            },
+            "required": [
+              "inputName",
+              "newInputName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_input_kind_reference",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputKind": {
+                "type": "string",
+                "description": "Omit to list all kinds. Give a versioned kind id (e.g. 'dshow_input', 'color_source_v3') to get that kind's default settings."
+              },
+              "unversioned": {
+                "type": "boolean",
+                "description": "Only affects the list. true strips version suffixes (color_source_v3 -> color_source). Default false, which is the form obs_create_input wants."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_list_outputs",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_output_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "outputName": {
+                "type": "string",
+                "description": "Exact output name from obs_list_outputs. Omit for every output."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_get_output_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "outputName": {
+                "type": "string",
+                "description": "Exact output name from obs_list_outputs."
+              }
+            },
+            "required": [
+              "outputName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_set_output_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "outputName": {
+                "type": "string",
+                "description": "Exact output name from obs_list_outputs."
+              },
+              "outputSettings": {
+                "type": "object",
+                "description": "The COMPLETE settings object. Start from obs_get_output_settings and modify it; omitted keys are not preserved."
+              }
+            },
+            "required": [
+              "outputName",
+              "outputSettings"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_output_control",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "outputName": {
+                "type": "string",
+                "description": "Exact output name from obs_list_outputs."
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "start",
+                  "stop",
+                  "toggle"
+                ],
+                "description": "'toggle' flips whatever the current state is - prefer explicit start/stop."
+              },
+              "confirm": {
+                "type": "boolean",
+                "description": "Required (true) only to stop or toggle-off an output that feeds a streaming service, i.e. to end the live broadcast on every platform at once."
+              }
+            },
+            "required": [
+              "outputName",
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_media_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "One media input to check. Omit to survey all of them."
+              },
+              "inputUuid": {
+                "type": "string",
+                "description": "UUID instead of a name. Ignored when surveying all."
+              },
+              "probeMs": {
+                "type": "number",
+                "description": "Wait this many ms and sample again, reporting advancing:true only if the cursor moved. 2000 is plenty. 0 (default) does a single sample and cannot tell playing from stalled.",
+                "minimum": 0,
+                "maximum": 10000
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_media_seek",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Name of the media input."
+              },
+              "inputUuid": {
+                "type": "string",
+                "description": "UUID instead of a name."
+              },
+              "positionMs": {
+                "type": "number",
+                "description": "Absolute cursor position in milliseconds. Must be >= 0.",
+                "minimum": 0
+              },
+              "offsetMs": {
+                "type": "number",
+                "description": "Relative move in milliseconds; negative rewinds."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_media_control",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "inputName": {
+                "type": "string",
+                "description": "Name of the media input."
+              },
+              "inputUuid": {
+                "type": "string",
+                "description": "UUID instead of a name."
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "play",
+                  "pause",
+                  "stop",
+                  "restart",
+                  "next",
+                  "previous"
+                ],
+                "description": "next/previous are playlist-only and are no-ops on an ffmpeg_source."
+              }
+            },
+            "required": [
+              "action"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_hotkey_list",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "type": "string",
+                "description": "Case-insensitive substring, e.g. 'switcher' or 'vertical'."
+              },
+              "pluginsOnly": {
+                "type": "boolean",
+                "description": "Only names outside libobs./OBSBasic./MediaSource./ObsBrowser./ReplayBuffer. - i.e. plugin actions."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_hotkey_trigger",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "hotkeyName": {
+                "type": "string",
+                "description": "Exact name from obs_hotkey_list, e.g. 'VerticalCanvasDockStartRecording'. Case-sensitive."
+              },
+              "contextName": {
+                "type": "string",
+                "description": "Optional context for the hotkey, per the protocol. Note GetHotkeyList returns names only and never contexts, so there is no way to discover a valid value here from the API - omit it unless a plugin's own documentation gave you one."
+              }
+            },
+            "required": [
+              "hotkeyName"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_hotkey_key",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "keyId": {
+                "type": "string",
+                "description": "OBS key identifier, e.g. 'OBS_KEY_F5'. Omitted means no key is pressed, only modifiers."
+              },
+              "keyModifiers": {
+                "type": "object",
+                "description": "Modifier keys held during the press. Omitted entirely means none.",
+                "properties": {
+                  "shift": {
+                    "type": "boolean"
+                  },
+                  "control": {
+                    "type": "boolean",
+                    "description": "CTRL."
+                  },
+                  "alt": {
+                    "type": "boolean"
+                  },
+                  "command": {
+                    "type": "boolean",
+                    "description": "CMD, macOS only. Irrelevant on this Windows rig."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_monitor_list",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_projector_open_mix",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "videoMixType": {
+                "type": "string",
+                "enum": [
+                  "program",
+                  "preview",
+                  "multiview"
+                ],
+                "description": "program = live output, preview = studio-mode staging, multiview = all-scenes grid."
+              },
+              "monitorIndex": {
+                "type": "number",
+                "description": "Index from obs_monitor_list for fullscreen. Omit, or use -1, for a normal window. Mutually exclusive with projectorGeometry."
+              },
+              "projectorGeometry": {
+                "type": "string",
+                "description": "Size and position for a windowed projector, in Qt's base64 geometry format. The protocol does not document how to construct one, so in practice this is a value copied from somewhere that already had it - otherwise omit it and let the window open at its default size."
+              }
+            },
+            "required": [
+              "videoMixType"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_projector_open_source",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "sourceName": {
+                "type": "string",
+                "description": "Name of the input OR scene to project."
+              },
+              "sourceUuid": {
+                "type": "string",
+                "description": "UUID instead of a name."
+              },
+              "canvasUuid": {
+                "type": "string",
+                "description": "UUID of the canvas the source belongs to, when disambiguating by name."
+              },
+              "monitorIndex": {
+                "type": "number",
+                "description": "Index from obs_monitor_list for fullscreen. Omit, or use -1, for a normal window. Mutually exclusive with projectorGeometry."
+              },
+              "projectorGeometry": {
+                "type": "string",
+                "description": "Size and position for a windowed projector, in Qt's base64 geometry format. The protocol does not document how to construct one; omit it unless you are reusing a known value."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.599Z",
+          "requestType": "GetVersion",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"obsVersion\": \"31.1.0\",\n  \"obsWebSocketVersion\": \"5.6.2\",\n  \"rpcVersion\": 1,\n  \"availableRequests\": [\n    \"GetVersion\",\n    \"GetSceneList\",\n    \"GetCurrentProgramScene\",\n    \"SetCurrentProgramScene\",\n    \"GetInputList\",\n    \"GetInputMute\",\n    \"SetInputMute\",\n    \"ToggleInputMute\",\n    \"GetRecordStatus\",\n    \"StartRecord\",\n    \"StopRecord\",\n    \"GetStreamStatus\",\n    \"GetSourceScreenshot\",\n    \"SaveSourceScreenshot\",\n    \"GetCanvasList\",\n    \"GetInputSettings\",\n    \"SetInputSettings\",\n    \"GetSourceFilterList\",\n    \"GetInputVolume\",\n    \"GetSourceFilter\",\n    \"SetSourceFilterSettings\",\n    \"GetOutputSettings\",\n    \"SetOutputSettings\",\n    \"GetSceneTransitionList\",\n    \"GetCurrentSceneTransition\",\n    \"SetCurrentSceneTransitionSettings\",\n    \"GetStreamServiceSettings\",\n    \"SetStreamServiceSettings\"\n  ],\n  \"supportedImageFormats\": [\n    \"bmp\",\n    \"jpeg\",\n    \"png\",\n    \"webp\"\n  ],\n  \"platform\": \"fixture\",\n  \"platformDescription\": \"Deterministic loopback study fixture\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scenes",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.602Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"currentProgramScene\": \"Intro\",\n  \"currentPreviewScene\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "fail",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"currentProgramScene\": \"Main\",\n  \"currentPreviewScene\": \"Main\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.603Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Main"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.604Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "finalState": "Main",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"ok\": true,\n  \"nowLive\": \"Main\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "pass",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"inputName\": \"Mic/Aux\",\n  \"muted\": true,\n  \"volumeDb\": -2.498\n}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.605Z",
+          "requestType": "SetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux",
+            "inputMuted": true
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.605Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.606Z",
+          "requestType": "GetInputVolume",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.606Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.607Z",
+          "requestType": "GetInputVolume",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "finalState": true,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"inputName\": \"Mic/Aux\",\n  \"muted\": true,\n  \"volumeDb\": -2.498\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "pass",
+      "statusResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"outputActive\": true,\n  \"outputPaused\": false,\n  \"outputTimecode\": \"00:00:01.250\",\n  \"outputDuration\": 1250,\n  \"outputBytes\": 4096\n}"
+          }
+        ]
+      },
+      "stopResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"outputActive\": false,\n  \"outputPaused\": false,\n  \"outputTimecode\": \"00:00:00.000\",\n  \"outputDuration\": 0,\n  \"outputBytes\": 0\n}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.608Z",
+          "requestType": "StartRecord",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.608Z",
+          "requestType": "GetRecordStatus",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.609Z",
+          "requestType": "GetRecordStatus",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.614Z",
+          "requestType": "StopRecord",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:38.615Z",
+          "requestType": "GetRecordStatus",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "finalState": false,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"outputActive\": true,\n  \"outputPaused\": false,\n  \"outputTimecode\": \"00:00:01.250\",\n  \"outputDuration\": 1250,\n  \"outputBytes\": 4096\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "screenshot",
+      "status": "pass",
+      "image": {
+        "valid": true,
+        "kind": "base64",
+        "bytes": 70
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.619Z",
+          "requestType": "GetSourceScreenshot",
+          "requestData": {
+            "sourceName": "Main",
+            "imageFormat": "png",
+            "imageWidth": 1
+          },
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Live frame from \"Main\":"
+          },
+          {
+            "type": "image",
+            "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z/D/PwAG/gL+DHWJ3gAAAABJRU5ErkJggg==",
+            "mimeType": "image/png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "pass",
+      "returnedSyntheticSecret": true,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.621Z",
+          "requestType": "GetStreamServiceSettings",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"streamServiceType\": \"rtmp_common\",\n  \"streamServiceSettings\": {\n    \"server\": \"rtmp://127.0.0.1/synthetic\",\n    \"key\": \"[REDACTED_SYNTHETIC_SECRET]\",\n    \"use_auth\": false\n  }\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"ERROR: OBS rejected \\\"SetCurrentProgramScene\\\": Missing request field: sceneName\"}],\"isError\":true}",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "ERROR: OBS rejected \"SetCurrentProgramScene\": Missing request field: sceneName"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "unknown_entity",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"ERROR: OBS rejected \\\"SetCurrentProgramScene\\\": Scene not found\"}],\"isError\":true}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.622Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Missing Fixture Scene"
+          },
+          "classification": "validation_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "ERROR: OBS rejected \"SetCurrentProgramScene\": Scene not found"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"ERROR: OBS rejected \\\"SetCurrentProgramScene\\\": Synthetic OBS rejection: scene locked\"}],\"isError\":true}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.622Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "injected_obs_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "ERROR: OBS rejected \"SetCurrentProgramScene\": Synthetic OBS rejection: scene locked"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "pass",
+      "interpretation": "candidate returned a bounded error",
+      "retried": false,
+      "watchdogMs": 16000,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:38.623Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "missing_response"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "ERROR: OBS request \"GetSceneList\" timed out after 15s"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "pass",
+      "attempts": 1,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Main",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:53.633Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "in_flight_disconnect"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "ERROR: OBS connection closed"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "pass",
+      "behavior": "tool error",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "ERROR: OBS rejected \"GetSourceScreenshot\": Request unavailable in this fixture profile"
+          }
+        ],
+        "isError": true
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:46:54.054Z",
+          "requestType": "GetVersion",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:46:54.054Z",
+          "requestType": "GetSourceScreenshot",
+          "requestData": {
+            "sourceName": "Main",
+            "imageFormat": "png",
+            "imageWidth": 1
+          },
+          "classification": "capability_unavailable"
+        }
+      ]
+    }
+  ]
+}

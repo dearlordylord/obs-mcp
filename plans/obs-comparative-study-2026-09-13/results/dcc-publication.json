@@ -1,0 +1,38 @@
+{
+  "observedAt": "2026-09-13",
+  "repository": "https://github.com/dcc-mcp/dcc-mcp-obs",
+  "sourceHead": "b30dd8f0498750582f33a3e2be46f8a9eb9f848e",
+  "declaredVersion": "1.4.0",
+  "releaseTag": {
+    "name": "v1.4.0",
+    "commit": "4ae80d4a7f062c6a496ad2848cf3eaeaea08ffbe",
+    "commitAuthor": "github-actions[bot]",
+    "committer": "Hal",
+    "committedAt": "2026-09-12T00:57:39+08:00"
+  },
+  "pypi": {
+    "name": "dcc-mcp-obs",
+    "version": "1.4.0",
+    "wheel": "dcc_mcp_obs-1.4.0-py3-none-any.whl",
+    "wheelUrl": "https://files.pythonhosted.org/packages/c1/7e/e928e483625278c43a84aced9f6c9243964f94e521bce8a77f66c0aedf03/dcc_mcp_obs-1.4.0-py3-none-any.whl",
+    "wheelSha256": "31afb647da5c999147fd6629e8abb5a2020b30519a1fc68d39fb5c134bdbbddb",
+    "wheelPublishedAt": "2026-09-11T17:07:08.867223Z",
+    "sdistSha256": "f569b6f32265e0d838523f419057ef30cb4d9bb207c9f9a2913aa4a4fa0b8aab",
+    "trustedPublisher": {
+      "kind": "GitHub",
+      "repository": "dcc-mcp/dcc-mcp-obs",
+      "workflow": "release.yml",
+      "sourceCommit": "4ae80d4a7f062c6a496ad2848cf3eaeaea08ffbe",
+      "provenanceUrl": "https://pypi.org/integrity/dcc-mcp-obs/1.4.0/dcc_mcp_obs-1.4.0-py3-none-any.whl/provenance"
+    }
+  },
+  "githubRelease": {
+    "url": "https://github.com/dcc-mcp/dcc-mcp-obs/releases/tag/v1.4.0",
+    "linuxStandalone": {
+      "name": "dcc-mcp-obs-1.4.0-linux-standalone.tar.gz",
+      "sha256": "cae3e371764f649caa4338c9219e3f0da5ef187feb6bf3bea243ac78ab7143c2"
+    },
+    "checksumManifestSha256": "0ee436fe8398f4f1735789cb59b92ab990afdc99950bdb6db906ffd6ff29bce1"
+  },
+  "sourcePackageDifference": "Pinned head is 28 changed files and 1188 insertions/230 deletions after v1.4.0; head and published artifact both declare 1.4.0 and are not behaviorally conflated."
+}

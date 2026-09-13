@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "streamKeyRedacted": true,
+  "outcomes": [
+    {
+      "tool": "obs_get_stream_settings",
+      "arguments": {},
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": true, \"data\": {\"service_type\": \"rtmp_common\", \"settings\": {\"server\": \"rtmp://127.0.0.1/synthetic\", \"use_auth\": false}, \"stream_key_set\": true}}"
+          }
+        ],
+        "isError": false
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:37:59.097Z",
+          "requestType": "GetStreamServiceSettings",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ]
+    },
+    {
+      "tool": "obs_stop_stream",
+      "arguments": {
+        "confirmed": false
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": false, \"error\": \"Stopping a stream requires confirmed=true to prevent accidental stops\", \"code\": \"CONFIRMATION_REQUIRED\"}"
+          }
+        ],
+        "isError": false
+      },
+      "obsRequests": []
+    },
+    {
+      "tool": "obs_set_source_visibility",
+      "arguments": {
+        "scene_name": "Main",
+        "source_name": "Mic/Aux",
+        "visible": false
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": false, \"error\": \"Source 'Mic/Aux' not found in scene 'Main'\", \"code\": \"SOURCE_NOT_FOUND\"}"
+          }
+        ],
+        "isError": false
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:37:59.105Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:37:59.106Z",
+          "requestType": "GetSceneItemId",
+          "requestData": {
+            "sceneName": "Main",
+            "sourceName": "Mic/Aux",
+            "searchOffset": null
+          },
+          "classification": "fixture_unimplemented"
+        }
+      ]
+    },
+    {
+      "tool": "build_starting_soon_scene",
+      "arguments": {
+        "scene_name": "Fixture Starting Soon",
+        "switch_to": false
+      },
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": false, \"error\": \"Request CreateScene returned code 204. With message: Official request not implemented by study fixture\", \"code\": \"OBS_ERROR\"}"
+          }
+        ],
+        "isError": false
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:37:59.111Z",
+          "requestType": "GetStreamStatus",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:37:59.113Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:37:59.114Z",
+          "requestType": "CreateScene",
+          "requestData": {
+            "sceneName": "Fixture Starting Soon"
+          },
+          "classification": "fixture_unimplemented"
+        }
+      ]
+    }
+  ],
+  "fixtureUnimplemented": [
+    "GetSceneItemId",
+    "CreateScene"
+  ],
+  "stdoutNoise": []
+}

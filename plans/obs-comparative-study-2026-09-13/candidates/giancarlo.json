@@ -1,0 +1,15 @@
+{
+  "id": "giancarlo",
+  "repository": "https://github.com/Giancarlo26/obs-action-history",
+  "commit": "882c3c1c0e490bb8aa6e2f3487f6aa817a1521bb",
+  "version": "0.1.0 (source metadata; no public package verified)",
+  "gates": { "G1": "P", "G2": "P", "G3": "P", "G4": "P", "G5": "P", "G6": "p" },
+  "scores": { "A": 2, "B": 3, "C": 4, "D": 2, "E": 3, "F": 2 },
+  "runtimeEvidence": [
+    "results/giancarlo/giancarlo.json",
+    "results/giancarlo-runner.log",
+    "results/giancarlo-timeout-probe.json",
+    "results/giancarlo-source-check.log"
+  ],
+  "confidence": "high"
+}

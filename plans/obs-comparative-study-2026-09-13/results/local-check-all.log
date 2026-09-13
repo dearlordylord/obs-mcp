@@ -1,0 +1,227 @@
+
+> @firfi/obs-mcp@0.3.3 check-all /workspace/typescript/obs-mcp
+> pnpm build && pnpm verify-version && pnpm typecheck && pnpm circular && pnpm verify-registry-metadata && pnpm verify-protocol-parity && pnpm verify-readme && pnpm lint && pnpm test:coverage
+
+
+> @firfi/obs-mcp@0.3.3 build /workspace/typescript/obs-mcp
+> PKG_VERSION=$(node -p "require('./package.json').version") && esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=dist/index.cjs --external:ws "--define:PKG_VERSION=\"$PKG_VERSION\""
+
+
+  dist/index.cjs  1.9mb ⚠️
+
+⚡ Done in 945ms
+
+> @firfi/obs-mcp@0.3.3 verify-version /workspace/typescript/obs-mcp
+> node scripts/verify-version.mjs
+
+dist bundle contains package version 0.3.3
+
+> @firfi/obs-mcp@0.3.3 typecheck /workspace/typescript/obs-mcp
+> tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json --noEmit
+
+
+> @firfi/obs-mcp@0.3.3 circular /workspace/typescript/obs-mcp
+> madge --extensions ts --circular src
+
+- Finding files
+Processed 92 files (17.8s) 
+
+✔ No circular dependency found!
+
+
+> @firfi/obs-mcp@0.3.3 verify-registry-metadata /workspace/typescript/obs-mcp
+> node scripts/sync-registry-metadata.mjs --check
+
+server.json is in sync with package.json
+
+> @firfi/obs-mcp@0.3.3 verify-protocol-parity /workspace/typescript/obs-mcp
+> tsx scripts/audit-protocol-parity.ts --check
+
+Official requests: 147; local descriptors: 147
+Missing request descriptors: none
+Extra request descriptors: none
+Missing public request tools: none
+Deliberate request tool exclusions:
+- Sleep: OBS supports Sleep only inside request batches; obs-mcp exposes it only as a schema-limited batch item.
+Official events: 60; local catalogue entries: 60
+Missing event catalogue entries: none
+Extra event catalogue entries: none
+Deliberate event workflow exclusions:
+- InputVolumeMeters: High-volume meter stream; not useful as a default LLM-facing workflow confirmation.
+- InputActiveStateChanged: High-volume activity signal; direct read tools are safer unless a debounced aggregate is designed.
+- InputShowStateChanged: High-volume UI/showing signal; direct read tools are safer unless a debounced aggregate is designed.
+- SceneItemTransformChanged: High-volume transform stream; needs an opt-in aggregate/debounce design before public exposure.
+- VendorEvent: Plugin-defined raw payload surface; only useful with plugin-specific documentation and schemas.
+- CustomEvent: Arbitrary raw custom payload surface; not a general MCP workflow confirmation.
+- ExitStarted: Race-prone shutdown signal with weak workflow semantics for this server.
+- ScreenshotSaved: OBS hotkey screenshot-output event, not confirmation for obs-mcp screenshot tools.
+
+> @firfi/obs-mcp@0.3.3 verify-readme /workspace/typescript/obs-mcp
+> tsx scripts/update-readme-tools.ts --check
+
+README tool list is in sync
+
+> @firfi/obs-mcp@0.3.3 lint /workspace/typescript/obs-mcp
+> eslint src test && jscpd src
+
+
+/workspace/typescript/obs-mcp/src/mcp/http-transport.ts
+  133:5  warning  Modifying an existing object/array is not allowed  functional/immutable-data
+  142:5  warning  Modifying an existing object/array is not allowed  functional/immutable-data
+  154:5  warning  Modifying an existing object/array is not allowed  functional/immutable-data
+  165:7  warning  Modifying an existing object/array is not allowed  functional/immutable-data
+  173:5  warning  Modifying an existing object/array is not allowed  functional/immutable-data
+  211:5  warning  Modifying a map is not allowed                     functional/immutable-data
+  227:5  warning  Modifying a set is not allowed                     functional/immutable-data
+  277:7  warning  Modifying a map is not allowed                     functional/immutable-data
+  393:5  warning  Modifying a set is not allowed                     functional/immutable-data
+  395:7  warning  Modifying a set is not allowed                     functional/immutable-data
+
+✖ 10 problems (0 errors, 10 warnings)
+
+Clone found (typescript):
+ - src/mcp/create-mcp-server.ts [285:18 - 292:4] (7 lines, 84 tokens)
+   src/mcp/create-mcp-server.ts [261:17 - 267:67]
+
+┌────────────┬────────────────┬─────────────┬──────────────┬──────────────┬──────────────────┬───────────────────┐
+│ Format     │ Files analyzed │ Total lines │ Total tokens │ Clones found │ Duplicated lines │ Duplicated tokens │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ typescript │ 89             │ 12252       │ 105056       │ 1            │ 7 (0.06%)        │ 84 (0.08%)        │
+├────────────┼────────────────┼─────────────┼──────────────┼──────────────┼──────────────────┼───────────────────┤
+│ Total:     │ 89             │ 12252       │ 105056       │ 1            │ 7 (0.06%)        │ 84 (0.08%)        │
+└────────────┴────────────────┴─────────────┴──────────────┴──────────────┴──────────────────┴───────────────────┘
+Found 1 clones.
+time: 2.247s
+
+> @firfi/obs-mcp@0.3.3 test:coverage /workspace/typescript/obs-mcp
+> vitest run --coverage
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.8 [39m[90m/workspace/typescript/obs-mcp[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m test/domain/batch-schema.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+ [32m✓[39m test/domain/vendor-schema.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 117[2mms[22m[39m
+ [32m✓[39m test/mcp/stdio-diagnostics.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m test/config/config.property.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 394[2mms[22m[39m
+ [32m✓[39m test/obs/protocol.test.ts [2m([22m[2m43 tests[22m[2m)[22m[33m 1357[2mms[22m[39m
+ [32m✓[39m test/domain/scene-item-lifecycle-schema.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m test/config/config.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 133[2mms[22m[39m
+ [32m✓[39m test/obs/auth.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m test/mcp/resources.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 1472[2mms[22m[39m
+ [32m✓[39m test/mcp/registry.test.ts [2m([22m[2m197 tests[22m[2m)[22m[33m 1632[2mms[22m[39m
+ [32m✓[39m test/mcp/http-transport.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 1647[2mms[22m[39m
+     [33m[2m✓[22m[39m serves MCP tools over stateful Streamable HTTP by default [33m 851[2mms[22m[39m
+ [32m✓[39m test/obs/client.test.ts [2m([22m[2m71 tests[22m[2m)[22m[33m 2877[2mms[22m[39m
+     [33m[2m✓[22m[39m buffers typed low-volume event payloads from websocket frames [33m 570[2mms[22m[39m
+ [32m✓[39m test/obs/operations.test.ts [2m([22m[2m140 tests[22m[2m)[22m[33m 2521[2mms[22m[39m
+ [32m✓[39m test/mcp/create-mcp-server.test.ts [2m([22m[2m73 tests[22m[2m)[22m[33m 2854[2mms[22m[39m
+     [33m[2m✓[22m[39m lists tools with Effect JSON Schema generated input and output schemas [33m 599[2mms[22m[39m
+     [33m[2m✓[22m[39m lists recent event tools only for the events toolset [33m 472[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m571 passed[39m[22m[90m (571)[39m
+[2m   Start at [22m 17:08:15
+[2m   Duration [22m 16.09s[2m (transform 37.20s, setup 0ms, import 86.03s, tests 15.12s, environment 2ms)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   99.91 |    99.25 |   99.71 |   99.96 |                   
+ config            |     100 |      100 |     100 |     100 |                   
+  config.ts        |     100 |      100 |     100 |     100 |                   
+  ...me-context.ts |     100 |      100 |     100 |     100 |                   
+ domain/schemas    |     100 |      100 |     100 |     100 |                   
+  batch.ts         |     100 |      100 |     100 |     100 |                   
+  canvases.ts      |     100 |      100 |     100 |     100 |                   
+  config.ts        |     100 |      100 |     100 |     100 |                   
+  connection.ts    |     100 |      100 |     100 |     100 |                   
+  events.ts        |     100 |      100 |     100 |     100 |                   
+  filters.ts       |     100 |      100 |     100 |     100 |                   
+  general.ts       |     100 |      100 |     100 |     100 |                   
+  index.ts         |       0 |        0 |       0 |       0 |                   
+  inputs.ts        |     100 |      100 |     100 |     100 |                   
+  outputs.ts       |     100 |      100 |     100 |     100 |                   
+  ...stent-data.ts |     100 |      100 |     100 |     100 |                   
+  record.ts        |     100 |      100 |     100 |     100 |                   
+  ...-lifecycle.ts |     100 |      100 |     100 |     100 |                   
+  ...transforms.ts |     100 |      100 |     100 |     100 |                   
+  scenes.ts        |     100 |      100 |     100 |     100 |                   
+  screenshots.ts   |     100 |      100 |     100 |     100 |                   
+  shared.ts        |     100 |      100 |     100 |     100 |                   
+  stream.ts        |     100 |      100 |     100 |     100 |                   
+  transitions.ts   |     100 |      100 |     100 |     100 |                   
+  ui.ts            |     100 |      100 |     100 |     100 |                   
+  vendor.ts        |     100 |      100 |     100 |     100 |                   
+ mcp               |     100 |      100 |     100 |     100 |                   
+  ...mcp-server.ts |     100 |      100 |     100 |     100 |                   
+  error-mapping.ts |     100 |      100 |     100 |     100 |                   
+  ...iagnostics.ts |     100 |      100 |     100 |     100 |                   
+ mcp/resources     |   99.35 |      100 |   97.56 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+  mechanics.ts     |   99.23 |      100 |   97.29 |     100 |                   
+ mcp/tools         |     100 |     90.9 |     100 |     100 |                   
+  batch.ts         |     100 |      100 |     100 |     100 |                   
+  canvases.ts      |     100 |      100 |     100 |     100 |                   
+  config.ts        |     100 |      100 |     100 |     100 |                   
+  events.ts        |     100 |      100 |     100 |     100 |                   
+  filters.ts       |     100 |      100 |     100 |     100 |                   
+  general.ts       |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+  inputs.ts        |     100 |      100 |     100 |     100 |                   
+  mechanics.ts     |     100 |     90.9 |     100 |     100 | 99                
+  outputs.ts       |     100 |      100 |     100 |     100 |                   
+  ...stent-data.ts |     100 |      100 |     100 |     100 |                   
+  record.ts        |     100 |      100 |     100 |     100 |                   
+  registry.ts      |       0 |        0 |       0 |       0 |                   
+  scenes.ts        |     100 |      100 |     100 |     100 |                   
+  screenshots.ts   |     100 |      100 |     100 |     100 |                   
+  stream.ts        |     100 |      100 |     100 |     100 |                   
+  transitions.ts   |     100 |      100 |     100 |     100 |                   
+  ui.ts            |     100 |      100 |     100 |     100 |                   
+  vendor.ts        |     100 |      100 |     100 |     100 |                   
+ obs               |    99.8 |    99.32 |   99.13 |     100 |                   
+  auth.ts          |     100 |      100 |     100 |     100 |                   
+  client.ts        |   99.56 |      100 |   97.95 |     100 |                   
+  errors.ts        |     100 |      100 |     100 |     100 |                   
+  events.ts        |     100 |    96.96 |     100 |     100 | 123               
+  protocol.ts      |     100 |      100 |     100 |     100 |                   
+  ...ing-client.ts |     100 |      100 |     100 |     100 |                   
+  requests.ts      |     100 |      100 |     100 |     100 |                   
+  ...es-imports.ts |       0 |        0 |       0 |       0 |                   
+ obs/operations    |   99.91 |    99.06 |     100 |   99.91 |                   
+  batch.ts         |     100 |    98.14 |     100 |     100 | 121               
+  canvases.ts      |     100 |      100 |     100 |     100 |                   
+  config.ts        |     100 |     87.5 |     100 |     100 | 197               
+  events.ts        |   99.79 |    99.13 |     100 |   99.78 | 1216              
+  filters.ts       |     100 |      100 |     100 |     100 |                   
+  general.ts       |     100 |      100 |     100 |     100 |                   
+  inputs.ts        |     100 |      100 |     100 |     100 |                   
+  outputs.ts       |     100 |      100 |     100 |     100 |                   
+  ...stent-data.ts |     100 |      100 |     100 |     100 |                   
+  record.ts        |     100 |      100 |     100 |     100 |                   
+  scenes.ts        |     100 |      100 |     100 |     100 |                   
+  screenshots.ts   |     100 |      100 |     100 |     100 |                   
+  shared.ts        |     100 |      100 |     100 |     100 |                   
+  stream.ts        |     100 |      100 |     100 |     100 |                   
+  transitions.ts   |     100 |      100 |     100 |     100 |                   
+  ui.ts            |     100 |      100 |     100 |     100 |                   
+  vendor.ts        |     100 |      100 |     100 |     100 |                   
+ obs/requests      |     100 |      100 |     100 |     100 |                   
+  canvases.ts      |     100 |      100 |     100 |     100 |                   
+  config.ts        |     100 |      100 |     100 |     100 |                   
+  filters.ts       |     100 |      100 |     100 |     100 |                   
+  general.ts       |     100 |      100 |     100 |     100 |                   
+  inputs.ts        |     100 |      100 |     100 |     100 |                   
+  outputs.ts       |     100 |      100 |     100 |     100 |                   
+  ...stent-data.ts |     100 |      100 |     100 |     100 |                   
+  record.ts        |     100 |      100 |     100 |     100 |                   
+  scenes.ts        |     100 |      100 |     100 |     100 |                   
+  screenshots.ts   |     100 |      100 |     100 |     100 |                   
+  shared.ts        |     100 |      100 |     100 |     100 |                   
+  stream.ts        |     100 |      100 |     100 |     100 |                   
+  transitions.ts   |     100 |      100 |     100 |     100 |                   
+  ui.ts            |     100 |      100 |     100 |     100 |                   
+  vendor.ts        |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

@@ -1,0 +1,46 @@
+{
+  "id": "local",
+  "repository": "https://github.com/dearlordylord/obs-mcp",
+  "commit": "587e356b00d9269dcd124969ee36aad9635f2db8",
+  "version": "0.3.3",
+  "gates": {
+    "G1": "P",
+    "G2": "P",
+    "G3": "P",
+    "G4": "P",
+    "G5": "P",
+    "G6": "p"
+  },
+  "scores": {
+    "A": 4,
+    "B": 2,
+    "C": 3,
+    "D": 4,
+    "E": 3,
+    "F": 3
+  },
+  "runtimeEvidence": [
+    "results/local-package/local-package-0.3.3.json",
+    "results/local-fields-runtime.json",
+    "results/local-check-all.json",
+    "results/local-check-all.log",
+    "results/local-package-entry.json",
+    "results/local-package-entry.log",
+    "results/local-field-audit.json",
+    "results/local-publication.json"
+  ],
+  "confidence": "medium",
+  "publicationIdentity": {
+    "registryUrl": "https://registry.npmjs.org/%40firfi%2Fobs-mcp",
+    "observedDate": "2026-09-13",
+    "latest": "0.3.3",
+    "repository": "git+https://github.com/dearlordylord/obs-mcp.git",
+    "gitHead": "587e356b00d9269dcd124969ee36aad9635f2db8",
+    "publishedAt": "2026-06-15T15:32:23.402Z",
+    "tarballSha1": "5fb7d20c6267deb820434719499a39c9812af784",
+    "tarballIntegrity": "sha512-HBHZPb5cenoRewUDduq+XRu5Fu3bRoUY5GqE0ZQcfVVRHy14/zIq72KbYFrrKbBPcYQRnHXSy7qc5CH0GJVzpw==",
+    "executionScope": "Fresh locally packed artifact whose SHA-1 and SHA-512 match the published registry tarball metadata, from matching gitHead. Installed from local tarball, not a separate registry download/install.",
+    "reviewedPackedArtifactMatchesPublishedIntegrity": true,
+    "reviewedPackedArtifactMatchesPublishedSha1": true
+  }
+}

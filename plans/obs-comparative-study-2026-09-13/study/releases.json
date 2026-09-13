@@ -1,0 +1,870 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-09-13",
+  "scope": "OBS Studio MCP implementations and adjacent OBS production products found in the frozen index or the bounded final discovery sweep.",
+  "evidenceClasses": [
+    "observed source metadata",
+    "observed registry metadata",
+    "maintainer declaration",
+    "inference"
+  ],
+  "environment": {
+    "node": "v24.20.0",
+    "npm": "11.19.0",
+    "pnpm": "10.29.3",
+    "uv": "available; version not required for release lookup",
+    "cargo": "1.94.0"
+  },
+  "commands": {
+    "headSha": "git ls-remote --symref https://github.com/<owner>/<repo>.git HEAD; git ls-remote https://github.com/<owner>/<repo>.git refs/heads/<branch>",
+    "tags": "git ls-remote --tags --refs https://github.com/<owner>/<repo>.git",
+    "sourceManifest": "curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/<full-sha>/<manifest>",
+    "npmRegistry": "curl -fsSL https://registry.npmjs.org/<package>",
+    "pypiRegistry": "curl -fsSL https://pypi.org/pypi/<project>/json",
+    "cratesRegistry": "curl -fsSL -A 'obs-mcp-study/1.0' https://crates.io/api/v1/crates/<crate>",
+    "pubRegistry": "curl -fsSL https://pub.dev/api/packages/<package>"
+  },
+  "records": [
+    {
+      "id": "royshil-obs-mcp",
+      "classification": "direct-frozen",
+      "name": "royshil/obs-mcp",
+      "source": {
+        "url": "https://github.com/royshil/obs-mcp",
+        "branch": "main",
+        "sha": "314e7c065ef8c5e2656757b35b24ea7fa81489b0",
+        "observedCommitDate": "2025-08-26T17:22:04Z",
+        "manifestUrl": "https://github.com/royshil/obs-mcp/blob/314e7c065ef8c5e2656757b35b24ea7fa81489b0/package.json",
+        "declaredVersion": "1.0.1",
+        "runtime": "TypeScript/Node; legacy Python source is also present",
+        "license": "GPL-2.0",
+        "licenseUrl": "https://github.com/royshil/obs-mcp/blob/314e7c065ef8c5e2656757b35b24ea7fa81489b0/LICENSE"
+      },
+      "publication": {
+        "registry": "npm",
+        "name": "obs-mcp",
+        "version": "1.1.0",
+        "identityVerified": true,
+        "sourceVersionMatches": false,
+        "url": "https://registry.npmjs.org/obs-mcp",
+        "releaseDate": "2025-08-26T17:23:07.021Z",
+        "license": "not declared in registry metadata"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "curl package.json at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl npm registry obs-mcp"
+      ],
+      "notes": "The current source manifest and npm latest differ; source and package are recorded separately. No GitHub release/tag was observed."
+    },
+    {
+      "id": "cdavis-unngh-obs-mcp",
+      "classification": "direct-frozen",
+      "name": "cdavis-code/obs_websocket_workspace / @unngh/obs-mcp",
+      "source": {
+        "url": "https://github.com/cdavis-code/obs_websocket_workspace",
+        "branch": "main",
+        "sha": "1d95b2933dc1de520cca09414d5d65b2a85466b8",
+        "observedCommitDate": "2026-09-10T01:05:41Z",
+        "manifestUrl": "https://github.com/cdavis-code/obs_websocket_workspace/blob/1d95b2933dc1de520cca09414d5d65b2a85466b8/packages/obs_mcp/pubspec.yaml",
+        "declaredVersion": "5.7.2 (Dart obs_mcp package)",
+        "runtime": "Dart SDK >=3.8; compiled JavaScript/npm distribution also available",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/cdavis-code/obs_websocket_workspace/blob/1d95b2933dc1de520cca09414d5d65b2a85466b8/LICENSE"
+      },
+      "publication": {
+        "registries": [
+          {
+            "registry": "pub.dev",
+            "name": "obs_mcp",
+            "version": "5.7.2",
+            "identityVerified": true,
+            "sourceVersionMatches": true,
+            "url": "https://pub.dev/api/packages/obs_mcp",
+            "releaseDate": "2026-06-19T12:16:42.465715Z",
+            "license": "not declared by pub metadata"
+          },
+          {
+            "registry": "npm",
+            "name": "@unngh/obs-mcp",
+            "version": "5.7.5",
+            "identityVerified": true,
+            "sourceVersionMatches": false,
+            "url": "https://registry.npmjs.org/@unngh%2fobs-mcp",
+            "releaseDate": "2026-06-16T13:59:42.562Z",
+            "license": "MIT"
+          }
+        ],
+        "releaseUrl": "https://github.com/cdavis-code/obs_websocket_workspace/releases/tag/v5.7.2",
+        "releaseTagSha": "e31b80f56d8ad95892294fdf4af097071ed6d022"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "git ls-remote refs/tags/v5.7.2",
+        "curl pubspec.yaml at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl pub.dev obs_mcp",
+        "curl npm @unngh/obs-mcp"
+      ],
+      "notes": "The source default branch moved after the published Dart package and release tag. Native binaries/Homebrew automation are release evidence, not proof of MCP behavior."
+    },
+    {
+      "id": "sbroenne-mcp-server-obs",
+      "classification": "direct-frozen",
+      "name": "sbroenne/mcp-server-obs",
+      "source": {
+        "url": "https://github.com/sbroenne/mcp-server-obs",
+        "branch": "main",
+        "sha": "96354251a40a6a7299585652358f63eba62b3714",
+        "observedCommitDate": "2026-08-07T08:49:34Z",
+        "manifestUrl": "https://github.com/sbroenne/mcp-server-obs/blob/96354251a40a6a7299585652358f63eba62b3714/Directory.Build.props",
+        "declaredVersion": "mcp-v1.0.4 / vscode-v1.0.4 release lines; no source Version property",
+        "runtime": ".NET 10 Windows MCP server; TypeScript VS Code extension",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/sbroenne/mcp-server-obs/blob/96354251a40a6a7299585652358f63eba62b3714/LICENSE"
+      },
+      "publication": {
+        "registries": [],
+        "releases": [
+          {
+            "name": "mcp-v1.0.4",
+            "tagSha": "7b4c64c9ee54b5bf1f345990f5d085893cae151a",
+            "url": "https://github.com/sbroenne/mcp-server-obs/releases/tag/mcp-v1.0.4"
+          },
+          {
+            "name": "vscode-v1.0.4",
+            "tagSha": "9272bb40f1d760cbb73f3a771affb280ec4a50ee",
+            "url": "https://github.com/sbroenne/mcp-server-obs/releases/tag/vscode-v1.0.4"
+          }
+        ],
+        "identityVerified": true,
+        "sourceVersionMatches": false,
+        "license": "MIT from source license"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "git ls-remote refs/tags/mcp-v1.0.4",
+        "git ls-remote refs/tags/vscode-v1.0.4",
+        "curl Directory.Build.props at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl GitHub release metadata"
+      ],
+      "notes": "A GitHub release is verified; no npm/PyPI/crates publication was found for the server."
+    },
+    {
+      "id": "ironystock-agentic-obs",
+      "classification": "direct-frozen",
+      "name": "ironystock/agentic-obs",
+      "source": {
+        "url": "https://github.com/ironystock/agentic-obs",
+        "branch": "main",
+        "sha": "89fcf6c68675229e01c7e702e3234cf0cf53ebe7",
+        "observedCommitDate": "2026-04-18T21:09:12Z",
+        "manifestUrl": "https://github.com/ironystock/agentic-obs/blob/89fcf6c68675229e01c7e702e3234cf0cf53ebe7/version.go",
+        "declaredVersion": "dev by default; build-time ldflags can inject a semantic version",
+        "runtime": "Go 1.25.5+",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/ironystock/agentic-obs/blob/89fcf6c68675229e01c7e702e3234cf0cf53ebe7/LICENSE"
+      },
+      "publication": {
+        "registries": [],
+        "releases": [],
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "license": "MIT from source license"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "git ls-remote --tags --refs",
+        "curl version.go at pinned SHA",
+        "curl go.mod/README/LICENSE at pinned SHA",
+        "curl GitHub releases endpoint"
+      ],
+      "notes": "No source tag, GitHub release, or package-registry publication was observed. The README's installation path is go install/build from source."
+    },
+    {
+      "id": "lars-obs-mcp",
+      "classification": "direct-frozen",
+      "name": "LarsCanGit/OBS-MCP",
+      "source": {
+        "url": "https://github.com/LarsCanGit/OBS-MCP",
+        "branch": "main",
+        "sha": "8025f2c0336cb882d79e3227884fcaedd6d23603",
+        "observedCommitDate": "2026-03-25T20:12:50Z",
+        "manifestUrl": "https://github.com/LarsCanGit/OBS-MCP/blob/8025f2c0336cb882d79e3227884fcaedd6d23603/package.json",
+        "declaredVersion": "1.0.0",
+        "runtime": "Node.js >=18",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/LarsCanGit/OBS-MCP/blob/8025f2c0336cb882d79e3227884fcaedd6d23603/LICENSE"
+      },
+      "publication": {
+        "registry": "npm",
+        "name": "obs-mcp-server",
+        "version": "1.0.0",
+        "identityVerified": true,
+        "sourceVersionMatches": true,
+        "url": "https://registry.npmjs.org/obs-mcp-server",
+        "releaseDate": "2026-03-25T20:18:35.468Z",
+        "license": "MIT"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "curl package.json at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl npm obs-mcp-server"
+      ],
+      "notes": "Source and npm package identity/version agree."
+    },
+    {
+      "id": "takurot-obs-showrunner-mcp",
+      "classification": "direct-frozen-high-level",
+      "name": "takurot/obs-showrunner-mcp",
+      "source": {
+        "url": "https://github.com/takurot/obs-showrunner-mcp",
+        "branch": "main",
+        "sha": "3682378f0bcc886ee1c8340b0f4fbba3e1088876",
+        "observedCommitDate": "2026-01-05T06:54:48Z",
+        "manifestUrl": "https://github.com/takurot/obs-showrunner-mcp/blob/3682378f0bcc886ee1c8340b0f4fbba3e1088876/package.json",
+        "declaredVersion": "0.1.0",
+        "runtime": "Node.js >=18; TypeScript source",
+        "license": "MIT in package metadata; no LICENSE file observed",
+        "licenseUrl": "https://github.com/takurot/obs-showrunner-mcp/blob/3682378f0bcc886ee1c8340b0f4fbba3e1088876/package.json"
+      },
+      "publication": {
+        "registry": "npm",
+        "name": "obs-showrunner-mcp",
+        "version": "0.1.0",
+        "identityVerified": true,
+        "sourceVersionMatches": true,
+        "url": "https://registry.npmjs.org/obs-showrunner-mcp",
+        "releaseDate": "2026-01-05T07:04:56.354Z",
+        "license": "MIT"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "git ls-remote refs/tags/v0.1.0",
+        "curl package.json at pinned SHA",
+        "curl npm obs-showrunner-mcp",
+        "check LICENSE at pinned SHA"
+      ],
+      "notes": "The npm identity/version is independently verified. License provenance is weaker than a source license file."
+    },
+    {
+      "id": "yshk-obs-mcp",
+      "classification": "direct-frozen-prototype",
+      "name": "yshk-mrt/obs-mcp",
+      "source": {
+        "url": "https://github.com/yshk-mrt/obs-mcp",
+        "branch": "main",
+        "sha": "643e6646075083418f956e163b6f8c0998f34a68",
+        "observedCommitDate": "2025-05-18T00:32:39Z",
+        "manifestUrl": "https://github.com/yshk-mrt/obs-mcp/blob/643e6646075083418f956e163b6f8c0998f34a68/package.json",
+        "declaredVersion": "1.0.0 (package obs-mcp-server-ts)",
+        "runtime": "Node.js/TypeScript",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/yshk-mrt/obs-mcp/blob/643e6646075083418f956e163b6f8c0998f34a68/LICENSE"
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "obs-mcp-server-ts",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://registry.npmjs.org/obs-mcp-server-ts",
+        "license": null
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "curl package.json at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl npm obs-mcp-server-ts"
+      ],
+      "notes": "The source package is not independently published under its declared name in npm; npm obs-mcp is a different same-name project."
+    },
+    {
+      "id": "aaronckj-obs-studio-mcp",
+      "classification": "direct-frozen",
+      "name": "aaronckj/obs-studio-mcp",
+      "source": {
+        "url": "https://github.com/aaronckj/obs-studio-mcp",
+        "branch": "main",
+        "sha": "599b382d97ab554bc21951b725bef3faf3085779",
+        "observedCommitDate": "2026-07-28T20:48:05Z",
+        "manifestUrl": "https://github.com/aaronckj/obs-studio-mcp/blob/599b382d97ab554bc21951b725bef3faf3085779/pyproject.toml",
+        "declaredVersion": "0.5.1",
+        "runtime": "Python >=3.11",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/aaronckj/obs-studio-mcp/blob/599b382d97ab554bc21951b725bef3faf3085779/LICENSE"
+      },
+      "publication": {
+        "registry": "PyPI",
+        "name": "obs-studio-mcp",
+        "version": "0.5.1",
+        "identityVerified": true,
+        "sourceVersionMatches": true,
+        "url": "https://pypi.org/pypi/obs-studio-mcp/json",
+        "releaseDate": null,
+        "license": "MIT from source and pyproject"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "curl pyproject.toml at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl PyPI obs-studio-mcp"
+      ],
+      "notes": "PyPI metadata independently identifies the GitHub homepage and version."
+    },
+    {
+      "id": "tom-r-main-obs-mcp",
+      "classification": "direct-frozen-independent-lineage",
+      "name": "Tom-R-Main/OBS-MCP",
+      "source": {
+        "url": "https://github.com/Tom-R-Main/OBS-MCP",
+        "branch": "main",
+        "sha": "df584ddbcf117ed82ac5c232d82f128baec8292a",
+        "observedCommitDate": "2026-08-21T01:33:24Z",
+        "manifestUrl": "https://github.com/Tom-R-Main/OBS-MCP/blob/df584ddbcf117ed82ac5c232d82f128baec8292a/package.json",
+        "declaredVersion": "1.1.1 (npm manifest); 0.1.0 (legacy pyproject)",
+        "runtime": "Node.js >=20.19; TypeScript source; legacy Python files retained",
+        "license": "GPL-2.0-only",
+        "licenseUrl": "https://github.com/Tom-R-Main/OBS-MCP/blob/df584ddbcf117ed82ac5c232d82f128baec8292a/LICENSE"
+      },
+      "publication": {
+        "registry": "none verified for this repository",
+        "name": "obs-mcp",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://github.com/Tom-R-Main/OBS-MCP/blob/df584ddbcf117ed82ac5c232d82f128baec8292a/README.md",
+        "license": "GPL-2.0-only"
+      },
+      "collisionChecks": [
+        {
+          "registry": "npm",
+          "name": "obs-mcp",
+          "observedVersion": "1.1.0",
+          "identity": "Royshil package; not Tom-R-Main",
+          "url": "https://registry.npmjs.org/obs-mcp"
+        }
+      ],
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "curl package.json/pyproject.toml at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl npm obs-mcp",
+        "read README independent-release statement"
+      ],
+      "notes": "The README explicitly says this independent repository has no own npm release. The same-name npm package must not be attributed to this source."
+    },
+    {
+      "id": "jlfn-obs-mcp",
+      "classification": "direct-frozen",
+      "name": "JLFN/obs-mcp",
+      "source": {
+        "url": "https://github.com/JLFN/obs-mcp",
+        "branch": "main",
+        "sha": "f9dccf0f8903b225615ba3b80a8a63287b92716a",
+        "observedCommitDate": "2026-08-08T10:17:16Z",
+        "manifestUrl": "https://github.com/JLFN/obs-mcp/blob/f9dccf0f8903b225615ba3b80a8a63287b92716a/Cargo.toml",
+        "declaredVersion": "0.2.0",
+        "runtime": "Rust 1.88+",
+        "license": "MIT OR Apache-2.0",
+        "licenseUrl": "https://github.com/JLFN/obs-mcp/tree/f9dccf0f8903b225615ba3b80a8a63287b92716a"
+      },
+      "publication": {
+        "registry": "crates.io",
+        "name": "obs-mcp",
+        "version": "0.2.0",
+        "identityVerified": true,
+        "sourceVersionMatches": true,
+        "url": "https://crates.io/api/v1/crates/obs-mcp",
+        "releaseDate": "2026-08-08T10:18:19.737588Z",
+        "license": "MIT OR Apache-2.0"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "curl Cargo.toml at pinned SHA",
+        "curl LICENSE-MIT/LICENSE-APACHE at pinned SHA",
+        "curl crates.io obs-mcp"
+      ],
+      "notes": "The crate registry identifies the same GitHub repository and version."
+    },
+    {
+      "id": "xdarkzx-obs-mcp",
+      "classification": "direct-frozen",
+      "name": "xDarkzx/OBS_MCP",
+      "source": {
+        "url": "https://github.com/xDarkzx/OBS_MCP",
+        "branch": "master",
+        "sha": "d632587facb94d80563628054ba58dc4af1d700f",
+        "observedCommitDate": "2026-08-02T02:54:15Z",
+        "manifestUrl": "https://github.com/xDarkzx/OBS_MCP/blob/d632587facb94d80563628054ba58dc4af1d700f/pyproject.toml",
+        "declaredVersion": "0.2.0",
+        "runtime": "Python >=3.10",
+        "license": "Apache-2.0",
+        "licenseUrl": "https://github.com/xDarkzx/OBS_MCP/blob/d632587facb94d80563628054ba58dc4af1d700f/LICENSE"
+      },
+      "publication": {
+        "registry": "PyPI",
+        "name": "obs-mcp",
+        "version": "0.2.0",
+        "identityVerified": true,
+        "sourceVersionMatches": true,
+        "url": "https://pypi.org/pypi/obs-mcp/json",
+        "releaseDate": null,
+        "license": "Apache-2.0 from source and pyproject"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/master",
+        "curl pyproject.toml at pinned SHA",
+        "curl LICENSE at pinned SHA",
+        "curl PyPI obs-mcp"
+      ],
+      "notes": "The PyPI project name is distinct from npm obs-mcp; cross-registry same-name collisions remain possible and are recorded."
+    },
+    {
+      "id": "itchrisdeb-obs-studio-mcp",
+      "classification": "direct-frozen-linux-adjacent",
+      "name": "ITchrisDEB/obs-studio-mcp",
+      "source": {
+        "url": "https://github.com/ITchrisDEB/obs-studio-mcp",
+        "branch": "main",
+        "sha": "05f00bafa93725b16b17733d09a561dfd464741c",
+        "observedCommitDate": "2026-07-30T07:45:00Z",
+        "manifestUrl": "https://github.com/ITchrisDEB/obs-studio-mcp/blob/05f00bafa93725b16b17733d09a561dfd464741c/Cargo.toml",
+        "declaredVersion": "0.1.0 workspace",
+        "runtime": "Rust workspace; Linux-specific daemon/tray/web dashboard",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/ITchrisDEB/obs-studio-mcp/blob/05f00bafa93725b16b17733d09a561dfd464741c/LICENSE"
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "obs-studio-mcp",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://github.com/ITchrisDEB/obs-studio-mcp/blob/05f00bafa93725b16b17733d09a561dfd464741c/README.md",
+        "license": "MIT"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/heads/main",
+        "curl Cargo.toml/README/LICENSE at pinned SHA",
+        "curl npm obs-studio-mcp",
+        "curl PyPI obs-studio-mcp"
+      ],
+      "notes": "No package-registry publication was found. The product's Linux device/plugin/service scope is retained as an adjacent lane in scoring."
+    },
+    {
+      "id": "local-firfi-obs-mcp",
+      "classification": "local-reference",
+      "name": "dearlordylord/obs-mcp / @firfi/obs-mcp",
+      "source": {
+        "url": "https://github.com/dearlordylord/obs-mcp",
+        "branch": "master",
+        "sha": "587e356b00d9269dcd124969ee36aad9635f2db8",
+        "observedCommitDate": "2026-06-15T15:32:23Z",
+        "manifestUrl": "https://github.com/dearlordylord/obs-mcp/blob/587e356b00d9269dcd124969ee36aad9635f2db8/package.json",
+        "declaredVersion": "0.3.3",
+        "runtime": "Node.js/TypeScript",
+        "license": "MIT in package metadata",
+        "licenseUrl": "https://github.com/dearlordylord/obs-mcp/blob/587e356b00d9269dcd124969ee36aad9635f2db8/package.json"
+      },
+      "publication": {
+        "registry": "npm",
+        "name": "@firfi/obs-mcp",
+        "version": "0.3.3",
+        "identityVerified": true,
+        "sourceVersionMatches": true,
+        "url": "https://registry.npmjs.org/@firfi%2fobs-mcp",
+        "releaseDate": "2026-06-15T15:32:23.402Z",
+        "license": "MIT"
+      },
+      "commandsAttempted": [
+        "git rev-parse HEAD",
+        "node package.json version/name lookup",
+        "curl package.json at pinned SHA",
+        "curl npm @firfi/obs-mcp"
+      ],
+      "notes": "Local source and published package metadata are independently aligned. The repository currently has no top-level LICENSE file; package metadata is the provenance recorded here."
+    },
+    {
+      "id": "juliencr-obs-live-suite",
+      "classification": "adjacent-live-production",
+      "name": "JulienCr/obs-live-suite",
+      "source": {
+        "url": "https://github.com/JulienCr/obs-live-suite",
+        "branch": "main",
+        "sha": "e3b96ac9f4e2ba72fb428a5ae745b8a3498e3a25",
+        "observedCommitDate": "2026-08-17T23:36:39Z",
+        "manifestUrl": "https://github.com/JulienCr/obs-live-suite/blob/e3b96ac9f4e2ba72fb428a5ae745b8a3498e3a25/package.json",
+        "declaredVersion": "0.1.0 private root and MCP package",
+        "runtime": "Node.js >=20; Next.js/Express/SQLite; obs-websocket-js",
+        "license": "Unknown; no repository license declaration was used as proof",
+        "licenseUrl": null
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "obs-live-suite",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://github.com/JulienCr/obs-live-suite/blob/e3b96ac9f4e2ba72fb428a5ae745b8a3498e3a25/package.json",
+        "license": null
+      },
+      "commandsAttempted": [
+        "git clone --depth 1",
+        "git rev-parse HEAD",
+        "git log -1",
+        "read package.json/MCP package",
+        "curl npm obs-live-suite",
+        "pnpm install --frozen-lockfile --ignore-scripts",
+        "pnpm --filter obs-live-suite-mcp exec jest --runInBand"
+      ],
+      "execution": {
+        "install": "pass; 1364 packages",
+        "test": "fail: 70 passed, 1 failed of 71; config.test.ts expected localhost while config defaults to 127.0.0.1",
+        "obsCredentials": false,
+        "realObs": false
+      },
+      "notes": "See adjacent.md for architecture and end-user workflow review."
+    },
+    {
+      "id": "skaggsxyz-moltstream",
+      "classification": "adjacent-agentic-streaming",
+      "name": "skaggsxyz/moltstream / moltstream",
+      "source": {
+        "url": "https://github.com/skaggsxyz/moltstream",
+        "branch": "main",
+        "sha": "c521f9cff19833ed4f4ef6bdf69bf3c6a3049d09",
+        "observedCommitDate": "2026-04-09T21:24:56Z",
+        "manifestUrl": "https://github.com/skaggsxyz/moltstream/blob/c521f9cff19833ed4f4ef6bdf69bf3c6a3049d09/packages/cli/package.json",
+        "declaredVersion": "0.4.0 in CLI package; source CLI constant 0.7.0; @moltstream/mcp 0.1.0",
+        "runtime": "Node.js/TypeScript monorepo; CLI and stdio MCP package",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/skaggsxyz/moltstream/blob/c521f9cff19833ed4f4ef6bdf69bf3c6a3049d09/LICENSE"
+      },
+      "publication": {
+        "registry": "npm",
+        "name": "moltstream",
+        "version": "0.7.0",
+        "identityVerified": true,
+        "sourceVersionMatches": false,
+        "url": "https://registry.npmjs.org/moltstream",
+        "releaseDate": "2026-03-24T21:38:47.519Z",
+        "license": "MIT",
+        "mcpSubpackagePublished": false
+      },
+      "commandsAttempted": [
+        "git clone --depth 1",
+        "git rev-parse HEAD",
+        "git log -1",
+        "read root/CLI/MCP package manifests",
+        "curl npm moltstream",
+        "curl npm @moltstream/mcp",
+        "pnpm install --no-frozen-lockfile --ignore-scripts",
+        "pnpm --dir /tmp/obs-adjacent.HULbPO/molt --filter @moltstream/mcp build",
+        "pnpm --dir /tmp/obs-adjacent.HULbPO/molt --filter '@moltstream/mcp...' build"
+      ],
+      "execution": {
+        "install": "pass; 505 packages, generated lockfile only in temporary clone",
+        "build": "leaf MCP build first failed TS2307 for @moltstream/streamer; dependency-aware @moltstream/mcp... build then failed TS18003 in core/kick-chat/tts/avatar because their inherited root tsconfig excludes ../../packages; no MCP artifact",
+        "obsCredentials": false,
+        "realObs": false,
+        "evidence": "results/molt-dependency-build.json and results/molt-dependency-build.log"
+      },
+      "notes": "The published CLI and checked-in source disagree on versions; the source MCP subpackage is not independently published. See adjacent.md."
+    },
+    {
+      "id": "danielrosehill-claude-obs-plugin",
+      "classification": "distribution-wrapper",
+      "name": "danielrosehill/Claude-OBS-Plugin",
+      "source": {
+        "url": "https://github.com/danielrosehill/Claude-OBS-Plugin",
+        "branch": "master",
+        "sha": "4b44ff79db2f009b6921c3461c9f2761a4018b43",
+        "observedCommitDate": "2026-04-30T13:34:59Z",
+        "manifestUrl": "https://github.com/danielrosehill/Claude-OBS-Plugin/blob/4b44ff79db2f009b6921c3461c9f2761a4018b43/.claude-plugin/plugin.json",
+        "declaredVersion": "1.0.0",
+        "runtime": "Claude Code plugin; Node.js 18+ for bundled npx obs-mcp",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/danielrosehill/Claude-OBS-Plugin/blob/4b44ff79db2f009b6921c3461c9f2761a4018b43/LICENSE"
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "obs-mgmt plugin",
+        "version": "1.0.0 source plugin",
+        "identityVerified": true,
+        "sourceVersionMatches": null,
+        "url": "https://github.com/danielrosehill/Claude-OBS-Plugin/blob/4b44ff79db2f009b6921c3461c9f2761a4018b43/.mcp.json",
+        "license": "MIT"
+      },
+      "commandsAttempted": [
+        "git clone --depth 1",
+        "git rev-parse HEAD",
+        "git log -1",
+        "read plugin.json/.mcp.json/README/skills",
+        "check source tests (none declared)"
+      ],
+      "notes": "The wrapper launches mutable npx obs-mcp@latest and adds Linux install, backup, workspace, and plugin-management workflows; it is not an independent OBS MCP implementation."
+    },
+    {
+      "id": "lhenri88-obs-mcp",
+      "classification": "direct-amended",
+      "name": "LHenri88/obs-mcp",
+      "source": {
+        "url": "https://github.com/LHenri88/obs-mcp",
+        "branch": "main",
+        "sha": "ca711037c0bca4c4c6e9142a52821319780bd45e",
+        "observedCommitDate": "2026-09-11T17:39:10Z",
+        "manifestUrl": "https://github.com/LHenri88/obs-mcp/blob/ca711037c0bca4c4c6e9142a52821319780bd45e/pyproject.toml",
+        "declaredVersion": "0.1.0",
+        "runtime": "Python >=3.11; Windows-only OBS process/config integration",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/LHenri88/obs-mcp/blob/ca711037c0bca4c4c6e9142a52821319780bd45e/LICENSE"
+      },
+      "publication": {
+        "registry": "none independently verified",
+        "name": "obs-mcp",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://pypi.org/pypi/obs-mcp/json",
+        "license": "PyPI name is xDarkzx's different project"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "curl pyproject.toml/README/LICENSE at pinned SHA",
+        "curl PyPI obs-mcp",
+        "curl npm obs-mcp"
+      ],
+      "notes": "Late-search omission with strong reference-job relevance: 11 tools, cold-start OBS/websocket enablement, recording flush polling, and screenshot. Included through the dated methodology amendment.",
+      "candidateReview": "../candidates/lhenri.md"
+    },
+    {
+      "id": "dcc-mcp-dcc-mcp-obs",
+      "classification": "direct-amended-native-plugin",
+      "name": "dcc-mcp/dcc-mcp-obs",
+      "source": {
+        "url": "https://github.com/dcc-mcp/dcc-mcp-obs",
+        "branch": "main",
+        "sha": "b30dd8f0498750582f33a3e2be46f8a9eb9f848e",
+        "observedCommitDate": "2026-09-13T02:54:58Z",
+        "manifestUrl": "https://github.com/dcc-mcp/dcc-mcp-obs/blob/b30dd8f0498750582f33a3e2be46f8a9eb9f848e/pyproject.toml",
+        "declaredVersion": "1.4.0",
+        "runtime": "Native OBS plugin plus Python shared runtime/sidecar; Windows, macOS, Linux release bundles",
+        "license": "GPL-2.0-or-later",
+        "licenseUrl": "https://github.com/dcc-mcp/dcc-mcp-obs/blob/b30dd8f0498750582f33a3e2be46f8a9eb9f848e/LICENSE"
+      },
+      "publication": {
+        "registry": "PyPI",
+        "name": "dcc-mcp-obs",
+        "version": "1.4.0",
+        "identityVerified": true,
+        "sourceVersionMatches": true,
+        "url": "https://pypi.org/pypi/dcc-mcp-obs/json",
+        "releaseDate": null,
+        "license": "GPL-2.0-or-later",
+        "sourceTags": [
+          {
+            "name": "v1.0.0",
+            "tagSha": "010b3a0ef9a87ab46e5a1d795ab753f32a6c5eb6",
+            "url": "https://github.com/dcc-mcp/dcc-mcp-obs/releases/tag/v1.0.0"
+          },
+          {
+            "name": "v1.1.0",
+            "tagSha": "b11ed1163c08cce278e4c1ec4d2ab03c80ad6391",
+            "url": "https://github.com/dcc-mcp/dcc-mcp-obs/releases/tag/v1.1.0"
+          },
+          {
+            "name": "v1.2.0",
+            "tagSha": "54f07205cf84805a38ee6866b736e30b99235722",
+            "url": "https://github.com/dcc-mcp/dcc-mcp-obs/releases/tag/v1.2.0"
+          },
+          {
+            "name": "v1.3.0",
+            "tagSha": "9615ecae4ed98c26235c69c5679cd39c62e104de",
+            "url": "https://github.com/dcc-mcp/dcc-mcp-obs/releases/tag/v1.3.0"
+          },
+          {
+            "name": "v1.4.0",
+            "tagSha": "4ae80d4a7f062c6a496ad2848cf3eaeaea08ffbe",
+            "url": "https://github.com/dcc-mcp/dcc-mcp-obs/releases/tag/v1.4.0"
+          }
+        ]
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote --tags --refs",
+        "curl pyproject.toml/README/LICENSE at pinned SHA",
+        "curl PyPI dcc-mcp-obs"
+      ],
+      "notes": "Late-search direct candidate with native in-process OBS control, typed postcondition/readback claims, and a separate MCP sidecar. Its plugin/runtime packaging and native lifecycle are documented by the dated amendment and candidate execution boundary.",
+      "candidateReview": "../candidates/dcc.md"
+    },
+    {
+      "id": "giancarlo26-obs-action-history",
+      "classification": "direct-amended",
+      "name": "Giancarlo26/obs-action-history",
+      "source": {
+        "url": "https://github.com/Giancarlo26/obs-action-history",
+        "branch": "main",
+        "sha": "882c3c1c0e490bb8aa6e2f3487f6aa817a1521bb",
+        "observedCommitDate": "2026-08-19T15:13:32Z",
+        "manifestUrl": "https://github.com/Giancarlo26/obs-action-history/blob/882c3c1c0e490bb8aa6e2f3487f6aa817a1521bb/package.json",
+        "declaredVersion": "0.1.0",
+        "runtime": "Node.js >=22; zero runtime dependencies",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/Giancarlo26/obs-action-history/blob/882c3c1c0e490bb8aa6e2f3487f6aa817a1521bb/LICENSE"
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "obs-action-history",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://registry.npmjs.org/obs-action-history",
+        "license": "MIT from source/package"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "git ls-remote refs/tags/v0.1.0",
+        "curl package.json/README/LICENSE at pinned SHA",
+        "curl npm obs-action-history",
+        "npm run preflight",
+        "isolated no-OBS initialize/tools-list over loopback-only unused URL"
+      ],
+      "execution": {
+        "preflight": "pass; 44 module tools well formed and license/credential checks passed",
+        "noObsInitializeList": "pass; clean JSON-RPC stdout and 67 tools observed",
+        "obsCredentials": false,
+        "realObs": false
+      },
+      "notes": "Late-search direct candidate with a general 67-tool MCP control surface plus a distinctive bounded event/audio-meter history workflow. Source-only at observation; the direct review records the executed shared reference job separately from unexecuted full event-history behavior.",
+      "candidateReview": "../candidates/giancarlo.md"
+    },
+    {
+      "id": "sid-fou-obs-stream-mcp",
+      "classification": "direct-amended",
+      "name": "sid-fou/obs-stream-mcp",
+      "source": {
+        "url": "https://github.com/sid-fou/obs-stream-mcp",
+        "branch": "main",
+        "sha": "60f14e61b25e8173c67dc18e0fdf741cacc788ec",
+        "observedCommitDate": "unknown; observed 2026-09-13",
+        "manifestUrl": "https://github.com/sid-fou/obs-stream-mcp/blob/60f14e61b25e8173c67dc18e0fdf741cacc788ec/pyproject.toml",
+        "declaredVersion": "0.1.0",
+        "runtime": "Python >=3.11; Windows UI automation for optional plugin features",
+        "license": "not declared in checked-in pyproject/README",
+        "licenseUrl": null
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "obs-stream-mcp",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://pypi.org/pypi/obs-stream-mcp/json",
+        "license": null
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "curl pyproject.toml/README at pinned SHA",
+        "curl PyPI obs-stream-mcp"
+      ],
+      "notes": "Late-search direct source candidate with broad streaming, plugin, and multi-PC workflow claims; no independent publication or license provenance was verified.",
+      "candidateReview": "../candidates/sidfou.md"
+    },
+    {
+      "id": "muhammadumarakram1-mcp-obs-websocket",
+      "classification": "direct-amended",
+      "name": "muhammadumarakram1/mcp-obs-websocket",
+      "source": {
+        "url": "https://github.com/muhammadumarakram1/mcp-obs-websocket",
+        "branch": "main",
+        "sha": "37f3e7ae8031f034cc8282429c75703a11bd6737",
+        "observedCommitDate": "unknown; observed 2026-09-13",
+        "manifestUrl": "https://github.com/muhammadumarakram1/mcp-obs-websocket/blob/37f3e7ae8031f034cc8282429c75703a11bd6737/package.json",
+        "declaredVersion": "1.0.0",
+        "runtime": "Node.js >=18; TypeScript source",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/muhammadumarakram1/mcp-obs-websocket/blob/37f3e7ae8031f034cc8282429c75703a11bd6737/LICENSE"
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "mcp-obs-websocket",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://registry.npmjs.org/mcp-obs-websocket",
+        "license": "MIT from source/package"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "curl package.json/README/LICENSE at pinned SHA",
+        "curl npm mcp-obs-websocket"
+      ],
+      "notes": "Late-search direct source candidate with ten basic recording/scene/audio/stats tools; no independent publication was verified.",
+      "candidateReview": "../candidates/umar.md"
+    },
+    {
+      "id": "bea-bold-evolution-obs-studio-bridge",
+      "classification": "direct-amended-http-and-creator-product",
+      "name": "BEA-BOLD-EVOLUTION/obs-studio-bridge",
+      "source": {
+        "url": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge",
+        "branch": "main",
+        "sha": "d1909bd397c390fb7a644ca24ff53c088e401fa3",
+        "observedCommitDate": "2026-08-31T10:43:25Z",
+        "manifestUrl": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge/blob/d1909bd397c390fb7a644ca24ff53c088e401fa3/package.json",
+        "declaredVersion": "1.6.0",
+        "runtime": "Node.js >=20 local companion plus native OBS plugin",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/BEA-BOLD-EVOLUTION/obs-studio-bridge/blob/d1909bd397c390fb7a644ca24ff53c088e401fa3/LICENSE"
+      },
+      "publication": {
+        "registry": "none verified",
+        "name": "obs-studio-mcp-bridge",
+        "version": null,
+        "identityVerified": false,
+        "sourceVersionMatches": null,
+        "url": "https://registry.npmjs.org/obs-studio-mcp-bridge",
+        "license": "MIT from source package/LICENSE"
+      },
+      "commandsAttempted": [
+        "git ls-remote HEAD",
+        "curl package.json/README/LICENSE/.codex-plugin/plugin.json/src/server.ts at pinned SHA",
+        "curl npm obs-studio-mcp-bridge",
+        "pnpm install --frozen-lockfile --ignore-scripts",
+        "pnpm test",
+        "isolated authenticated HTTP initialize/tools-list with synthetic token and unused loopback OBS URL"
+      ],
+      "execution": {
+        "install": "pass",
+        "tests": "pass; 36 Node tests after TypeScript build",
+        "httpInitialize": "pass; 200, obs-studio-bridge 1.1.0",
+        "httpToolsList": "pass; 200, 25 tools",
+        "fixture": "not run; source-only NT candidate",
+        "obsCredentials": false,
+        "realObs": false,
+        "artifact": "dist/server.js SHA-256 20d46a1c992961fcbac98e972ccd21cdcd42a3e1df39f664afde3d5d2415e277; dist/bootstrap.js SHA-256 2d30fec73f8de8634d29f24b1229a60883f246a8a99d539ff7371be99be51a9f"
+      },
+      "notes": "Bounded eligibility review confirmed an independent Streamable HTTP MCP server in src/server.ts with 25 tools and direct obs-websocket-js calls; the native plugin is not required for this MCP entry. Package 1.6.0, plugin metadata 1.2.0, and MCP server identity 1.1.0 disagree. The README states the unsigned Windows installer was withdrawn after antivirus warnings and no approved installer is currently available. Source build and initialize/tools-list are observed, but OBS fixture gates remain unexecuted; static missing capabilities and metadata discrepancies are adjudicated in the candidate record and no distributable release was verified. See candidates/bea.md and results/bea-http.json.",
+      "candidateReview": "../candidates/bea.md"
+    }
+  ],
+  "finalDirectCandidateCount": 19,
+  "adjacentOnlyCount": 3
+}

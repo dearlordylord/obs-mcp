@@ -1,0 +1,17 @@
+Scope: 7 of 18 workspace projects
+packages/core build$ tsc
+packages/kick-chat build$ tsc
+packages/tts build$ tsc
+packages/avatar build$ tsc
+packages/core build: error TS18003: No inputs were found in config file '/tmp/obs-adjacent.HULbPO/molt/packages/core/tsconfig.json'. Specified 'include' paths were '["src/**/*"]' and 'exclude' paths were '["../../node_modules","../../packages","../../examples","../../apps","../../docs","../../vitest.config.ts"]'.
+packages/core build: Failed
+/tmp/obs-adjacent.HULbPO/molt/packages/core:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @moltstream/core@0.4.0 build: `tsc`
+Exit status 1
+packages/tts build: error TS18003: No inputs were found in config file '/tmp/obs-adjacent.HULbPO/molt/packages/tts/tsconfig.json'. Specified 'include' paths were '["src/**/*"]' and 'exclude' paths were '["../../node_modules","../../packages","../../examples","../../apps","../../docs","../../vitest.config.ts"]'.
+packages/broadcast build$ tsc
+packages/kick-chat build: error TS18003: No inputs were found in config file '/tmp/obs-adjacent.HULbPO/molt/packages/kick-chat/tsconfig.json'. Specified 'include' paths were '["src/**/*"]' and 'exclude' paths were '["../../node_modules","../../packages","../../examples","../../apps","../../docs","../../vitest.config.ts"]'.
+packages/avatar build: error TS18003: No inputs were found in config file '/tmp/obs-adjacent.HULbPO/molt/packages/avatar/tsconfig.json'. Specified 'include' paths were '["src/**/*"]' and 'exclude' paths were '["../../node_modules","../../packages","../../examples","../../apps","../../docs","../../vitest.config.ts"]'.
+packages/avatar build: Failed
+packages/kick-chat build: Failed
+packages/tts build: Failed

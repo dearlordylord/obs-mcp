@@ -1,0 +1,998 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "cdavis-native",
+  "observedAt": "2026-09-13T21:19:37.733Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "/tmp/obs-mcp-linux-arm64",
+    "args": []
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:19:22.141Z",
+        "requestType": "GetVersion",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:22.475Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:22.755Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:23.028Z",
+        "requestType": "GetCurrentProgramScene",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:23.409Z",
+        "requestType": "SetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux",
+          "inputUuid": null,
+          "inputMuted": true
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:23.757Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:24.122Z",
+        "requestType": "StartRecord",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:24.379Z",
+        "requestType": "GetRecordStatus",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:24.624Z",
+        "requestType": "StopRecord",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:24.880Z",
+        "requestType": "GetSourceScreenshot",
+        "requestData": {
+          "sourceName": "Main",
+          "imageFormat": "png",
+          "imageFilePath": null,
+          "imageWidth": null,
+          "imageHeight": null,
+          "imageCompressionQuality": null
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:25.119Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": ""
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:19:25.458Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Missing Fixture Scene"
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:19:25.792Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "injected_obs_error"
+      },
+      {
+        "at": "2026-09-13T21:19:26.114Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "missing_response"
+      },
+      {
+        "at": "2026-09-13T21:19:36.282Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "in_flight_disconnect"
+      }
+    ],
+    "stateChanges": [
+      {
+        "kind": "scene",
+        "before": "Intro",
+        "after": "Main"
+      },
+      {
+        "kind": "mute",
+        "inputName": "Mic/Aux",
+        "before": false,
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": false
+      }
+    ],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "tools": {
+                "listChanged": true
+              }
+            },
+            "serverInfo": {
+              "name": "mcp-server",
+              "version": "1.0.0"
+            },
+            "instructions": "Auto-generated MCP server"
+          },
+          "id": 1
+        },
+        "elapsedMs": 94
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "tools": [
+              {
+                "name": "search",
+                "description": "Search for available tools by name or description. Returns matching tools with their parameter information. Use this to discover available tools before calling execute.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string",
+                      "description": "Search terms. Space-separated terms are AND-matched against tool names and descriptions (case-insensitive)."
+                    },
+                    "detail_level": {
+                      "type": "string",
+                      "description": "Level of detail: \"brief\" (name + description), \"detailed\" (+ parameter names/types/required), \"full\" (+ complete parameter schemas).",
+                      "enum": [
+                        "brief",
+                        "detailed",
+                        "full"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "query"
+                  ]
+                }
+              },
+              {
+                "name": "execute",
+                "description": "Execute JavaScript code with access to MCP tool functions. Use call_tool(name, params) to call any tool by name, or use external_<toolName>(args) convenience wrappers. Use the search tool first to discover available tools and their signatures. All calls are async - use await for sequential calls and Promise.all() for parallel calls. Return a value to include it in the result.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "JavaScript code to execute."
+                    }
+                  },
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            ]
+          },
+          "id": 2
+        },
+        "elapsedMs": 0
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_general_version', {});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"obsVersion\":\"31.1.0\",\"obsWebSocketVersion\":\"5.6.2\",\"rpcVersion\":1,\"availableRequests\":[\"GetVersion\",\"GetSceneList\",\"GetCurrentProgramScene\",\"SetCurrentProgramScene\",\"GetInputList\",\"GetInputMute\",\"SetInputMute\",\"ToggleInputMute\",\"GetRecordStatus\",\"StartRecord\",\"StopRecord\",\"GetStreamStatus\",\"GetSourceScreenshot\",\"SaveSourceScreenshot\",\"GetCanvasList\",\"GetInputSettings\",\"SetInputSettings\",\"GetSourceFilterList\",\"GetInputVolume\",\"GetSourceFilter\",\"SetSourceFilterSettings\",\"GetOutputSettings\",\"SetOutputSettings\",\"GetSceneTransitionList\",\"GetCurrentSceneTransition\",\"SetCurrentSceneTransitionSettings\",\"GetStreamServiceSettings\",\"SetStreamServiceSettings\"],\"supportedImageFormats\":[\"bmp\",\"jpeg\",\"png\",\"webp\"],\"platform\":\"fixture\",\"platformDescription\":\"Deterministic loopback study fixture\"}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 3
+        },
+        "elapsedMs": 415
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_list', {});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"currentProgramSceneName\":\"Intro\",\"currentPreviewSceneName\":\"Main\",\"scenes\":[{\"sceneName\":\"Intro\",\"sceneIndex\":1,\"sceneUuid\":\"scene-intro\"},{\"sceneName\":\"Main\",\"sceneIndex\":0,\"sceneUuid\":\"scene-main\"}]}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 4
+        },
+        "elapsedMs": 344
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_set_current_program', {sceneName: 'Main'});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"ok\":true}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 5
+        },
+        "elapsedMs": 277
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_get_current_program', {});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "Main",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 6
+        },
+        "elapsedMs": 271
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_inputs_set_mute', {inputName: 'Mic/Aux', inputMuted: true});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"ok\":true}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 7
+        },
+        "elapsedMs": 404
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_inputs_get_mute', {inputName: 'Mic/Aux'});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "true",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 8
+        },
+        "elapsedMs": 318
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_record_start', {});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"ok\":true}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 9
+        },
+        "elapsedMs": 356
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_record_status', {});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"outputActive\":true,\"outputPaused\":false,\"outputTimecode\":\"00:00:01.250\",\"outputDuration\":1250,\"outputBytes\":4096}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 10
+        },
+        "elapsedMs": 278
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_record_stop', {});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "/synthetic/recordings/fixture.mkv",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 11
+        },
+        "elapsedMs": 234
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_sources_get_screenshot', {sourceName: 'Main', imageFormat: 'png'});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"imageData\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z/D/PwAG/gL+DHWJ3gAAAABJRU5ErkJggg==\"}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 12
+        },
+        "elapsedMs": 255
+      },
+      {
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_set_current_program', {sceneName: ''});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"ok\":true}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 13
+        },
+        "elapsedMs": 227
+      },
+      {
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_set_current_program', {sceneName: 'Missing Fixture Scene'});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"ok\":true}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 14
+        },
+        "elapsedMs": 345
+      },
+      {
+        "id": 15,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_set_current_program', {sceneName: 'Intro'});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"ok\":true}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 15
+        },
+        "elapsedMs": 358
+      },
+      {
+        "id": 16,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_list', {});"
+          }
+        },
+        "watchdogMs": 10000
+      },
+      {
+        "id": 17,
+        "method": "tools/call",
+        "params": {
+          "name": "execute",
+          "arguments": {
+            "code": "return await call_tool('obs_scenes_set_current_program', {sceneName: 'Intro'});"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "result": {
+            "content": [
+              {
+                "text": "{\"ok\":true}",
+                "type": "text"
+              }
+            ]
+          },
+          "id": 17
+        },
+        "elapsedMs": 528
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "[easy_api] obs_scenes_list: Null check operator used on a null value\n#0      Scenes.list (package:obs_websocket/src/request/scenes.dart:37)\n<asynchronous suspension>\n#1      ObsMcpServer.scenesList (package:obs_mcp/src/obs_mcp_server.dart:383)\n<asynchronous suspension>\n#2      MCPServerWithTools._obsScenesList (package:obs_mcp/src/obs_mcp_server.mcp.dart:326)\n<asynchronous suspension>\n#3      MCPServerWithTools._dispatchCodeModeToolCall (package:obs_mcp/src/obs_mcp_server.mcp.dart:6495)\n<asynchronous suspension>\n#4      MCPServerWithTools._runCodeSandbox.<anonymous closure>.<anonymous closure> (package:obs_mcp/src/obs_mcp_server.mcp.dart:5889)\n<asynchronous suspension>\n\n",
+    "lifetimeMs": 16241
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "mcp-server",
+        "version": "1.0.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {
+          "listChanged": true
+        }
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 2,
+      "tools": [
+        {
+          "name": "search",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Search terms. Space-separated terms are AND-matched against tool names and descriptions (case-insensitive)."
+              },
+              "detail_level": {
+                "type": "string",
+                "description": "Level of detail: \"brief\" (name + description), \"detailed\" (+ parameter names/types/required), \"full\" (+ complete parameter schemas).",
+                "enum": [
+                  "brief",
+                  "detailed",
+                  "full"
+                ]
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        },
+        {
+          "name": "execute",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "JavaScript code to execute."
+              }
+            },
+            "required": [
+              "code"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:22.141Z",
+          "requestType": "GetVersion",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"obsVersion\":\"31.1.0\",\"obsWebSocketVersion\":\"5.6.2\",\"rpcVersion\":1,\"availableRequests\":[\"GetVersion\",\"GetSceneList\",\"GetCurrentProgramScene\",\"SetCurrentProgramScene\",\"GetInputList\",\"GetInputMute\",\"SetInputMute\",\"ToggleInputMute\",\"GetRecordStatus\",\"StartRecord\",\"StopRecord\",\"GetStreamStatus\",\"GetSourceScreenshot\",\"SaveSourceScreenshot\",\"GetCanvasList\",\"GetInputSettings\",\"SetInputSettings\",\"GetSourceFilterList\",\"GetInputVolume\",\"GetSourceFilter\",\"SetSourceFilterSettings\",\"GetOutputSettings\",\"SetOutputSettings\",\"GetSceneTransitionList\",\"GetCurrentSceneTransition\",\"SetCurrentSceneTransitionSettings\",\"GetStreamServiceSettings\",\"SetStreamServiceSettings\"],\"supportedImageFormats\":[\"bmp\",\"jpeg\",\"png\",\"webp\"],\"platform\":\"fixture\",\"platformDescription\":\"Deterministic loopback study fixture\"}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scenes",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:22.475Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"currentProgramSceneName\":\"Intro\",\"currentPreviewSceneName\":\"Main\",\"scenes\":[{\"sceneName\":\"Intro\",\"sceneIndex\":1,\"sceneUuid\":\"scene-intro\"},{\"sceneName\":\"Main\",\"sceneIndex\":0,\"sceneUuid\":\"scene-main\"}]}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "fail",
+      "readback": {
+        "content": [
+          {
+            "text": "Main",
+            "type": "text"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:22.755Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Main"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:23.028Z",
+          "requestType": "GetCurrentProgramScene",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "finalState": "Main",
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"ok\":true}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "fail",
+      "readback": {
+        "content": [
+          {
+            "text": "true",
+            "type": "text"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:23.409Z",
+          "requestType": "SetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux",
+            "inputUuid": null,
+            "inputMuted": true
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:23.757Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "finalState": true,
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"ok\":true}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "pass",
+      "statusResult": {
+        "content": [
+          {
+            "text": "{\"outputActive\":true,\"outputPaused\":false,\"outputTimecode\":\"00:00:01.250\",\"outputDuration\":1250,\"outputBytes\":4096}",
+            "type": "text"
+          }
+        ]
+      },
+      "stopResult": {
+        "content": [
+          {
+            "text": "/synthetic/recordings/fixture.mkv",
+            "type": "text"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:24.122Z",
+          "requestType": "StartRecord",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:24.379Z",
+          "requestType": "GetRecordStatus",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:24.624Z",
+          "requestType": "StopRecord",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "finalState": false,
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"ok\":true}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "screenshot",
+      "status": "pass",
+      "image": {
+        "valid": true,
+        "kind": "base64",
+        "bytes": 70
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:24.880Z",
+          "requestType": "GetSourceScreenshot",
+          "requestData": {
+            "sourceName": "Main",
+            "imageFormat": "png",
+            "imageFilePath": null,
+            "imageWidth": null,
+            "imageHeight": null,
+            "imageCompressionQuality": null
+          },
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"imageData\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z/D/PwAG/gL+DHWJ3gAAAABJRU5ErkJggg==\"}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "unsupported"
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"text\":\"{\\\"ok\\\":true}\",\"type\":\"text\"}]}",
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"ok\":true}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown_entity",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"text\":\"{\\\"ok\\\":true}\",\"type\":\"text\"}]}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.458Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Missing Fixture Scene"
+          },
+          "classification": "validation_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"ok\":true}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"text\":\"{\\\"ok\\\":true}\",\"type\":\"text\"}]}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:25.792Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "injected_obs_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"ok\":true}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "fail",
+      "interpretation": "no bounded response observed; this finite probe does not prove an indefinite hang",
+      "retried": false,
+      "watchdogMs": 10000,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:26.114Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "missing_response"
+        }
+      ],
+      "error": "MCP response watchdog expired after 10000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "pass",
+      "attempts": 1,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Main",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:36.282Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "in_flight_disconnect"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "text": "{\"ok\":true}",
+            "type": "text"
+          }
+        ]
+      }
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "fail",
+      "behavior": "invented success",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "text": "An error occurred while processing the request.",
+            "type": "text"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:37.205Z",
+          "requestType": "GetVersion",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:37.476Z",
+          "requestType": "GetSourceScreenshot",
+          "requestData": {
+            "sourceName": "Main",
+            "imageFormat": "png",
+            "imageFilePath": null,
+            "imageWidth": null,
+            "imageHeight": null,
+            "imageCompressionQuality": null
+          },
+          "classification": "capability_unavailable"
+        }
+      ]
+    }
+  ]
+}

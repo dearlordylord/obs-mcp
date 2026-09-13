@@ -1,0 +1,15 @@
+{
+  "id": "aaron",
+  "repository": "https://github.com/aaronckj/obs-studio-mcp",
+  "commit": "599b382d97ab554bc21951b725bef3faf3085779",
+  "version": "0.5.1",
+  "gates": { "G1": "P", "G2": "p", "G3": "P", "G4": "P", "G5": "F", "G6": "F" },
+  "scores": { "A": 3, "B": 2, "C": 2, "D": 2, "E": 2, "F": 3 },
+  "runtimeEvidence": [
+    "results/aaron/aaron.json",
+    "results/aaron-pypi/aaron-pypi.json",
+    "results/aaron-own-tests.log",
+    "results/aaron-xdark-workflow-extended-probes.json"
+  ],
+  "confidence": "high"
+}

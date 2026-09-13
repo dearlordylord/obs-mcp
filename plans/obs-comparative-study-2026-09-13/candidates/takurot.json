@@ -1,0 +1,15 @@
+{
+  "id": "takurot",
+  "repository": "https://github.com/takurot/obs-showrunner-mcp",
+  "commit": "3682378f0bcc886ee1c8340b0f4fbba3e1088876",
+  "version": "0.1.0",
+  "gates": { "G1": "P", "G2": "F", "G3": "F", "G4": "p", "G5": "F", "G6": "F" },
+  "scores": { "A": 3, "B": 1, "C": 1, "D": 2, "E": 2, "F": 2 },
+  "runtimeEvidence": [
+    "results/takurot/takurot.json",
+    "results/takurot-npm/takurot-npm.json",
+    "results/takurot-own-tests.log",
+    "results/takurot-build.log"
+  ],
+  "confidence": "high"
+}

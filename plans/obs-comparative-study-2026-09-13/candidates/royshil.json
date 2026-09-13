@@ -1,0 +1,29 @@
+{
+  "repository": "royshil/obs-mcp",
+  "commit": "314e7c065ef8c5e2656757b35b24ea7fa81489b0",
+  "version": "1.0.1",
+  "gates": {
+    "G1": "P",
+    "G2": "F",
+    "G3": "F",
+    "G4": "P",
+    "G5": "P",
+    "G6": "F"
+  },
+  "scores": {
+    "A": 2,
+    "B": 2,
+    "C": 2,
+    "D": 1,
+    "E": 2,
+    "F": 2
+  },
+  "id": "royshil",
+  "runtimeEvidence": [
+    "results/royshil.json",
+    "results/royshil-extended.json",
+    "results/royshil-unavailable.json",
+    "results/royshil-published.json"
+  ],
+  "confidence": "medium"
+}

@@ -1,0 +1,7 @@
+COMMAND npm run build (pnpm frozen lock dependencies)
+
+> obs-mcp-server-ts@1.0.0 build
+> tsc && cp src/*.json build/
+
+
+EXIT 0

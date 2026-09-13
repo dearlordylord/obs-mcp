@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "dcc",
+  "launch": {
+    "command": "/tmp/obs-polyglot-study.1UfDPr/dcc-wheel-venv/bin/dcc-mcp-obs",
+    "args": ["--host-pid", "539483", "--mcp-port", "0"],
+    "env": {
+      "DCC_MCP_OBS_WEBSOCKET_URL": "{{obsUrl}}",
+      "DCC_MCP_OBS_WEBSOCKET_PASSWORD": "{{obsPassword}}",
+      "DCC_MCP_DISABLE_DEFAULT_SKILL_PATHS": "1",
+      "DCC_MCP_GATEWAY_PORT": "0",
+      "DCC_MCP_REGISTRY_DIR": "{{tempDir}}/registry"
+    }
+  },
+  "operations": {}
+}

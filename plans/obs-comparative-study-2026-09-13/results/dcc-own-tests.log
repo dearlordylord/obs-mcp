@@ -1,0 +1,37 @@
+Observed 2026-09-13 in isolated snapshot /tmp/obs-polyglot-study.1UfDPr/dcc at b30dd8f0498750582f33a3e2be46f8a9eb9f848e.
+
+Source preparation:
+git clone --filter=blob:none https://github.com/dcc-mcp/dcc-mcp-obs.git /tmp/obs-polyglot-study.1UfDPr/dcc
+git -C /tmp/obs-polyglot-study.1UfDPr/dcc checkout --detach b30dd8f0498750582f33a3e2be46f8a9eb9f848e
+
+Fresh dependency attempt:
+uv sync --extra dev
+Result: failed because transitive dcc-mcp-server 0.20.29 publishes no Linux aarch64 wheel or source distribution. This is an environment/platform blocker, not an implementation test failure.
+
+Alternate test environment:
+uv pip install --python .venv/bin/python --no-deps -e .
+uv pip install --python .venv/bin/python --no-deps dcc-mcp-core==0.20.29
+uv pip install --python .venv/bin/python pytest jsonschema pyyaml websocket-client psutil build hatchling ruff tomli
+.venv/bin/python -m pytest -q
+Result: 508 passed, 2 failed in 8.52s. Both failures require launching the unavailable dcc-mcp-server executable. Protocol and bridge tests otherwise use scripted fakes; native-host acceptance tests mainly inspect C++ source/YAML/schema/workflow declarations. `test_native_ui_cancellation.py` did compile and execute its standalone C++ UI task-gate program. No plugin was loaded into OBS and no actual MCP server integration completed.
+
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+Result: all checks passed; 171 files already formatted.
+
+uv build --out-dir /tmp/obs-polyglot-study.1UfDPr/dcc-dist
+Result: built source distribution and wheel successfully. python -m build was also attempted but the host Python lacks ensurepip/python3-venv; uv build is the successful alternate.
+
+Published wheel:
+Downloaded dcc_mcp_obs-1.4.0-py3-none-any.whl from its exact PyPI file URL; SHA-256 31afb647da5c999147fd6629e8abb5a2020b30519a1fc68d39fb5c134bdbbddb matched PyPI and GitHub release metadata.
+Installed it without unavailable platform dependency into a separate venv; dcc-mcp-obs --version printed 1.4.0.
+
+Native configuration attempt:
+Installed CMake 4.4.3 and Ninja 1.13.2 into the isolated venv.
+PATH="$PWD/.venv/bin:$PATH" cmake --preset ubuntu-x86_64
+Result: compiler checks passed, then configuration stopped because no LibObs/libobs CMake package exists in the host. No plugin or system files were installed.
+
+Shared fixture attempt:
+The published wheel was bound to a harmless process named obs and the synthetic loopback OBS endpoint. It authenticated and emitted official CallVendorRequest with vendorName=dcc-mcp-obs and requestType=GetPluginStatus. The generic fixture has no native dcc-mcp-obs vendor plugin and returned fixture_unimplemented; startup then failed closed with OBS_REQUEST_FAILED before its separate network MCP endpoint could start. This is NT for the candidate, not F.
+
+No workspace .env, real OBS, system plugin installation, or real credential was used.

@@ -1,0 +1,20 @@
+v24.20.0
+bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)
+
+> obs-action-history@0.1.0 preflight
+> node scripts/preflight.js
+
+
+  preflight  23 files
+
+  ok    no credentials
+  ok    no machine-specific values
+  ok    no identity from the origin project
+  ok    no personal information
+  --    commit authors: Giancarlo26 <67713984+Giancarlo26@users.noreply.github.com>
+  ok    no Co-Authored-By trailers in history
+  ok    44 module tools load and are well formed
+  ok    LICENSE present
+
+  ready to publish
+

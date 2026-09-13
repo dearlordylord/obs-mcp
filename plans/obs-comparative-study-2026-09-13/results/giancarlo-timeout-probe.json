@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "outcome": {
+    "elapsedMs": 15041,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "ERROR: OBS request \"GetSceneList\" timed out after 15s"
+        }
+      ],
+      "isError": true
+    },
+    "obsRequests": [
+      {
+        "at": "2026-09-13T21:45:58.279Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "missing_response"
+      }
+    ]
+  }
+}

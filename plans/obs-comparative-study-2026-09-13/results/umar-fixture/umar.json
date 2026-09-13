@@ -1,0 +1,889 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "umar",
+  "observedAt": "2026-09-13T21:35:52.491Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "node",
+    "args": [
+      "dist/index.js"
+    ],
+    "cwd": "/tmp/obs-umar.n6zWRG/repo"
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:35:29.948Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.951Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.952Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.953Z",
+        "requestType": "ToggleInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.953Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.954Z",
+        "requestType": "StartRecord",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.954Z",
+        "requestType": "GetRecordStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.957Z",
+        "requestType": "StopRecord",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:35:29.959Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Missing Fixture Scene"
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:35:29.960Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "injected_obs_error"
+      },
+      {
+        "at": "2026-09-13T21:35:29.961Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "missing_response"
+      },
+      {
+        "at": "2026-09-13T21:35:40.969Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "in_flight_disconnect"
+      }
+    ],
+    "stateChanges": [
+      {
+        "kind": "scene",
+        "before": "Intro",
+        "after": "Main"
+      },
+      {
+        "kind": "mute",
+        "inputName": "Mic/Aux",
+        "after": true,
+        "via": "toggle"
+      },
+      {
+        "kind": "record",
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": false
+      }
+    ],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "tools": {}
+            },
+            "serverInfo": {
+              "name": "mcp-obs-websocket",
+              "version": "1.0.0"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 1
+        },
+        "elapsedMs": 173
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "result": {
+            "tools": [
+              {
+                "name": "start_recording",
+                "description": "Start OBS recording.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "stop_recording",
+                "description": "Stop OBS recording and return the output file path.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "start_streaming",
+                "description": "Start OBS streaming to the configured stream destination.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "stop_streaming",
+                "description": "Stop OBS streaming.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "get_scene_list",
+                "description": "List all available OBS scenes and the currently active scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_current_scene",
+                "description": "Switch OBS to a specific scene by name.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Exact scene name"
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ]
+                }
+              },
+              {
+                "name": "get_recording_status",
+                "description": "Get current OBS recording state (active, paused, stopped) and file path if active.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "toggle_mute",
+                "description": "Toggle the mute state of an OBS audio source.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "source_name": {
+                      "type": "string",
+                      "description": "Name of the audio source"
+                    }
+                  },
+                  "required": [
+                    "source_name"
+                  ]
+                }
+              },
+              {
+                "name": "get_stats",
+                "description": "Get OBS performance stats: CPU, memory, render time, dropped frames.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_volume",
+                "description": "Set volume (in dB) for an OBS audio source.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "source_name": {
+                      "type": "string",
+                      "description": "Audio source name"
+                    },
+                    "volume_db": {
+                      "type": "number",
+                      "description": "Volume in dB (0=max, -100=silent)",
+                      "minimum": -100,
+                      "maximum": 0
+                    }
+                  },
+                  "required": [
+                    "source_name",
+                    "volume_db"
+                  ]
+                }
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 2
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "get_scene_list",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"current_scene\": \"Intro\",\n  \"scenes\": [\n    {\n      \"name\": \"Intro\",\n      \"index\": 1\n    },\n    {\n      \"name\": \"Main\",\n      \"index\": 0\n    }\n  ]\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 3
+        },
+        "elapsedMs": 13
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "set_current_scene",
+          "arguments": {
+            "scene_name": "Main"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"status\":\"scene_changed\",\"scene\":\"Main\"}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 4
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "get_scene_list",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"current_scene\": \"Main\",\n  \"scenes\": [\n    {\n      \"name\": \"Intro\",\n      \"index\": 1\n    },\n    {\n      \"name\": \"Main\",\n      \"index\": 0\n    }\n  ]\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 5
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "toggle_mute",
+          "arguments": {
+            "source_name": "Mic/Aux"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"source\":\"Mic/Aux\",\"muted\":true}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 6
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "start_recording",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"status\":\"recording_started\"}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 7
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "get_recording_status",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"output_active\": true,\n  \"output_paused\": false,\n  \"output_timecode\": \"00:00:01.250\",\n  \"output_duration\": 1250,\n  \"output_bytes\": 4096\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 8
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "stop_recording",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"status\":\"recording_stopped\",\"output_path\":\"/synthetic/recordings/fixture.mkv\"}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 9
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "set_current_scene",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 10,
+          "error": {
+            "code": -32602,
+            "message": "MCP error -32602: Invalid parameters: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"scene_name\"\n    ],\n    \"message\": \"Required\"\n  }\n]"
+          }
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "set_current_scene",
+          "arguments": {
+            "scene_name": "Missing Fixture Scene"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 11,
+          "error": {
+            "code": -32603,
+            "message": "MCP error -32603: OBS error: Error: Scene not found"
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "set_current_scene",
+          "arguments": {
+            "scene_name": "Intro"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 12,
+          "error": {
+            "code": -32603,
+            "message": "MCP error -32603: OBS error: Error: Synthetic OBS rejection: scene locked"
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "get_scene_list",
+          "arguments": {}
+        },
+        "watchdogMs": 11000
+      },
+      {
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "set_current_scene",
+          "arguments": {
+            "scene_name": "Intro"
+          }
+        },
+        "watchdogMs": 11000
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "mcp-obs-websocket server running on stdio\n",
+    "lifetimeMs": 22983
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "mcp-obs-websocket",
+        "version": "1.0.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {}
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 10,
+      "tools": [
+        {
+          "name": "start_recording",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "stop_recording",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "start_streaming",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "stop_streaming",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "get_scene_list",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_current_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Exact scene name"
+              }
+            },
+            "required": [
+              "scene_name"
+            ]
+          }
+        },
+        {
+          "name": "get_recording_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "toggle_mute",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "source_name": {
+                "type": "string",
+                "description": "Name of the audio source"
+              }
+            },
+            "required": [
+              "source_name"
+            ]
+          }
+        },
+        {
+          "name": "get_stats",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_volume",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "source_name": {
+                "type": "string",
+                "description": "Audio source name"
+              },
+              "volume_db": {
+                "type": "number",
+                "description": "Volume in dB (0=max, -100=silent)",
+                "minimum": -100,
+                "maximum": 0
+              }
+            },
+            "required": [
+              "source_name",
+              "volume_db"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "status": "unsupported",
+      "obsRequests": []
+    },
+    {
+      "name": "scenes",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:29.948Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"current_scene\": \"Intro\",\n  \"scenes\": [\n    {\n      \"name\": \"Intro\",\n      \"index\": 1\n    },\n    {\n      \"name\": \"Main\",\n      \"index\": 0\n    }\n  ]\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "pass",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"current_scene\": \"Main\",\n  \"scenes\": [\n    {\n      \"name\": \"Intro\",\n      \"index\": 1\n    },\n    {\n      \"name\": \"Main\",\n      \"index\": 0\n    }\n  ]\n}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:29.951Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Main"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:35:29.952Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "finalState": "Main",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"status\":\"scene_changed\",\"scene\":\"Main\"}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "fail",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:29.953Z",
+          "requestType": "ToggleInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:35:29.953Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "finalState": true,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"source\":\"Mic/Aux\",\"muted\":true}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "pass",
+      "statusResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"output_active\": true,\n  \"output_paused\": false,\n  \"output_timecode\": \"00:00:01.250\",\n  \"output_duration\": 1250,\n  \"output_bytes\": 4096\n}"
+          }
+        ]
+      },
+      "stopResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"status\":\"recording_stopped\",\"output_path\":\"/synthetic/recordings/fixture.mkv\"}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:29.954Z",
+          "requestType": "StartRecord",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:35:29.954Z",
+          "requestType": "GetRecordStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:35:29.957Z",
+          "requestType": "StopRecord",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "finalState": false,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"status\":\"recording_started\"}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "screenshot",
+      "status": "unsupported",
+      "image": {
+        "valid": false
+      },
+      "obsRequests": []
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "unsupported"
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "pass",
+      "observedError": "MCP error -32602: Invalid parameters: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"scene_name\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "error": "MCP error -32602: Invalid parameters: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"scene_name\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "watchdogExpired": false
+    },
+    {
+      "name": "unknown_entity",
+      "status": "pass",
+      "observedError": "MCP error -32603: OBS error: Error: Scene not found",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:29.959Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Missing Fixture Scene"
+          },
+          "classification": "validation_error"
+        }
+      ],
+      "error": "MCP error -32603: OBS error: Error: Scene not found",
+      "watchdogExpired": false
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "pass",
+      "observedError": "MCP error -32603: OBS error: Error: Synthetic OBS rejection: scene locked",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:29.960Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "injected_obs_error"
+        }
+      ],
+      "error": "MCP error -32603: OBS error: Error: Synthetic OBS rejection: scene locked",
+      "watchdogExpired": false
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "fail",
+      "interpretation": "no bounded response observed; this finite probe does not prove an indefinite hang",
+      "retried": false,
+      "watchdogMs": 11000,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:29.961Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "missing_response"
+        }
+      ],
+      "error": "MCP response watchdog expired after 11000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "fail",
+      "attempts": 1,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Main",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:35:40.969Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "in_flight_disconnect"
+        }
+      ],
+      "error": "MCP response watchdog expired after 11000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "unsupported",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ]
+    }
+  ]
+}

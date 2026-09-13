@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "results": [
+    {
+      "id": "aaron",
+      "outcomes": [
+        {
+          "tool": "switch_scene",
+          "arguments": {
+            "scene": "Main",
+            "dry_run": true
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"preview\": true,\n  \"action\": \"switch_scene\",\n  \"would\": {\n    \"scene\": \"Main\"\n  }\n}"
+              }
+            ],
+            "isError": false
+          },
+          "obsRequests": []
+        },
+        {
+          "tool": "set_mute",
+          "arguments": {
+            "input_name": "Mic/Aux",
+            "muted": true,
+            "dry_run": true
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"preview\": true,\n  \"action\": \"set_mute\",\n  \"would\": {\n    \"input\": \"Mic/Aux\",\n    \"muted\": true\n  }\n}"
+              }
+            ],
+            "isError": false
+          },
+          "obsRequests": []
+        },
+        {
+          "tool": "start_record",
+          "arguments": {
+            "dry_run": true
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"preview\": true,\n  \"action\": \"start_record\",\n  \"would\": {}\n}"
+              }
+            ],
+            "isError": false
+          },
+          "obsRequests": []
+        },
+        {
+          "tool": "screenshot_source",
+          "arguments": {
+            "source": "Main",
+            "file_path": "/tmp/obs-study-workflows-YlPQJl/dry.png",
+            "dry_run": true
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"preview\": true,\n  \"action\": \"screenshot_source\",\n  \"would\": {\n    \"source\": \"Main\",\n    \"file_path\": \"/tmp/obs-study-workflows-YlPQJl/dry.png\"\n  }\n}"
+              }
+            ],
+            "isError": false
+          },
+          "obsRequests": []
+        },
+        {
+          "tool": "set_video_settings",
+          "arguments": {
+            "output_width": 1280,
+            "dry_run": true
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool set_video_settings: get_video_settings failed: Request GetVideoSettings returned code 204. With message: Official request not implemented by study fixture"
+              }
+            ],
+            "isError": true
+          },
+          "obsRequests": [
+            {
+              "at": "2026-09-13T21:30:15.429Z",
+              "requestType": "GetVideoSettings",
+              "requestData": {},
+              "classification": "fixture_unimplemented"
+            }
+          ]
+        }
+      ],
+      "stateChanges": [],
+      "fixtureUnimplemented": [
+        "GetVideoSettings"
+      ],
+      "stdoutNoise": []
+    },
+    {
+      "id": "xdark",
+      "outcomes": [
+        {
+          "tool": "diagnose_av_health",
+          "arguments": {},
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool diagnose_av_health: [REQUEST_FAILED (2000)] OBS request 'GetStats' failed: Request GetStats returned code 204. With message: Official request not implemented by study fixture"
+              }
+            ],
+            "isError": true
+          },
+          "obsRequests": [
+            {
+              "at": "2026-09-13T21:30:16.083Z",
+              "requestType": "GetStats",
+              "requestData": {},
+              "classification": "fixture_unimplemented"
+            }
+          ]
+        },
+        {
+          "tool": "clean_audio_input",
+          "arguments": {
+            "input_name": "Mic/Aux"
+          },
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error executing tool clean_audio_input: [REQUEST_FAILED (2000)] OBS request 'GetSourceFilterKindList' failed: Request GetSourceFilterKindList returned code 204. With message: Official request not implemented by study fixture"
+              }
+            ],
+            "isError": true
+          },
+          "obsRequests": [
+            {
+              "at": "2026-09-13T21:30:16.087Z",
+              "requestType": "GetSourceFilterList",
+              "requestData": {
+                "sourceName": "Mic/Aux"
+              },
+              "classification": "implemented"
+            },
+            {
+              "at": "2026-09-13T21:30:16.089Z",
+              "requestType": "GetSourceFilterKindList",
+              "requestData": {},
+              "classification": "fixture_unimplemented"
+            }
+          ]
+        }
+      ],
+      "stateChanges": [],
+      "fixtureUnimplemented": [
+        "GetStats",
+        "GetSourceFilterKindList"
+      ],
+      "stdoutNoise": []
+    }
+  ]
+}

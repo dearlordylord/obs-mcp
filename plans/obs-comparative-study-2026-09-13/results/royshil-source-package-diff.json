@@ -1,0 +1,115 @@
+{
+  "publishedVersion": "1.1.0",
+  "sourceVersion": "1.0.1",
+  "publishedTarballSha1": "04bc7b4fb43cfacc6ecc84f9969b23e322c8a6dd",
+  "files": [
+    {
+      "path": "build/client.js",
+      "publishedSha256": "8bc39b4e9ff6ef9b94feb25709b2e68f3facdb37afea5d23359b5b1e29487335",
+      "sourceBuiltSha256": "8349a36753d093ee9fe2c57bef06f33011ee46c0061cf71fc31713b5f5cbf808",
+      "equal": false
+    },
+    {
+      "path": "build/index.js",
+      "publishedSha256": "7c7e466722b77ec632123807d548dd3123b6c588fb768fe18bc6f2d58b538d04",
+      "sourceBuiltSha256": "7c7e466722b77ec632123807d548dd3123b6c588fb768fe18bc6f2d58b538d04",
+      "equal": true
+    },
+    {
+      "path": "build/index.test.js",
+      "publishedSha256": "79ebd49a12c16272ac51076615aa66c7b29d3f4e3ed0b2a7f320049ce3c8b32b",
+      "sourceBuiltSha256": null,
+      "equal": false
+    },
+    {
+      "path": "build/server.js",
+      "publishedSha256": "9bad0e99bcfd366b0d826d36ba7cb81200459cd0ce15dfff8acec08428b4bd94",
+      "sourceBuiltSha256": "064f49774770cf1a9ac12c67833a9ff37ad4feffaaece3738482c132c0eb70d5",
+      "equal": false
+    },
+    {
+      "path": "build/tools/config.js",
+      "publishedSha256": "f8f4c471ac25f0fa4011f1e7216c25d41a99609e24849326ddf15b230cc2d2ec",
+      "sourceBuiltSha256": "f8f4c471ac25f0fa4011f1e7216c25d41a99609e24849326ddf15b230cc2d2ec",
+      "equal": true
+    },
+    {
+      "path": "build/tools/filters.js",
+      "publishedSha256": "d926cfcdc63cd498c728236332d4657c19a42d405bbd858022f6011a3552403b",
+      "sourceBuiltSha256": "d926cfcdc63cd498c728236332d4657c19a42d405bbd858022f6011a3552403b",
+      "equal": true
+    },
+    {
+      "path": "build/tools/general.js",
+      "publishedSha256": "79f2d7475e0e84fa8d078eb1a4431eb8eec3311de38d4d5b1dc17376ca903c54",
+      "sourceBuiltSha256": "f00c04ceeacc4a6140d312271a2c0b534df28a9f8516952518f59c2401b9a918",
+      "equal": false
+    },
+    {
+      "path": "build/tools/index.js",
+      "publishedSha256": "36931d24b0d01f0f46696c162029c3f74126120ff8b4cbdadad2823af9fc316e",
+      "sourceBuiltSha256": "36931d24b0d01f0f46696c162029c3f74126120ff8b4cbdadad2823af9fc316e",
+      "equal": true
+    },
+    {
+      "path": "build/tools/inputs.js",
+      "publishedSha256": "898679b1734e5f5c5eaa18afbeaa7fdb9a8c09ec2930ccd97fb71f5fe64e2787",
+      "sourceBuiltSha256": "898679b1734e5f5c5eaa18afbeaa7fdb9a8c09ec2930ccd97fb71f5fe64e2787",
+      "equal": true
+    },
+    {
+      "path": "build/tools/media-inputs.js",
+      "publishedSha256": "6fa1bdb2f23c49d6ab20e38ee6200d2f7d1baeb665de1d037911f941b5e02563",
+      "sourceBuiltSha256": "6fa1bdb2f23c49d6ab20e38ee6200d2f7d1baeb665de1d037911f941b5e02563",
+      "equal": true
+    },
+    {
+      "path": "build/tools/outputs.js",
+      "publishedSha256": "1eb5c82f42b544383da2d826fc356e8b1d0289bc5041c2d7011a52df5a78498e",
+      "sourceBuiltSha256": "1eb5c82f42b544383da2d826fc356e8b1d0289bc5041c2d7011a52df5a78498e",
+      "equal": true
+    },
+    {
+      "path": "build/tools/record.js",
+      "publishedSha256": "ce2ac308ce920ac13562d254988619d173d39e0487930bf18ea3e79d06d4b362",
+      "sourceBuiltSha256": "ce2ac308ce920ac13562d254988619d173d39e0487930bf18ea3e79d06d4b362",
+      "equal": true
+    },
+    {
+      "path": "build/tools/scene-items.js",
+      "publishedSha256": "8b8bad3f57446809afaf6d4ced5a787a2ca4595518a40a5b1f19a0d2b5150a1f",
+      "sourceBuiltSha256": "8b8bad3f57446809afaf6d4ced5a787a2ca4595518a40a5b1f19a0d2b5150a1f",
+      "equal": true
+    },
+    {
+      "path": "build/tools/scenes.js",
+      "publishedSha256": "aa94ed2f86555eb32d2ce9869eebd773fe19d83a1ec408dbb86af4d5000295b6",
+      "sourceBuiltSha256": "aa94ed2f86555eb32d2ce9869eebd773fe19d83a1ec408dbb86af4d5000295b6",
+      "equal": true
+    },
+    {
+      "path": "build/tools/sources.js",
+      "publishedSha256": "46d6823c11340e39750083cd39c5f85f635aea23e2d065c59b706c06176e7037",
+      "sourceBuiltSha256": "46d6823c11340e39750083cd39c5f85f635aea23e2d065c59b706c06176e7037",
+      "equal": true
+    },
+    {
+      "path": "build/tools/streaming.js",
+      "publishedSha256": "0e245898949af0182d586fe9fb79a07a584c9be32defbb5786ba1b778744baf6",
+      "sourceBuiltSha256": "0e245898949af0182d586fe9fb79a07a584c9be32defbb5786ba1b778744baf6",
+      "equal": true
+    },
+    {
+      "path": "build/tools/transitions.js",
+      "publishedSha256": "e68f4239a24dde55880908d2d05a7809a49a2962f6cd38e0d89b031ed080c05b",
+      "sourceBuiltSha256": "e68f4239a24dde55880908d2d05a7809a49a2962f6cd38e0d89b031ed080c05b",
+      "equal": true
+    },
+    {
+      "path": "build/tools/ui.js",
+      "publishedSha256": "7851d8ec71a2dfa1cf740c4b34a152901946d397ba763b73dbce4eb23f3e182f",
+      "sourceBuiltSha256": "7851d8ec71a2dfa1cf740c4b34a152901946d397ba763b73dbce4eb23f3e182f",
+      "equal": true
+    }
+  ]
+}

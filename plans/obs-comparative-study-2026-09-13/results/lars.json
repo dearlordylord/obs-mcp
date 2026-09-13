@@ -1,0 +1,2084 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "lars",
+  "observedAt": "2026-09-13T21:19:41.911Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "node",
+    "args": [
+      "obs-mcp-server.js"
+    ],
+    "cwd": "/tmp/obs-study-ts/lars"
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:19:20.083Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.093Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.099Z",
+        "requestType": "GetStreamStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.101Z",
+        "requestType": "GetRecordStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.103Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.114Z",
+        "requestType": "SetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux",
+          "inputMuted": true
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.118Z",
+        "requestType": "GetInputList",
+        "requestData": {
+          "inputKind": "wasapi_input_capture"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.121Z",
+        "requestType": "GetInputList",
+        "requestData": {
+          "inputKind": "wasapi_output_capture"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.122Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.124Z",
+        "requestType": "GetInputMute",
+        "requestData": {
+          "inputName": "Desktop Audio"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.126Z",
+        "requestType": "GetInputVolume",
+        "requestData": {
+          "inputName": "Mic/Aux"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.126Z",
+        "requestType": "GetInputVolume",
+        "requestData": {
+          "inputName": "Desktop Audio"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.132Z",
+        "requestType": "StartRecord",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.136Z",
+        "requestType": "GetStreamStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.137Z",
+        "requestType": "GetRecordStatus",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.138Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.141Z",
+        "requestType": "StopRecord",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.145Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.149Z",
+        "requestType": "SaveSourceScreenshot",
+        "requestData": {
+          "sourceName": "Main",
+          "imageFormat": "png",
+          "imageFilePath": "/tmp/obs-study-ts/lars/.study-home/fixture.png"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:19:20.168Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": null
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:19:20.177Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Missing Fixture Scene"
+        },
+        "classification": "validation_error"
+      },
+      {
+        "at": "2026-09-13T21:19:20.189Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "injected_obs_error"
+      },
+      {
+        "at": "2026-09-13T21:19:20.223Z",
+        "requestType": "GetSceneList",
+        "requestData": null,
+        "classification": "missing_response"
+      },
+      {
+        "at": "2026-09-13T21:19:30.212Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "in_flight_disconnect"
+      }
+    ],
+    "stateChanges": [
+      {
+        "kind": "scene",
+        "before": "Intro",
+        "after": "Main"
+      },
+      {
+        "kind": "mute",
+        "inputName": "Mic/Aux",
+        "before": false,
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": true
+      },
+      {
+        "kind": "record",
+        "after": false
+      }
+    ],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "tools": {}
+            },
+            "serverInfo": {
+              "name": "obs-mcp-server",
+              "version": "1.0.0"
+            }
+          },
+          "jsonrpc": "2.0",
+          "id": 1
+        },
+        "elapsedMs": 753
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "result": {
+            "tools": [
+              {
+                "name": "get_status",
+                "description": "Get current OBS status: active scene, streaming state, recording state.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "list_scenes",
+                "description": "List all scenes in OBS.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_scene",
+                "description": "Switch OBS to a different scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Exact name of the scene to switch to."
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ]
+                }
+              },
+              {
+                "name": "start_recording",
+                "description": "Start OBS recording.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "stop_recording",
+                "description": "Stop OBS recording.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "toggle_recording",
+                "description": "Toggle OBS recording on/off.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "start_streaming",
+                "description": "Start OBS streaming.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "stop_streaming",
+                "description": "Stop OBS streaming.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "list_sources",
+                "description": "List all sources (scene items) in a scene. Defaults to the current scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Scene name. Omit to use the current program scene."
+                    }
+                  }
+                }
+              },
+              {
+                "name": "set_source_visibility",
+                "description": "Show or hide a source in a scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Scene name. Omit to use the current program scene."
+                    },
+                    "scene_item_id": {
+                      "type": "number",
+                      "description": "The sceneItemId from list_sources."
+                    },
+                    "visible": {
+                      "type": "boolean",
+                      "description": "true to show, false to hide."
+                    }
+                  },
+                  "required": [
+                    "scene_item_id",
+                    "visible"
+                  ]
+                }
+              },
+              {
+                "name": "list_audio_inputs",
+                "description": "List all audio input sources (mics, desktop audio, etc.).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_mute",
+                "description": "Mute or unmute an audio input.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "input_name": {
+                      "type": "string",
+                      "description": "Name of the audio input (from list_audio_inputs)."
+                    },
+                    "muted": {
+                      "type": "boolean",
+                      "description": "true to mute, false to unmute."
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "muted"
+                  ]
+                }
+              },
+              {
+                "name": "toggle_mute",
+                "description": "Toggle mute on an audio input.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "input_name": {
+                      "type": "string",
+                      "description": "Name of the audio input (from list_audio_inputs)."
+                    }
+                  },
+                  "required": [
+                    "input_name"
+                  ]
+                }
+              },
+              {
+                "name": "set_volume",
+                "description": "Set the volume of an audio input (0.0 – 1.0, linear mul).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "input_name": {
+                      "type": "string",
+                      "description": "Name of the audio input."
+                    },
+                    "volume": {
+                      "type": "number",
+                      "description": "Volume multiplier: 0.0 (silent) to 1.0 (full)."
+                    }
+                  },
+                  "required": [
+                    "input_name",
+                    "volume"
+                  ]
+                }
+              },
+              {
+                "name": "save_screenshot",
+                "description": "Save a screenshot of the current OBS output to a file.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "file_path": {
+                      "type": "string",
+                      "description": "Absolute path where the screenshot should be saved (e.g. /tmp/obs-shot.png)."
+                    },
+                    "image_format": {
+                      "type": "string",
+                      "description": "Image format: png, jpg, bmp. Defaults to png."
+                    }
+                  },
+                  "required": [
+                    "file_path"
+                  ]
+                }
+              },
+              {
+                "name": "set_canvas_resolution",
+                "description": "Set the OBS canvas (base) and output resolution. Applies globally — affects all scenes in the current collection.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "width": {
+                      "type": "number",
+                      "description": "Canvas width in pixels (e.g. 2560, 1080)."
+                    },
+                    "height": {
+                      "type": "number",
+                      "description": "Canvas height in pixels (e.g. 1440, 1920)."
+                    },
+                    "fps": {
+                      "type": "number",
+                      "description": "Frame rate. Defaults to 60."
+                    }
+                  },
+                  "required": [
+                    "width",
+                    "height"
+                  ]
+                }
+              },
+              {
+                "name": "create_scene",
+                "description": "Create a new empty scene in OBS.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name for the new scene."
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ]
+                }
+              },
+              {
+                "name": "remove_scene",
+                "description": "Delete a scene from OBS. Cannot remove the currently active scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene to delete."
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ]
+                }
+              },
+              {
+                "name": "rename_scene",
+                "description": "Rename an existing scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Current name of the scene."
+                    },
+                    "new_name": {
+                      "type": "string",
+                      "description": "New name for the scene."
+                    }
+                  },
+                  "required": [
+                    "scene_name",
+                    "new_name"
+                  ]
+                }
+              },
+              {
+                "name": "list_scene_collections",
+                "description": "List all scene collections and show which one is active.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_scene_collection",
+                "description": "Switch to a different scene collection. OBS will reload its scenes.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "collection_name": {
+                      "type": "string",
+                      "description": "Exact name of the scene collection to switch to."
+                    }
+                  },
+                  "required": [
+                    "collection_name"
+                  ]
+                }
+              },
+              {
+                "name": "create_scene_collection",
+                "description": "Create a new scene collection (starts empty).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "collection_name": {
+                      "type": "string",
+                      "description": "Name for the new scene collection."
+                    }
+                  },
+                  "required": [
+                    "collection_name"
+                  ]
+                }
+              },
+              {
+                "name": "list_profiles",
+                "description": "List all OBS profiles and show which one is active.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              {
+                "name": "set_profile",
+                "description": "Switch to a different OBS profile (stream settings, encoder config, etc.).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "profile_name": {
+                      "type": "string",
+                      "description": "Exact name of the profile to switch to."
+                    }
+                  },
+                  "required": [
+                    "profile_name"
+                  ]
+                }
+              },
+              {
+                "name": "create_profile",
+                "description": "Create a new OBS profile.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "profile_name": {
+                      "type": "string",
+                      "description": "Name for the new profile."
+                    }
+                  },
+                  "required": [
+                    "profile_name"
+                  ]
+                }
+              },
+              {
+                "name": "remove_profile",
+                "description": "Delete an OBS profile. Cannot remove the currently active profile.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "profile_name": {
+                      "type": "string",
+                      "description": "Name of the profile to delete."
+                    }
+                  },
+                  "required": [
+                    "profile_name"
+                  ]
+                }
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 2
+        },
+        "elapsedMs": 65
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "list_scenes",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"current_scene\": \"Intro\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 3
+        },
+        "elapsedMs": 47
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "scene_name": "Main"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"switched_to\": \"Main\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 4
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "get_status",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"current_scene\": \"Main\",\n  \"streaming\": false,\n  \"stream_timecode\": \"00:00:00.000\",\n  \"recording\": false,\n  \"recording_paused\": false,\n  \"record_timecode\": \"00:00:00.000\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 5
+        },
+        "elapsedMs": 17
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "set_mute",
+          "arguments": {
+            "input_name": "Mic/Aux",
+            "muted": true
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"input\": \"Mic/Aux\",\n  \"muted\": true\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 6
+        },
+        "elapsedMs": 4
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "list_audio_inputs",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"audio_inputs\": [\n    {\n      \"name\": \"Mic/Aux\",\n      \"kind\": \"wasapi_input_capture\",\n      \"muted\": true,\n      \"volume\": null\n    },\n    {\n      \"name\": \"Desktop Audio\",\n      \"kind\": \"wasapi_output_capture\",\n      \"muted\": false,\n      \"volume\": null\n    }\n  ]\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 7
+        },
+        "elapsedMs": 13
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "start_recording",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"recording\": true\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 8
+        },
+        "elapsedMs": 5
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "get_status",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"current_scene\": \"Main\",\n  \"streaming\": false,\n  \"stream_timecode\": \"00:00:00.000\",\n  \"recording\": true,\n  \"recording_paused\": false,\n  \"record_timecode\": \"00:00:01.250\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 9
+        },
+        "elapsedMs": 6
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "stop_recording",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"recording\": false,\n  \"output_path\": \"/synthetic/recordings/fixture.mkv\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 10
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "save_screenshot",
+          "arguments": {
+            "file_path": "/tmp/obs-study-ts/lars/.study-home/fixture.png",
+            "image_format": "png"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\n  \"saved_to\": \"/tmp/obs-study-ts/lars/.study-home/fixture.png\"\n}"
+              }
+            ]
+          },
+          "jsonrpc": "2.0",
+          "id": 11
+        },
+        "elapsedMs": 20
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {}
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error: Missing request field: sceneName"
+              }
+            ],
+            "isError": true
+          },
+          "jsonrpc": "2.0",
+          "id": 12
+        },
+        "elapsedMs": 9
+      },
+      {
+        "id": 13,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "scene_name": "Missing Fixture Scene"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error: Scene not found"
+              }
+            ],
+            "isError": true
+          },
+          "jsonrpc": "2.0",
+          "id": 13
+        },
+        "elapsedMs": 7
+      },
+      {
+        "id": 14,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "scene_name": "Intro"
+          }
+        },
+        "response": {
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Error: Synthetic OBS rejection: scene locked"
+              }
+            ],
+            "isError": true
+          },
+          "jsonrpc": "2.0",
+          "id": 14
+        },
+        "elapsedMs": 25
+      },
+      {
+        "id": 15,
+        "method": "tools/call",
+        "params": {
+          "name": "list_scenes",
+          "arguments": {}
+        },
+        "watchdogMs": 10000
+      },
+      {
+        "id": 16,
+        "method": "tools/call",
+        "params": {
+          "name": "set_scene",
+          "arguments": {
+            "scene_name": "Intro"
+          }
+        },
+        "watchdogMs": 10000
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "OBS MCP Server running. Waiting for commands...\n",
+    "lifetimeMs": 22939
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "obs-mcp-server",
+        "version": "1.0.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {}
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 26,
+      "tools": [
+        {
+          "name": "get_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "list_scenes",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Exact name of the scene to switch to."
+              }
+            },
+            "required": [
+              "scene_name"
+            ]
+          }
+        },
+        {
+          "name": "start_recording",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "stop_recording",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "toggle_recording",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "start_streaming",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "stop_streaming",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "list_sources",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Scene name. Omit to use the current program scene."
+              }
+            }
+          }
+        },
+        {
+          "name": "set_source_visibility",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Scene name. Omit to use the current program scene."
+              },
+              "scene_item_id": {
+                "type": "number",
+                "description": "The sceneItemId from list_sources."
+              },
+              "visible": {
+                "type": "boolean",
+                "description": "true to show, false to hide."
+              }
+            },
+            "required": [
+              "scene_item_id",
+              "visible"
+            ]
+          }
+        },
+        {
+          "name": "list_audio_inputs",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_mute",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input_name": {
+                "type": "string",
+                "description": "Name of the audio input (from list_audio_inputs)."
+              },
+              "muted": {
+                "type": "boolean",
+                "description": "true to mute, false to unmute."
+              }
+            },
+            "required": [
+              "input_name",
+              "muted"
+            ]
+          }
+        },
+        {
+          "name": "toggle_mute",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input_name": {
+                "type": "string",
+                "description": "Name of the audio input (from list_audio_inputs)."
+              }
+            },
+            "required": [
+              "input_name"
+            ]
+          }
+        },
+        {
+          "name": "set_volume",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "input_name": {
+                "type": "string",
+                "description": "Name of the audio input."
+              },
+              "volume": {
+                "type": "number",
+                "description": "Volume multiplier: 0.0 (silent) to 1.0 (full)."
+              }
+            },
+            "required": [
+              "input_name",
+              "volume"
+            ]
+          }
+        },
+        {
+          "name": "save_screenshot",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "file_path": {
+                "type": "string",
+                "description": "Absolute path where the screenshot should be saved (e.g. /tmp/obs-shot.png)."
+              },
+              "image_format": {
+                "type": "string",
+                "description": "Image format: png, jpg, bmp. Defaults to png."
+              }
+            },
+            "required": [
+              "file_path"
+            ]
+          }
+        },
+        {
+          "name": "set_canvas_resolution",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "number",
+                "description": "Canvas width in pixels (e.g. 2560, 1080)."
+              },
+              "height": {
+                "type": "number",
+                "description": "Canvas height in pixels (e.g. 1440, 1920)."
+              },
+              "fps": {
+                "type": "number",
+                "description": "Frame rate. Defaults to 60."
+              }
+            },
+            "required": [
+              "width",
+              "height"
+            ]
+          }
+        },
+        {
+          "name": "create_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name for the new scene."
+              }
+            },
+            "required": [
+              "scene_name"
+            ]
+          }
+        },
+        {
+          "name": "remove_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene to delete."
+              }
+            },
+            "required": [
+              "scene_name"
+            ]
+          }
+        },
+        {
+          "name": "rename_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Current name of the scene."
+              },
+              "new_name": {
+                "type": "string",
+                "description": "New name for the scene."
+              }
+            },
+            "required": [
+              "scene_name",
+              "new_name"
+            ]
+          }
+        },
+        {
+          "name": "list_scene_collections",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_scene_collection",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "collection_name": {
+                "type": "string",
+                "description": "Exact name of the scene collection to switch to."
+              }
+            },
+            "required": [
+              "collection_name"
+            ]
+          }
+        },
+        {
+          "name": "create_scene_collection",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "collection_name": {
+                "type": "string",
+                "description": "Name for the new scene collection."
+              }
+            },
+            "required": [
+              "collection_name"
+            ]
+          }
+        },
+        {
+          "name": "list_profiles",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "set_profile",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "profile_name": {
+                "type": "string",
+                "description": "Exact name of the profile to switch to."
+              }
+            },
+            "required": [
+              "profile_name"
+            ]
+          }
+        },
+        {
+          "name": "create_profile",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "profile_name": {
+                "type": "string",
+                "description": "Name for the new profile."
+              }
+            },
+            "required": [
+              "profile_name"
+            ]
+          }
+        },
+        {
+          "name": "remove_profile",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "profile_name": {
+                "type": "string",
+                "description": "Name of the profile to delete."
+              }
+            },
+            "required": [
+              "profile_name"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "version",
+      "status": "unsupported",
+      "obsRequests": []
+    },
+    {
+      "name": "scenes",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.083Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"current_scene\": \"Intro\",\n  \"scenes\": [\n    \"Main\",\n    \"Intro\"\n  ]\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "pass",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"current_scene\": \"Main\",\n  \"streaming\": false,\n  \"stream_timecode\": \"00:00:00.000\",\n  \"recording\": false,\n  \"recording_paused\": false,\n  \"record_timecode\": \"00:00:00.000\"\n}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.093Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Main"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.099Z",
+          "requestType": "GetStreamStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.101Z",
+          "requestType": "GetRecordStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.103Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "finalState": "Main",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"switched_to\": \"Main\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "pass",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"audio_inputs\": [\n    {\n      \"name\": \"Mic/Aux\",\n      \"kind\": \"wasapi_input_capture\",\n      \"muted\": true,\n      \"volume\": null\n    },\n    {\n      \"name\": \"Desktop Audio\",\n      \"kind\": \"wasapi_output_capture\",\n      \"muted\": false,\n      \"volume\": null\n    }\n  ]\n}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.114Z",
+          "requestType": "SetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux",
+            "inputMuted": true
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.118Z",
+          "requestType": "GetInputList",
+          "requestData": {
+            "inputKind": "wasapi_input_capture"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.121Z",
+          "requestType": "GetInputList",
+          "requestData": {
+            "inputKind": "wasapi_output_capture"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.122Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.124Z",
+          "requestType": "GetInputMute",
+          "requestData": {
+            "inputName": "Desktop Audio"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.126Z",
+          "requestType": "GetInputVolume",
+          "requestData": {
+            "inputName": "Mic/Aux"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.126Z",
+          "requestType": "GetInputVolume",
+          "requestData": {
+            "inputName": "Desktop Audio"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "finalState": true,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"input\": \"Mic/Aux\",\n  \"muted\": true\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "pass",
+      "statusResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"current_scene\": \"Main\",\n  \"streaming\": false,\n  \"stream_timecode\": \"00:00:00.000\",\n  \"recording\": true,\n  \"recording_paused\": false,\n  \"record_timecode\": \"00:00:01.250\"\n}"
+          }
+        ]
+      },
+      "stopResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"recording\": false,\n  \"output_path\": \"/synthetic/recordings/fixture.mkv\"\n}"
+          }
+        ]
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.132Z",
+          "requestType": "StartRecord",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.136Z",
+          "requestType": "GetStreamStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.137Z",
+          "requestType": "GetRecordStatus",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.138Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.141Z",
+          "requestType": "StopRecord",
+          "requestData": null,
+          "classification": "implemented"
+        }
+      ],
+      "finalState": false,
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"recording\": true\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "screenshot",
+      "status": "pass",
+      "image": {
+        "valid": true,
+        "kind": "file",
+        "bytes": 70,
+        "path": "/tmp/obs-study-ts/lars/.study-home/fixture.png"
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.145Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:19:20.149Z",
+          "requestType": "SaveSourceScreenshot",
+          "requestData": {
+            "sourceName": "Main",
+            "imageFormat": "png",
+            "imageFilePath": "/tmp/obs-study-ts/lars/.study-home/fixture.png"
+          },
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"saved_to\": \"/tmp/obs-study-ts/lars/.study-home/fixture.png\"\n}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "unsupported"
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error: Missing request field: sceneName\"}],\"isError\":true}",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: Missing request field: sceneName"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "unknown_entity",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error: Scene not found\"}],\"isError\":true}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.177Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Missing Fixture Scene"
+          },
+          "classification": "validation_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: Scene not found"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Error: Synthetic OBS rejection: scene locked\"}],\"isError\":true}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.189Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "injected_obs_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Error: Synthetic OBS rejection: scene locked"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "fail",
+      "interpretation": "no bounded response observed; this finite probe does not prove an indefinite hang",
+      "retried": false,
+      "watchdogMs": 10000,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:20.223Z",
+          "requestType": "GetSceneList",
+          "requestData": null,
+          "classification": "missing_response"
+        }
+      ],
+      "error": "MCP response watchdog expired after 10000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "fail",
+      "attempts": 1,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Main",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:19:30.212Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "in_flight_disconnect"
+        }
+      ],
+      "error": "MCP response watchdog expired after 10000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "not_testable",
+      "error": "candidate did not complete OBS capability discovery before reduced-capability observation",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot",
+        "GetSceneList"
+      ],
+      "mcpTrace": {
+        "exchanges": [
+          {
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2024-11-05",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "obs-comparative-study-fixture",
+                "version": "1.0.0"
+              }
+            },
+            "response": {
+              "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                  "tools": {}
+                },
+                "serverInfo": {
+                  "name": "obs-mcp-server",
+                  "version": "1.0.0"
+                }
+              },
+              "jsonrpc": "2.0",
+              "id": 1
+            },
+            "elapsedMs": 1288
+          },
+          {
+            "id": 2,
+            "method": "tools/list",
+            "params": {},
+            "response": {
+              "result": {
+                "tools": [
+                  {
+                    "name": "get_status",
+                    "description": "Get current OBS status: active scene, streaming state, recording state.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "list_scenes",
+                    "description": "List all scenes in OBS.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "set_scene",
+                    "description": "Switch OBS to a different scene.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "scene_name": {
+                          "type": "string",
+                          "description": "Exact name of the scene to switch to."
+                        }
+                      },
+                      "required": [
+                        "scene_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "start_recording",
+                    "description": "Start OBS recording.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "stop_recording",
+                    "description": "Stop OBS recording.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "toggle_recording",
+                    "description": "Toggle OBS recording on/off.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "start_streaming",
+                    "description": "Start OBS streaming.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "stop_streaming",
+                    "description": "Stop OBS streaming.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "list_sources",
+                    "description": "List all sources (scene items) in a scene. Defaults to the current scene.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "scene_name": {
+                          "type": "string",
+                          "description": "Scene name. Omit to use the current program scene."
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "set_source_visibility",
+                    "description": "Show or hide a source in a scene.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "scene_name": {
+                          "type": "string",
+                          "description": "Scene name. Omit to use the current program scene."
+                        },
+                        "scene_item_id": {
+                          "type": "number",
+                          "description": "The sceneItemId from list_sources."
+                        },
+                        "visible": {
+                          "type": "boolean",
+                          "description": "true to show, false to hide."
+                        }
+                      },
+                      "required": [
+                        "scene_item_id",
+                        "visible"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "list_audio_inputs",
+                    "description": "List all audio input sources (mics, desktop audio, etc.).",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "set_mute",
+                    "description": "Mute or unmute an audio input.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "input_name": {
+                          "type": "string",
+                          "description": "Name of the audio input (from list_audio_inputs)."
+                        },
+                        "muted": {
+                          "type": "boolean",
+                          "description": "true to mute, false to unmute."
+                        }
+                      },
+                      "required": [
+                        "input_name",
+                        "muted"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "toggle_mute",
+                    "description": "Toggle mute on an audio input.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "input_name": {
+                          "type": "string",
+                          "description": "Name of the audio input (from list_audio_inputs)."
+                        }
+                      },
+                      "required": [
+                        "input_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "set_volume",
+                    "description": "Set the volume of an audio input (0.0 – 1.0, linear mul).",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "input_name": {
+                          "type": "string",
+                          "description": "Name of the audio input."
+                        },
+                        "volume": {
+                          "type": "number",
+                          "description": "Volume multiplier: 0.0 (silent) to 1.0 (full)."
+                        }
+                      },
+                      "required": [
+                        "input_name",
+                        "volume"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "save_screenshot",
+                    "description": "Save a screenshot of the current OBS output to a file.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "file_path": {
+                          "type": "string",
+                          "description": "Absolute path where the screenshot should be saved (e.g. /tmp/obs-shot.png)."
+                        },
+                        "image_format": {
+                          "type": "string",
+                          "description": "Image format: png, jpg, bmp. Defaults to png."
+                        }
+                      },
+                      "required": [
+                        "file_path"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "set_canvas_resolution",
+                    "description": "Set the OBS canvas (base) and output resolution. Applies globally — affects all scenes in the current collection.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "width": {
+                          "type": "number",
+                          "description": "Canvas width in pixels (e.g. 2560, 1080)."
+                        },
+                        "height": {
+                          "type": "number",
+                          "description": "Canvas height in pixels (e.g. 1440, 1920)."
+                        },
+                        "fps": {
+                          "type": "number",
+                          "description": "Frame rate. Defaults to 60."
+                        }
+                      },
+                      "required": [
+                        "width",
+                        "height"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "create_scene",
+                    "description": "Create a new empty scene in OBS.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "scene_name": {
+                          "type": "string",
+                          "description": "Name for the new scene."
+                        }
+                      },
+                      "required": [
+                        "scene_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "remove_scene",
+                    "description": "Delete a scene from OBS. Cannot remove the currently active scene.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "scene_name": {
+                          "type": "string",
+                          "description": "Name of the scene to delete."
+                        }
+                      },
+                      "required": [
+                        "scene_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "rename_scene",
+                    "description": "Rename an existing scene.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "scene_name": {
+                          "type": "string",
+                          "description": "Current name of the scene."
+                        },
+                        "new_name": {
+                          "type": "string",
+                          "description": "New name for the scene."
+                        }
+                      },
+                      "required": [
+                        "scene_name",
+                        "new_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "list_scene_collections",
+                    "description": "List all scene collections and show which one is active.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "set_scene_collection",
+                    "description": "Switch to a different scene collection. OBS will reload its scenes.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "collection_name": {
+                          "type": "string",
+                          "description": "Exact name of the scene collection to switch to."
+                        }
+                      },
+                      "required": [
+                        "collection_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "create_scene_collection",
+                    "description": "Create a new scene collection (starts empty).",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "collection_name": {
+                          "type": "string",
+                          "description": "Name for the new scene collection."
+                        }
+                      },
+                      "required": [
+                        "collection_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "list_profiles",
+                    "description": "List all OBS profiles and show which one is active.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  },
+                  {
+                    "name": "set_profile",
+                    "description": "Switch to a different OBS profile (stream settings, encoder config, etc.).",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "profile_name": {
+                          "type": "string",
+                          "description": "Exact name of the profile to switch to."
+                        }
+                      },
+                      "required": [
+                        "profile_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "create_profile",
+                    "description": "Create a new OBS profile.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "profile_name": {
+                          "type": "string",
+                          "description": "Name for the new profile."
+                        }
+                      },
+                      "required": [
+                        "profile_name"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "remove_profile",
+                    "description": "Delete an OBS profile. Cannot remove the currently active profile.",
+                    "inputSchema": {
+                      "type": "object",
+                      "properties": {
+                        "profile_name": {
+                          "type": "string",
+                          "description": "Name of the profile to delete."
+                        }
+                      },
+                      "required": [
+                        "profile_name"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "jsonrpc": "2.0",
+              "id": 2
+            },
+            "elapsedMs": 12
+          }
+        ],
+        "stdoutNoise": [],
+        "stderr": "OBS MCP Server running. Waiting for commands...\n",
+        "lifetimeMs": 1568
+      },
+      "obsRequests": []
+    }
+  ]
+}

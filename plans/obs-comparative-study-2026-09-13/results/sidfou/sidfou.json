@@ -1,0 +1,2003 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "2026-09-13.5",
+  "fixtureSources": {
+    "runner.mjs": "f94f2a5dadeb1e6f6dc10f5aedbdf7dda01aa84cacb28bf8050413f74c4963bf",
+    "fake-obs.mjs": "6c87648ea0ade612e75d60a349a827f9ed422bab3454f81f1d52f8dd17bcef75",
+    "mcp-process.mjs": "0dc1a6d6549546548ff11774f882e95700a230d9df6ad91b650137d1fae43b88",
+    "msgpack.mjs": "3c0ed11c94b3df67733d548a8be08d672e29b2b3480d240af9ca07fc7c0fb227"
+  },
+  "candidateId": "sidfou",
+  "observedAt": "2026-09-13T21:36:29.089Z",
+  "limitations": [
+    "Mocked protocol execution does not establish rendering, codecs/devices, platform capture behavior, live streaming, or real OBS performance.",
+    "A finite watchdog expiration records that no bounded response was observed; it does not prove an indefinite hang.",
+    "The disconnect probe closes before applying an idempotent scene setter; it cannot establish behavior after an applied non-idempotent mutation."
+  ],
+  "officialProtocol": {
+    "commit": "1ef34bf48110c2a18184e50e41cd0b1a855e2147",
+    "sha256": "042e8c42da2dfd6d78fa0f695b2b59495d8254d5fe718b0f20d0e2e6f58a6993",
+    "sourceUrl": "https://raw.githubusercontent.com/obsproject/obs-websocket/1ef34bf48110c2a18184e50e41cd0b1a855e2147/docs/generated/protocol.json",
+    "path": "/workspace/typescript/obs-mcp/plans/obs-comparative-study-2026-09-13/fixture/"
+  },
+  "launch": {
+    "command": "/tmp/obs-sidfou-pKc7OU/repo/.venv/bin/obs-stream-mcp",
+    "args": [
+      "--no-sse"
+    ]
+  },
+  "fixture": {
+    "connections": 1,
+    "requests": [
+      {
+        "at": "2026-09-13T21:36:08.262Z",
+        "requestType": "GetVersion",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.518Z",
+        "requestType": "GetVersion",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.519Z",
+        "requestType": "GetStreamStatus",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.520Z",
+        "requestType": "GetRecordStatus",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.520Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.522Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.524Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.524Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Main"
+        },
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.526Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.529Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.530Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      },
+      {
+        "at": "2026-09-13T21:36:08.530Z",
+        "requestType": "SetCurrentProgramScene",
+        "requestData": {
+          "sceneName": "Intro"
+        },
+        "classification": "injected_obs_error"
+      },
+      {
+        "at": "2026-09-13T21:36:08.535Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "missing_response"
+      },
+      {
+        "at": "2026-09-13T21:36:18.542Z",
+        "requestType": "GetSceneList",
+        "requestData": {},
+        "classification": "implemented"
+      }
+    ],
+    "stateChanges": [
+      {
+        "kind": "scene",
+        "before": "Intro",
+        "after": "Main"
+      }
+    ],
+    "fixtureUnimplemented": []
+  },
+  "mcp": {
+    "exchanges": [
+      {
+        "id": 1,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {},
+          "clientInfo": {
+            "name": "obs-comparative-study-fixture",
+            "version": "1.0.0"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+              "experimental": {},
+              "tools": {
+                "listChanged": false
+              }
+            },
+            "serverInfo": {
+              "name": "obs-stream-mcp",
+              "version": "1.26.0"
+            }
+          }
+        },
+        "elapsedMs": 239
+      },
+      {
+        "id": 2,
+        "method": "tools/list",
+        "params": {},
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 2,
+          "result": {
+            "tools": [
+              {
+                "name": "obs_connect",
+                "description": "Connect to OBS WebSocket. Must be called before any other tool.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_get_status",
+                "description": "Get current OBS connection and streaming status.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_health_check",
+                "description": "Comprehensive OBS diagnostics: connection, streaming, recording, scene, version, latency.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_list_devices",
+                "description": "List available video and audio devices to prevent device name guessing.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_get_scene_list",
+                "description": "List all scenes and the current active program scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_create_scene",
+                "description": "Create a new empty scene in OBS.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene to create.",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_remove_scene",
+                "description": "Remove a scene from OBS. Cannot remove the active program scene. Requires confirmed=true.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene to remove.",
+                      "minLength": 1
+                    },
+                    "confirmed": {
+                      "type": "boolean",
+                      "description": "Must be true to confirm deletion. Prevents accidental removal."
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_switch_scene",
+                "description": "Switch the active program scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene to switch to.",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_get_stream_settings",
+                "description": "Get current stream service settings. Never exposes stream key.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_set_stream_settings",
+                "description": "Configure stream service. Presets: youtube, twitch, kick. Or provide custom server URL. Stream key from parameter or OBS_STREAM_KEY env var.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "service": {
+                      "type": "string",
+                      "description": "Streaming service preset: 'youtube', 'twitch', 'kick'. Omit for custom RTMP server."
+                    },
+                    "server": {
+                      "type": "string",
+                      "description": "Custom RTMP/RTMPS server URL. Required if service is not provided. Ignored if a service preset is used."
+                    },
+                    "stream_key": {
+                      "type": "string",
+                      "description": "Stream key. If omitted, falls back to OBS_STREAM_KEY environment variable."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_start_stream",
+                "description": "Start the OBS stream output.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_stop_stream",
+                "description": "Stop the OBS stream output. Requires confirmed=true.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "confirmed": {
+                      "type": "boolean",
+                      "description": "Must be true to stop the stream. Prevents accidental stream stops."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_add_source",
+                "description": "Add a new source (input) to a scene. Common source_type values: image_source, color_source_v3, browser_source, ffmpeg_source, text_gdiplus_v3, monitor_capture, window_capture, game_capture, dshow_input.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene to add the source to.",
+                      "minLength": 1
+                    },
+                    "source_name": {
+                      "type": "string",
+                      "description": "Unique name for the new source.",
+                      "minLength": 1
+                    },
+                    "source_type": {
+                      "type": "string",
+                      "description": "OBS input kind. Common types: image_source, color_source_v3, browser_source, ffmpeg_source, text_gdiplus_v3, monitor_capture, window_capture, game_capture, dshow_input.",
+                      "minLength": 1
+                    },
+                    "source_settings": {
+                      "type": "object",
+                      "description": "Optional input-specific settings as key-value pairs. Example for image_source: {\"file\": \"C:/path/to/image.png\"}. Example for browser_source: {\"url\": \"https://example.com\", \"width\": 1920, \"height\": 1080}. Example for color_source_v3: {\"color\": 4278190335, \"width\": 1920, \"height\": 1080}.",
+                      "additionalProperties": true
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether the source is visible when added. Defaults to true."
+                    }
+                  },
+                  "required": [
+                    "scene_name",
+                    "source_name",
+                    "source_type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_remove_source",
+                "description": "Remove a source from a scene by name.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene containing the source.",
+                      "minLength": 1
+                    },
+                    "source_name": {
+                      "type": "string",
+                      "description": "Name of the source to remove.",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "scene_name",
+                    "source_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_get_source_list",
+                "description": "List all sources (scene items) in a scene with their properties.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene to list sources for.",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "scene_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_set_source_transform",
+                "description": "Set transform properties (position, scale, rotation, crop, bounds) on a source in a scene. Only provided keys are updated.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene containing the source.",
+                      "minLength": 1
+                    },
+                    "source_name": {
+                      "type": "string",
+                      "description": "Name of the source to transform.",
+                      "minLength": 1
+                    },
+                    "transform": {
+                      "type": "object",
+                      "description": "Transform properties to set. Supported keys: positionX (float), positionY (float), scaleX (float), scaleY (float), rotation (float, degrees), cropTop (int), cropBottom (int), cropLeft (int), cropRight (int), boundsType (string, e.g. 'OBS_BOUNDS_STRETCH'), boundsWidth (float), boundsHeight (float), boundsAlignment (int). Only provided keys are updated; others remain unchanged.",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "scene_name",
+                    "source_name",
+                    "transform"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_set_source_visibility",
+                "description": "Show or hide a source in a scene.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name of the scene containing the source.",
+                      "minLength": 1
+                    },
+                    "source_name": {
+                      "type": "string",
+                      "description": "Name of the source to show or hide.",
+                      "minLength": 1
+                    },
+                    "visible": {
+                      "type": "boolean",
+                      "description": "True to show the source, false to hide it."
+                    }
+                  },
+                  "required": [
+                    "scene_name",
+                    "source_name",
+                    "visible"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "build_gaming_scene",
+                "description": "Build a complete gaming scene with Game Capture, Display Capture, Webcam, and Stream Title overlay. Supports overwrite and auto-switch.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name for the gaming scene. Defaults to 'Gaming'."
+                    },
+                    "overwrite": {
+                      "type": "boolean",
+                      "description": "If true, clear and rebuild the scene if it already exists. If false (default), return DUPLICATE_SCENE error."
+                    },
+                    "switch_to": {
+                      "type": "boolean",
+                      "description": "If true (default), switch to the scene after building."
+                    },
+                    "force": {
+                      "type": "boolean",
+                      "description": "If true, allow scene rebuild while streaming. Default false."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "build_starting_soon_scene",
+                "description": "Build a 'Starting Soon' scene with color background, title text, optional countdown browser source, and optional image overlay. Supports overwrite and auto-switch.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Name for the scene. Defaults to 'Starting Soon'."
+                    },
+                    "overwrite": {
+                      "type": "boolean",
+                      "description": "If true, clear and rebuild the scene if it already exists. If false (default), return DUPLICATE_SCENE error."
+                    },
+                    "switch_to": {
+                      "type": "boolean",
+                      "description": "If true (default), switch to the scene after building."
+                    },
+                    "background_color": {
+                      "type": "integer",
+                      "description": "ABGR color integer for the background. Defaults to dark gray."
+                    },
+                    "title_text": {
+                      "type": "string",
+                      "description": "Text to display. Defaults to 'Starting Soon...'."
+                    },
+                    "countdown_url": {
+                      "type": "string",
+                      "description": "Optional URL for a browser source countdown widget."
+                    },
+                    "image_path": {
+                      "type": "string",
+                      "description": "Optional file path for a background/overlay image."
+                    },
+                    "force": {
+                      "type": "boolean",
+                      "description": "If true, allow scene rebuild while streaming. Default false."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_detect_multi_rtmp_plugin",
+                "description": "Check if the obs-multi-rtmp plugin is installed and its dock is visible in OBS.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_list_rtmp_targets",
+                "description": "List all configured RTMP targets from the Multiple Output dock, including active/inactive state.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_add_rtmp_target",
+                "description": "Add a new RTMP streaming target via the plugin UI. Requires name, server URL, and stream key.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Display name for the RTMP target.",
+                      "minLength": 1
+                    },
+                    "server": {
+                      "type": "string",
+                      "description": "RTMP/RTMPS server URL (e.g., rtmp://live.twitch.tv/app).",
+                      "minLength": 1
+                    },
+                    "stream_key": {
+                      "type": "string",
+                      "description": "Stream key for the target. Never stored or logged.",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "server",
+                    "stream_key"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_modify_rtmp_target",
+                "description": "Modify an existing RTMP target's name, server, or stream key via the plugin UI.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target_name": {
+                      "type": "string",
+                      "description": "Current name of the RTMP target to modify.",
+                      "minLength": 1
+                    },
+                    "new_name": {
+                      "type": "string",
+                      "description": "New display name. Omit to keep current name."
+                    },
+                    "server": {
+                      "type": "string",
+                      "description": "New RTMP/RTMPS server URL. Omit to keep current."
+                    },
+                    "stream_key": {
+                      "type": "string",
+                      "description": "New stream key. Omit to keep current. Never stored or logged."
+                    }
+                  },
+                  "required": [
+                    "target_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_remove_rtmp_target",
+                "description": "Remove an RTMP target. Requires confirmed=true.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target_name": {
+                      "type": "string",
+                      "description": "Name of the RTMP target to remove.",
+                      "minLength": 1
+                    },
+                    "confirmed": {
+                      "type": "boolean",
+                      "description": "Must be true to confirm deletion. Prevents accidental removal."
+                    }
+                  },
+                  "required": [
+                    "target_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_start_rtmp_target",
+                "description": "Start streaming to a specific RTMP target. Main OBS stream must be running first (shared encoder).",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target_name": {
+                      "type": "string",
+                      "description": "Name of the RTMP target to start.",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "target_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_stop_rtmp_target",
+                "description": "Stop streaming to a specific RTMP target. Requires confirmed=true.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "target_name": {
+                      "type": "string",
+                      "description": "Name of the RTMP target to stop.",
+                      "minLength": 1
+                    },
+                    "confirmed": {
+                      "type": "boolean",
+                      "description": "Must be true to stop the target. Prevents accidental stops."
+                    }
+                  },
+                  "required": [
+                    "target_name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_start_all_rtmp_targets",
+                "description": "Start all configured RTMP targets simultaneously.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "obs_stop_all_rtmp_targets",
+                "description": "Stop all active RTMP targets. Requires confirmed=true.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "confirmed": {
+                      "type": "boolean",
+                      "description": "Must be true to stop all targets. Prevents accidental stops."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "teleport_configure_host",
+                "description": "Configure the OBS Teleport output on the host (sender) machine. Opens Tools -> Teleport dialog, sets enabled state, identifier, port, and quality via UI automation.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether to enable or disable Teleport output. Defaults to true."
+                    },
+                    "identifier": {
+                      "type": "string",
+                      "description": "Teleport host identifier that clients connect to. Defaults to 'OBSTeleport'."
+                    },
+                    "port": {
+                      "type": "integer",
+                      "description": "TCP port for Teleport. 0 = auto (default). Range: 0-65535."
+                    },
+                    "quality": {
+                      "type": "integer",
+                      "description": "JPEG quality for Teleport stream. Range: 1-100. Defaults to 90."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "teleport_configure_client",
+                "description": "Add a Teleport source to a scene on the client (receiver) machine. Connects to the specified host identifier via the teleport-source input kind.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Scene to add the Teleport source to. Created if it doesn't exist.",
+                      "minLength": 1
+                    },
+                    "source_name": {
+                      "type": "string",
+                      "description": "Name for the Teleport source. Defaults to 'Teleport Feed'."
+                    },
+                    "identifier": {
+                      "type": "string",
+                      "description": "Teleport host identifier to connect to. Must match the host's identifier.",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "scene_name",
+                    "identifier"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "teleport_get_status",
+                "description": "Check if the OBS Teleport output exists and get its settings. Uses WebSocket — no UI automation required.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "cluster_status",
+                "description": "Check reachability of all cluster nodes. Shows online/offline status for each configured node.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "cluster_nodes_list",
+                "description": "List all configured cluster nodes with their host and port.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "cluster_node_status",
+                "description": "Detailed status of a specific cluster node. Verifies: MCP reachable, OBS reachable, tool discovery.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "node": {
+                      "type": "string",
+                      "description": "Name of the cluster node to check."
+                    }
+                  },
+                  "required": [
+                    "node"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "remote_execute",
+                "description": "Execute an MCP tool on a remote cluster node. Only allows existing MCP tools — no arbitrary commands.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "node": {
+                      "type": "string",
+                      "description": "Name of the remote cluster node (e.g. 'streaming-pc')."
+                    },
+                    "tool": {
+                      "type": "string",
+                      "description": "Name of the MCP tool to execute on the remote node."
+                    },
+                    "args": {
+                      "type": "object",
+                      "description": "Arguments to pass to the remote tool.",
+                      "additionalProperties": true
+                    }
+                  },
+                  "required": [
+                    "node",
+                    "tool"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              {
+                "name": "setup_dual_pc_teleport",
+                "description": "Orchestrate full dual-PC Teleport setup: verify OBS on both nodes, configure host output on sender, add teleport-source on receiver, validate connection.",
+                "inputSchema": {
+                  "type": "object",
+                  "properties": {
+                    "host_node": {
+                      "type": "string",
+                      "description": "Cluster node name for the Teleport host (sender). Defaults to 'gaming-pc'."
+                    },
+                    "client_node": {
+                      "type": "string",
+                      "description": "Cluster node name for the Teleport client (receiver). Defaults to 'streaming-pc'."
+                    },
+                    "identifier": {
+                      "type": "string",
+                      "description": "Teleport identifier. Defaults to 'OBSTeleport'."
+                    },
+                    "scene_name": {
+                      "type": "string",
+                      "description": "Scene name on the client for the Teleport source. Defaults to 'Teleport Feed'."
+                    },
+                    "quality": {
+                      "type": "integer",
+                      "description": "JPEG quality for Teleport stream. Defaults to 90."
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            ]
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_connect",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 3,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": true, \"data\": {\"message\": \"Connected to OBS\", \"obs_version\": \"31.1.0\", \"ws_version\": \"5.6.2\", \"platform\": \"Deterministic loopback study fixture\"}}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 12
+      },
+      {
+        "id": 4,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_health_check",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 4,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": true, \"data\": {\"connected\": true, \"obs_version\": \"31.1.0\", \"ws_version\": \"5.6.2\", \"platform\": \"Deterministic loopback study fixture\", \"ws_latency_ms\": 0.9, \"streaming\": false, \"stream_timecode\": \"00:00:00.000\", \"recording\": false, \"recording_paused\": false, \"current_scene\": \"Intro\", \"scene_count\": 2}}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 4
+      },
+      {
+        "id": 5,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_get_scene_list",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 5,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": true, \"data\": {\"current_program_scene\": \"Intro\", \"scenes\": [\"Intro\", \"Main\"]}}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 6,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "scene_name": "Main"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 6,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": true, \"data\": {\"scene_name\": \"Main\"}}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 7,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_get_scene_list",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 7,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": true, \"data\": {\"current_program_scene\": \"Main\", \"scenes\": [\"Intro\", \"Main\"]}}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 2
+      },
+      {
+        "id": 8,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {}
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 8,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Input validation error: 'scene_name' is a required property"
+              }
+            ],
+            "isError": true
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 9,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "scene_name": "Missing Fixture Scene"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 9,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": false, \"error\": \"Scene 'Missing Fixture Scene' not found\", \"code\": \"SCENE_NOT_FOUND\"}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 1
+      },
+      {
+        "id": 10,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "scene_name": "Intro"
+          }
+        },
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 10,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": false, \"error\": \"Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\", \"code\": \"OBS_ERROR\"}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 6
+      },
+      {
+        "id": 11,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_get_scene_list",
+          "arguments": {}
+        },
+        "watchdogMs": 10000,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 11,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "{\"success\": true, \"data\": {\"current_program_scene\": \"Main\", \"scenes\": [\"Intro\", \"Main\"]}}"
+              }
+            ],
+            "isError": false
+          }
+        },
+        "elapsedMs": 10009
+      },
+      {
+        "id": 12,
+        "method": "tools/call",
+        "params": {
+          "name": "obs_switch_scene",
+          "arguments": {
+            "scene_name": "Intro"
+          }
+        },
+        "watchdogMs": 10000
+      }
+    ],
+    "stdoutNoise": [],
+    "stderr": "OBSSDKRequestError: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\nTraceback (most recent call last):\n  File \"/tmp/obs-sidfou-pKc7OU/repo/.venv/lib/python3.13/site-packages/obsws_python/reqs.py\", line 53, in send\n    raise OBSSDKRequestError(\n    ...<3 lines>...\n    )\nobsws_python.error.OBSSDKRequestError: Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\n",
+    "lifetimeMs": 21077
+  },
+  "probes": [
+    {
+      "name": "initialize",
+      "status": "pass",
+      "requestedProtocolVersion": "2024-11-05",
+      "serverInfo": {
+        "name": "obs-stream-mcp",
+        "version": "1.26.0"
+      },
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "experimental": {},
+        "tools": {
+          "listChanged": false
+        }
+      }
+    },
+    {
+      "name": "tools_list",
+      "status": "pass",
+      "count": 36,
+      "tools": [
+        {
+          "name": "obs_connect",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_get_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_health_check",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_list_devices",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_get_scene_list",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_create_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene to create.",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "scene_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_remove_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene to remove.",
+                "minLength": 1
+              },
+              "confirmed": {
+                "type": "boolean",
+                "description": "Must be true to confirm deletion. Prevents accidental removal."
+              }
+            },
+            "required": [
+              "scene_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_switch_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene to switch to.",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "scene_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_get_stream_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_set_stream_settings",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string",
+                "description": "Streaming service preset: 'youtube', 'twitch', 'kick'. Omit for custom RTMP server."
+              },
+              "server": {
+                "type": "string",
+                "description": "Custom RTMP/RTMPS server URL. Required if service is not provided. Ignored if a service preset is used."
+              },
+              "stream_key": {
+                "type": "string",
+                "description": "Stream key. If omitted, falls back to OBS_STREAM_KEY environment variable."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_start_stream",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_stop_stream",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "confirmed": {
+                "type": "boolean",
+                "description": "Must be true to stop the stream. Prevents accidental stream stops."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_add_source",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene to add the source to.",
+                "minLength": 1
+              },
+              "source_name": {
+                "type": "string",
+                "description": "Unique name for the new source.",
+                "minLength": 1
+              },
+              "source_type": {
+                "type": "string",
+                "description": "OBS input kind. Common types: image_source, color_source_v3, browser_source, ffmpeg_source, text_gdiplus_v3, monitor_capture, window_capture, game_capture, dshow_input.",
+                "minLength": 1
+              },
+              "source_settings": {
+                "type": "object",
+                "description": "Optional input-specific settings as key-value pairs. Example for image_source: {\"file\": \"C:/path/to/image.png\"}. Example for browser_source: {\"url\": \"https://example.com\", \"width\": 1920, \"height\": 1080}. Example for color_source_v3: {\"color\": 4278190335, \"width\": 1920, \"height\": 1080}.",
+                "additionalProperties": true
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether the source is visible when added. Defaults to true."
+              }
+            },
+            "required": [
+              "scene_name",
+              "source_name",
+              "source_type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_remove_source",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene containing the source.",
+                "minLength": 1
+              },
+              "source_name": {
+                "type": "string",
+                "description": "Name of the source to remove.",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "scene_name",
+              "source_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_get_source_list",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene to list sources for.",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "scene_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_set_source_transform",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene containing the source.",
+                "minLength": 1
+              },
+              "source_name": {
+                "type": "string",
+                "description": "Name of the source to transform.",
+                "minLength": 1
+              },
+              "transform": {
+                "type": "object",
+                "description": "Transform properties to set. Supported keys: positionX (float), positionY (float), scaleX (float), scaleY (float), rotation (float, degrees), cropTop (int), cropBottom (int), cropLeft (int), cropRight (int), boundsType (string, e.g. 'OBS_BOUNDS_STRETCH'), boundsWidth (float), boundsHeight (float), boundsAlignment (int). Only provided keys are updated; others remain unchanged.",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "scene_name",
+              "source_name",
+              "transform"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_set_source_visibility",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name of the scene containing the source.",
+                "minLength": 1
+              },
+              "source_name": {
+                "type": "string",
+                "description": "Name of the source to show or hide.",
+                "minLength": 1
+              },
+              "visible": {
+                "type": "boolean",
+                "description": "True to show the source, false to hide it."
+              }
+            },
+            "required": [
+              "scene_name",
+              "source_name",
+              "visible"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "build_gaming_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name for the gaming scene. Defaults to 'Gaming'."
+              },
+              "overwrite": {
+                "type": "boolean",
+                "description": "If true, clear and rebuild the scene if it already exists. If false (default), return DUPLICATE_SCENE error."
+              },
+              "switch_to": {
+                "type": "boolean",
+                "description": "If true (default), switch to the scene after building."
+              },
+              "force": {
+                "type": "boolean",
+                "description": "If true, allow scene rebuild while streaming. Default false."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "build_starting_soon_scene",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Name for the scene. Defaults to 'Starting Soon'."
+              },
+              "overwrite": {
+                "type": "boolean",
+                "description": "If true, clear and rebuild the scene if it already exists. If false (default), return DUPLICATE_SCENE error."
+              },
+              "switch_to": {
+                "type": "boolean",
+                "description": "If true (default), switch to the scene after building."
+              },
+              "background_color": {
+                "type": "integer",
+                "description": "ABGR color integer for the background. Defaults to dark gray."
+              },
+              "title_text": {
+                "type": "string",
+                "description": "Text to display. Defaults to 'Starting Soon...'."
+              },
+              "countdown_url": {
+                "type": "string",
+                "description": "Optional URL for a browser source countdown widget."
+              },
+              "image_path": {
+                "type": "string",
+                "description": "Optional file path for a background/overlay image."
+              },
+              "force": {
+                "type": "boolean",
+                "description": "If true, allow scene rebuild while streaming. Default false."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_detect_multi_rtmp_plugin",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_list_rtmp_targets",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_add_rtmp_target",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Display name for the RTMP target.",
+                "minLength": 1
+              },
+              "server": {
+                "type": "string",
+                "description": "RTMP/RTMPS server URL (e.g., rtmp://live.twitch.tv/app).",
+                "minLength": 1
+              },
+              "stream_key": {
+                "type": "string",
+                "description": "Stream key for the target. Never stored or logged.",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "name",
+              "server",
+              "stream_key"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_modify_rtmp_target",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "target_name": {
+                "type": "string",
+                "description": "Current name of the RTMP target to modify.",
+                "minLength": 1
+              },
+              "new_name": {
+                "type": "string",
+                "description": "New display name. Omit to keep current name."
+              },
+              "server": {
+                "type": "string",
+                "description": "New RTMP/RTMPS server URL. Omit to keep current."
+              },
+              "stream_key": {
+                "type": "string",
+                "description": "New stream key. Omit to keep current. Never stored or logged."
+              }
+            },
+            "required": [
+              "target_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_remove_rtmp_target",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "target_name": {
+                "type": "string",
+                "description": "Name of the RTMP target to remove.",
+                "minLength": 1
+              },
+              "confirmed": {
+                "type": "boolean",
+                "description": "Must be true to confirm deletion. Prevents accidental removal."
+              }
+            },
+            "required": [
+              "target_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_start_rtmp_target",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "target_name": {
+                "type": "string",
+                "description": "Name of the RTMP target to start.",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "target_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_stop_rtmp_target",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "target_name": {
+                "type": "string",
+                "description": "Name of the RTMP target to stop.",
+                "minLength": 1
+              },
+              "confirmed": {
+                "type": "boolean",
+                "description": "Must be true to stop the target. Prevents accidental stops."
+              }
+            },
+            "required": [
+              "target_name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_start_all_rtmp_targets",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "obs_stop_all_rtmp_targets",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "confirmed": {
+                "type": "boolean",
+                "description": "Must be true to stop all targets. Prevents accidental stops."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "teleport_configure_host",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether to enable or disable Teleport output. Defaults to true."
+              },
+              "identifier": {
+                "type": "string",
+                "description": "Teleport host identifier that clients connect to. Defaults to 'OBSTeleport'."
+              },
+              "port": {
+                "type": "integer",
+                "description": "TCP port for Teleport. 0 = auto (default). Range: 0-65535."
+              },
+              "quality": {
+                "type": "integer",
+                "description": "JPEG quality for Teleport stream. Range: 1-100. Defaults to 90."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "teleport_configure_client",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scene_name": {
+                "type": "string",
+                "description": "Scene to add the Teleport source to. Created if it doesn't exist.",
+                "minLength": 1
+              },
+              "source_name": {
+                "type": "string",
+                "description": "Name for the Teleport source. Defaults to 'Teleport Feed'."
+              },
+              "identifier": {
+                "type": "string",
+                "description": "Teleport host identifier to connect to. Must match the host's identifier.",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "scene_name",
+              "identifier"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "teleport_get_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "cluster_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "cluster_nodes_list",
+          "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "cluster_node_status",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "node": {
+                "type": "string",
+                "description": "Name of the cluster node to check."
+              }
+            },
+            "required": [
+              "node"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "remote_execute",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "node": {
+                "type": "string",
+                "description": "Name of the remote cluster node (e.g. 'streaming-pc')."
+              },
+              "tool": {
+                "type": "string",
+                "description": "Name of the MCP tool to execute on the remote node."
+              },
+              "args": {
+                "type": "object",
+                "description": "Arguments to pass to the remote tool.",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "node",
+              "tool"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "setup_dual_pc_teleport",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "host_node": {
+                "type": "string",
+                "description": "Cluster node name for the Teleport host (sender). Defaults to 'gaming-pc'."
+              },
+              "client_node": {
+                "type": "string",
+                "description": "Cluster node name for the Teleport client (receiver). Defaults to 'streaming-pc'."
+              },
+              "identifier": {
+                "type": "string",
+                "description": "Teleport identifier. Defaults to 'OBSTeleport'."
+              },
+              "scene_name": {
+                "type": "string",
+                "description": "Scene name on the client for the Teleport source. Defaults to 'Teleport Feed'."
+              },
+              "quality": {
+                "type": "integer",
+                "description": "JPEG quality for Teleport stream. Defaults to 90."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "setup:obs_connect",
+      "status": "pass",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": true, \"data\": {\"message\": \"Connected to OBS\", \"obs_version\": \"31.1.0\", \"ws_version\": \"5.6.2\", \"platform\": \"Deterministic loopback study fixture\"}}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "version",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:36:08.518Z",
+          "requestType": "GetVersion",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:36:08.519Z",
+          "requestType": "GetStreamStatus",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:36:08.520Z",
+          "requestType": "GetRecordStatus",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:36:08.520Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": true, \"data\": {\"connected\": true, \"obs_version\": \"31.1.0\", \"ws_version\": \"5.6.2\", \"platform\": \"Deterministic loopback study fixture\", \"ws_latency_ms\": 0.9, \"streaming\": false, \"stream_timecode\": \"00:00:00.000\", \"recording\": false, \"recording_paused\": false, \"current_scene\": \"Intro\", \"scene_count\": 2}}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "scenes",
+      "status": "pass",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:36:08.522Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": true, \"data\": {\"current_program_scene\": \"Intro\", \"scenes\": [\"Intro\", \"Main\"]}}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "scene_mutation_readback",
+      "status": "fail",
+      "readback": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": true, \"data\": {\"current_program_scene\": \"Main\", \"scenes\": [\"Intro\", \"Main\"]}}"
+          }
+        ],
+        "isError": false
+      },
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:36:08.524Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:36:08.524Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Main"
+          },
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:36:08.526Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "finalState": "Main",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": true, \"data\": {\"scene_name\": \"Main\"}}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "mute_mutation_readback",
+      "status": "unsupported",
+      "obsRequests": [],
+      "finalState": false
+    },
+    {
+      "name": "record_lifecycle",
+      "status": "unsupported",
+      "obsRequests": [],
+      "finalState": false
+    },
+    {
+      "name": "screenshot",
+      "status": "unsupported",
+      "image": {
+        "valid": false
+      },
+      "obsRequests": []
+    },
+    {
+      "name": "synthetic_secret_surface",
+      "status": "unsupported"
+    },
+    {
+      "name": "invalid_arguments",
+      "status": "pass",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"Input validation error: 'scene_name' is a required property\"}],\"isError\":true}",
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Input validation error: 'scene_name' is a required property"
+          }
+        ],
+        "isError": true
+      }
+    },
+    {
+      "name": "unknown_entity",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"success\\\": false, \\\"error\\\": \\\"Scene 'Missing Fixture Scene' not found\\\", \\\"code\\\": \\\"SCENE_NOT_FOUND\\\"}\"}],\"isError\":false}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:36:08.529Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": false, \"error\": \"Scene 'Missing Fixture Scene' not found\", \"code\": \"SCENE_NOT_FOUND\"}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "obs_error_propagation",
+      "status": "fail",
+      "observedError": "{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"success\\\": false, \\\"error\\\": \\\"Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\\\", \\\"code\\\": \\\"OBS_ERROR\\\"}\"}],\"isError\":false}",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:36:08.530Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        },
+        {
+          "at": "2026-09-13T21:36:08.530Z",
+          "requestType": "SetCurrentProgramScene",
+          "requestData": {
+            "sceneName": "Intro"
+          },
+          "classification": "injected_obs_error"
+        }
+      ],
+      "toolResult": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"success\": false, \"error\": \"Request SetCurrentProgramScene returned code 600. With message: Synthetic OBS rejection: scene locked\", \"code\": \"OBS_ERROR\"}"
+          }
+        ],
+        "isError": false
+      }
+    },
+    {
+      "name": "missing_response_watchdog",
+      "status": "fail",
+      "interpretation": "no bounded response observed; this finite probe does not prove an indefinite hang",
+      "retried": false,
+      "watchdogMs": 10000,
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:36:08.535Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "missing_response"
+        }
+      ],
+      "error": "MCP response watchdog expired after 10000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "in_flight_disconnect",
+      "status": "fail",
+      "attempts": 0,
+      "retriedAfterUnknownOutcome": false,
+      "finalState": "Main",
+      "interpretation": "SetCurrentProgramScene is idempotent and the fixture disconnects before applying it; retry safety requires semantic review.",
+      "obsRequests": [
+        {
+          "at": "2026-09-13T21:36:18.542Z",
+          "requestType": "GetSceneList",
+          "requestData": {},
+          "classification": "implemented"
+        }
+      ],
+      "error": "MCP response watchdog expired after 10000ms for tools/call",
+      "watchdogExpired": true
+    },
+    {
+      "name": "reduced_capabilities",
+      "status": "unsupported",
+      "unavailableRequests": [
+        "GetSourceScreenshot",
+        "SaveSourceScreenshot"
+      ]
+    }
+  ]
+}

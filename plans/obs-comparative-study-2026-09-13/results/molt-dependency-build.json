@@ -1,0 +1,14 @@
+{
+  "command": [
+    "pnpm",
+    "--dir",
+    "/tmp/obs-adjacent.HULbPO/molt",
+    "--filter",
+    "@moltstream/mcp...",
+    "build"
+  ],
+  "exitCode": 1,
+  "elapsedSeconds": 0.54,
+  "scope": "Build MCP and transitive workspace dependencies in isolated existing pinned checkout; no app startup.",
+  "commit": "c521f9cff19833ed4f4ef6bdf69bf3c6a3049d09"
+}

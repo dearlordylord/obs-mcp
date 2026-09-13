@@ -1,0 +1,54 @@
+COMMAND ['npm', 'run', 'test']
+
+> obs-mcp@1.1.1 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/tmp/obs-study-ts/tom[39m
+
+ [32m✓[39m src/index.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32m✓[39m src/obs-protocol.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 107[2mms[22m[39m
+ [32m✓[39m src/client.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 438[2mms[22m[39m
+ [32m✓[39m src/tools/tools.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 3083[2mms[22m[39m
+     [33m[2m✓[22m[39m publishes deterministic, fully annotated tools through MCP [33m 1712[2mms[22m[39m
+     [33m[2m✓[22m[39m negotiates the released 2026-07-28 protocol and exposes the full tool set [33m 1363[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 17:05:22
+[2m   Duration [22m 17.49s[2m (transform 12.74s, setup 0ms, import 15.62s, tests 3.68s, environment 15ms)[22m
+
+[90mstderr[2m | src/client.test.ts[2m > [22m[2mOBSWebSocketClient[2m > [22m[2mshares one in-flight connection and resolves only after identification
+[22m[39mAttempting to connect to OBS WebSocket at: ws://127.0.0.1:43127
+
+[90mstderr[2m | src/client.test.ts[2m > [22m[2mOBSWebSocketClient[2m > [22m[2mshares one in-flight connection and resolves only after identification
+[22m[39mWebSocket connection opened successfully
+Received hello from OBS WebSocket v5.7.0 (OBS v32.2.2)
+RPC Version: 1
+No authentication required
+Sending identify message...
+
+[90mstderr[2m | src/client.test.ts[2m > [22m[2mOBSWebSocketClient[2m > [22m[2mshares one in-flight connection and resolves only after identification
+[22m[39mSuccessfully identified with OBS WebSocket server
+
+[90mstderr[2m | src/client.test.ts[2m > [22m[2mOBSWebSocketClient[2m > [22m[2mcorrelates request responses after identification
+[22m[39mAttempting to connect to OBS WebSocket at: ws://127.0.0.1:40145
+
+[90mstderr[2m | src/client.test.ts[2m > [22m[2mOBSWebSocketClient[2m > [22m[2mcorrelates request responses after identification
+[22m[39mWebSocket connection closed with code 1005: No reason provided
+
+[90mstderr[2m | src/client.test.ts[2m > [22m[2mOBSWebSocketClient[2m > [22m[2mcorrelates request responses after identification
+[22m[39mWebSocket connection opened successfully
+Received hello from OBS WebSocket v5.7.0 (OBS v32.2.2)
+RPC Version: 1
+No authentication required
+Sending identify message...
+
+[90mstderr[2m | src/client.test.ts[2m > [22m[2mOBSWebSocketClient[2m > [22m[2mcorrelates request responses after identification
+[22m[39mSuccessfully identified with OBS WebSocket server
+
+[90mstderr[2m | src/client.test.ts
+[22m[39mWebSocket connection closed with code 1005: No reason provided
+
+
+EXIT 0

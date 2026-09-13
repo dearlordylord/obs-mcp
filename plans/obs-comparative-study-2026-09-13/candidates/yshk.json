@@ -1,0 +1,28 @@
+{
+  "repository": "yshk-mrt/obs-mcp",
+  "commit": "643e6646075083418f956e163b6f8c0998f34a68",
+  "version": "1.0.0",
+  "gates": {
+    "G1": "P",
+    "G2": "F",
+    "G3": "F",
+    "G4": "P",
+    "G5": "F",
+    "G6": "F"
+  },
+  "scores": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1,
+    "E": 1,
+    "F": 1
+  },
+  "id": "yshk",
+  "runtimeEvidence": [
+    "results/yshk.json",
+    "results/yshk-extended.json",
+    "results/yshk-unavailable.json"
+  ],
+  "confidence": "medium"
+}

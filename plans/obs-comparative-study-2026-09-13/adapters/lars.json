@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "lars",
+  "launch": {
+    "command": "node",
+    "args": [
+      "obs-mcp-server.js"
+    ],
+    "cwd": "/tmp/obs-study-ts/lars",
+    "env": {
+      "OBS_WS_URL": "{{obsUrl}}",
+      "OBS_WS_PASSWORD": "{{obsPassword}}"
+    }
+  },
+  "operations": {
+    "listScenes": {
+      "tool": "list_scenes",
+      "arguments": {}
+    },
+    "getCurrentScene": {
+      "tool": "get_status",
+      "arguments": {}
+    },
+    "setCurrentScene": {
+      "tool": "set_scene",
+      "arguments": {
+        "scene_name": "{{sceneName}}"
+      }
+    },
+    "setInputMute": {
+      "tool": "set_mute",
+      "arguments": {
+        "input_name": "{{inputName}}",
+        "muted": "{{inputMuted}}"
+      }
+    },
+    "getInputMute": {
+      "tool": "list_audio_inputs",
+      "arguments": {}
+    },
+    "startRecord": {
+      "tool": "start_recording",
+      "arguments": {}
+    },
+    "getRecordStatus": {
+      "tool": "get_status",
+      "arguments": {}
+    },
+    "stopRecord": {
+      "tool": "stop_recording",
+      "arguments": {}
+    },
+    "getSourceScreenshot": {
+      "tool": "save_screenshot",
+      "arguments": {
+        "file_path": "/tmp/obs-study-ts/lars/.study-home/fixture.png",
+        "image_format": "{{imageFormat}}"
+      }
+    }
+  }
+}

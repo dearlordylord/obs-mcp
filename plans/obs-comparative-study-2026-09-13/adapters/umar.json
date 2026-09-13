@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "umar",
+  "launch": {
+    "command": "node",
+    "args": ["dist/index.js"],
+    "cwd": "/tmp/obs-umar.n6zWRG/repo",
+    "env": {
+      "OBS_WS_URL": "{{obsUrl}}",
+      "OBS_WS_PASSWORD": "{{obsPassword}}"
+    }
+  },
+  "operations": {
+    "listScenes": {"tool": "get_scene_list"},
+    "getCurrentScene": {"tool": "get_scene_list"},
+    "setCurrentScene": {"tool": "set_current_scene", "arguments": {"scene_name": "{{sceneName}}"}},
+    "setInputMute": {"tool": "toggle_mute", "arguments": {"source_name": "{{inputName}}"}},
+    "startRecord": {"tool": "start_recording"},
+    "getRecordStatus": {"tool": "get_recording_status"},
+    "stopRecord": {"tool": "stop_recording"}
+  },
+  "requestTimeoutMs": 10000
+}
