@@ -1,0 +1,133 @@
+{
+  "repository": "dearlordylord/obs-mcp",
+  "approval": "User approved the presented 18-ticket breakdown: let's go with it",
+  "issues": {
+    "1": {
+      "number": 21,
+      "id": 5443307188,
+      "title": "Record the current OBS baseline and public compatibility contracts",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/21",
+      "parent": 8
+    },
+    "2": {
+      "number": 22,
+      "id": 5443307346,
+      "title": "Verify an installed package against controlled OBS",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/22",
+      "parent": 8
+    },
+    "3": {
+      "number": 23,
+      "id": 5443307487,
+      "title": "Make package acceptance reject false success and uncertain outcomes",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/23",
+      "parent": 8
+    },
+    "4": {
+      "number": 24,
+      "id": 5443307699,
+      "title": "Detect protocol field omissions and documented restrictions",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/24",
+      "parent": 8
+    },
+    "5": {
+      "number": 25,
+      "id": 5443307835,
+      "title": "Verify existing subscriptions and screenshot retention",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/25",
+      "parent": 8
+    },
+    "6": {
+      "number": 26,
+      "id": 5443308078,
+      "title": "List scenes on the requested canvas",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/26",
+      "parent": 9
+    },
+    "7": {
+      "number": 27,
+      "id": 5443308261,
+      "title": "Create an input in the requested canvas and scene",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/27",
+      "parent": 9
+    },
+    "8": {
+      "number": 28,
+      "id": 5443308433,
+      "title": "Select a program scene by UUID in tools and batches",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/28",
+      "parent": 9
+    },
+    "9": {
+      "number": 29,
+      "id": 5443308624,
+      "title": "Read and update full-fidelity filter settings",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/29",
+      "parent": 10
+    },
+    "10": {
+      "number": 30,
+      "id": 5443308782,
+      "title": "Read and update full-fidelity output settings",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/30",
+      "parent": 10
+    },
+    "11": {
+      "number": 31,
+      "id": 5443308947,
+      "title": "Read and update full-fidelity transition settings",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/31",
+      "parent": 10
+    },
+    "12": {
+      "number": 32,
+      "id": 5443309156,
+      "title": "Return bounded native MCP screenshot images",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/32",
+      "parent": 11
+    },
+    "13": {
+      "number": 33,
+      "id": 5443309318,
+      "title": "Save screenshots with explicit OBS-host path semantics",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/33",
+      "parent": 11
+    },
+    "14": {
+      "number": 34,
+      "id": 5443309508,
+      "title": "Gate the complete installed workflow on supported Node versions",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/34",
+      "parent": 12
+    },
+    "15": {
+      "number": 35,
+      "id": 5443309788,
+      "title": "Bind release preparation to one verified tarball",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/35",
+      "parent": 12
+    },
+    "16": {
+      "number": 36,
+      "id": 5443309966,
+      "title": "Verify registry attribution and safe publication retry",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/36",
+      "parent": 12
+    },
+    "17": {
+      "number": 37,
+      "id": 5443310126,
+      "title": "Verify the release candidate in real OBS and an MCP client",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/37",
+      "parent": 12
+    },
+    "18": {
+      "number": 38,
+      "id": 5443310312,
+      "title": "Publish the authorized candidate and record release evidence",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/38",
+      "parent": 12
+    }
+  },
+  "publicationComplete": true
+}

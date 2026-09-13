@@ -1,0 +1,302 @@
+{
+  "status": "published",
+  "sourceCommit": "95591c60b67c4ac57643e37dc573ef91f21d54cc",
+  "milestone": "OBS fidelity and visual acceptance",
+  "tickets": [
+    {
+      "id": 1,
+      "parent": 8,
+      "title": "Record the current OBS baseline and public compatibility contracts",
+      "blockedBy": [],
+      "delivers": "An operator can distinguish shipped behavior from planned changes and find the exact compatibility rules for settings and screenshots.",
+      "criteria": [
+        "Record the source commit, lockfile identity, package version and current quality-gate results; retain historical study evidence unchanged.",
+        "Document exact names, opt-in/toolset boundaries, bounded recursive JSON limits, sensitive-field exclusions and each settings write's merge/replacement contract before feature implementation.",
+        "Record native-image result compatibility, existing metadata compatibility, retention ownership and supported screenshot save topologies before feature implementation.",
+        "Correct current transport/control/startup documentation and distinguish normal defaults from discovery configuration; link deferred findings to their existing destinations.",
+        "Retain TypeScript/Effect, schema-first descriptors, static registration and existing registry/quality gates; document pending gaps without describing them as fixed.",
+        "Record which existing resources can express the added locators; preserve unscoped resource contracts and explicitly explain inapplicable mappings rather than invent new resource APIs.",
+        "Record the supported Node runtime contract consistently with package metadata, documentation and the existing Node 22/24/26 acceptance matrix; identify any current mismatch explicitly."
+      ]
+    },
+    {
+      "id": 2,
+      "parent": 8,
+      "title": "Verify an installed package against controlled OBS",
+      "blockedBy": [],
+      "delivers": "A fresh consumer runs a real MCP process and proves existing inspection, mutation/readback, audio, recording and screenshot behavior.",
+      "criteria": [
+        "Extend the existing package-smoke seam to install a supplied tarball into a clean consumer and connect to a maintained controlled OBS endpoint.",
+        "Verify scene inspection and mutation/readback, audio state, recording start/stop and complete existing screenshot bytes against independently observed fixture state.",
+        "Record artifact identity, source/lock provenance, explicit configuration and timeouts in the report; clean up child processes and fixture resources.",
+        "Keep acceptance infrastructure outside historical benchmark snapshots; use a valid independently decodable image fixture.",
+        "Treat known pending feature gaps as explicit pending contracts, never passed tests; do not change production features to inflate the baseline."
+      ]
+    },
+    {
+      "id": 3,
+      "parent": 8,
+      "title": "Make package acceptance reject false success and uncertain outcomes",
+      "blockedBy": [
+        2
+      ],
+      "delivers": "Acceptance fails when the server reports success without the expected OBS state, and reports faults without inventing a verdict.",
+      "criteria": [
+        "Exercise OBS rejection, unavailable capabilities, timeouts and disconnects through installed MCP; record that each intended fault was actually injected and observed.",
+        "Distinguish confirmed state changes, failed changes, unknown outcomes and fixture-unimplemented requests; no unexercised fault or unsupported fixture case counts as acceptance success.",
+        "Handle valid contract-supported text/structured result forms; reject success-shaped responses when independently observed state disagrees.",
+        "Prove malformed image data is rejected by the acceptance oracle and timeout watchdogs leave a documented observation margin.",
+        "Preserve and verify existing no-replay behavior for uncertain mutations and batches; use focused protocol tests for applied-but-reply-lost cases where needed."
+      ]
+    },
+    {
+      "id": 4,
+      "parent": 8,
+      "title": "Detect protocol field omissions and documented restrictions",
+      "blockedBy": [],
+      "delivers": "Maintainers can detect missing or stripped request fields rather than relying on request-name counts.",
+      "criteria": [
+        "Compare a maintained pinned authoritative protocol snapshot outside historical research with actual exported descriptor request/response fields and declared public locator contracts, including representative outgoing requests; do not require workflow tools to mirror every raw protocol field.",
+        "Classify unknown drift, explicitly pending milestone gaps, intentional product restrictions and unavailable protocol capabilities separately; newly unexplained omissions fail the check.",
+        "Demonstrate detection of a missing locator and a schema-accepted field stripped before dispatch; restrictions require an explicit reason.",
+        "Correct descriptor versus request-name reporting and preserve batch-only Sleep; maintain existing registry/parity checks.",
+        "Feature slices retire their relevant pending entries only after forwarding and observable-state acceptance pass."
+      ]
+    },
+    {
+      "id": 5,
+      "parent": 8,
+      "title": "Verify existing subscriptions and screenshot retention",
+      "blockedBy": [
+        1
+      ],
+      "delivers": "Users have an evidence-backed description of stateful subscriptions, stateless reads and latest-screenshot lifetime.",
+      "criteria": [
+        "Reuse existing HTTP/resource seams to verify stateful subscribe/read/update notifications after OBS events and mutating tools.",
+        "Verify stateless HTTP does not advertise subscriptions and continues to provide resource reads.",
+        "Verify and document the recorded process/session ownership, bounds and lifetime of latest-screenshot metadata using the existing retention surface; align stale stateful-default and server-process wording with observed behavior.",
+        "Map each acceptance criterion of the existing stateful HTTP issue to evidence or a precisely described remaining gap; do not duplicate its implementation.",
+        "Record a reconciliation recommendation without modifying or closing the existing issue during ticket drafting/publication.",
+        "Preserve stdio subscription behavior and verify mutation-triggered notifications over actual stateful HTTP, alongside OBS-event notifications."
+      ]
+    },
+    {
+      "id": 6,
+      "parent": 9,
+      "title": "List scenes on the requested canvas",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "A client lists scenes for a supplied canvas UUID without silently falling back to another canvas.",
+      "criteria": [
+        "Carry canvasUuid from the listed public schema through request dispatch under the recorded official contract; preserve existing unscoped resource behavior and document locator applicability.",
+        "Use installed MCP with multiple canvases and duplicate scene names to verify outgoing identity and returned scope independently.",
+        "Preserve unscoped/name-compatible behavior and capability/toolset policy; invalid or unsupported identity fails explicitly.",
+        "Update public documentation and retire the corresponding parity finding with passing field and behavior evidence."
+      ]
+    },
+    {
+      "id": 7,
+      "parent": 9,
+      "title": "Create an input in the requested canvas and scene",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "Name-based input creation targets the intended canvas even where scene names are duplicated.",
+      "criteria": [
+        "Expose the official locator alternatives in the listed schema: a scene name with optional canvas UUID, or a scene UUID; reject canvas UUID with a scene UUID and other invalid combinations before dispatch.",
+        "Verify independently that installed MCP creates the input and scene item only in the intended fixture scene/canvas.",
+        "Preserve existing supported locators; test invalid combinations and unavailable capabilities according to the pinned request's rules.",
+        "Document the public contract and retire its field-parity gap; do not add unrelated canvas-management operations."
+      ]
+    },
+    {
+      "id": 8,
+      "parent": 9,
+      "title": "Select a program scene by UUID in tools and batches",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "Single calls and supported batches select the same intended program scene by stable UUID.",
+      "criteria": [
+        "Accept and preserve sceneUuid in ordinary program-scene selection and corresponding batch items; preserve existing resource contracts and document locator applicability.",
+        "Verify UUID-only selection, name compatibility and request-specific invalid combinations against renamed or ambiguous fixture scenes.",
+        "Check both outgoing identity and actual selected scene; extend controlled batch behavior only as needed and reuse focused protocol tests.",
+        "Preserve batch order, capability policy, batch-only Sleep and truthful batch failure/no-replay behavior.",
+        "Update schemas/documentation and retire the matching parity finding.",
+        "Return truthful identity for UUID-only calls; do not fabricate a scene name or discard the supplied locator in single or batch results."
+      ]
+    },
+    {
+      "id": 9,
+      "parent": 10,
+      "title": "Read and update full-fidelity filter settings",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "Explicit settings access preserves permitted nested filter values while existing typed controls keep working.",
+      "criteria": [
+        "Implement the recorded explicit settings read/write contract end to end, including unknown permitted keys, arrays, objects, null and finite primitives.",
+        "Verify packaged read/update/readback against nested plugin-style fixture state and independently observed changes.",
+        "Enforce documented size/depth bounds, opt-in policy and sensitive-field exclusions; show exclusions rather than imply an exact round trip.",
+        "Preserve typed convenience behavior and per-request merge/replacement semantics without unsafe read-modify-write.",
+        "Test malformed values, OBS rejection and missing capability through public boundaries; update contract documentation.",
+        "Apply recursive value limits and sensitive-field rules on both reads and writes, including nested arrays/objects; excluded data is explicitly marked rather than described as lossless.",
+        "Define explicit full-fidelity access for specific filter settings reads and writes; record whether list/default reads retain sanitized summaries and preserve their compatibility. Do not broaden every filter response implicitly."
+      ]
+    },
+    {
+      "id": 10,
+      "parent": 10,
+      "title": "Read and update full-fidelity output settings",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "Explicit output settings access preserves permitted kind-specific nested configuration.",
+      "criteria": [
+        "Carry the recorded bounded settings contract through output read/write APIs without silently dropping permitted encoder/output values.",
+        "Verify nested read/update/readback and typed convenience compatibility from installed MCP against actual fixture state.",
+        "Enforce output-specific opt-in/sensitive-value exclusions and reject disallowed writes truthfully.",
+        "Document and verify the official write semantics, limits, unavailable capability and OBS failure behavior.",
+        "Reuse shared settings validation where appropriate without broadening input-settings or raw-request scope.",
+        "Apply recursive value limits and sensitive-field rules on both reads and writes, including nested arrays/objects; excluded data is explicitly marked rather than described as lossless."
+      ]
+    },
+    {
+      "id": 11,
+      "parent": 10,
+      "title": "Read and update full-fidelity transition settings",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "Users inspect the active transition's settings and apply supported nested updates.",
+      "criteria": [
+        "Expose transitionSettings through the existing valid current-transition request; never introduce a nonexistent getter.",
+        "Verify packaged nested read/update/readback with arrays, unknown permitted keys and unrelated settings retained or replaced according to the official contract.",
+        "Keep typed convenience responses compatible and enforce the recorded limits, exclusions and explicit-access policy.",
+        "Test malformed input, unavailable capability and OBS rejection with independent state assertions.",
+        "Document write semantics and reuse shared settings validation without a universal raw dispatcher.",
+        "Apply recursive value limits and sensitive-field rules on both reads and writes, including nested arrays/objects; excluded data is explicitly marked rather than described as lossless."
+      ]
+    },
+    {
+      "id": 12,
+      "parent": 11,
+      "title": "Return bounded native MCP screenshot images",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "A screenshot tool returns complete native MCP image content with compatible metadata.",
+      "criteria": [
+        "Return native image tool content with accurate MIME type and complete decodable bytes under the recorded compatibility contract.",
+        "Through installed MCP verify decoded content/dimensions where applicable, malformed or truncated OBS image responses, payload bounds, capture failures and capability/toolset restrictions.",
+        "Preserve latest-screenshot metadata correlation, ownership and bounded lifetime; reuse existing HTTP/resource tests and avoid a second retention surface.",
+        "Keep supported formats explicit; investigate expansion only against a demonstrated supported format and record the evidence/disposition.",
+        "Document the result contract; controlled images do not count as real-client visual acceptance.",
+        "Return native image bytes exactly matching the validated capture; an invalid capture must not replace latest-screenshot metadata."
+      ]
+    },
+    {
+      "id": 13,
+      "parent": 11,
+      "title": "Save screenshots with explicit OBS-host path semantics",
+      "blockedBy": [
+        "foundation"
+      ],
+      "delivers": "Users know which host receives a saved screenshot and receive truthful results for supported topologies.",
+      "criteria": [
+        "Implement the recorded local/shared/remote topology contract; never use an MCP-host path check as proof that remote OBS can write.",
+        "Retain filename/directory boundaries and document any explicit shared-filesystem assumption or unsupported topology.",
+        "Use a controlled endpoint with differing host path assumptions to verify outgoing destination and honest save success/error handling.",
+        "Preserve bounded retention and existing capture metadata behavior; document supported formats and limits.",
+        "Supply a reproducible save-topology check for subsequent real OBS acceptance without claiming the fixture proves a real file was written.",
+        "Cover traversal, missing configuration, a valid OBS-host destination absent on the MCP host, and OBS save rejection; distinguish acknowledgement from independently verified file existence.",
+        "Define whether saved:true denotes OBS completion acknowledgement or independently observed file existence; interpret path syntax and resolution only for the declared OBS-host topology."
+      ]
+    },
+    {
+      "id": 14,
+      "parent": 12,
+      "title": "Gate the complete installed workflow on supported Node versions",
+      "blockedBy": [
+        "foundation",
+        "selectors",
+        "settings",
+        "images"
+      ],
+      "delivers": "CI verifies the milestone's actual installed workflow under documented defaults and explicit opt-ins.",
+      "criteria": [
+        "Extend the existing Node compatibility matrix and package-smoke workflow to run inspection, scene mutation/readback, audio, recording and screenshot baselines plus all completed selector, settings, native-image and fault scenarios against controlled OBS, including timeout/disconnect and lifecycle cleanup.",
+        "Exercise normal startup defaults separately from the explicit all-toolsets configuration; assert relevant behavior/capabilities rather than a minimum tool count.",
+        "Record source, lockfile, package identity, tarball digest and timeout configuration with each result.",
+        "Require existing quality gates and detect current dependency/runtime regressions; preserve historical baseline attribution.",
+        "Fail if any required workflow is pending, skipped as fixture-unimplemented or contradicted by observed state; keep real OBS outside deterministic CI."
+      ]
+    },
+    {
+      "id": 15,
+      "parent": 12,
+      "title": "Bind release preparation to one verified tarball",
+      "blockedBy": [
+        14
+      ],
+      "delivers": "Release preparation produces one attributable candidate whose tested bytes are the bytes offered for publication.",
+      "criteria": [
+        "Build/pack once for the candidate and install/test that exact artifact on the supported runtime matrix; retain its identity, version, source/lock provenance and digest.",
+        "Make the existing publication path consume the verified tarball rather than rebuild or publish the source directory.",
+        "Require acceptance evidence to match the candidate and fail on missing, wrong or changed artifacts; rehearse at a controlled publication boundary without publishing.",
+        "Account for every supported release entry point, including local release, so documented alternate paths cannot bypass the same candidate checks.",
+        "Keep existing authenticated publication policy and separate release preparation from maintainer authorization."
+      ]
+    },
+    {
+      "id": 16,
+      "parent": 12,
+      "title": "Verify registry attribution and safe publication retry",
+      "blockedBy": [
+        15
+      ],
+      "delivers": "The release flow distinguishes a matching published artifact, a conflict and an unavailable registry.",
+      "criteria": [
+        "Implement post-publication verification of exact package name/version and registry integrity against the candidate, instead of relying on the latest tag alone; exercise it at controlled boundaries in this ticket.",
+        "At controlled boundaries test absent version, matching existing bytes, conflicting bytes, lookup failure, propagation delay and interrupted publication.",
+        "Use bounded retry and explicit failure/resume results; never overwrite conflicting versions or move references to conceal failure.",
+        "Preserve candidate identity and acceptance evidence across a retry and document the operator recovery path.",
+        "Complete this implementation ticket without performing an actual npm publication."
+      ]
+    },
+    {
+      "id": 17,
+      "parent": 12,
+      "title": "Verify the release candidate in real OBS and an MCP client",
+      "blockedBy": [
+        15
+      ],
+      "delivers": "Recorded evidence establishes that the exact candidate produces a consumable real OBS image and honors its claimed save topology.",
+      "criteria": [
+        "Install the exact verified candidate, record its digest and OBS/client versions, and use an isolated controlled real OBS setup.",
+        "Capture an image through an actual supported MCP client and record evidence that its native image is consumable and corresponds to the intended scene.",
+        "Test each claimed save topology separately and record the destination host and actual saved-file evidence.",
+        "Run the approved visual check only; do not infer codec, device or live-streaming acceptance from it.",
+        "Keep this ticket open if access/evidence is missing; candidate changes invalidate evidence until the check is repeated."
+      ]
+    },
+    {
+      "id": 18,
+      "parent": 12,
+      "title": "Publish the authorized candidate and record release evidence",
+      "blockedBy": [
+        16,
+        17
+      ],
+      "delivers": "An explicitly authorized release is attributable to the accepted candidate and verified from the registry.",
+      "criteria": [
+        "Obtain maintainer authorization for the identified candidate before any actual npm publication; ticket creation and plan approval are not that authorization.",
+        "Confirm quality, supported-runtime acceptance and real OBS/client evidence all identify the same unchanged candidate.",
+        "Publish through the prepared path and verify exact registry identity/integrity; record release evidence and any retry outcome.",
+        "Install the registry artifact into a fresh consumer and verify its identity and semantic controlled-OBS acceptance.",
+        "Leave release completion unresolved on conflict, missing evidence or unavailable authorization; preserve later milestone and investigation continuation."
+      ]
+    }
+  ]
+}
