@@ -1,0 +1,469 @@
+{
+  "schemaVersion": 1,
+  "findings": [
+    {
+      "id": "F01",
+      "finding": "Filter setting values and nested/plugin round trips",
+      "status": "M1",
+      "destination": "settings",
+      "rationale": "Expose explicit permitted full-fidelity values while retaining typed conveniences.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F02",
+      "finding": "Kind-specific nested output settings",
+      "status": "M1",
+      "destination": "settings",
+      "rationale": "Define recursive JSON and explicit sensitive-field exclusions.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F03",
+      "finding": "Current transition settings reads and nested writes",
+      "status": "M1",
+      "destination": "settings",
+      "rationale": "Use existing valid requests; define overlay semantics.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F04",
+      "finding": "Canvas-scoped scene listing",
+      "status": "M1",
+      "destination": "selectors",
+      "rationale": "Forward canvasUuid and verify actual selected scope.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F05",
+      "finding": "Canvas-aware name-based input creation",
+      "status": "M1",
+      "destination": "selectors",
+      "rationale": "Forward canvasUuid without losing scene identity.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F06",
+      "finding": "UUID program-scene selection and matching batch/resource locators",
+      "status": "M1",
+      "destination": "selectors",
+      "rationale": "Close the third selector omission consistently.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F07",
+      "finding": "Field-aware protocol parity and explicit intentional restrictions",
+      "status": "M1",
+      "destination": "foundation",
+      "rationale": "Audit actual schema fields and representative forwarding, not just request names.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F08",
+      "finding": "Stale architecture docs, descriptor count and startup/discovery claims",
+      "status": "M1",
+      "destination": "foundation",
+      "rationale": "Align current contract and retain historical research.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F09",
+      "finding": "Native MCP image content",
+      "status": "M1",
+      "destination": "images",
+      "rationale": "Verify complete bounded content through a supported client.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F10",
+      "finding": "Remote screenshot save filesystem assumptions",
+      "status": "M1",
+      "destination": "images",
+      "rationale": "Specify supported topology; retain filename/directory boundaries.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F11",
+      "finding": "Screenshot supported-format capability discovery",
+      "status": "investigate",
+      "destination": "images",
+      "rationale": "Reproduce a concrete unsupported format before broadening the current policy.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F12",
+      "finding": "Semantic fresh-package acceptance",
+      "status": "M1",
+      "destination": "release",
+      "rationale": "Extend existing smoke from listing to actual state/results/failures.",
+      "source": "independent-review.md"
+    },
+    {
+      "id": "F13",
+      "finding": "Exact tested artifact publication and registry attribution",
+      "status": "M1",
+      "destination": "release",
+      "rationale": "Bind tarball bytes and verify identity/integrity; source and publication stay distinct.",
+      "source": "reproduction.md"
+    },
+    {
+      "id": "F14",
+      "finding": "Current dependency baseline and supported Node compatibility",
+      "status": "M1",
+      "destination": "foundation",
+      "rationale": "Refresh after dependency merge; release child retains compatibility matrix.",
+      "source": "README.md"
+    },
+    {
+      "id": "F15",
+      "finding": "Fixture parser, false-success, PNG and timeout-oracle limitations",
+      "status": "M1",
+      "destination": "foundation",
+      "rationale": "Maintain a corrected acceptance runner; preserve raw historical evidence.",
+      "source": "independent-review.md"
+    },
+    {
+      "id": "F16",
+      "finding": "Read-only AV-health workflow",
+      "status": "later",
+      "destination": "health",
+      "rationale": "One bounded diagnostic first, with observed/inferred/unknown separation.",
+      "source": "candidates/xdark.md"
+    },
+    {
+      "id": "F17",
+      "finding": "Audio-chain cleanup/setup preview and explicit apply",
+      "status": "later",
+      "destination": "guided",
+      "rationale": "One verified profile before broad workflow families.",
+      "source": "candidates/aaron.md"
+    },
+    {
+      "id": "F18",
+      "finding": "Partial failure, readback and conflict-aware restoration",
+      "status": "later",
+      "destination": "guided",
+      "rationale": "Apply verified lifecycle semantics; never blindly restore an old snapshot.",
+      "source": "candidates/bea.md"
+    },
+    {
+      "id": "F19",
+      "finding": "Grounded MCP task prompts",
+      "status": "later",
+      "destination": "discovery",
+      "rationale": "Cover supported recording/readiness/audio/visual jobs; no invented capabilities.",
+      "source": "README.md"
+    },
+    {
+      "id": "F20",
+      "finding": "Supported MCP completions for scene/source/input/filter/profile/collection",
+      "status": "later",
+      "destination": "discovery",
+      "rationale": "Use current identity and supported MCP references/client behavior.",
+      "source": "README.md"
+    },
+    {
+      "id": "F21",
+      "finding": "Read-only/destructive/idempotence behavior annotations",
+      "status": "later",
+      "destination": "discovery",
+      "rationale": "Audit real semantics; annotations are hints, not authorization.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F22",
+      "finding": "Versioned scene/source/recording preset roadmap",
+      "status": "later",
+      "destination": "presets",
+      "rationale": "Start with one supported scope; broader families require recorded follow-ups.",
+      "source": "README.md"
+    },
+    {
+      "id": "F23",
+      "finding": "Preset storage ownership, secrets, migration and diff/apply",
+      "status": "later",
+      "destination": "presets",
+      "rationale": "Choose one persistence boundary and reuse verified apply semantics.",
+      "source": "README.md"
+    },
+    {
+      "id": "F24",
+      "finding": "Derived event explanations and media-liveness summaries over existing recent events",
+      "status": "later",
+      "destination": "history",
+      "rationale": "Add only the diagnostic delta; preserve the existing recent-event API and bounded store.",
+      "source": "study/adjacent.md"
+    },
+    {
+      "id": "F25",
+      "finding": "Opt-in audio meter aggregation",
+      "status": "later",
+      "destination": "history",
+      "rationale": "Define windows, peaks/sample counts, gaps and bounds; no raw high-volume firehose.",
+      "source": "study/adjacent.md"
+    },
+    {
+      "id": "F26",
+      "finding": "DCC deadlines, postconditions and uncertain outcomes",
+      "status": "investigate",
+      "destination": "lifecycle",
+      "rationale": "Inventory existing guarantees and add only uncovered semantic cases.",
+      "source": "candidates/dcc.md"
+    },
+    {
+      "id": "F27",
+      "finding": "Exact PID/plugin-instance identity",
+      "status": "investigate",
+      "destination": "lifecycle",
+      "rationale": "Separate native extension requirements from standard WebSocket evidence.",
+      "source": "candidates/dcc.md"
+    },
+    {
+      "id": "F28",
+      "finding": "Closed-OBS startup and connection diagnostics",
+      "status": "investigate",
+      "destination": "onboarding",
+      "rationale": "Evaluate platform ownership and safe command policy; preserve clean MCP stdout.",
+      "source": "candidates/jlfn.md"
+    },
+    {
+      "id": "F29",
+      "finding": "MCPB desktop bundle feasibility",
+      "status": "investigate",
+      "destination": "onboarding",
+      "rationale": "Validate actual artifact and target-client friction before adopting.",
+      "source": "candidates/tom.md"
+    },
+    {
+      "id": "F30",
+      "finding": "Native binaries/Homebrew, Docker and VS Code/editor packaging",
+      "status": "investigate",
+      "destination": "onboarding",
+      "rationale": "Audit existing support first; each format needs demand and attributable clean-install evidence.",
+      "source": "README.md"
+    },
+    {
+      "id": "F31",
+      "finding": "Installation detection, websocket enablement, backups and recovery",
+      "status": "investigate",
+      "destination": "onboarding",
+      "rationale": "Separate diagnostics from system changes; no automatic setup execution.",
+      "source": "study/adjacent.md"
+    },
+    {
+      "id": "F32",
+      "finding": "Named/account-owned multi-PC readiness and persistent restoration",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Separate product lane; distinguish OBS/virtual-camera/external preview and signal readiness.",
+      "source": "candidates/bea.md"
+    },
+    {
+      "id": "F33",
+      "finding": "Recording/window capture/private recording helpers",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Platform and native dependencies require an explicit supported job.",
+      "source": "README.md"
+    },
+    {
+      "id": "F34",
+      "finding": "Showrunner/media sequences, scene building and status helpers",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Use existing primitives; select focused jobs rather than broad multiplexers.",
+      "source": "README.md"
+    },
+    {
+      "id": "F35",
+      "finding": "Before/after visual confirmation and visual diff",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Native images first; define proof limits before automating visual judgments.",
+      "source": "README.md"
+    },
+    {
+      "id": "F36",
+      "finding": "Dashboard/TUI/embedded creator interface",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Separate UI product decision with a revisit trigger.",
+      "source": "README.md"
+    },
+    {
+      "id": "F37",
+      "finding": "Live-show overlays, assets, chat and Stream Deck",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Explicit product direction, not general OBS request parity.",
+      "source": "study/adjacent.md"
+    },
+    {
+      "id": "F38",
+      "finding": "Transcription/live-assist suggestions and operator approval",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Bounded experiment only if selected; account for WIP/platform dependencies.",
+      "source": "study/adjacent.md"
+    },
+    {
+      "id": "F39",
+      "finding": "Autonomous streamer/chat/TTS/avatar/personality/traces",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Separate application/runtime and account scope.",
+      "source": "study/adjacent.md"
+    },
+    {
+      "id": "F40",
+      "finding": "Native plugin and Linux/device/plugin/service management",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Record platform costs; no rewrite or system-install commitment.",
+      "source": "candidates/itchris.md"
+    },
+    {
+      "id": "F41",
+      "finding": "Resources/templates, invalidation and stateful HTTP subscriptions",
+      "status": "preserve-existing",
+      "destination": "foundation",
+      "rationale": "Verify issue #2 acceptance and narrow/close it with evidence; do not duplicate implementation.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F42",
+      "finding": "Bounded safe events and named confirmations",
+      "status": "preserve-existing",
+      "destination": "history",
+      "rationale": "Preserve timeout, cancellation and safe-event policy while extending diagnostics.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F43",
+      "finding": "Complete bounded screenshot bytes and latest-image metadata",
+      "status": "preserve-existing",
+      "destination": "images",
+      "rationale": "Keep resource retention and safe path policy as native content is added.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F44",
+      "finding": "Request batches and batch-only Sleep",
+      "status": "preserve-existing",
+      "destination": "selectors",
+      "rationale": "Retain batch semantics; standalone Sleep is not a missing feature.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F45",
+      "finding": "Toolsets, capability filtering, typed errors, structured results and transports",
+      "status": "preserve-existing",
+      "destination": "foundation",
+      "rationale": "These are baseline invariants, not new parity tasks.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F46",
+      "finding": "Reconnect sharing, event continuity, cancellation and in-flight non-retry",
+      "status": "preserve-existing",
+      "destination": "lifecycle",
+      "rationale": "Existing guarantees are audit inputs, not features to reimplement.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F47",
+      "finding": "npm/npx, package smoke, generated README and registry metadata",
+      "status": "preserve-existing",
+      "destination": "release",
+      "rationale": "Extend existing delivery mechanisms instead of recreating them.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F48",
+      "finding": "Open nested input settings",
+      "status": "preserve-existing",
+      "destination": "settings",
+      "rationale": "Reuse suitable existing mechanics and policy.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F49",
+      "finding": "Roy nonexistent transition-settings getter",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "Do not add GetCurrentSceneTransitionSettings; use the valid current-transition response.",
+      "source": "candidates/royshil.md"
+    },
+    {
+      "id": "F50",
+      "finding": "JLFN private request names absent from pinned public protocol",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "No parity implementation commitment; reconsider only with authoritative supported-extension evidence.",
+      "source": "candidates/jlfn.md"
+    },
+    {
+      "id": "F51",
+      "finding": "Standalone Sleep, alias inflation and request-count-based parity claims",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "Sleep is batch-only; counts do not prove fidelity. Add aliases only for a demonstrated client/job need; prefer grounded prompts/workflows for convenience.",
+      "source": "README.md"
+    },
+    {
+      "id": "F52",
+      "finding": "Generic raw request/code execution as a workaround for wrapper lag",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "No default raw dispatcher or eval; a future deliberate raw contract needs separate scope and policy.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F53",
+      "finding": "Roy as a newer feature lead and unavailable Stream Pilot listing",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "Roy is unchanged; unavailable source/marketing counts are not verified capabilities.",
+      "source": "study/census.md"
+    },
+    {
+      "id": "F54",
+      "finding": "Architecture score as justification for framework/language rewrite",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "Adopt proven independent strengths against this product's contract.",
+      "source": "README.md"
+    },
+    {
+      "id": "F55",
+      "finding": "Mock success as proof of real rendering/devices/codecs/live streaming",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "Require scoped real-environment evidence for those claims.",
+      "source": "independent-review.md"
+    },
+    {
+      "id": "F56",
+      "finding": "Package/release/tag presence as proof of usable shipped behavior",
+      "status": "reject",
+      "destination": "epic",
+      "rationale": "Attribute exact artifacts and verify behavior; source and publications can diverge.",
+      "source": "reproduction.md"
+    },
+    {
+      "id": "F57",
+      "finding": "Broad generic condition/event/workflow engine",
+      "status": "investigate",
+      "destination": "product",
+      "rationale": "Named bounded conditions exist; generic waits or scripting require a demonstrated job and client lifetime contract.",
+      "source": "candidates/local.md"
+    },
+    {
+      "id": "F58",
+      "finding": "Fail-safe module skipping and preflight registry design",
+      "status": "preserve-existing",
+      "destination": "foundation",
+      "rationale": "Retain existing static registration and quality/registry gates; reject silently skipping malformed required local modules.",
+      "source": "study/adjacent.md"
+    }
+  ]
+}

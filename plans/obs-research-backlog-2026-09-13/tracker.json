@@ -1,0 +1,137 @@
+{
+  "repository": "dearlordylord/obs-mcp",
+  "issues": {
+    "epic": {
+      "id": 5443196525,
+      "number": 7,
+      "title": "Adopt OBS competitor findings with complete traceability and release acceptance",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/7"
+    },
+    "foundation": {
+      "id": 5443196637,
+      "number": 8,
+      "title": "Establish OBS adoption contracts, current baseline, and maintained acceptance fixture",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/8"
+    },
+    "selectors": {
+      "id": 5443196745,
+      "number": 9,
+      "title": "Preserve scene UUID and canvas identity across public tools and batches",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/9"
+    },
+    "settings": {
+      "id": 5443196873,
+      "number": 10,
+      "title": "Provide explicit full-fidelity filter, output, and transition settings contracts",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/10"
+    },
+    "images": {
+      "id": 5443196997,
+      "number": 11,
+      "title": "Return native MCP images and define remote screenshot save semantics",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/11"
+    },
+    "release": {
+      "id": 5443197208,
+      "number": 12,
+      "title": "Prepare and gate publication of the exact OBS package that passes acceptance",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/12"
+    },
+    "health": {
+      "id": 5443197299,
+      "number": 13,
+      "title": "Add read-only AV-health diagnosis with explicit evidence and unknowns",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/13"
+    },
+    "guided": {
+      "id": 5443197420,
+      "number": 14,
+      "title": "Add preview/apply audio setup with bounded failure and restoration semantics",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/14"
+    },
+    "history": {
+      "id": 5443197548,
+      "number": 15,
+      "title": "Extend bounded OBS history into useful event and audio-meter diagnostics",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/15"
+    },
+    "discovery": {
+      "id": 5443197655,
+      "number": 16,
+      "title": "Add grounded MCP prompts, completions and behavioral annotations",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/16"
+    },
+    "presets": {
+      "id": 5443197782,
+      "number": 17,
+      "title": "Add versioned preset diff and apply contracts over verified operations",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/17"
+    },
+    "onboarding": {
+      "id": 5443197881,
+      "number": 18,
+      "title": "Evaluate OBS onboarding and distribution improvements against measured friction",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/18"
+    },
+    "lifecycle": {
+      "id": 5443197971,
+      "number": 19,
+      "title": "Audit transferable deadline, postcondition and OBS identity guarantees",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/19"
+    },
+    "product": {
+      "id": 5443198055,
+      "number": 20,
+      "title": "Decide broader OBS product directions without losing deferred opportunities",
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/20"
+    }
+  },
+  "milestones": {
+    "M1": {
+      "number": 1,
+      "title": "OBS fidelity and visual acceptance",
+      "url": "https://github.com/dearlordylord/obs-mcp/milestone/1"
+    },
+    "M2": {
+      "number": 2,
+      "title": "OBS guided workflows and diagnostics",
+      "url": "https://github.com/dearlordylord/obs-mcp/milestone/2"
+    }
+  },
+  "subIssuesLinked": [
+    "foundation",
+    "selectors",
+    "settings",
+    "images",
+    "release",
+    "health",
+    "guided",
+    "history",
+    "discovery",
+    "presets",
+    "onboarding",
+    "lifecycle",
+    "product"
+  ],
+  "dependenciesLinked": [
+    "selectors<-foundation",
+    "settings<-foundation",
+    "images<-foundation",
+    "release<-foundation",
+    "release<-selectors",
+    "release<-settings",
+    "release<-images",
+    "health<-release",
+    "guided<-health",
+    "guided<-settings",
+    "guided<-selectors",
+    "guided<-lifecycle",
+    "history<-health",
+    "discovery<-health",
+    "discovery<-images",
+    "presets<-guided",
+    "onboarding<-release",
+    "lifecycle<-foundation"
+  ],
+  "publicationComplete": true
+}

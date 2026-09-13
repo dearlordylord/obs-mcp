@@ -1,0 +1,164 @@
+{
+  "verified": true,
+  "issues": [
+    {
+      "key": "epic",
+      "number": 7,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/7",
+      "bodySha256": "e924dd5ff7c6e8844c2d3941f7fcf7cf80e1b2c32db22eeda7df157b00e203b2",
+      "label": "ready-for-agent",
+      "milestone": null,
+      "blockedBy": []
+    },
+    {
+      "key": "foundation",
+      "number": 8,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/8",
+      "bodySha256": "2fb383ebcfeb75acacba8307ba8338facacdb61ce84ff98bc68d3f2c4273b150",
+      "label": "ready-for-agent",
+      "milestone": 1,
+      "blockedBy": []
+    },
+    {
+      "key": "selectors",
+      "number": 9,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/9",
+      "bodySha256": "37cc6d5d610536e16f20a8a6088b5e9351bba4367f92bce6e713d2abb75e8fde",
+      "label": "ready-for-agent",
+      "milestone": 1,
+      "blockedBy": [
+        8
+      ]
+    },
+    {
+      "key": "settings",
+      "number": 10,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/10",
+      "bodySha256": "7a2c05846dce319e503acf9278fa6601be7311f477b9d33698dcc9f0678fe3b9",
+      "label": "ready-for-agent",
+      "milestone": 1,
+      "blockedBy": [
+        8
+      ]
+    },
+    {
+      "key": "images",
+      "number": 11,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/11",
+      "bodySha256": "80829751c6f29d097596ca9c27a9bf0e3876bf214f54305ed1e8ca38f5a45365",
+      "label": "ready-for-agent",
+      "milestone": 1,
+      "blockedBy": [
+        8
+      ]
+    },
+    {
+      "key": "release",
+      "number": 12,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/12",
+      "bodySha256": "1e925d1a2e2a3af08e48bd3e58602eadd295c1a015c27dce51b4f9bb96992dc5",
+      "label": "ready-for-agent",
+      "milestone": 1,
+      "blockedBy": [
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "key": "health",
+      "number": 13,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/13",
+      "bodySha256": "8dfdd252904c49d2a47e2ab4bee13cc4c9baac72ee93bddba11bda75ef4b253c",
+      "label": "ready-for-agent",
+      "milestone": 2,
+      "blockedBy": [
+        12
+      ]
+    },
+    {
+      "key": "guided",
+      "number": 14,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/14",
+      "bodySha256": "620b70f0b1dc0541b11df5c9823b103038b972f00e995732a8f364b6e7d7780e",
+      "label": "ready-for-agent",
+      "milestone": 2,
+      "blockedBy": [
+        13,
+        10,
+        9,
+        19
+      ]
+    },
+    {
+      "key": "history",
+      "number": 15,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/15",
+      "bodySha256": "abb8663117311f1da45c8aafed33f1d099e30268544bbd01526b9191f111f93a",
+      "label": "ready-for-agent",
+      "milestone": 2,
+      "blockedBy": [
+        13
+      ]
+    },
+    {
+      "key": "discovery",
+      "number": 16,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/16",
+      "bodySha256": "0e7ec0d5965a6d796ce09ad9a653ae3c8b8b610bf24a7d81e00cf57076412a4f",
+      "label": "ready-for-agent",
+      "milestone": 2,
+      "blockedBy": [
+        13,
+        11
+      ]
+    },
+    {
+      "key": "presets",
+      "number": 17,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/17",
+      "bodySha256": "d4e6fae0eb55803d26392b5245c2bf711c1d3557b080c21b4b13e6f56d1447ac",
+      "label": "ready-for-agent",
+      "milestone": 2,
+      "blockedBy": [
+        14
+      ]
+    },
+    {
+      "key": "onboarding",
+      "number": 18,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/18",
+      "bodySha256": "22e2ff091e211b1087654a44f21e3365160a490f89e3f04d44f8a7bf9a49f2f4",
+      "label": "ready-for-agent",
+      "milestone": null,
+      "blockedBy": [
+        12
+      ]
+    },
+    {
+      "key": "lifecycle",
+      "number": 19,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/19",
+      "bodySha256": "ef3150a1d50bd10566b6dfb55e34854efa6cb155a9fa5d47b1f8b25185861ec8",
+      "label": "ready-for-agent",
+      "milestone": null,
+      "blockedBy": [
+        8
+      ]
+    },
+    {
+      "key": "product",
+      "number": 20,
+      "url": "https://github.com/dearlordylord/obs-mcp/issues/20",
+      "bodySha256": "d0857e0e345bbc6a84b93eeed1a66fec07b62766a6186e9f10d864f004879d36",
+      "label": "ready-for-agent",
+      "milestone": null,
+      "blockedBy": []
+    }
+  ],
+  "subIssueCount": 13,
+  "dependencyEdgeCount": 18,
+  "findingCount": 58,
+  "userApprovedAcceptanceSeam": true
+}

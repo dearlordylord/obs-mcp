@@ -1,0 +1,1082 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-13",
+  "seamApproved": true,
+  "repository": "dearlordylord/obs-mcp",
+  "items": [
+    {
+      "key": "foundation",
+      "title": "Establish OBS adoption contracts, current baseline, and maintained acceptance fixture",
+      "milestone": "M1",
+      "dependencies": [],
+      "problem": "Operators cannot reliably distinguish shipped behavior from stale architecture descriptions, and the comparative fixture contains known parsing limitations that cannot serve unchanged as a CI verdict.",
+      "solution": "Establish current, explicit product contracts and a maintained package-level acceptance runner that reports actual MCP results and OBS state.",
+      "stories": [
+        [
+          "maintainer",
+          "a baseline at the implementation commit and installed dependency lock",
+          "I can distinguish new regressions from the historical study"
+        ],
+        [
+          "OBS operator",
+          "documentation that accurately describes available transports and controls",
+          "I can configure capabilities without relying on obsolete deferrals"
+        ],
+        [
+          "MCP client author",
+          "documented settings and image compatibility contracts",
+          "existing integrations continue to work as fidelity improves"
+        ],
+        [
+          "maintainer",
+          "acceptance assertions that compare intended and observed OBS state",
+          "success-shaped failures cannot pass CI"
+        ],
+        [
+          "maintainer",
+          "equivalent valid response forms to be interpreted correctly",
+          "a parser limitation does not become an invented server defect"
+        ],
+        [
+          "maintainer",
+          "unsupported fixture behavior to remain distinct from product failures",
+          "test infrastructure does not distort acceptance"
+        ],
+        [
+          "maintainer",
+          "every research finding linked to a work item or reasoned disposition",
+          "later work remains discoverable"
+        ],
+        [
+          "OBS operator",
+          "existing resource subscriptions and retention semantics verified",
+          "already implemented capabilities are preserved"
+        ]
+      ],
+      "decisions": [
+        "Retain TypeScript/Effect, schema-first request descriptors and operations, explicit toolsets, capability filtering, and existing stdio/stateful/stateless HTTP boundaries.",
+        "Record settings compatibility, opt-in full-fidelity access and sensitive-value policy, and native-image result compatibility before implementation lanes begin. Choose exact public names within existing conventions and record the choice in this issue.",
+        "Use current source and lockfile for new acceptance; keep the pinned September research evidence immutable. Maintain production acceptance infrastructure separately from historical benchmark snapshots.",
+        "Use a freshly installed package through MCP with a controlled OBS endpoint as the primary seam. Reuse existing protocol and HTTP tests for properties impractical at that seam.",
+        "Correct semantic extraction, PNG validity, timeout observation margins, and false-success adjudication before turning research probes into CI assertions.",
+        "Reconcile existing issue #2 against implemented stateful subscriptions and documented screenshot retention. Close or narrow it only with acceptance evidence, not from a title match.",
+        "Track known fidelity gaps as explicit pending contracts; completing this foundation does not falsely mark those implementation gaps fixed.",
+        "Add field-aware protocol/schema comparison that inspects actual descriptor/tool fields, reports deliberate restrictions separately, and detects newly omitted required or supported locator fields. Correct 147 request-name versus 146 exported-descriptor wording and preserve batch-only Sleep.",
+        "Preserve static registration and existing quality/registry checks. Do not adopt a fail-safe loader that silently skips malformed local modules; these are required product modules, not optional third-party plugins."
+      ],
+      "tests": [
+        "Exercise real packaged entry initialization/listing, baseline scene/audio/record/image behavior, truthful errors, capability reduction, timeout and disconnect with deterministic fixture state.",
+        "Distinguish accepted mutation state, unknown outcome, valid alternative output shape, unavailable capability, and fixture-unimplemented requests.",
+        "Review documentation against actual tool/resource/transport contracts and confirm stateful/stateless subscription differences through existing HTTP tests.",
+        "Prove the runner detects representative known false-success and invalid-image cases without depending on implementation module layout.",
+        "Demonstrate that the field-aware audit detects representative missing/stripped fields and distinguishes explicit product restrictions from unsupported protocol requests."
+      ],
+      "out": "Implementing all fidelity features, changing the framework/language, native OBS integration, publishing a package, and rerunning the entire competitor census."
+    },
+    {
+      "key": "selectors",
+      "title": "Preserve scene UUID and canvas identity across public tools and batches",
+      "milestone": "M1",
+      "dependencies": [
+        "foundation"
+      ],
+      "problem": "Users cannot select some intended scenes or canvases because three official selector fields are absent from the public interface.",
+      "solution": "Support the missing selectors consistently from listed schema through request dispatch and observable result.",
+      "stories": [
+        [
+          "OBS operator",
+          "scene listing scoped by canvas UUID",
+          "I inspect the intended canvas"
+        ],
+        [
+          "OBS operator",
+          "input creation on a canvas selected with a scene name",
+          "the input is created in the intended place"
+        ],
+        [
+          "OBS operator",
+          "program-scene selection by scene UUID",
+          "renamed or ambiguous names do not select the wrong entity"
+        ],
+        [
+          "automation author",
+          "batch and ordinary scene selection to follow the same locator contract",
+          "composition does not lose identity"
+        ],
+        [
+          "MCP client author",
+          "listed schemas to describe valid selector combinations",
+          "I can construct valid calls"
+        ],
+        [
+          "OBS operator",
+          "invalid or unsupported selectors to fail explicitly",
+          "the server does not silently fall back to another scene"
+        ],
+        [
+          "existing client author",
+          "valid name-based requests to remain compatible",
+          "upgrading does not break established workflows"
+        ]
+      ],
+      "decisions": [
+        "Add canvasUuid to list_scenes and name-based create_input, and sceneUuid to set_current_scene.",
+        "Propagate supported locators through domain schemas, descriptors, operations, tools, relevant resources, and batch setters.",
+        "Follow the pinned official request's locator rules; do not invent uniform name/UUID precedence where request semantics differ.",
+        "Retain capability filtering and existing name-based contracts. Report unsupported behavior truthfully without dropping supplied identity."
+      ],
+      "tests": [
+        "Through packaged MCP, assert exact outgoing fields and independently verify the selected/created entity in a multi-canvas, duplicate-name fixture.",
+        "Cover UUID-only, supported name/canvas combinations, name compatibility, invalid combinations, and corresponding batch behavior.",
+        "Use focused batch/protocol tests when necessary; do not pretend the historical fixture already implements complete batch semantics."
+      ],
+      "out": "New canvas-management families, native process identity, broad scene editing, or a generic raw request escape hatch."
+    },
+    {
+      "key": "settings",
+      "title": "Provide explicit full-fidelity filter, output, and transition settings contracts",
+      "milestone": "M1",
+      "dependencies": [
+        "foundation"
+      ],
+      "problem": "Users cannot inspect and update nested or kind-specific OBS settings because current interfaces summarize or narrow values, and transition reads omit settings.",
+      "solution": "Expose an explicit, bounded settings representation that preserves supported nested values and makes restrictions visible while keeping existing typed conveniences compatible.",
+      "stories": [
+        [
+          "OBS operator",
+          "actual filter setting values",
+          "I can understand an existing filter before changing it"
+        ],
+        [
+          "OBS operator",
+          "nested filter settings that retain supported unknown keys",
+          "plugin configurations can round-trip"
+        ],
+        [
+          "OBS operator",
+          "kind-specific output settings",
+          "encoder or output configuration is not silently lost"
+        ],
+        [
+          "OBS operator",
+          "current transition settings on the valid existing read",
+          "I can inspect the transition OBS actually uses"
+        ],
+        [
+          "OBS operator",
+          "nested transition updates",
+          "valid structured settings are expressible"
+        ],
+        [
+          "existing client author",
+          "compatible typed convenience responses",
+          "my existing configuration automation keeps working"
+        ],
+        [
+          "OBS operator",
+          "explicit sensitive-setting exclusions and opt-in boundaries",
+          "I understand what data a call can reveal"
+        ],
+        [
+          "automation author",
+          "documented merge or replacement behavior",
+          "an update does not accidentally erase unrelated settings"
+        ],
+        [
+          "OBS operator",
+          "truthful rejection of unsupported settings",
+          "I am not told a change succeeded when it was discarded"
+        ]
+      ],
+      "decisions": [
+        "Use the foundation's recorded settings contract; keep lossless access explicit and retain existing typed convenience behavior.",
+        "Represent supported settings as bounded recursive JSON, including arrays, objects, booleans, strings, finite numbers and null; document limits and exclusions.",
+        "Preserve unknown permitted values within the selected settings contract. Sensitive-value exclusions must be explicit rather than silently implying an exact round-trip.",
+        "Expose transitionSettings from the existing valid current-transition request. Do not add the nonexistent GetCurrentSceneTransitionSettings request.",
+        "Specify OBS overlay/merge/replacement semantics for each write and avoid read-modify-write assumptions that overwrite concurrent changes.",
+        "Keep validation, request capability filtering, toolset policy, and truthful MCP error handling."
+      ],
+      "tests": [
+        "Execute packaged MCP read/update/readback cases with nested objects, arrays, unknown permitted keys and representative plugin/output settings; compare actual fixture state.",
+        "Verify typed convenience compatibility, explicit opt-in behavior, sensitive-field policy, size/depth limits, malformed inputs and OBS rejections.",
+        "Assert current-transition settings are returned using a valid public request name and that excluded/rejected values never appear as successful writes."
+      ],
+      "out": "Arbitrary code execution, indiscriminate secret exposure, accepting all unbounded input, a universal raw OBS dispatcher, or an exhaustive catalog of plugin-specific controls."
+    },
+    {
+      "key": "images",
+      "title": "Return native MCP images and define remote screenshot save semantics",
+      "milestone": "M1",
+      "dependencies": [
+        "foundation"
+      ],
+      "problem": "Complete screenshot bytes are currently embedded in JSON, and save validation assumes compatible MCP/OBS filesystems, limiting reliable visual verification.",
+      "solution": "Let supported clients consume bounded native MCP image results while preserving the agreed metadata contract and making save-location semantics explicit.",
+      "stories": [
+        [
+          "OBS operator",
+          "a screenshot directly consumable by my MCP client",
+          "I can verify what OBS is showing"
+        ],
+        [
+          "MCP client author",
+          "complete image content and MIME metadata",
+          "I do not need custom JSON-base64 extraction"
+        ],
+        [
+          "existing client author",
+          "compatible documented screenshot metadata",
+          "upgrading does not break resource consumers"
+        ],
+        [
+          "remote OBS operator",
+          "clear destination-host semantics for saved images",
+          "a path check on one machine is not mistaken for a write on another"
+        ],
+        [
+          "OBS operator",
+          "bounded image sizes and retention",
+          "visual checks do not create unbounded memory or files"
+        ],
+        [
+          "OBS operator",
+          "truthful unsupported-format and capture failures",
+          "I can choose a supported alternative"
+        ],
+        [
+          "MCP client author",
+          "consistent tool and latest-screenshot resource behavior",
+          "I can correlate visual evidence with its capture"
+        ],
+        [
+          "maintainer",
+          "a recorded real OBS/client acceptance result",
+          "mock image validity is not mistaken for rendering proof"
+        ]
+      ],
+      "decisions": [
+        "Use native MCP image tool content as the selected first-milestone path, with existing metadata retained compatibly. Preserve the existing latest-screenshot metadata resource and retention ownership; do not create a second image-retention surface.",
+        "Preserve complete bounded content, MIME metadata, configured toolsets and capability gating. Keep existing latest-screenshot resource lifetime explicit.",
+        "Define local/shared/remote filesystem behavior and truthful unsupported cases. Do not treat a local path check as proof of a remote OBS save.",
+        "Keep currently supported formats explicit; investigate capability-based format expansion only against a demonstrated supported format.",
+        "Retain path boundaries and bounded retention; document any opt-in filesystem assumptions."
+      ],
+      "tests": [
+        "Through packaged MCP verify full image decoding, dimensions/content where applicable, payload bounds, malformed image rejection, tool/resource consistency and unsupported capabilities.",
+        "Reuse existing HTTP/resource tests for lifetime and transport semantics instead of creating parallel retention test infrastructure.",
+        "Before release, run an isolated real OBS capture with an actual supported MCP client and record that the image is consumable. Test the claimed save topology separately."
+      ],
+      "out": "Visual AI judgments, automatic image-diff policy, unbounded screenshot history, OS-wide capture, or cross-platform window-management promises."
+    },
+    {
+      "key": "release",
+      "title": "Prepare and gate publication of the exact OBS package that passes acceptance",
+      "milestone": "M1",
+      "dependencies": [
+        "foundation",
+        "selectors",
+        "settings",
+        "images"
+      ],
+      "problem": "Initialization and tool-count smoke checks do not establish usable OBS behavior, and the publication path does not explicitly bind publication to the tested tarball.",
+      "solution": "Extend existing package verification to the full reference workflow and prepare publication of the exact verified artifact, with attributable registry evidence required when the maintainer authorizes release.",
+      "stories": [
+        [
+          "installer",
+          "a package that completes the advertised OBS workflow",
+          "successful installation means useful operation"
+        ],
+        [
+          "automation author",
+          "truthful failures from the installed package",
+          "my agent does not act on fabricated success"
+        ],
+        [
+          "maintainer",
+          "the tested tarball to be the published tarball",
+          "release rebuilding cannot bypass acceptance"
+        ],
+        [
+          "installer",
+          "verified published identity, version and integrity",
+          "I can attribute the installed artifact"
+        ],
+        [
+          "maintainer",
+          "supported Node versions exercised",
+          "dependency updates cannot silently break entry"
+        ],
+        [
+          "MCP user",
+          "defaults and opt-in capabilities tested separately",
+          "the all-toolsets test does not misrepresent defaults"
+        ],
+        [
+          "maintainer",
+          "clear publication failure and retry behavior",
+          "an interrupted attempt does not justify overwriting conflicting artifacts"
+        ],
+        [
+          "maintainer",
+          "visual acceptance evidence linked to a release candidate",
+          "real-client checks refer to the intended build"
+        ]
+      ],
+      "decisions": [
+        "Extend the existing package smoke, Node compatibility matrix and release flow; do not introduce a parallel packaging architecture.",
+        "Install the packed tarball in a clean consumer and execute MCP inspection, mutation/readback, recording, native image, capability/error and lifecycle assertions against controlled OBS.",
+        "Publish the same verified tarball and compare registry integrity, identity and version afterward. Preserve exact candidate/source/dependency provenance.",
+        "Exercise documented defaults as well as the explicit all-toolsets acceptance configuration; disclose configured timeout values.",
+        "Use existing authenticated publication policy. Never overwrite conflicting versions or move release references to conceal failures.",
+        "Implementation may prepare and verify artifacts; actual npm publication requires the maintainer's release authorization. Creating this planning issue is not publication authorization."
+      ],
+      "tests": [
+        "Run meaningful packed-process acceptance on supported Node versions; verify resulting OBS state and MCP error semantics rather than only tool counts.",
+        "Test wrong/missing artifact identity and digest mismatches, registry lookup failures and conflicting publication states with controlled boundaries.",
+        "Require a green existing quality gate and recorded isolated real OBS/client visual acceptance for the selected artifact; do not put real OBS into deterministic default CI."
+      ],
+      "out": "Publishing during spec creation, a native five-platform release matrix, unrelated package-manager migration, or rewriting existing authentication policy."
+    },
+    {
+      "key": "health",
+      "title": "Add read-only AV-health diagnosis with explicit evidence and unknowns",
+      "milestone": "M2",
+      "dependencies": [
+        "release"
+      ],
+      "problem": "Users must manually combine low-level status calls and can confuse unavailable measurements with healthy audio/video.",
+      "solution": "Provide one bounded read-only diagnostic workflow that reports observations, evidence-backed warnings, unknowns and supported next actions.",
+      "stories": [
+        [
+          "OBS operator",
+          "one AV-health report",
+          "I can locate likely recording or streaming problems"
+        ],
+        [
+          "OBS operator",
+          "measured facts separated from inferred warnings",
+          "I understand how confident the diagnosis is"
+        ],
+        [
+          "OBS operator",
+          "unknown or unsupported checks marked clearly",
+          "missing measurements are not called healthy"
+        ],
+        [
+          "OBS operator",
+          "no OBS mutations during diagnosis",
+          "I can inspect a live session without changing it"
+        ],
+        [
+          "OBS operator",
+          "bounded sampling and cancellation",
+          "diagnosis does not hang or accumulate data indefinitely"
+        ],
+        [
+          "OBS operator",
+          "actionable recommendations tied to supported tools",
+          "I can address the reported problem"
+        ],
+        [
+          "MCP client author",
+          "stable structured results with timestamps or freshness evidence",
+          "I can present the diagnosis accurately"
+        ],
+        [
+          "maintainer",
+          "controlled healthy and degraded scenarios",
+          "warning rules are verifiable"
+        ]
+      ],
+      "decisions": [
+        "Compose existing status, statistics, audio/output and resource operations; do not duplicate their connection or error policy.",
+        "Define observation windows, freshness, threshold provenance, unsupported measurements and cancellation before exposing results.",
+        "Do not infer successful live streaming, audible signal or actual rendered correctness merely from an active flag.",
+        "Keep the first workflow read-only. Use task-level vocabulary rather than exposing protocol implementation details."
+      ],
+      "tests": [
+        "Execute the packaged MCP diagnostic against controlled healthy, degraded, unavailable, stale and disconnected fixture states; assert zero mutation requests.",
+        "Verify each warning points to observed evidence and that unknown measurements cannot become healthy defaults.",
+        "Validate modeled AV warning semantics with controlled OBS observations. Any later physical audio/device claim needs explicitly scoped real-environment evidence; such a manual follow-up is not silently added to the approved visual release gate."
+      ],
+      "out": "Automatic repair, audio-chain mutation, continuous monitoring service, AI visual judgment, or guarantees about codecs/devices not actually measured."
+    },
+    {
+      "key": "guided",
+      "title": "Add preview/apply audio setup with bounded failure and restoration semantics",
+      "milestone": "M2",
+      "dependencies": [
+        "health",
+        "settings",
+        "selectors",
+        "lifecycle"
+      ],
+      "problem": "Operators lack a task-level preview/apply path for useful audio setup and cannot safely reason about partial changes across multiple operations.",
+      "solution": "Deliver one focused audio-setup workflow with an inspectable preview, explicit apply, postcondition evidence and conflict-aware partial-failure handling.",
+      "stories": [
+        [
+          "OBS operator",
+          "a preview of planned audio changes",
+          "I can understand the effect before applying it"
+        ],
+        [
+          "OBS operator",
+          "an explicit apply action",
+          "inspection does not mutate OBS"
+        ],
+        [
+          "OBS operator",
+          "target identity revalidated before apply",
+          "a stale preview does not change another input"
+        ],
+        [
+          "OBS operator",
+          "postconditions checked after each change",
+          "acceptance is not mistaken for completion"
+        ],
+        [
+          "OBS operator",
+          "partial progress and uncertain outcomes reported",
+          "I know which state may need attention"
+        ],
+        [
+          "OBS operator",
+          "restoration that detects intervening changes",
+          "recovery does not overwrite another operator's work"
+        ],
+        [
+          "automation author",
+          "bounded deadlines and cancellation",
+          "a multi-step job cannot run indefinitely"
+        ],
+        [
+          "OBS operator",
+          "supported settings and prerequisites stated",
+          "the workflow does not promise unavailable plugins"
+        ],
+        [
+          "maintainer",
+          "one complete useful workflow before a generic engine",
+          "its behavior can be tested and maintained"
+        ]
+      ],
+      "decisions": [
+        "Build on existing operations and the lifecycle investigation's verified contract; choose one documented audio setup profile and supported prerequisites.",
+        "Define preview lifetime, target identity, explicit apply, step results, terminal success/failure/unknown states and bounded execution.",
+        "Preserve the existing non-retry policy for uncertain in-flight mutations; do not silently repeat a possibly applied action.",
+        "Record affected state and compensate only where safe. Conflicts, disconnects or uncertain restoration remain explicit outcomes.",
+        "Keep preview/apply extensible for later tasks without building an arbitrary workflow interpreter."
+      ],
+      "tests": [
+        "At packaged MCP level prove preview sends no mutations, stale previews are rejected or safely revalidated, successful apply matches state, and each injected step failure reports actual progress.",
+        "Cover applied-but-reply-lost, cancellation, reconnect, missing prerequisites and intervening external changes before restoration.",
+        "Verify the chosen audio profile and partial-apply cases through the controlled OBS fixture. Any physical audio-quality or platform-specific claim requires a separately scoped manual validation, beyond this issue's automated acceptance."
+      ],
+      "out": "General scripting, automatic changes during diagnosis, broad scene/recording workflow families, or blind snapshot restoration."
+    },
+    {
+      "key": "history",
+      "title": "Extend bounded OBS history into useful event and audio-meter diagnostics",
+      "milestone": "M2",
+      "dependencies": [
+        "health"
+      ],
+      "problem": "Existing bounded events and confirmations do not yet provide a complete user-facing explanation of recent changes or aggregated audio-meter evidence.",
+      "solution": "Extend the existing event infrastructure only where it supports a concrete recent-history or AV diagnostic query.",
+      "stories": [
+        [
+          "OBS operator",
+          "a derived explanation or media-liveness summary over the existing bounded recent-event API",
+          "I can understand why my session changed"
+        ],
+        [
+          "OBS operator",
+          "summarized meter evidence rather than thousands of samples",
+          "I can assess levels without a data flood"
+        ],
+        [
+          "OBS operator",
+          "gaps, overflow and stale intervals identified",
+          "absence of events is not mistaken for absence of change"
+        ],
+        [
+          "OBS operator",
+          "explicit opt-in for high-volume measurements",
+          "diagnostics do not silently increase data collection"
+        ],
+        [
+          "automation author",
+          "bounded reads and cancellation",
+          "history queries remain predictable"
+        ],
+        [
+          "MCP client author",
+          "events correlated with relevant targets and operations",
+          "the history is useful for diagnosis"
+        ],
+        [
+          "maintainer",
+          "existing event and confirmation semantics preserved",
+          "new diagnostics do not duplicate or destabilize the event layer"
+        ]
+      ],
+      "decisions": [
+        "Reuse existing bounded event buffers, resources and named confirmations; do not replace them with a second client/event store.",
+        "Define opt-in meter subscription groups, aggregation windows, memory bounds, overflow/gap markers, freshness and supported event families.",
+        "Keep screenshots, credentials and sensitive settings out of ordinary event summaries according to existing policy.",
+        "Distinguish diagnostic history from a durable audit log or proof that every external action was observed."
+      ],
+      "tests": [
+        "Drive real MCP queries with controlled events, meter samples, overflow, reconnect and cancellation; assert bounded memory-visible behavior and truthful gaps.",
+        "Use focused existing event tests for scheduling/overflow boundaries and package-level tests for user-visible results.",
+        "Verify aggregation against controlled OBS meter samples. Do not claim actual audible quality or clipping diagnosis beyond what the measured values establish; physical-signal validation is a separately scoped follow-up.",
+        "Verify the diagnostic delta over the existing recent-event API and preserve its public behavior and bounded store; do not test a duplicate history implementation."
+      ],
+      "out": "An unbounded event firehose, permanent audit database, generic arbitrary-event automation, or recreating already implemented confirmations."
+    },
+    {
+      "key": "discovery",
+      "title": "Add grounded MCP prompts, completions and behavioral annotations",
+      "milestone": "M2",
+      "dependencies": [
+        "health",
+        "images"
+      ],
+      "problem": "Users and clients cannot easily discover supported task workflows or valid current identifiers, and behavior hints are absent.",
+      "solution": "Expose capability-grounded prompts, supported MCP completion domains and accurate behavior annotations over existing operations.",
+      "stories": [
+        [
+          "OBS operator",
+          "prompts for supported tasks",
+          "I can start a recording or diagnosis workflow without knowing tool names"
+        ],
+        [
+          "MCP client user",
+          "current valid identifier suggestions",
+          "I avoid stale or misspelled names"
+        ],
+        [
+          "MCP client author",
+          "accurate read-only and destructive behavior hints",
+          "I can present calls appropriately"
+        ],
+        [
+          "OBS operator",
+          "prompts that respect enabled toolsets",
+          "guidance does not refer to unavailable actions"
+        ],
+        [
+          "OBS operator",
+          "unsupported client completion behavior documented",
+          "I understand why suggestions may not appear"
+        ],
+        [
+          "OBS operator",
+          "fresh bounded suggestions with identity context",
+          "duplicate names do not mislead me"
+        ],
+        [
+          "automation author",
+          "annotations treated as hints rather than authorization",
+          "security does not depend on client interpretation"
+        ]
+      ],
+      "decisions": [
+        "Use implemented workflows/tools/resources as the sole authority for prompt content and capability availability.",
+        "Support completion only at MCP-defined references supported by the client and protocol; do not promise universal tool-argument autocomplete.",
+        "Define bounded, fresh scene/source/input/filter/profile/collection suggestions consistent with locator identity and enabled capabilities.",
+        "Derive accurate read-only, destructive and idempotence behavior annotations from each public operation's actual semantics; hints do not grant permissions or replace validation.",
+        "Start with a small documented prompt set for existing recording, visual verification and health jobs."
+      ],
+      "tests": [
+        "Use actual MCP handlers/clients to inspect prompts, supported completion requests and annotations under multiple toolsets/capability profiles.",
+        "Verify suggestions after rename/removal, duplicate names, unavailable OBS, cancellation and bounded result limits.",
+        "Test prompts against registered capabilities and expected task outcomes, not exact prose snapshots."
+      ],
+      "out": "Inventing functionality through prompt text, undocumented tool-call autocomplete, or using behavior hints as security controls."
+    },
+    {
+      "key": "presets",
+      "title": "Add versioned preset diff and apply contracts over verified operations",
+      "milestone": "M2",
+      "dependencies": [
+        "guided"
+      ],
+      "problem": "Operators cannot save and compare a supported known-good setup with clear version, secret and restoration behavior.",
+      "solution": "Provide bounded, versioned presets with preview/diff and explicit apply for a deliberately chosen supported setup scope.",
+      "stories": [
+        [
+          "OBS operator",
+          "save a supported setup as a named preset",
+          "I can repeat it later"
+        ],
+        [
+          "OBS operator",
+          "diff a preset against current state",
+          "I can inspect proposed changes"
+        ],
+        [
+          "OBS operator",
+          "explicit apply and target revalidation",
+          "a preset does not unexpectedly change OBS"
+        ],
+        [
+          "OBS operator",
+          "list, rename and delete presets",
+          "I can maintain my saved setups"
+        ],
+        [
+          "OBS operator",
+          "credentials excluded from stored presets",
+          "sharing or retaining them does not expose secrets"
+        ],
+        [
+          "OBS operator",
+          "clear schema-version and unsupported-field handling",
+          "old presets do not silently change meaning"
+        ],
+        [
+          "OBS operator",
+          "bounded storage and explicit location",
+          "preset persistence remains manageable"
+        ],
+        [
+          "OBS operator",
+          "conflict-aware partial apply results",
+          "recovery does not overwrite intervening work"
+        ]
+      ],
+      "decisions": [
+        "Choose and document one persistence boundary (server state, OBS persistent data or explicitly scoped files) before implementation; do not silently use all three.",
+        "Start with the verified workflow's supported setup scope; record scope before broad scene/source/recording families are added.",
+        "Version schemas from the first release, define migration/rejection policy, storage limits, identity handling and sensitive-value exclusions.",
+        "Reuse preview/apply and restoration contracts rather than implementing a second mutation engine."
+      ],
+      "tests": [
+        "Test save/read/diff/apply through MCP with deterministic state, no-op diffs, invalid/old versions, secret exclusions, target changes and partial failure.",
+        "Test persistence boundary and size/path limits using the existing filesystem/configuration seams where applicable.",
+        "Prove rejected or unsupported preset content cannot become a silently successful partial application."
+      ],
+      "out": "Arbitrary OBS configuration backup, unrestricted files, full scene graph cloning, or storing stream credentials."
+    },
+    {
+      "key": "onboarding",
+      "title": "Evaluate OBS onboarding and distribution improvements against measured friction",
+      "milestone": null,
+      "dependencies": [
+        "release"
+      ],
+      "problem": "Published npm entry works, but startup diagnostics, client setup and platform-specific installation paths may still impose avoidable friction.",
+      "solution": "Produce an evidence-backed distribution/onboarding decision and implementation-ready follow-up contracts for any selected improvement.",
+      "stories": [
+        [
+          "new user",
+          "clear connection and configuration diagnostics",
+          "I can distinguish OBS startup, credentials and MCP setup problems"
+        ],
+        [
+          "new user",
+          "accurate client examples and defaults",
+          "I can enable the intended tools"
+        ],
+        [
+          "desktop user",
+          "an evaluated desktop bundle path",
+          "installation choices match supported clients"
+        ],
+        [
+          "platform user",
+          "explicit support for OBS startup and capture prerequisites",
+          "a platform claim is backed by execution"
+        ],
+        [
+          "maintainer",
+          "MCPB, native, container and editor packaging compared against user friction",
+          "maintenance cost is justified"
+        ],
+        [
+          "user",
+          "backup and credential behavior stated before setup actions",
+          "onboarding does not silently alter my environment"
+        ],
+        [
+          "maintainer",
+          "a recorded adopt/defer/reject decision for each packaging direction",
+          "unselected ideas remain tracked"
+        ]
+      ],
+      "decisions": [
+        "Audit existing npm, registry metadata, Docker/container support and client examples before proposing additions; preserve what is already working.",
+        "Evaluate MCPB first as a bounded desktop packaging candidate, and compare native binaries/Homebrew, Docker, VS Code/editor packaging and platform auto-start only for defined user jobs.",
+        "Separate connection diagnostics from starting OBS, changing obs-websocket settings, backup/restore or plugin installation.",
+        "Deliver a decision matrix with evidence, supported environments, costs, explicit dispositions and linked follow-up specs for any selected implementation.",
+        "Do not execute system/plugin installs or publish artifacts merely because this investigation is ready for an agent."
+      ],
+      "tests": [
+        "Reproduce selected installation friction from an isolated clean consumer and compare the proposed path using exact attributable artifacts.",
+        "Verify existing lazy discovery versus ordinary OBS-connected startup in relevant client examples.",
+        "Acceptance for this issue is a bounded decision plus evidence; any selected code change must have a follow-up behavioral acceptance contract."
+      ],
+      "out": "Automatic system configuration changes, a commitment to every packaging format, native-platform expansion without demand, or copying competitors' installers."
+    },
+    {
+      "key": "lifecycle",
+      "title": "Audit transferable deadline, postcondition and OBS identity guarantees",
+      "milestone": null,
+      "dependencies": [
+        "foundation"
+      ],
+      "problem": "DCC exposes stronger explicit identity/deadline semantics, but the current server already has substantial cancellation and non-retry behavior, so the actual transferable gaps need precise evidence.",
+      "solution": "Record an evidence-backed lifecycle contract that preserves existing guarantees and identifies only demonstrated or workflow-required additions.",
+      "stories": [
+        [
+          "OBS operator",
+          "a truthful uncertain-outcome result",
+          "a lost response is not reported as successful completion"
+        ],
+        [
+          "automation author",
+          "no unsafe replay of an in-flight mutation",
+          "a reconnect cannot duplicate side effects"
+        ],
+        [
+          "OBS operator",
+          "bounded multi-step execution",
+          "deadlines remain meaningful across composed operations"
+        ],
+        [
+          "OBS operator",
+          "postcondition evidence where a workflow promises confirmation",
+          "accepted requests are not confused with verified outcomes"
+        ],
+        [
+          "maintainer",
+          "existing cancellation/non-retry tests inventoried",
+          "working guarantees are not unnecessarily reimplemented"
+        ],
+        [
+          "OBS operator",
+          "identity claims limited to what ordinary OBS WebSocket exposes",
+          "the server does not invent process identity"
+        ],
+        [
+          "maintainer",
+          "a clear decision on native instance binding",
+          "DCC's native-only contract is not mistaken for a simple configuration option"
+        ]
+      ],
+      "decisions": [
+        "Inspect existing request correlation, cancellation, reconnect, event continuity, in-flight request and batch non-retry guarantees.",
+        "Compare pre-send failure, post-send uncertain outcome, readback/reconciliation, composed deadlines and intervening changes at the public contract.",
+        "Separate ordinary WebSocket connection/session evidence from exact OBS PID/plugin-instance/event-sequence guarantees that require a native extension.",
+        "Produce a gap/guarantee matrix, preserve-existing dispositions and bounded follow-up acceptance cases for needed improvements; no blanket client rewrite.",
+        "Provide the verified lifecycle assumptions required by the guided preview/apply work."
+      ],
+      "tests": [
+        "Reuse actual protocol and packaged-process seams; extend only uncovered applied-but-reply-lost, deadline propagation or identity-change cases.",
+        "Inspect actual OBS state and returned errors, not generic bounded-response success predicates.",
+        "Do not assign observed passes to a missing native environment; label source reasoning and execution separately."
+      ],
+      "out": "Implementing a native plugin, changing language/framework, adding automatic retries for uncertain mutations, or promising PID identity from standard requests."
+    },
+    {
+      "key": "product",
+      "title": "Decide broader OBS product directions without losing deferred opportunities",
+      "milestone": null,
+      "dependencies": [],
+      "problem": "The study identifies valuable broader workflows whose dependencies and product costs exceed the next server milestone; without explicit dispositions they can disappear or become accidental scope.",
+      "solution": "Maintain and resolve a bounded decision backlog for broader product directions, with evidence and follow-up contracts for selected work.",
+      "stories": [
+        [
+          "product maintainer",
+          "every broader opportunity given an explicit disposition",
+          "the research remains actionable"
+        ],
+        [
+          "recording user",
+          "window capture and private recording evaluated by platform",
+          "support claims reflect OBS and OS constraints"
+        ],
+        [
+          "show operator",
+          "media/showrunner and visual verification workflows evaluated",
+          "the server can grow around useful jobs"
+        ],
+        [
+          "multi-PC operator",
+          "readiness, confirmation and restoration considered together",
+          "coordination does not confuse local state with end-to-end signal"
+        ],
+        [
+          "live producer",
+          "overlay, Stream Deck and transcription-assist options evaluated",
+          "a larger product is chosen deliberately"
+        ],
+        [
+          "creator",
+          "dashboard and AI-streamer directions considered with their dependencies",
+          "UI, chat, TTS and avatar work does not appear as hidden server scope"
+        ],
+        [
+          "maintainer",
+          "native OBS plugin and device-management costs recorded",
+          "architecture scores do not dictate an unnecessary platform change"
+        ],
+        [
+          "maintainer",
+          "each deferral has a revisit trigger and linked follow-up destination",
+          "continuation is preserved"
+        ]
+      ],
+      "decisions": [
+        "Assess separately: recording/window capture helpers; status/showrunner/media sequencing and visual diff; multi-PC production; dashboards/TUI/embedded creator UI; overlays/Stream Deck/live transcription; AI streaming/chat/TTS/avatar; native OBS plugin and device/plugin/system management.",
+        "Use user jobs, platform/runtime evidence, maintenance burden and boundaries as decision criteria; scores and tool counts alone do not justify adoption.",
+        "Distinguish source-supported designs from verified runtime behavior, especially DCC native and BEA hosted workflows.",
+        "For every direction record adopt/defer/reject, rationale, prerequisites, revisit trigger, and a linked implementation spec if adopted.",
+        "Keep named event-confirmed workflow extensions separate from an unbounded generic scripting/event engine."
+      ],
+      "tests": [
+        "Decision acceptance requires a traceable source finding and explicit disposition for every listed direction.",
+        "Use bounded prototypes or environment checks only when needed to resolve a specific decision; specify their observable success criteria first.",
+        "Do not claim production, platform or real-OBS verification from a source-only comparison."
+      ],
+      "out": "Building all listed products, operating hosted accounts, installing plugins/services, or approving a rewrite solely from competitor rankings."
+    },
+    {
+      "key": "epic",
+      "title": "Adopt OBS competitor findings with complete traceability and release acceptance",
+      "milestone": null,
+      "dependencies": [],
+      "problem": "The research establishes concrete fidelity gaps and useful future directions, but a first milestone alone would leave later findings without accountable destinations.",
+      "solution": "Deliver a dependable fidelity-and-visual milestone, track later guided workflows, and preserve every remaining finding through explicit investigations, existing-capability records or reasoned rejection.",
+      "stories": [
+        [
+          "OBS operator",
+          "settings values that retain supported nested data",
+          "I can inspect and change real configurations"
+        ],
+        [
+          "OBS operator",
+          "explicit settings exclusions",
+          "I know when an interface cannot round-trip a value"
+        ],
+        [
+          "existing client author",
+          "compatible typed convenience behavior",
+          "upgrades preserve existing integrations"
+        ],
+        [
+          "OBS operator",
+          "canvas-scoped scene discovery",
+          "I inspect the intended production canvas"
+        ],
+        [
+          "OBS operator",
+          "canvas-aware input creation",
+          "new sources appear in the intended scene"
+        ],
+        [
+          "OBS operator",
+          "UUID-based scene selection",
+          "names do not misidentify targets"
+        ],
+        [
+          "automation author",
+          "consistent batch selector behavior",
+          "composed changes retain identity"
+        ],
+        [
+          "OBS operator",
+          "current transition settings from a valid request",
+          "I can inspect and update the active transition"
+        ],
+        [
+          "MCP client author",
+          "native complete image content",
+          "visual verification works without custom decoding"
+        ],
+        [
+          "remote operator",
+          "explicit screenshot filesystem semantics",
+          "remote saves are not falsely validated locally"
+        ],
+        [
+          "OBS operator",
+          "bounded screenshot retention and payloads",
+          "visual checks remain manageable"
+        ],
+        [
+          "OBS operator",
+          "capability-aware behavior",
+          "unsupported OBS requests fail honestly"
+        ],
+        [
+          "OBS operator",
+          "truthful timeout and disconnect results",
+          "unknown outcomes are not invented successes"
+        ],
+        [
+          "automation author",
+          "no unsafe replay of uncertain mutations",
+          "recovery does not duplicate side effects"
+        ],
+        [
+          "MCP user",
+          "accurate documentation and annotations",
+          "I understand actual behavior"
+        ],
+        [
+          "MCP user",
+          "existing resources and HTTP subscriptions preserved",
+          "new work does not regress working features"
+        ],
+        [
+          "installer",
+          "semantic verification of the installed artifact",
+          "installation success means useful operation"
+        ],
+        [
+          "installer",
+          "published bytes matched to the verified artifact",
+          "release provenance is meaningful"
+        ],
+        [
+          "maintainer",
+          "supported runtime compatibility exercised",
+          "dependency updates cannot silently break entry"
+        ],
+        [
+          "maintainer",
+          "real OBS/client visual acceptance distinguished from mocks",
+          "we make defensible release claims"
+        ],
+        [
+          "OBS operator",
+          "read-only AV-health diagnosis",
+          "I can find likely problems without changing a live session"
+        ],
+        [
+          "OBS operator",
+          "observations separated from warnings and unknowns",
+          "I can assess diagnostic evidence"
+        ],
+        [
+          "OBS operator",
+          "preview before a supported audio setup",
+          "I can understand a proposed change"
+        ],
+        [
+          "OBS operator",
+          "explicit apply and target revalidation",
+          "stale plans do not change the wrong input"
+        ],
+        [
+          "OBS operator",
+          "step-level partial failure evidence",
+          "I know which state requires attention"
+        ],
+        [
+          "OBS operator",
+          "conflict-aware restoration",
+          "recovery respects intervening changes"
+        ],
+        [
+          "OBS operator",
+          "bounded recent event and meter summaries",
+          "I can explain session changes without a data flood"
+        ],
+        [
+          "OBS operator",
+          "grounded task prompts",
+          "I can discover supported workflows"
+        ],
+        [
+          "MCP client user",
+          "supported fresh identifier completions",
+          "I make fewer invalid requests"
+        ],
+        [
+          "OBS operator",
+          "versioned preset diff and apply",
+          "I can repeat a known-good supported setup"
+        ],
+        [
+          "OBS operator",
+          "secrets excluded from stored presets",
+          "saved configurations remain appropriate to retain"
+        ],
+        [
+          "new user",
+          "clear setup and connection diagnostics",
+          "I can get the existing server working"
+        ],
+        [
+          "desktop user",
+          "packaging decisions based on actual friction",
+          "new delivery formats are useful"
+        ],
+        [
+          "platform user",
+          "honest startup and window-capture support",
+          "OS-specific limitations are visible"
+        ],
+        [
+          "maintainer",
+          "native identity guarantees evaluated separately",
+          "we do not confuse plugin-only capabilities with WebSocket features"
+        ],
+        [
+          "multi-PC operator",
+          "coordination and restoration evaluated together",
+          "future automation can account for partial failure"
+        ],
+        [
+          "live producer",
+          "broader UI, overlay and streaming ideas explicitly tracked",
+          "valuable opportunities do not disappear"
+        ],
+        [
+          "maintainer",
+          "a disposition for every actionable research finding",
+          "continuation survives the first milestone"
+        ],
+        [
+          "maintainer",
+          "dependencies and milestone scope visible in the tracker",
+          "agents execute work in the right order"
+        ],
+        [
+          "maintainer",
+          "historical research preserved when decisions change",
+          "later reviews can reconstruct why the product evolved"
+        ],
+        [
+          "maintainer",
+          "release work closed only against actual acceptance evidence",
+          "implemented automation is not mistaken for delivery"
+        ],
+        [
+          "maintainer",
+          "rejected unsupported competitor claims recorded",
+          "we do not add invalid requests or chase misleading counts"
+        ]
+      ],
+      "decisions": [
+        "Retain the existing TypeScript/Effect architecture and documented toolset/capability policy. Adopt independent design strengths through observable product contracts.",
+        "Use one parent tracker with five first-milestone implementation children, five later workflow/discovery children, and three bounded decision/audit children.",
+        "Keep the full finding-to-disposition map in this parent and a repository mirror. Every actionable finding has a linked destination, preserve-existing evidence, or explicit rejection rationale.",
+        "Historical comparative evidence remains pinned; new baseline and release evidence name their actual source and artifact.",
+        "Ready-for-agent indicates the spec is triaged, not that dependency-blocked or later-milestone work may start early.",
+        "Existing issue #2 is a reconciliation target, not a duplicate implementation task: verify its stated subscription and retention acceptance before closing or narrowing it.",
+        "Parent completion requires linked implementation children to meet acceptance and decision children to resolve every direction with explicit follow-ups or rejection. Unresolved later work keeps the parent open."
+      ],
+      "tests": [
+        "Primary acceptance seam approved by the user: freshly installed package through MCP against controlled OBS, with focused existing protocol/HTTP tests where necessary and separate isolated real OBS/client visual verification before release.",
+        "Test external results, resulting OBS state, errors, bounds and artifact identity; avoid coupling assertions to module layout or tool counts.",
+        "Use the study's counterexamples as regression inputs after correcting known fixture-oracle limitations.",
+        "Audit finding coverage, dependencies, acceptance evidence and actual release attribution before marking milestones or parent complete."
+      ],
+      "out": "Implementing production code during spec publication; promising all investigated product directions; native/framework rewrites; arbitrary execution; unbounded data collection; publishing npm packages without release authorization."
+    }
+  ]
+}
